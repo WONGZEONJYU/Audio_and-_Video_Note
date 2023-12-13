@@ -1,11 +1,11 @@
 # 1. 图像基础概念
 
-* 像素 : 像素是一个图片的基本单位 , pix是英语单词picture的简写 , 加上英语单词 “元素element” ,  就得到了 “pixel”， 简称px， 所以“像素”有“图像元素”之意。
-* 分辨率： 是指图像的大小或尺寸。 比如 1920x1080。
-* 位深： 是指在记录数字图像的颜色时 , 计算机实际上是用每个像素需要的位深来表示的。 比如红色分量用8bit。
-* 帧率： 在1秒钟时间里传输的图片的帧数 , 也可以理解为图形处理器每秒钟能够刷新几次。 比如25fps表示一秒有25张片
-* 码率： 视频文件在单位时间内使用的数据流量。 比如1Mbps。
-* Stride： 指在内存中每行像素所占的空间。 为了实现内存对齐每行像素在内存中所占的空间 **$\color{red}{并不一定}$** 是图像的宽度。
+* 像素 : 像素是一个图片的基本单位 , pix是英语单词picture的简写 , 加上英语单词 “元素element” ,  就得到了 “pixel”， 简称px , 所以“像素”有“图像元素”之意。
+* 分辨率 : 是指图像的大小或尺寸。 比如 1920x1080。
+* 位深 : 是指在记录数字图像的颜色时 , 计算机实际上是用每个像素需要的位深来表示的。 比如红色分量用8bit。
+* 帧率 : 在1秒钟时间里传输的图片的帧数 , 也可以理解为图形处理器每秒钟能够刷新几次。 比如25fps表示一秒有25张片
+* 码率 : 视频文件在单位时间内使用的数据流量。 比如1Mbps。
+* Stride : 指在内存中每行像素所占的空间。 为了实现内存对齐每行像素在内存中所占的空间 **$\color{red}{并不一定}$** 是图像的宽度。
 
 ## 1.1 像素
 
@@ -126,35 +126,36 @@ YUV采用A : B : C表示法来描述 **$\color{red}{Y,U,V采样频率比例}$** 
 
 下面以每个分量数据存储在一个char（或byte） 中为例描述YUV的数据存储方式。
 
-* 4 : 4 : 4格式
-* 4 : 2 : 2格式
-* 4 : 2 : 0格式
+* 4 : 4 : 4 格式
+* 4 : 2 : 2 格式
+* 4 : 2 : 0 格式
 
-#### 2.2.2.1 YUV数据存储 - 4 : 4 : 4 格式
+#### 2.2.2.1 YUV数据存储 - 4 : 4 : 4 格式 - `YUV444P`
 
 * 比如 I444(YUV444P)格式 , 对应 FFmpeg 像素表示 `AV_PIX_FMT_YUV444P` 
-  * ///< planar YUV4:4:4, 24bpp, (1 Cr & Cb sample per 1x1 Y samples)
+  * ///< planar YUV4:4:4, 24bpp, (1 Cr & Cb sample per 1 x 1 Y samples)
 
 <img src="assets/image-20231213095657129.png" alt="image-20231213095657129" /> 
 
 > I444(YUV444P)格式
 
-#### 2.2.2.2 YUV数据存储 - 4 : 2 : 2 格式
+#### 2.2.2.2 YUV数据存储 - 4 : 2 : 2 格式 - `YUV422P`
 
 * 对应Ffmpeg像素表示 `AV_PIX_FMT_YUV422P` 
-  * ///< planar YUV 4:2:2, 16bpp, (1 Cr& Cb sample per 2x1 Y samples)
+  * ///< planar YUV 4:2:2, 16bpp, (1 Cr& Cb sample per 2 x 1 Y samples)
 * 该类型为planar格式
 
 <img src="assets/image-20231213110958364.png" alt="image-20231213110958364" /> 
 
 > I422(YUV422P)格式
 
-#### 2.2.2.3 YUV数据存储 - 4 : 2 : 0格式- `YUV420P`
+#### 2.2.2.3 YUV数据存储 - 4 : 2 : 0 格式- `YUV420P`
 
 * 对应FFmpeg像素表示 `AV_PIX_FMT_YUV420P` 
-  * /// < planar YUV 4:2:0, 12bpp, (1 Cr& Cb sample per 2x2 Y samples)
-* 该类型为planar格式
-* ( 4 + 1 + 1 ) / 4 = 1.5字节
+  * /// < planar YUV 4:2:0, 12bpp, (1 Cr& Cb sample per 2 x 2 Y samples)
+* 该类型为 planar 格式
+* ( 4bytes + 1byte + 1byte ) / 4 = 1.5byte ( Y占4个字节 + U占1个字节 + V占1个字节) / 4个像素 = 1.5byte一个像素
+  * (4bytes * 8bit  + 1byte * 8bit + 1byte * 8bit) / 4个像素 = 12bit
 
 <img src="assets/image-20231213111134825.png" alt="image-20231213111134825" /> 
 
