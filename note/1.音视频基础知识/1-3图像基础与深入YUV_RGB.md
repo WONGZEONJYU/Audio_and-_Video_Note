@@ -116,6 +116,8 @@ YUV采用A : B : C表示法来描述 **$\color{red}{Y,U,V采样频率比例}$** 
 
 <img src="assets/image-20231213094321550.png" alt="image-20231213094321550" /> 
 
+<img src="assets/image-20231213154231617.png" alt="image-20231213154231617" />
+
 * 4 : 4 : 4 表示色度频道没有下采样 , 即 **$\color{red}{一个Y分量对应着一个U分量和一个V分量}$**
 * 4 : 2 : 2 表示 2 : 1 的水平下采样 , 没有垂直下采样 , 即 **$\color{red}{每两个Y分量共用一个U分量和一个V分量}$**
 * 4 : 2 : 0 表示 2 : 1 的水平下采样 , 2 : 1 的垂直下采样 , 即 **$\color{red}{每四个Y分量共用一个U分量和一个V分量}$**
@@ -128,7 +130,7 @@ YUV采用A : B : C表示法来描述 **$\color{red}{Y,U,V采样频率比例}$** 
 * 4 : 2 : 2格式
 * 4 : 2 : 0格式
 
-#### 2.2.2.1 YUV数据存储 - 4 : 4 : 4格式
+#### 2.2.2.1 YUV数据存储 - 4 : 4 : 4 格式
 
 * 比如 I444(YUV444P)格式 , 对应 FFmpeg 像素表示 `AV_PIX_FMT_YUV444P` 
   * ///< planar YUV4:4:4, 24bpp, (1 Cr & Cb sample per 1x1 Y samples)
@@ -137,7 +139,7 @@ YUV采用A : B : C表示法来描述 **$\color{red}{Y,U,V采样频率比例}$** 
 
 > I444(YUV444P)格式
 
-#### 2.2.2.2 YUV数据存储 - 4 : 2 : 2格式
+#### 2.2.2.2 YUV数据存储 - 4 : 2 : 2 格式
 
 * 对应Ffmpeg像素表示 `AV_PIX_FMT_YUV422P` 
   * ///< planar YUV 4:2:2, 16bpp, (1 Cr& Cb sample per 2x1 Y samples)
@@ -147,7 +149,7 @@ YUV采用A : B : C表示法来描述 **$\color{red}{Y,U,V采样频率比例}$** 
 
 > I422(YUV422P)格式
 
-#### 2.2.2.3 YUV数据存储-4 : 2 : 0格式- `YUV420P`
+#### 2.2.2.3 YUV数据存储 - 4 : 2 : 0格式- `YUV420P`
 
 * 对应FFmpeg像素表示 `AV_PIX_FMT_YUV420P` 
   * /// < planar YUV 4:2:0, 12bpp, (1 Cr& Cb sample per 2x2 Y samples)
@@ -158,7 +160,7 @@ YUV采用A : B : C表示法来描述 **$\color{red}{Y,U,V采样频率比例}$** 
 
 > I420(YUV420P)格式 
 
-#### 2.2.2.4 YUV数据存储 - 4 : 2 : 0格式- `NV12`
+#### 2.2.2.4 YUV数据存储 - 4 : 2 : 0 格式- `NV12`
 
 * 对应FFmpeg像素表示 `AV_PIX_FMT_NV12` 
   * /// < planar YUV 4:2:0, 12bpp, 1 plane for Y and 1 plane for the UV components, which are interleaved (first byte U and the following byte V)
