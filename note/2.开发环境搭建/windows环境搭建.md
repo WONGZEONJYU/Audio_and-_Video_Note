@@ -133,7 +133,7 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch/
 # 5. 启动命令⾏窗⼝
 
 ```tex
-建议采用Developer PowerShell for VS 20xx启动
+建议采用 Developer PowerShell for VS 20xx 或 Developer Command Prompt for VS 20xx启动
 ```
 
 <img src="assets/image-20231219173921916.png" alt="image-20231219173921916" /> 
@@ -198,13 +198,13 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch/
 
 ### 6.3.1 重命名link.exe
 
-> ```
-> 重命名 msys64/usr/bin/link.exe 为 msys64/usr/bin/link.bak , 避免和MSVC 的link.exe抵触。
+> ```tex
+> 重命名 msys64/usr/bin/link.exe 为 msys64/usr/bin/link.bak , 避免和MSVC的link.exe抵触
 > ```
 
-### 6.3.2 启动命令⾏窗⼝ 
+### 6.3.2 启动命令行窗口
 
-[5.启动命令⾏窗⼝](#5. 启动命令⾏窗⼝)
+[请看 5.启动命令⾏窗⼝(GitHub可能跳转失败)](#5. 启动命令⾏窗⼝)
 
 ## 6.4 编译第三方库  
 
