@@ -213,8 +213,7 @@ Opus音频编解码器 , 要求编译ffmpeg时配置 : `--enable-libopus`
 
 现在 , 您可以打开一个终端 , 输入ffmpeg命令 , 它应该执行新的ffmpeg。
 如果你需要多个用户能同时使用你新编译的ffmpeg , 则可以移动或者拷贝ffmpeg二进制文件从~/bin
-到/usr/local/bin。
-测试ffplay是否可以使用 (需要在图形方式进行测试)
+到/usr/local/bin。测试ffplay是否可以使用 (需要在图形方式进行测试)
 `ffplay rtmp://media3.scctv.net/live/scctv_800`
 如果能够正常播放则说明 ffplay能够编译成功使用。播放的时候要等等画面。
 
