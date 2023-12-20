@@ -696,7 +696,6 @@
 > INCLUDEPATH += "/usr/local/ffmpeg/include"
 > 
 > LIBS += -L/usr/local/ffmpeg/lib -lavcodec -lavdevice -lavfilter -lavformat -lavutil -lpostproc -lswscale
-> 
 > ```
 
 3. 编译成功后 , 把 `believe.mp4` 拷贝到 QT编译输出可执行文件的目录下 
