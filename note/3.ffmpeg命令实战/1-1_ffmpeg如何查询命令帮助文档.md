@@ -42,3 +42,18 @@
 * usage : `ffprobe [OPTIONS] [INPUT_FILE] `
 
 * ffmpeg/ffplay/ffprobe 部分参数通用 , 部分参数不通用 , 在使用时需要注意。
+
+# 5. 一些别的命令
+
+> ```bash
+> findstr xxx 与 linux 的 grep 类似 , 需要别的命令
+> ```
+
+用于搜索某个工具是否存在这个命令
+
+> ```bash
+> ffmpeg -h full | findstr x264
+> ```
+
+<img src="assets/image-20231221115411211.png" alt="image-20231221115411211" /> 
+
