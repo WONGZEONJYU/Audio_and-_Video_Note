@@ -34,3 +34,4 @@
   * `-ar` set audio sampling rate (in Hz) (from 0 to INT_MAX) (default 0)  (设置音频采样率,从0 到 INT_MAX , 默认为0)
   * `-ac` set number of audio channels (from 0 to INT_MAX) (default 0)  (设置音频通道数量 , 从 0 到 INT_MAX , 默认为0)
 
+* 参数必须要设置正确 , 不然可能播放时候会会奇奇怪怪！
