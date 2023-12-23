@@ -23,12 +23,12 @@
 
 * `ffplay -pixel_format yuv420p -video_size 320x240 -framerate 5 yuv420p_320x240.yuv`
 
-## 1.6 播放RGB数据  
+## 1.6 播放RGB数据
 
 * `ffplay -pixel_format rgb24 -video_size 320x240 -i rgb24_320x240.rgb`
 * `ffplay -pixel_format rgb24 -video_size 320x240 -framerate 5 -i rgb24_320x240.rgb`
 
-## 1.7 播放PCM数据  
+## 1.7 播放PCM数据
 
 * `ffplay -ar 48000 -ac 2 -f f32le 48000_2_f32le.pcm`
   * `-ar` set audio sampling rate (in Hz) (from 0 to INT_MAX) (default 0)  (设置音频采样率,从0 到 INT_MAX , 默认为0)
