@@ -45,11 +45,5 @@
 | -framedrop                              | 如果视频不同步则丢弃视频帧。当主时钟非视频时钟时默认开启。若需禁用则使用 -noframedrop |
 | -infbuf                                 | 不限制输入缓冲区大小。尽可能快地从输入中读取尽可能多的数据。播放实时流时默认启用，如果未及时读取数据，则可能会丢弃数据。此选项将不限制缓冲区的大小。若需禁用则使用-noinfbuf |
 
-> ```tex
-> 更多参考:http://www.ffmpeg.org/ffplay.html
-> ```
-
-
-
-
+[[更多参考]](http://www.ffmpeg.org/ffplay.html)
 
