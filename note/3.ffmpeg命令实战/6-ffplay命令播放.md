@@ -31,6 +31,6 @@
 ## 1.7 播放PCM数据  
 
 * `ffplay -ar 48000 -ac 2 -f f32le 48000_2_f32le.pcm`
-  * -ar set audio sampling rate (in Hz) (from 0 to INT_MAX) (default 0)  
-  * -ac set number of audio channels (from 0 to INT_MAX) (default 0)  
+  * `-ar` set audio sampling rate (in Hz) (from 0 to INT_MAX) (default 0)  (设置音频采样率,从0 到 INT_MAX , 默认为0)
+  * `-ac` set number of audio channels (from 0 to INT_MAX) (default 0)  (设置音频通道数量 , 从 0 到 INT_MAX , 默认为0)
 
