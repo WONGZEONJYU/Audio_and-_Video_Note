@@ -20,7 +20,7 @@
 * `-af` 音频过滤器
 
 > ```bash
-> ffmpeg -i test.mp4 -b:a 192k -ar 48000 -ac 2 -acodec libmp3lame -aframes 200 \ out2.mp3
+> ffmpeg -i test.mp4 -b:a 192k -ar 48000 -ac 2 -acodec libmp3lame -aframes 200 out2.mp3
 > ```
 
 ## 1.3 视频参数
