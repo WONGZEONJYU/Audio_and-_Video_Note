@@ -1,4 +1,8 @@
-# 1.ffmpeg命令参数说明
+# 1. ffmpeg 命令参数说明
+
+输入源数据
+
+<img src="assets/image-20231225112602234.png" alt="image-20231225112602234" /> 
 
 ## 1.1 主要参数
 
@@ -23,6 +27,8 @@
 > ffmpeg -i test.mp4 -b:a 192k -ar 48000 -ac 2 -acodec libmp3lame -aframes 200 out2.mp3
 > ```
 
+<img src="assets/image-20231225112902452.png" alt="image-20231225112902452" /> 
+
 ## 1.3 视频参数
 
 * `-vframes` 设置要输出的视频帧数
@@ -39,5 +45,9 @@
 > ffmpeg -i test.mp4 -vframes 300 -b:v 300k -r 30 -s 640x480 -aspect 16:9 -vcodec libx265 out_h265.h265
 > ```
 
+<img src="assets/image-20231225113031409.png" alt="image-20231225113031409" /> 
+
 [[更多参考]](http://www.ffmpeg.org/ffmpeg.html)
+
+
 
