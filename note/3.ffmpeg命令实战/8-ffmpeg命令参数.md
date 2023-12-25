@@ -36,7 +36,7 @@
 * `-vf` 视频过滤器
 
 > ```bash
-> ffmpeg -i test.mp4 -vframes 300 -b:v 300k -r 30 -s 640x480 -aspect 16:9 -vcodec \ libx265
+> ffmpeg -i test.mp4 -vframes 300 -b:v 300k -r 30 -s 640x480 -aspect 16:9 -vcodec libx265 out_h265.h265
 > ```
 
 [[更多参考]](http://www.ffmpeg.org/ffmpeg.html)
