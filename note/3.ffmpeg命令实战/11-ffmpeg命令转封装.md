@@ -40,36 +40,42 @@
 
 > ```bash
 > ffmpeg -i test.mp4 -b 400k output_b.mkv(此时音频也被重新编码)
-> ```
-
-
-
-# 5. 修改视频码率
-
-> ```bash
+> #或
 > ffmpeg -i test.mp4 -b:v 400k output_bv.mkv
+> #如果需要保持原来的音频格式则需要加上-acodec copy
+> ffmpeg -i test.mp4 -b 400k -acodec copy output_b1.mkv
+> #或
+> ffmpeg -i test.mp4 -b:v 400k -acodec copy output_b1.mkv
 > ```
 
-# 6. 修改音频码率
+## 4.1 码率修改(音频格式被重新编码)
+
+<img src="assets/image-20231226135810414.png" alt="image-20231226135810414" /> 
+
+## 4.2 码率修改(音频格式保持原样)
+
+<img src="assets/image-20231226140759700.png" alt="image-20231226140759700" />
+
+# 5. 修改音频码率
 
 > ```bash
 > ffmpeg -i test.mp4 -b:a 192k output_ba.mp4 
-> #如果不想重新编码video，需要加上-vcodec copy
+> #如果不想重新编码video,需要加上-vcodec copy
 > ```
 
-# 7. 修改音视频码率
+# 6. 修改音视频码率
 
 > ```bash
 > ffmpeg -i test.mp4 -b:v 400k -b:a 192k output_bva.mp4
 > ```
 
-# 8. 修改视频分辨率
+# 7. 修改视频分辨率
 
 > ```bash
 > ffmpeg -i test.mp4 -s 480x270 output_480x270.mp4
 > ```
 
-# 9. 修改音频采样率
+# 8. 修改音频采样率
 
 > ```bash
 > ffmpeg -i test.mp4 -ar 44100 output_44100hz.mp4
