@@ -76,12 +76,39 @@
 ## 1.4 提取 **PCM**
 
 > ```bash
+> #1
 > ffmpeg -i buweishui.mp3 -ar 48000 -ac 2 -f s16le 48000_2_s16le.pcm
+> #2
 > ffmpeg -i buweishui.mp3 -ar 48000 -ac 2 -sample_fmt s16 out_s16.wav
+> #3
 > ffmpeg -i buweishui.mp3 -ar 48000 -ac 2 -codec:a pcm_s16le out2_s16le.wav
+> #4
 > ffmpeg -i buweishui.mp3 -ar 48000 -ac 2 -f f32le 48000_2_f32le.pcm
+> #5
 > ffmpeg -i test.mp4 -t 10 -vn -ar 48000 -ac 2 -f f32le 48000_2_f32le_2.pcm
 > ```
 
+1. 48000_2_s16le.pcm
 
+<img src="assets/image-20231226101527053.png" alt="image-20231226101527053" /> 
+
+<img src="assets/image-20231226104423025.png" alt="image-20231226104423025" /> 
+
+2. out_s16.wav
+
+<img src="assets/image-20231226105047469.png" alt="image-20231226105047469" /> 
+
+<img src="assets/image-20231226105124710.png" alt="image-20231226105124710" /> 
+
+3. out2_s16le.wav
+
+<img src="assets/image-20231226105507985.png" alt="image-20231226105507985" /> 
+
+<img src="assets/image-20231226105708906.png" alt="image-20231226105708906" /> 
+
+4. 48000_2_f32le.pcm
+
+<img src="assets/image-20231226110339964.png" alt="image-20231226110339964" /> 
+
+<img src="assets/image-20231226111236037.png" alt="image-20231226111236037" /> 
 
