@@ -61,7 +61,10 @@
 > ```bash
 > ffmpeg -i test.mp4 -b:a 192k output_ba.mp4 
 > #如果不想重新编码video,需要加上-vcodec copy
+> ffmpeg -i test.mp4 -b:a 192k -vcodec copy output_ba.mp4
 > ```
+
+
 
 # 6. 修改音视频码率
 
