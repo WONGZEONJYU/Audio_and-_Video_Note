@@ -59,12 +59,16 @@
 # 5. 修改音频码率
 
 > ```bash
-> ffmpeg -i test.mp4 -b:a 192k output_ba.mp4 
+> ffmpeg -i test.mp4 -b:a 192k output_ba.mp4 (视频会被重新编码)
 > #如果不想重新编码video,需要加上-vcodec copy
-> ffmpeg -i test.mp4 -b:a 192k -vcodec copy output_ba.mp4
+> ffmpeg -i test.mp4 -b:a 192k -vcodec copy output_ba2.mp4
 > ```
 
+## 5.1 视频重新编码<img src="assets/image-20231226161353790.png" alt="image-20231226161353790" /> 
 
+## 5.2 视频不重新编码
+
+<img src="assets/image-20231226161243299.png" alt="image-20231226161243299" />
 
 # 6. 修改音视频码率
 
@@ -72,15 +76,21 @@
 > ffmpeg -i test.mp4 -b:v 400k -b:a 192k output_bva.mp4
 > ```
 
+<img src="assets/image-20231226160249035.png" alt="image-20231226160249035" />  
+
 # 7. 修改视频分辨率
 
 > ```bash
 > ffmpeg -i test.mp4 -s 480x270 output_480x270.mp4
 > ```
 
+<img src="assets/image-20231226170338335.png" alt="image-20231226170338335" /> 
+
 # 8. 修改音频采样率
 
 > ```bash
 > ffmpeg -i test.mp4 -ar 44100 output_44100hz.mp4
 > ```
+
+<img src="assets/image-20231226170443021.png" alt="image-20231226170443021" /> 
 
