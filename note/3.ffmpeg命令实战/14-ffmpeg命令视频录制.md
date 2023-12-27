@@ -52,13 +52,15 @@ windows例子 :
 > #winodw
 > ffmpeg -f dshow -i audio="virtual-audio-capturer" a-out.aac
 > #macos
-> 
+> ffmpeg -f avfoundation -i ":0" -acodec pcm_s16le output.wav
 > ```
 
 * 系统+麦克风声音 : 
 
 > ```bash
+> #window
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 a-out2.aac
+> #macos
 > 
 > ```
 
