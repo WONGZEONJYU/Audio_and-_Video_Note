@@ -25,6 +25,8 @@
 > %03d,d代表整数,%后面的03代表0xx顺序,比如上面的命令frame001.jpg frame002.jpg frame00n.jpg
 > ```
 
+<img src="assets/image-20231227094803011.png" alt="image-20231227094803011" /> 
+
 # 3. 图片转换为视频
 
 > ```bash
