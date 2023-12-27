@@ -3,13 +3,38 @@
 # 1.1 先安装dshow软件 Screen Capturer Recorder
 
 * [[项目地址链接]](https://sourceforge.net/projects/screencapturer/files/)
-* 然后查看可用设备名字 : `ffmpeg -list_devices true -f dshow -i dummy`
+* 然后查看可用设备名字 
+
+> ```bash
+> #Windows
+> ffmpeg -list_devices true -f dshow -i dummy
+> #macos
+> ffmpeg -f avfoundation -list_devices true -i ""
+> ffmpeg -f avfoundation -list_devices true -i ":"
+> #linux(ubuntu)
+> 视频: ffmpeg -f v4l2 -list_formats all -i /dev/video0
+> 音频: ffmpeg -f alsa -list_devices true -i ""
+> ```
+
+windows例子 : 
+
+<img src="assets/image-20231227135152453.png" alt="image-20231227135152453" /> 
 
 # 2. 音视频录制
 
 ## 2.1 录制视频 (默认参数)
 
-* 桌面 `ffmpeg -f dshow -i video="screen-capture-recorder" v-out.mp4`
+* 桌面 
+
+> ```bash
+> #windows
+> ffmpeg -f dshow -i video="screen-capture-recorder" v-out.mp4
+> #macos
+> ffmpeg -f avfoundation -i "1:OBS Virtual Camera" output.mp4
+> ```
+
+
+
 * 摄像头 : `ffmpeg -f dshow -i video="Integrated Webcam" -y v-out2.flv` (要根据自己的摄像头名称)
 
 ## 2.2 录制声音 (默认参数)
