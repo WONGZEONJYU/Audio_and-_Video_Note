@@ -30,26 +30,45 @@ windows例子 :
 > #windows
 > ffmpeg -f dshow -i video="screen-capture-recorder" v-out.mp4
 > #macos
-> ffmpeg -f avfoundation -i "1:OBS Virtual Camera" output.mp4
+> ffmpeg -f avfoundation -video_size 1920x1080 -framerate 30 -i "1:none" output.mp4
+> 
 > ```
 
+* 摄像头 
 
-
-* 摄像头 : `ffmpeg -f dshow -i video="Integrated Webcam" -y v-out2.flv` (要根据自己的摄像头名称)
+> ```bash
+> #window
+> ffmpeg -f dshow -i video="Integrated Webcam" -y v-out2.flv
+> #(要根据自己的摄像头名称)
+> #macos
+> 
+> ```
 
 ## 2.2 录制声音 (默认参数)
 
-* 系统声音 : `ffmpeg -f dshow -i audio="virtual-audio-capturer" a-out.aac`
+* 系统声音 
+
+> ```bash
+> #winodw
+> ffmpeg -f dshow -i audio="virtual-audio-capturer" a-out.aac
+> #macos
+> 
+> ```
+
 * 系统+麦克风声音 : 
 
 > ```bash
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 a-out2.aac
+> 
 > ```
 
 ## 2.3 同时录制声音和视频
 
 > ```bash
+> #windows
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtualaudio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -i video="screen-capture-recorder" -y av-out.flv
+> #macos
+> ffmpeg -f avfoundation -video_size 1920x1080 -framerate 30 -i "1:none" -f avfoundation -i ":0" output.mp4
 > ```
 
 # 3. 查看视频录制的可选参数
