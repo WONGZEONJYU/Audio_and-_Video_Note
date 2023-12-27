@@ -80,7 +80,8 @@
 ## 3.2 修改音频采样率
 
 >```bash
->ffmpeg -i 2.mp4 -vcodec copy -acodec aac -ar 96000 -vbsf h264_mp4toannexb2.ts ffmpeg -i "concat:1.ts|2.ts|3.ts" -codec copy out2.mp4 第二段播放异常
+>ffmpeg -i 2.mp4 -vcodec copy -acodec aac -ar 96000 -vbsf h264_mp4toannexb2.ts
+>ffmpeg -i "concat:1.ts|2.ts|3.ts" -codec copy out2.mp4 第二段播放异常
 >```
 
 ## 3.3 修改视频编码格式
@@ -102,5 +103,4 @@
 * 把每个视频封装格式也统一为 **$\color{red}{ts格式}$** , 拼接输出的时候再输出你需要的封装格式 , 比如MP4
 * 视频分辨率可以不同 , 但是 **$\color{red}{编码格式需要统一}$**
   * **$\color{red}{音频编码格式需要统一 , 音频参数(采样率/声道等)也需要统一}$**
-
 
