@@ -33,13 +33,25 @@
 > ffmpeg -f image2 -i frame%03d.jpg -r 25 video.mp4
 > ```
 
+<img src="assets/image-20231227101931176.png" alt="image-20231227101931176" /> 
 
+ <img src="assets/image-20231227102140926.png" alt="image-20231227102140926" /> 
 
-# 4. fmpeg命令GIF和视频转换
+# 4. **fmpeg** 命令 **GIF** 和视频转换
+
+## 4.1 从视频中生成GIF图片
 
 > ```bash
-> ffmpeg -f gif -i image2.gif image2.mp4
+> ffmpeg -i test.mp4 -t 5 -r 1 image1.gif
+> ffmpeg -i test.mp4 -t 5 -r 25 -s 640x360 image2.gif
 > ```
 
+<img src="assets/image-20231227110907277.png" alt="image-20231227110907277"  /> 
 
+## 4.2 将 **GIF** 转化为视频  
 
+>```bash
+>ffmpeg -f gif -i image2.gif image2.mp4
+>```
+
+<img src="assets/image-20231227111103997.png" alt="image-20231227111103997" /> 
