@@ -16,11 +16,13 @@
 > 音频: ffmpeg -f alsa -list_devices true -i ""
 > ```
 
-windows例子 : 
+windows显示采集设备列表 : 
 
 <img src="assets/image-20231227135152453.png" alt="image-20231227135152453" /> 
 
-# 2. 音视频录制
+macOS显示采集设备列表 : 
+
+<img src="./assets/image-20231228161609990.png" alt="image-20231228161609990" /> # 2. 音视频录制
 
 ## 2.1 录制视频 (默认参数)
 
