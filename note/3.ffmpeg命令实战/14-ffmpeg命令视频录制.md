@@ -10,7 +10,7 @@
 > ffmpeg -list_devices true -f dshow -i dummy
 > #macos
 > ffmpeg -f avfoundation -list_devices true -i ""
-> ffmpeg -f avfoundation -list_devices true -i ":"
+> 
 > #linux(ubuntu)
 > 视频: ffmpeg -f v4l2 -list_formats all -i /dev/video0
 > 音频: ffmpeg -f alsa -list_devices true -i ""
@@ -100,14 +100,17 @@ windows例子 :
 
 > ```bash
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -video_size 1920x1080 -framerate 15 -pixel_format yuv420p -i video="screen-capturerecorder" -vcodec h264_qsv -b:v 3M -y av-out.flv
+> 
 > ```
 
 > ```bash
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -i video="screen-capture-recorder" -vcodec h264_qsv -b:v 3M -r 15 -y avout2.mp4
+> 
 > ```
 
 > ```bash
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -framerate 15 -pixel_format yuv420p -i video="screen-capture-recorder" -vcodec h264_qsv -b:v 3M -r 15 -y av-out3.mp4
+> 
 > ```
 
 
