@@ -16,13 +16,13 @@
 > 音频: ffmpeg -f alsa -list_devices true -i ""
 > ```
 
-windows显示采集设备列表 : 
+* windows显示采集设备列表 : 
 
 <img src="assets/image-20231227135152453.png" alt="image-20231227135152453" /> 
 
-macOS显示采集设备列表 : 
+* macOS显示采集设备列表 : 
 
-<img src="./assets/image-20231228161609990.png" alt="image-20231228161609990" /> # 2. 音视频录制
+# <img src="./assets/image-20231228161609990.png" alt="image-20231228161609990" />  2. 音视频录制
 
 ## 2.1 录制视频 (默认参数)
 
@@ -32,12 +32,15 @@ macOS显示采集设备列表 :
 > #windows
 > ffmpeg -f dshow -i video="screen-capture-recorder" v-out.mp4
 > #macos
-> ffmpeg -f avfoundation -video_size 1920x1080 -framerate 30 -i "1:none" output.mp4
+> ffmpeg -f avfoundation -s 1920x1080 -r 30 -i 2 -c:v libx264 -pix_fmt yuyv422 -y output.ts
+> ffmpeg -f avfoundation -s 1920x1080 -r 30 -i "2:none" -c:v libx264 -pix_fmt yuyv422 -y output.ts
 > ```
 
 > ```tex
 > 针对MACOS说明
-> 这个命令将捕捉屏幕内容并保存为output.mp4文件。参数`-i "1:none"`表示捕捉屏幕，而不捕捉任何声音
+> 这个命令将捕捉屏幕内容并保存为output.mp4文件。参数`-i "0:none"`表示捕捉屏幕,而不捕捉任何声音,也可以-i 0,
+> 命令如果没有加入相关录音的选项,基本上不会录音,如果视频与音频一起录制,下面会有讲解
+> -i 参数取决于avfoundation video devices的列表顺序
 > ```
 
 * 摄像头 
@@ -47,7 +50,8 @@ macOS显示采集设备列表 :
 > ffmpeg -f dshow -i video="Integrated Webcam" -y v-out2.flv
 > #(要根据自己的摄像头名称)
 > #macos
-> 
+> ffmpeg -f avfoundation -s 1920x1080 -r 30 -i 0 -c:v libx264 -pix_fmt yuyv422 -y output.ts
+> ffmpeg -f avfoundation -s 1920x1080 -r 30 -i "0:none" -c:v libx264 -pix_fmt yuyv422 -y output.ts
 > ```
 
 ## 2.2 录制声音 (默认参数)
@@ -58,7 +62,15 @@ macOS显示采集设备列表 :
 > #winodw
 > ffmpeg -f dshow -i audio="virtual-audio-capturer" a-out.aac
 > #macos
-> ffmpeg -f avfoundation -i ":0" -acodec pcm_s16le output.wav
+> ```
+
+* 麦克风声音 : 
+
+> ```bash
+> #window
+> ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" output.wav
+> #macos
+> ffmpeg -f avfoundation -i ":1" -acodec pcm_s16le output.wav
 > ```
 
 * 系统+麦克风声音 : 
@@ -67,7 +79,8 @@ macOS显示采集设备列表 :
 > #window
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 a-out2.aac
 > #macos
-> 
+> ffmpeg -f avfoundation -video_device_index 0 -r 30 -s 1920x1080 -i :1 out.mp4
+> ffmpeg -f avfoundation -s 1920x1080 -r 30 -i 0 -f avfoundation -i :1 output.mp4
 > ```
 
 ## 2.3 同时录制声音和视频
