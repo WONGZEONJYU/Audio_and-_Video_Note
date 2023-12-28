@@ -131,7 +131,7 @@
 >     --disable-libass \
 >     --enable-libfdk-aac \
 >     --enable-libfreetype \
->     --enablelibmp3lame \
+>     --enable-libmp3lame \
 >     --enable-libopencore-amrnb \
 >     --enable-libopencore-amrwb \
 >     --enable-libopenjpeg\
