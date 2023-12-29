@@ -102,30 +102,38 @@
 # 3. 查看视频录制的可选参数
 
 > ```bash
+> #Windows:
 > ffmpeg -f dshow -list_options true -i video="screen-capture-recorder"
+> #macos:
 > 
 > ```
 
 # 4. 查看音频设备可选参数
 
 > ```bash
+> #windows:
 > ffmpeg -f dshow -list_options true -i audio="virtual-audio-capturer“
 > ffmpeg -f dshow -list_options true -i audio="麦克风 (Realtek Audio)"
+> #macos:
+> 
 > ```
 
-# 5. 指定参数录制音视频(仅windows)
+# 5. 指定参数录制音视频
 
 > ```bash
+> #windows:
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -video_size 1920x1080 -framerate 15 -pixel_format yuv420p -i video="screen-capturerecorder" -vcodec h264_qsv -b:v 3M -y av-out.flv
 > 
 > ```
 
 > ```bash
+> #windows:
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -i video="screen-capture-recorder" -vcodec h264_qsv -b:v 3M -r 15 -y avout2.mp4
 > 
 > ```
 
 > ```bash
+> #windows:
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -framerate 15 -pixel_format yuv420p -i video="screen-capture-recorder" -vcodec h264_qsv -b:v 3M -r 15 -y av-out3.mp4
 > 
 > ```
