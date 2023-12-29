@@ -89,19 +89,21 @@
 > #windows
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtualaudio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -i video="screen-capture-recorder" -y av-out.flv
 > #macos
-> ffmpeg -f avfoundation -video_size 1920x1080 -framerate 30 -i "1:none" -f avfoundation -i ":0" output.mp4
+> ffmpeg -f avfoundation -video_device_index 0 -r 60 -s 1920x1080 -i :1 out.mp4
+> ffmpeg -f avfoundation -s 1920x1080 -r 60 -i 0 -f avfoundation -i :1 output.mp4
 > ```
 
 > ```tex
 > 针对MACOS说明
-> 这个命令将录制屏幕和系统声音，并将其保存为output.mp4文件。参数`-i "1:none"`表示捕捉屏幕，而参数`-i ":0"`表示捕捉系统声音。
-> 请注意，捕捉系统声音可能会受到MacOS的权限设置的限制。在某些情况下，您可能需要调整系统设置以允许应用程序捕获系统声音。也请确保已经安装好OBS Virtual Camera。
+> 这个命令将录制屏幕和系统声音，并将其保存为output.mp4文件。参数`-i "1:none"`表示捕捉屏幕，而参数`-i ":0"`表示捕捉系统声音
+> 请注意,捕捉系统声音可能会受到MacOS的权限设置的限制。在某些情况下，您可能需要调整系统设置以允许应用程序捕获系统声音。也请确保已经安装好OBS Virtual Camera。
 > ```
 
 # 3. 查看视频录制的可选参数
 
 > ```bash
 > ffmpeg -f dshow -list_options true -i video="screen-capture-recorder"
+> 
 > ```
 
 # 4. 查看音频设备可选参数
@@ -111,7 +113,7 @@
 > ffmpeg -f dshow -list_options true -i audio="麦克风 (Realtek Audio)"
 > ```
 
-# 5. 指定参数录制音视频
+# 5. 指定参数录制音视频(仅windows)
 
 > ```bash
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -video_size 1920x1080 -framerate 15 -pixel_format yuv420p -i video="screen-capturerecorder" -vcodec h264_qsv -b:v 3M -y av-out.flv
@@ -126,6 +128,10 @@
 > ```bash
 > ffmpeg -f dshow -i audio="麦克风 (Realtek Audio)" -f dshow -i audio="virtual-audio-capturer" -filter_complex amix=inputs=2:duration=first:dropout_transition=2 -f dshow -framerate 15 -pixel_format yuv420p -i video="screen-capture-recorder" -vcodec h264_qsv -b:v 3M -r 15 -y av-out3.mp4
 > 
+> ```
+
+> ```tex
+> MACOS的后续加上
 > ```
 
 
