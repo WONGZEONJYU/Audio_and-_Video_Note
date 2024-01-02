@@ -24,15 +24,31 @@
 
 视频过滤器 (滤镜) : 裁剪
 
+ffmpeg/ffplay的帮助说明
+
+> ```tex
+> crop AVOptions:
+>   out_w             <string>     ..FV..... set the width crop area expression (default "iw")
+>   w                 <string>     ..FV..... set the width crop area expression (default "iw")
+>   out_h             <string>     ..FV..... set the height crop area expression (default "ih")
+>   h                 <string>     ..FV..... set the height crop area expression (default "ih")
+>   x                 <string>     ..FV..... set the x crop area expression (default "(in_w-out_w)/2")
+>   y                 <string>     ..FV..... set the y crop area expression (default "(in_h-out_h)/2")
+>   keep_aspect       <boolean>    ..FV..... keep aspect ratio (default false)
+>   exact             <boolean>    ..FV..... do exact cropping (default false)
+> ```
+
+
+
 <img src="assets/image-20231229160058108.png" alt="image-20231229160058108" /> 
 
-| 描述 | 将输入视频帧的宽度和高度从 x 和 y 值表示的位置裁剪到指定的宽度和高度 ; x 和 y 是输出的左上角坐标，协调系统的中心是输入视频帧的左上角。 如果使用了可选的 keep_aspect 参数，将会改变输出SAR (样本宽比) 以补偿新的 DAR (显示长宽比) |
+| 描述 | 将输入视频帧的宽度和高度从 x 和 y 值表示的位置裁剪到指定的宽度和高度 ; x 和 y 是输出的左上角坐标 , 协调系统的中心是输入视频帧的左上角。 如果使用了可选的 keep_aspect 参数 , 将会改变输出SAR (样本宽比) 以补偿新的 DAR (显示长宽比) |
 | ---- | ------------------------------------------------------------ |
 | 语法 | crop=ow[:oh[:x[:y[:keep_aspect]]]]                           |
 
 | 变量       | 用于 ow 和 oh 参数的表达式中的可用变量                       |
 | ---------- | ------------------------------------------------------------ |
-| x, y       | 对 x 的计算值 (从左上角水平方向的像素个数) 和 y (垂直像素的数量) , 对每个帧进行评估， x 的默认值为 (iw - ow) / 2 , y的默认值为 (ih - oh) / 2 |
+| x, y       | 对 x 的计算值 (从左上角水平方向的像素个数) 和 y (垂直像素的数量) , 对每个帧进行评估 , x 的默认值为 (iw - ow) / 2 , y的默认值为 (ih - oh) / 2 |
 | in_w, iw   | 输入的宽度                                                   |
 | in_h, ih   | 输入的高度                                                   |
 | out_w, ow  | 输出(裁剪)宽度 , 默认值= iw                                  |
@@ -52,6 +68,14 @@
 > ffmpeg -i input -vf crop=iw/3:ih:iw/3*2:0 output
 > ```
 
+> ```bash
+> ffplay.exe -i .\input.jpg -vf crop=iw/3:ih:0:0
+> ffplay.exe -i .\input.jpg -vf crop=iw/3:ih:iw/3:0
+> ffplay.exe -i .\input.jpg -vf crop=iw/3:ih:iw/3*2:0
+> ```
+
+<img src="assets/image-20240102110111243.png" alt="image-20240102110111243" /> 
+
 练习题 : 
 
 1. 裁剪 100x100 的区域，起点为(12,34)
@@ -62,30 +86,58 @@
    > crop=w=100:h=100:x=12:y=34
    > ```
 
+   <img src="assets/image-20240102110851162.png" alt="image-20240102110851162" /> 
+
 2. 裁剪中心区域，大小为 100x100
 
    > ```bash
    > crop=100:100
    > ```
 
-   
+   <img src="assets/image-20240102111718145.png" alt="image-20240102111718145" /> 
 
-> ```tex
-> 练习题：
-> 
-> 
-> (3)裁剪中心区域，大小为输入视频的 2/3
-> crop=2/3*in_w:2/3*in_h
-> (4)裁剪中心区域的正方形，高度为输入视频的高
-> crop=out_w=in_h
-> crop=in_h
-> (5)裁剪偏移左上角 100 像素
-> crop=in_w-100:in_h-100:100:100
-> (6)裁剪掉左右 10 像素，上下 20 像素
-> crop=in_w-2*10:in_h-2*20
-> (7)裁剪右下角区域
-> crop=in_w/2:in_h/2:in_w/2:in_h/2
-> ```
+3. 裁剪中心区域 , 大小为输入视频的 2/3
+
+   > ```bash
+   > crop=2/3*in_w:2/3*in_h
+   > crop=in_w*2/3:in_h*2/3
+   > ```
+
+   <img src="assets/image-20240102112105994.png" alt="image-20240102112105994" /> 
+
+4. 裁剪中心区域的正方形 , 高度为输入视频的高
+
+   > ```bash
+   > crop=out_w=in_h
+   > crop=in_h
+   > crop=w=ih
+   > ```
+
+   <img src="assets/image-20240102112407293.png" alt="image-20240102112407293" /> 
+
+5. 裁剪偏移左上角 100 像素
+
+   > ```bash
+   > crop=in_w-100:in_h-100:100:100
+   > ```
+
+   <img src="assets/image-20240102112907583.png" alt="image-20240102112907583" /> 
+
+6. 裁剪掉左右 10 像素 , 上下 20 像素
+
+   > ```bash
+   > crop=in_w-2*10:in_h-2*20
+   > ```
+
+   <img src="assets/image-20240102115157643.png" alt="image-20240102115157643" /> 
+
+7. 裁剪右下角区域
+
+   > ```bash
+   > crop=iw/2:ih/2:iw/2:ih/2
+   > ```
+
+   <img src="assets/image-20240102141323169.png" alt="image-20240102141323169" /> 
 
 ## 1.3 FFmpeg 滤镜 Filter 内置变量
 
