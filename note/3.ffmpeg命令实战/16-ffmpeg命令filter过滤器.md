@@ -174,16 +174,32 @@ ffmpeg/ffplay的帮助说明
 | y        | 字符串 | 缺省为 0                    |
 | alpha    | 浮点数 | 透明度(默认为 1) , 值从 0~1 |
 
+1. 将文字的水印加在视频的左上角
+
+   > ```bash
+   > ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello world':x=20:y=20"
+   > ```
+
+   <img src="assets/image-20240102175527879.png" alt="image-20240102175527879" />
+
+    将字体的颜色设置为绿色
+
+   > ```bash
+   > ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello world':fontcolor=green"
+   > ```
+
+   <img src="assets/image-20240102175734287.png" alt="image-20240102175734287" />
+
+   如果想调整文字水印显示的位置,调整 x 与 y 参数的数值即可
+
+   > ```bash
+   > ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello
+   > world':fontcolor=green:x=400:y=200"
+   > ```
+
+   
+
 > ```bash
-> #(1)将文字的水印加在视频的左上角:
-> ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello world':x=20:y=20"
-> 
-> #将字体的颜色设置为绿色：
-> ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello world':fontcolor=green"
-> 
-> #如果想调整文字水印显示的位置,调整 x 与 y 参数的数值即可。
-> ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello
-> world':fontcolor=green:x=400:y=200"
 > 
 > #修改透明度
 > ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello
@@ -248,7 +264,25 @@ ffmpeg/ffplay的帮助说明
 | discontinuity    | 时间差值 | 支持跳动的时间戳差值                 |
 
 > ```bash
-> ffmpeg -i input.mp4 -vf "movie=logo.png[watermark];[in[watermark]overlay=x=10:y=10[out]" output.mp4
+> ffmpeg -i input.mp4 -vf "movie=logo.png[watermark];[in][watermark]overlay=x=10:y=10[out]" output.mp4
+> ```
+
+> ```bash
+> ffplay -i input.mp4 -vf "movie=logo.png[watermark];[in][watermark]overlay=x=10:y=10[out]"
+> ```
+
+<img src="assets/image-20240102174753728.png" alt="image-20240102174753728" /> 
+
+> ```tex
+> 命令解释(来自chatGpt回答):
+> 
+> 在FFmpeg中的滤镜操作中,方括号用于标识输入和输出流,在提供的语句中,[in] 和 [out]是用来标识输入流和输出流的。[watermark]则是一个中间流,用于存储 `logo.png` 图像作为水印的内容
+> 
+> 具体来说, movie=logo.png 用于创建一个名为 watermark 的输入流,这个输入流将用作水印。然后,[in] 和 [watermark]表示输入流和水印输入流,最后, [out] 表示输出流
+> 
+> 在 [in][watermark]overlay=x=10:y=10[out] 中,[in] 和 [watermark] 是两个输入流,overlay是FFmpeg的滤镜名称, x=10:y=10 是 overlay 滤镜的选项,用于指定水印的位置。最后的[out]表示输出流
+> 
+> 这种使用方括号的方式是为了在一个滤镜操作中标识各个流,以便在进行复杂的图像处理时能够清晰地指定各个输入、输出和中间处理的流
 > ```
 
 * 原始视频文件路径 : input.mp4
@@ -265,18 +299,17 @@ ffmpeg/ffplay的帮助说明
 
 对应地可以将 overlay 参数设置成如下值来改变水印图片的位置 : 
 
-| 水印图片位置 | overlay 值                              |
-| ------------ | --------------------------------------- |
-| 左上角       | 10:10                                   |
-| 右上角       | main_w-overlay_w-10:10                  |
-| 左下角       | 10:main_h-overlay_h-10                  |
-| 右下角       | main_w-overlay_w-10:main_h-overlay_h-10 |
+| 水印图片位置 | overlay 值                                |
+| ------------ | ----------------------------------------- |
+| 左上角       | 10:10                                     |
+| 右上角       | main_w-overlay_w-10 : 10                  |
+| 左下角       | 10 : main_h-overlay_h-10                  |
+| 右下角       | main_w-overlay_w-10 : main_h-overlay_h-10 |
 
 <img src="assets/image-20231229165708697.png" alt="image-20231229165708697" /> 
 
 > ```tex
-> 在 FFmpeg 中加入图片水印有两种方式，一种是通过 movie 指定水印文件路径，另外一种方式是通过
-> filter 读取输入文件的流并指定为水印，这里重点介绍如何读取 movie 图片文件作为水印
+> 在 FFmpeg 中加入图片水印有两种方式,一种是通过 movie 指定水印文件路径,另外一种方式是通过 filter 读取输入文件的流并指定为水印,这里重点介绍如何读取 movie 图片文件作为水印
 > ```
 
 (1) 图片 logo.png 将会打入到 input.mp4 视频中 ,  显示在 x 坐标 50、 y 坐标 20 的位置
