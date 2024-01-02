@@ -196,23 +196,27 @@ ffmpeg/ffplay的帮助说明
 > 
 > #至此,文字水印的基础功能已经添加完成。
 > 
-> #(3)有些时候文字水印希望以本地时间作为水印内容，可以在 drawtext 滤镜中配合一些特殊用法来
+> #(3)有些时候文字水印希望以本地时间作为水印内容,可以在 drawtext 滤镜中配合一些特殊用法来
 > 完成，在 text 中显示本地当前时间，格式为年月日时分秒的方式
 > 
 > ffplay -i input.mp4 -vf
 > "drawtext=fontsize=60:fontfile=FreeSerif.ttf:text='%{localtime\:%Y\-%m\-%d %H-%M-%S}':fontcolor=green:box=1:boxcolor=yellow"
 > 
-> #在使用 ffmpeg 转码存储到文件时需要加上-re，否则时间不对。
+> #在使用 ffmpeg 转码存储到文件时需要加上-re,否则时间不对。
 > ffmpeg -re -i input.mp4 -vf
 > "drawtext=fontsize=60:fontfile=FreeSerif.ttf:text='%{localtime\:%Y\-%m\-%d %H-%M-%S}':fontcolor=green:box=1:boxcolor=yellow" out.mp4
 > 
 > #(4)在个别场景中,需要定时显示水印,定时不显示水印,这种方式同样可以配合 drawtext 滤镜进行处理,使用 drawtext 与 enable 配合即可,例如每 3 秒钟显示一次文字水印:
 > ffplay -i input.mp4 -vf "drawtext=fontsize=60:fontfile=FreeSerif.ttf:text='test':fontcolor=green:box=1:boxcolor=yellow:enable=lt(mod(t\,3)\,1)"
 > 
-> #在使用ffmpeg转码存储到文件时需要加上-re,否则时间不对
+> #lt(x, y) Return 1 if x is lesser than y, 0 otherwise.
+> #如果 x 小于 y,则返回 1,否则返回 0
+> #mod(x, y) Compute the remainder of division of x by y.
+> #计算 x 除以 y 的余数
 > 
-> lt(x, y) Return 1 if x is lesser than y, 0 otherwise.
-> mod(x, y) Compute the remainder of division of x by y.
+> #关于lt(mod(t\,3)\,1)的详细介绍,请打开下面表达式参考链接
+> #在使用ffmpeg转码存储到文件时需要加上-re,否则时间不对
+> #lt(mod(t\,3)\,1)中, \ 用于转义 "," 符号 , 以确保 "," 不被认为是命令行分隔符
 > 
 > (5) 跑马灯效果
 > ffplay -i input.mp4 -vf
@@ -223,7 +227,9 @@ ffmpeg/ffplay的帮助说明
 > "drawtext=fontsize=40:fontfile=FreeSerif.ttf:text='liaoqingfu':x=mod(50*t\,w):y=abs(sin(t))*h*0.7:alpha=0.5:fontcolor=white:enable=lt(mod(t\,3)\,1)"
 > ```
 
-[[表达式参考]](http://www.ffmpeg.org/ffmpeg-utils.html 3 Expression Evaluation)
+[[表达式参考]](https://ffmpeg.org//ffmpeg-utils.html)
+
+找到3 Expression Evaluation这个章节
 
 ### 1.4.2 图片水印
 
