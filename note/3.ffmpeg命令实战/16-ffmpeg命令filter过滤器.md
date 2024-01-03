@@ -422,11 +422,15 @@ ffmpeg/ffplay的帮助说明
 > ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTS-STARTPTS,scale=320x240[upperleft];[1:v]setpts=PTS-STARTPTS,scale=320x240[upperright];[2:v]setpts=PTS-STARTPTS,scale=320x240[lowerleft];[3:v]setpts=PTS-STARTPTS,scale=320x240[lowerright];[base][upperleft]overlay=shortest=true[tmp1];[tmp1][upperright]overlay=shortest=true:x=320[tmp2];[tmp2][lowerleft]overlay=shortest=true:y=240[tmp3];[tmp3][lowerright]overlay=shortest=true:x=320:y=240" -y out.mp4
 > ```
 
+<img src="assets/image-20240103142547060.png" alt="image-20240103142547060" /> 
+
 2. 1280x800
 
 > ```bash
 > ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=1280x800[base];[0:v]setpts=PTS-STARTPTS,scale=640x400[upperleft];[1:v]setpts=PTS-STARTPTS,scale=640x400[upperright];[2:v]setpts=PTS-STARTPTS,scale=640x400[lowerleft];[3:v]setpts=PTS-STARTPTS,scale=640x400[lowerright];[base][upperleft]overlay=shortest=true[tmp1];[tmp1][upperright]overlay=shortest=true:x=640[tmp2];[tmp2][lowerleft]overlay=shortest=true:y=400[tmp3];[tmp3][lowerright]overlay=shortest=true:x=640:y=400" -y out.mp4
 > ```
+
+<img src="assets/image-20240103142651307.png" alt="image-20240103142651307" /> 
 
 > ```tex
 > 1.2.3.4.mp4 为文件路径,out.MP4 为输出文件路径,通过 nullsrc 创建 overlay 画布,画布大小 640:480,使用[0:v][1:v][2:v][3:v]将输入的 4 个视频流去除,分别进行缩放处理,然后基于 nullsrc 生成的画布进行视频平铺,命令中自定义upperleft,upperright,lowerleft,lowerright 进行不同位置平铺。
@@ -442,3 +446,4 @@ ffmpeg/ffplay的帮助说明
 > ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTS-STARTPTS,scale=320x240[upperleft];[1:v]setpts=PTS-STARTPTS,scale=320x240[upperright];[base][upperleft]overlay=shortest=true[tmp1];[tmp1][upperright]overlay=shortest=true:x=320" out2.mp4
 > ```
 
+<img src="assets/image-20240103142732618.png" alt="image-20240103142732618" /> 
