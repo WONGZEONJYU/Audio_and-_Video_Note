@@ -193,34 +193,47 @@ ffmpeg/ffplay的帮助说明
    如果想调整文字水印显示的位置,调整 x 与 y 参数的数值即可
 
    > ```bash
-   > ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello
-   > world':fontcolor=green:x=400:y=200"
+   > ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello world':fontcolor=green:x=400:y=200"
+   > ```
+
+   <img src="assets/image-20240103102253195.png" alt="image-20240103102253195" />
+
+   修改透明度 
+
+   > ```bash
+   > ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello world':fontcolor=green:x=400:y=200:alpha=0.5"
+   > ```
+
+   <img src="assets/image-20240103102422769.png" alt="image-20240103102422769" />
+
+2. 文字水印还可以增加一个框,然后给框加上背景颜色:
+
+   > ```bash
+   > ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello world':fontcolor=green:box=1:boxcolor=yellow"
+   > ```
+
+   <img src="assets/image-20240103102645149.png" alt="image-20240103102645149" />
+
+   至此,文字水印的基础功能已经添加完成。 
+
+3. 有些时候文字水印希望以本地时间作为水印内容,可以在 drawtext 滤镜中配合一些特殊用法来完成，在 text 中显示本地当前时间，格式为年月日时分秒的方式
+
+   > ```bash
+   > ffplay -i input.mp4 -vf "drawtext=fontsize=60:fontfile=FreeSerif.ttf:text='%{localtime\:%Y\-%m\-%d %H-%M-%S}':fontcolor=green:box=1:boxcolor=yellow"
+   > ```
+
+   <img src="assets/image-20240103103501254.png" alt="image-20240103103501254" />
+
+    在使用 ffmpeg 转码存储到文件时需要加上 `-re` ,否则时间不对
+
+   > ```bash
+   > ffmpeg -re -i input.mp4 -vf "drawtext=fontsize=60:fontfile=FreeSerif.ttf:text='%{localtime\:%Y\-%m\-%d %H-%M-%S}':fontcolor=green:box=1:boxcolor=yellow" out3.mp4
    > ```
 
    
 
 > ```bash
 > 
-> #修改透明度
-> ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello
-> world':fontcolor=green:x=400:y=200:alpha=0.5"
-> 
-> #(2)文字水印还可以增加一个框,然后给框加上背景颜色:
-> 
-> ffplay -i input.mp4 -vf "drawtext=fontsize=100:fontfile=FreeSerif.ttf:text='hello
-> world':fontcolor=green:box=1:boxcolor=yellow"
-> 
-> #至此,文字水印的基础功能已经添加完成。
-> 
-> #(3)有些时候文字水印希望以本地时间作为水印内容,可以在 drawtext 滤镜中配合一些特殊用法来
-> 完成，在 text 中显示本地当前时间，格式为年月日时分秒的方式
-> 
-> ffplay -i input.mp4 -vf
-> "drawtext=fontsize=60:fontfile=FreeSerif.ttf:text='%{localtime\:%Y\-%m\-%d %H-%M-%S}':fontcolor=green:box=1:boxcolor=yellow"
-> 
-> #在使用 ffmpeg 转码存储到文件时需要加上-re,否则时间不对。
-> ffmpeg -re -i input.mp4 -vf
-> "drawtext=fontsize=60:fontfile=FreeSerif.ttf:text='%{localtime\:%Y\-%m\-%d %H-%M-%S}':fontcolor=green:box=1:boxcolor=yellow" out.mp4
 > 
 > #(4)在个别场景中,需要定时显示水印,定时不显示水印,这种方式同样可以配合 drawtext 滤镜进行处理,使用 drawtext 与 enable 配合即可,例如每 3 秒钟显示一次文字水印:
 > ffplay -i input.mp4 -vf "drawtext=fontsize=60:fontfile=FreeSerif.ttf:text='test':fontcolor=green:box=1:boxcolor=yellow:enable=lt(mod(t\,3)\,1)"
