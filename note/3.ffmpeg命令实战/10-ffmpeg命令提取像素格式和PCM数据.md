@@ -71,7 +71,7 @@
 
 2. 播放效果
 
- <img src="assets/image-20231225224540730.png" alt="image-20231225224540730" /> 
+<img src="assets/image-20231225224540730.png" alt="image-20231225224540730" /> 
 
 ## 1.4 提取 **PCM**
 
