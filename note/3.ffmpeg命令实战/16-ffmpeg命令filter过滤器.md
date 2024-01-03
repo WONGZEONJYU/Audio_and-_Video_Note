@@ -416,8 +416,16 @@ ffmpeg/ffplay的帮助说明
 > 视频除了画中画显示,还有一种场景为以多宫格的方式呈现出来,除了可以输入视频文件,还可以输入视频流、采集设备等。从前文中可以看出进行视频图像处理时, overlay 滤镜为关键画布,可以通过 FFmpeg建立一个画布,也可以使用默认的画布。如果想以多宫格的方式展现,则可以自己建立一个足够大的画布,下面就来看一下多宫格展示的例子:
 > ```
 
+1. 640x480
+
 > ```bash
-> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTSSTARTPTS,scale=320x240[upperleft];[1:v]setpts=PTS-STARTPTS,scale=320x240[upperright];[2:v]setpts=PTSSTARTPTS, scale=320x240[lowerleft];[3:v]setpts=PTSSTARTPTS,scale=320x240[lowerright];[base][upperleft]overlay=shortest=1[tmp1];[tmp1][upperright]overlay=shortest=1:x=320[tmp2];[tmp2][lowerleft]overlay=shortest=1:y=240[tmp3];[tmp3][lowerright]overlay=shortest=1:x=320:y=240" out.mp4
+> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTS-STARTPTS,scale=320x240[upperleft];[1:v]setpts=PTS-STARTPTS,scale=320x240[upperright];[2:v]setpts=PTS-STARTPTS,scale=320x240[lowerleft];[3:v]setpts=PTS-STARTPTS,scale=320x240[lowerright];[base][upperleft]overlay=shortest=true[tmp1];[tmp1][upperright]overlay=shortest=true:x=320[tmp2];[tmp2][lowerleft]overlay=shortest=true:y=240[tmp3];[tmp3][lowerright]overlay=shortest=true:x=320:y=240" -y out.mp4
+> ```
+
+2. 1280x800
+
+> ```bash
+> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=1280x800[base];[0:v]setpts=PTS-STARTPTS,scale=640x400[upperleft];[1:v]setpts=PTS-STARTPTS,scale=640x400[upperright];[2:v]setpts=PTS-STARTPTS,scale=640x400[lowerleft];[3:v]setpts=PTS-STARTPTS,scale=640x400[lowerright];[base][upperleft]overlay=shortest=true[tmp1];[tmp1][upperright]overlay=shortest=true:x=640[tmp2];[tmp2][lowerleft]overlay=shortest=true:y=400[tmp3];[tmp3][lowerright]overlay=shortest=true:x=640:y=400" -y out.mp4
 > ```
 
 > ```tex
@@ -431,6 +439,6 @@ ffmpeg/ffplay的帮助说明
 只叠加左上右上的命令 : 
 
 > ```bash
-> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTSSTARTPTS,scale=320x240[upperleft];[1:v]setpts=PTSSTARTPTS,scale=320x240[upperright];[base][upperleft]overlay=shortest=1[tmp1];[tmp1][upperright]overlay=shortest=1:x=320" out2.mp4
+> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTS-STARTPTS,scale=320x240[upperleft];[1:v]setpts=PTS-STARTPTS,scale=320x240[upperright];[base][upperleft]overlay=shortest=true[tmp1];[tmp1][upperright]overlay=shortest=true:x=320" out2.mp4
 > ```
 
