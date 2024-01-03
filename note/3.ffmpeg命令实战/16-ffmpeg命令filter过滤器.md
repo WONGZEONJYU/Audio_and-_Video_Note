@@ -345,6 +345,8 @@ ffmpeg/ffplay的帮助说明
 > ffplay -i input.mp4 -vf "movie=logo2.png[watermark];[in][watermark]overlay=50:10[out]"
 > ```
 
+<img src="assets/image-20240103111109605.png" alt="image-20240103111109605" /> 
+
 (2) 显示位置
 
 > ```bash
@@ -356,6 +358,8 @@ ffmpeg/ffplay的帮助说明
 > 
 > ffplay -i input.mp4 -vf "movie=logo.png[watermark];[in][watermark]overlay=main_w-overlay_w-10:main_hoverlay_h-10[out]"
 > ```
+
+
 
 (3) 跑马灯效果
 
