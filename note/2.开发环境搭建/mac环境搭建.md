@@ -153,13 +153,9 @@
 
 ## 3.4 编辑环境变量
 
-编辑 ~/.base_profile,并添加ffmpeg到环境变量中 , 如果没有就在 `~` (HOME) 目录下创建一个 ` .base_profile` 文件
+编辑 `~/.zshrc` , 并添加ffmpeg到环境变量中 , `~` 是指代HOME目录 
 
-命令 : `touch .base_profile ` (如果存在这个文件 , 就不需要创建)
-
-`~` 是指代HOME目录 
-
-在 `.base_profile` 文件下添加
+在 `.zshrc` 文件下添加
 
 > ```bash
 > export PATH="$PATH:/usr/local/ffmpeg/bin"
@@ -168,7 +164,7 @@
 立即生效语句
 
 > ```bash
-> source ~/.base_profile
+> source ~/.zshrc
 > ```
 
 ⼀般环境变量更改后 , 重启后⽣效
