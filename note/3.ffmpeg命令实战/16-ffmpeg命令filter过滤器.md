@@ -356,10 +356,8 @@ ffmpeg/ffplay的帮助说明
 > 
 > ffplay -i input.mp4 -vf "movie=logo.png[watermark];[in][watermark]overlay=10:main_h-overlay_h-10[out]"
 > 
-> ffplay -i input.mp4 -vf "movie=logo.png[watermark];[in][watermark]overlay=main_w-overlay_w-10:main_hoverlay_h-10[out]"
+> ffplay -i input.mp4 -vf "movie=logo.png[watermark];[in][watermark]overlay=main_w-overlay_w-10:main_h-overlay_h-10[out]"
 > ```
-
-
 
 (3) 跑马灯效果
 
@@ -380,9 +378,9 @@ ffmpeg/ffplay的帮助说明
 | ---------- | ------ | ------------------------------------------------------------ |
 | x          | 字符串 | X 坐标                                                       |
 | y          | 字符串 | Y 坐标                                                       |
-| eof_action | 整数   | 遇到 eof 表示时的处理方式，默认为重复 ➢ repeat(值为 0)：重复前一帧 ➢ endcall(值为 1)：停止所有的流 ➢ pass(值为 2)：保留主图层 |
+| eof_action | 整数   | 遇到 eof 表示时的处理方式，默认为重复 <br />➢ repeat(值为 0)：重复前一帧 <br />➢ endcall(值为 1)：停止所有的流 <br />➢ pass(值为 2)：保留主图层 |
 | shortest   | 布尔   | 终止最短的视频时全部终止(默认 false)                         |
-| format     | 整数   | 设置 output 的像素格式，默认为 yuv420 ➢ yuv420 (值为 0) ➢ yuv422 (值为 1) ➢ yuv444 (值为 2) ➢ rgb (值为 3) |
+| format     | 整数   | 设置 output 的像素格式，默认为 yuv420 <br />➢ yuv420 (值为 0) <br />➢ yuv422 (值为 1) <br />➢ yuv444 (值为 2) <br />➢ rgb (值为 3) |
 
 > ```tex
 > 从参数列表中可以看到,主要参数并不多,但实际上在 overlay 滤镜使用中,还有很多组合的参数可以使用,可以使用一些内部变量,例如 overlay 图层的宽、高、坐标等。
@@ -395,9 +393,9 @@ ffmpeg/ffplay的帮助说明
 > ```bash
 > ffplay -i input.mp4 -vf "movie=sub_320x240.mp4[sub];[in][sub]overlay=x=20:y=20[out]"
 > 
-> ffplay -i input.mp4 -vf "movie=sub_320x240.mp4[sub];[in][sub]overlay=x=20:y=20:eof_action=1[out]"
+> ffplay -i input.mp4 -vf "movie=sub_320x240.mp4[sub];[in][sub]overlay=x=20:y=20:eof_action=0[out]"
 > 
-> ffplay -i input.mp4 -vf "movie=sub_320x240.mp4[sub];[in][sub]overlay=x=20:y=20:shortest =1[out]"
+> ffplay -i input.mp4 -vf "movie=sub_320x240.mp4[sub];[in][sub]overlay=x=20:y=20:shortest=true[out]"
 > ```
 
 缩放子画面尺寸
@@ -409,26 +407,21 @@ ffmpeg/ffplay的帮助说明
 (2) 跑马灯
 
 > ```bash
-> ffplay -i input.mp4 -vf "movie=sub_320x240.mp4[test];[in][test]overlay=
-> x=mod(50*t\,main_w):y=abs(sin(t))*main_h*0.7[out]"
+> ffplay -i input.mp4 -vf "movie=sub_320x240.mp4[test];[in][test]overlay=x=mod(50*t\,main_w):y=abs(sin(t))*main_h*0.7[out]"
 > ```
 
 ### 1.4.4 FFmpeg 视频多宫格处理
 
 > ```tex
-> 视频除了画中画显示,还有一种场景为以多宫格的方式呈现出来,除了可以输入视频文件,还可以输入视
-> 频流、采集设备等。从前文中可以看出进行视频图像处理时, overlay 滤镜为关键画布,可以通过 FFmpeg9
-> 建立一个画布,也可以使用默认的画布。如果想以多宫格的方式展现,则可以自己建立一个足够大的画布,
-> 下面就来看一下多宫格展示的例子:
+> 视频除了画中画显示,还有一种场景为以多宫格的方式呈现出来,除了可以输入视频文件,还可以输入视频流、采集设备等。从前文中可以看出进行视频图像处理时, overlay 滤镜为关键画布,可以通过 FFmpeg建立一个画布,也可以使用默认的画布。如果想以多宫格的方式展现,则可以自己建立一个足够大的画布,下面就来看一下多宫格展示的例子:
 > ```
 
 > ```bash
-> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v] setpts=PTSSTARTPTS,scale=320x240[upperleft];[1:v]setpts=PTS-STARTPTS,scale=320x240[upperright];[2:v]setpts=PTSSTARTPTS, scale=320x240[lowerleft];[3:v]setpts=PTSSTARTPTS,scale=320x240[lowerright];[base][upperleft]overlay=shortest=1[tmp1];[tmp1][upperright]overlay=
-> shortest=1:x=320[tmp2];[tmp2][lowerleft]overlay=shortest=1:y=240[tmp3];[tmp3][lowerright]overlay=shortest=1:x=320:y=240" out.mp4
+> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTSSTARTPTS,scale=320x240[upperleft];[1:v]setpts=PTS-STARTPTS,scale=320x240[upperright];[2:v]setpts=PTSSTARTPTS, scale=320x240[lowerleft];[3:v]setpts=PTSSTARTPTS,scale=320x240[lowerright];[base][upperleft]overlay=shortest=1[tmp1];[tmp1][upperright]overlay=shortest=1:x=320[tmp2];[tmp2][lowerleft]overlay=shortest=1:y=240[tmp3];[tmp3][lowerright]overlay=shortest=1:x=320:y=240" out.mp4
 > ```
 
 > ```tex
-> 1.2.3.4.mp4 为文件路径,out.MP4 为输出文件路径,通过 nullsrc 创建 overlay 画布,画布大小 640:480,使用[0:v][1:v][2:v][3:v]将输入的 4 个视频流去除,分别进行缩放处理,然后基于 nullsrc 生成的画布进行视频平铺,命令中自定义 upperleft,upperright,lowerleft,lowerright 进行不同位置平铺。
+> 1.2.3.4.mp4 为文件路径,out.MP4 为输出文件路径,通过 nullsrc 创建 overlay 画布,画布大小 640:480,使用[0:v][1:v][2:v][3:v]将输入的 4 个视频流去除,分别进行缩放处理,然后基于 nullsrc 生成的画布进行视频平铺,命令中自定义upperleft,upperright,lowerleft,lowerright 进行不同位置平铺。
 > ```
 
 <img src="assets/image-20231229172448028.png" alt="image-20231229172448028" /> 
@@ -438,7 +431,6 @@ ffmpeg/ffplay的帮助说明
 只叠加左上右上的命令 : 
 
 > ```bash
-> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTSSTARTPTS,scale=320x240[upperleft];[1:v]setpts=PTSSTARTPTS,scale=320x240[upperright];[base][upperleft]overlay=shortest=1[tmp1];[tmp1][upperright]overlay=sho
-> rtest=1:x=320" out2.mp4
+> ffmpeg -i 1.mp4 -i 2.mp4 -i 3.mp4 -i 4.mp4 -filter_complex "nullsrc=size=640x480[base];[0:v]setpts=PTSSTARTPTS,scale=320x240[upperleft];[1:v]setpts=PTSSTARTPTS,scale=320x240[upperright];[base][upperleft]overlay=shortest=1[tmp1];[tmp1][upperright]overlay=shortest=1:x=320" out2.mp4
 > ```
 
