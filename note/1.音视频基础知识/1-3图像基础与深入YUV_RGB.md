@@ -159,6 +159,8 @@ YUV采用A : B : C表示法来描述 **$\color{red}{Y,U,V采样频率比例}$** 
 
 <img src="assets/image-20231213111134825.png" alt="image-20231213111134825" /> 
 
+<img src="assets/image-20240103175451708.png" alt="image-20240103175451708" />  
+
 > I420(YUV420P)格式 
 
 #### 2.2.2.4 YUV数据存储 - 4 : 2 : 0 格式- `NV12`
