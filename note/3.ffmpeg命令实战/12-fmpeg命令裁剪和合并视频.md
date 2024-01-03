@@ -40,8 +40,6 @@
 >ffmpeg -f concat -i mp4list.txt -codec copy out_mp42.mp4
 >```
 
-
-
 ## 2.2 以TS格式进行拼接
 
 >```bash
@@ -51,8 +49,6 @@
 >ffmpeg -f concat -i tslist.txt -codec copy out_ts2.mp4
 >```
 
-
-
 ## 2.3 以FLV格式进行拼接
 
 > ```bash
@@ -60,8 +56,6 @@
 > #方法2:
 > ffmpeg -f concat -i flvlist.txt -codec copy out_flv2.mp4
 > ```
-
-
 
 * 方法1只适用部分封装格式 , 比如TS
 * 建议 : 
