@@ -365,7 +365,7 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch/
 
 > ```bash
 > ./configure \
->     --prefix=/home/32687/ffmpeg/build/libffmepg \
+>     --prefix=/home/xxx/ffmpeg/build/libffmepg \
 >     --arch=x86_64 \
 >     --enable-shared \
 >     --enable-gpl \
