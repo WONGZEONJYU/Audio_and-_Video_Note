@@ -15,3 +15,45 @@ SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体�
 <img src="assets/image-20240104094551340.png" alt="image-20240104094551340" /> 
 
  版本会持续更新 , 下载对应的版本就OK
+
+# 3. Linux环境搭建
+
+## 3.1 下载SDL源码库 , SDL2-x.x.x.tar.gz
+
+[[下载地址]](https://www.libsdl.org/download-2.0.php)
+
+<img src="assets/image-20240104094754989.png" alt="image-20240104094754989" /> 
+
+## 3.2 解压
+
+> ```bash
+> tar -vxf SDL2-x.x.x.tar.gz
+> ```
+
+## 3.3 配置 & 编译
+
+> ```bash
+> ./configure
+> make
+> sudo make install
+> ```
+
+## 3.4 遇到错误
+
+> ```tex
+> 如果出现Could not initialize SDL - No available video device
+> (Did you set the DISPLAY variable?)错误
+> 说明系统中没有安装x11的库文件，因此编译出来的SDL库实际上不能用。
+> 下载安装
+> ```
+
+> ```bash
+> sudo apt-get install libx11-dev
+> sudo apt-get install xorg-dev
+> ```
+
+## 4. Mac 搭建
+
+[[下载地址]](https://www.libsdl.org/download-2.0.php)
+
+<img src="assets/image-20240104101849453.png" alt="image-20240104101849453" />
