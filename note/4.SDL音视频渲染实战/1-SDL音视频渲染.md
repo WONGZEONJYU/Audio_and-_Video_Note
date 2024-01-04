@@ -68,5 +68,3 @@ SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体�
 > brew install SDL2
 > ```
 
-
-
