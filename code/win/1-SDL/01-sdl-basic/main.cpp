@@ -20,7 +20,7 @@ int main(int argc,const char* argv[])
     if(!window){
         throw (string("err") + SDL_GetError());
     }
-
+    SDL_Delay(10000);
     SDL_DestroyWindow(window);
     SDL_Quit();
     return 0;
