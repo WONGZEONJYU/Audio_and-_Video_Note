@@ -105,8 +105,8 @@ SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体�
 > SOURCES += \
 >         main.cpp
 > 
-> INCLUDEPATH += $$PWD/SDL2-2.28.5-VC/include
-> LIBS += $$PWD/SDL2-2.28.5-VC/lib/x64/SDL2.lib
+> INCLUDEPATH += $$PWD/../SDL2-2.28.5-VC/include
+> LIBS += $$PWD/../SDL2-2.28.5-VC/lib/x64/SDL2.lib
 > #把库文件路径与头文件路径加进去,库文件路径需要指定到具体某个库
 > 
 > CONFIG += shadow -build
@@ -221,6 +221,27 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > ```
 
 [[02-sdl-window参考链接]](/code/win/1-SDL/02-sdl-window)
+
+1. pro文件
+
+> ```bash
+> TEMPLATE = app
+> CONFIG += console c++17
+> CONFIG -= app_bundle
+> CONFIG -= qt
+> 
+> SOURCES += \
+>         main.cpp
+> 
+> INCLUDEPATH += $$PWD/../SDL2-2.28.5-VC/include
+> LIBS += $$PWD/../SDL2-2.28.5-VC/lib/x64/SDL2.lib
+> 
+> CONFIG += shadow -build
+> DESTDIR = $$PWD/bin
+> 
+> ```
+
+2. main.cpp
 
 > ```c++
 > 
