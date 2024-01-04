@@ -176,6 +176,35 @@ SDL将功能分成下列数个子系统 (subsystem) :
 
 [[01-sdl-basic参考链接]](/code/win/1-SDL/01-sdl-basic)
 
+> ```c++
+> #include <iostream>
+> #include <string>
+> #include <SDL.h>
+> 
+> #undef main	/*必须在#include <SDL.h>下*/
+> using namespace std;
+> 
+> int main(int argc,const char* argv[])
+> {
+>     (void)argc,(void)argv;
+> 
+>     SDL_Init(SDL_INIT_VIDEO);
+>     auto window {SDL_CreateWindow("basic window",
+>                                  SDL_WINDOWPOS_CENTERED,
+>                                  SDL_WINDOWPOS_CENTERED,
+>                                  1280,800,
+>                                  SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL)};
+> 
+>     if(!window){
+>         throw (string("err") + SDL_GetError());
+>     }
+> 
+>     SDL_DestroyWindow(window);
+>     SDL_Quit();
+>     return 0;
+> }
+> ```
+
 
 
 ### 2.2.2 SDL数据结构简介
