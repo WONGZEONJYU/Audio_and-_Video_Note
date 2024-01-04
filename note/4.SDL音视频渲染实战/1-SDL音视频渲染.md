@@ -52,8 +52,21 @@ SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体�
 > sudo apt-get install xorg-dev
 > ```
 
-## 4. Mac 搭建
+# 4. Mac 搭建
+
+## 4.1 自己下载搭建
 
 [[下载地址]](https://www.libsdl.org/download-2.0.php)
 
 <img src="assets/image-20240104101849453.png" alt="image-20240104101849453" />
+
+下载后打开安装包将 SDL2.framework 拖拽到 /Library/Frameworks这个目录下
+
+## 4.2 命令搭建
+
+> ```bash
+> brew install SDL2
+> ```
+
+
+
