@@ -2,9 +2,10 @@
 #include <string>
 #include <SDL.h>
 
+#undef main
+
 using namespace std;
 
-#undef main
 int main(int argc,const char* argv[])
 {
     (void)argc,(void)argv;
@@ -24,3 +25,4 @@ int main(int argc,const char* argv[])
     SDL_Quit();
     return 0;
 }
+
