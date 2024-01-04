@@ -6,6 +6,7 @@ using namespace std;
 #undef main
 int main(int argc,const char* argv[])
 {
+    (void)argc,(void)argv;
     SDL_version ver{};
     SDL_GetVersion(&ver);
 
@@ -13,5 +14,6 @@ int main(int argc,const char* argv[])
             static_cast<int>(ver.minor) << "." <<
             static_cast<int>(ver.patch) << "\n";
 
+    getchar();
     return 0;
 }
