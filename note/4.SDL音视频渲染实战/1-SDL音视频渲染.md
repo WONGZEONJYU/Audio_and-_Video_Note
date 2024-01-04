@@ -172,6 +172,12 @@ SDL将功能分成下列数个子系统 (subsystem) :
 * `SDL_Delay()` : 工具函数 , 用于延时
 * `SDL_Quit()` : 退出SDL系统  
 
+#### 2.2.1.1 编程示例
+
+[[01-sdl-basic参考链接]](/code/win/1-SDL/01-sdl-basic)
+
+
+
 ### 2.2.2 SDL数据结构简介
 
 * `SDL_Window` 代表了一个 “窗口”
@@ -198,10 +204,52 @@ SDL将功能分成下列数个子系统 (subsystem) :
 
 ## 2.4 SDL多线程
 
-* SDL线程创建 : SDL_CreateThread()
-* SDL线程等待 : SDL_WaitThead()
-* SDL互斥锁创建/销毁 : SDL_CreateMutex() / SDL_DestroyMutex()
-* SDL锁定互斥 : SDL_LockMutex() / SDL_UnlockMutex()
-* SDL条件变量 (信号量) 创建/销毁 : SDL_CreateCond() / SDL_DestoryCond()
-* SDL条件变量 (信号量) 等待/通知 : SDL_CondWait() / SDL_CondSingal()
+* SDL线程创建 : `SDL_CreateThread()`
+* SDL线程等待 : `SDL_WaitThead()`
+* SDL互斥锁创建/销毁 : `SDL_CreateMutex() / SDL_DestroyMutex()`
+* SDL锁定互斥 : `SDL_LockMutex() / SDL_UnlockMutex()`
+* SDL条件变量 (信号量) 创建/销毁 : `SDL_CreateCond() / SDL_DestoryCond()`
+* SDL条件变量 (信号量) 等待/通知 : `SDL_CondWait() / SDL_CondSingal()`
+
+## 2.5 YUV显示 : SDL视频显示的流程
+
+<img src="assets/image-20240104150917857.png" alt="image-20240104150917857" /> 
+
+## 2.6 SDL播放音频PCM
+
+### 2.6.1 打开音频设备
+
+> ```c++
+> typedef struct SDL_AudioSpec {
+>     int freq; // 音频采样率
+>     SDL_AudioFormat format; // 音频数据格式
+>     Uint8 channels; // 声道数: 1 单声道, 2 立体声
+>     Uint8 silence; // 设置静音的值， 因为声音采样是有符号的， 所以0当然就是这个值
+>     Uint16 samples; // 音频缓冲区中的采样个数，要求必须是2的n次
+>     Uint16 padding; // 考虑到兼容性的一个参数
+>     Uint32 size; // 音频缓冲区的大小，以字节为单位
+>     SDL_AudioCallback callback; // 填充音频缓冲区的回调函数
+>     void *userdata; // 用户自定义的数据
+> } SDL_AudioSpec;
+> 
+> int SDLCALL SDL_OpenAudio(SDL_AudioSpec* desired,SDL_AudioSpec* obtained);
+> // desired：期望的参数。
+> // obtained：实际音频设备的参数,一般情况下设置为NULL即可
+> ```
+
+### 2.6.2 `SDL_AudioCallback`
+
+> ```c++
+> // userdata:SDL_AudioSpec结构中的用户自定义数据,一般情况下可以不用
+> // stream:该指针指向需要填充的音频缓冲区
+> // len:音频缓冲区的大小(以字节为单位) 1024*2*2
+> void (SDLCALL * SDL_AudioCallback) (void *userdata, Uint8 *stream, int len);
+> 
+> // 当pause_on设置为0的时候即可开始播放音频数据。设置为1的时候，将会播放静音的值。
+> void SDLCALL SDL_PauseAudio(int pause_on)
+> ```
+
+
+
+
 
