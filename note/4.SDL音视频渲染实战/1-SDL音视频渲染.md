@@ -185,3 +185,23 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > 所以相对于存储RGB而已,存储纹理占用的内存要少的多。
 > ```
 
+## 2.3 SDL事件
+
+* 函数
+  * `SDL_WaitEvent()` : 等待一个事件
+  * `SDL_PushEvent()` : 发送一个事件
+  * `SDL_PumpEvents()` : 
+    * 将硬件设备产生的事件放入事件队列 , 用于读取事件 , 在调用该函数之前 , 必须调用 `SDL_PumpEvents` 搜集键盘等事件
+  * `SDL_PeepEvents()` : 从事件队列提取一个事件
+* 数据结构
+  * `SDL_Event` : 代表一个事件  
+
+## 2.4 SDL多线程
+
+* SDL线程创建 : SDL_CreateThread()
+* SDL线程等待 : SDL_WaitThead()
+* SDL互斥锁创建/销毁 : SDL_CreateMutex() / SDL_DestroyMutex()
+* SDL锁定互斥 : SDL_LockMutex() / SDL_UnlockMutex()
+* SDL条件变量 (信号量) 创建/销毁 : SDL_CreateCond() / SDL_DestoryCond()
+* SDL条件变量 (信号量) 等待/通知 : SDL_CondWait() / SDL_CondSingal()
+
