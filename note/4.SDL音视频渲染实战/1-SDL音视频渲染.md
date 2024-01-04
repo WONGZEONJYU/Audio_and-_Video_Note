@@ -74,7 +74,9 @@ SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体�
 
 ## 1.4 新建开发工程(qt)
 
-### 1.4.1 新建工程
+### 1.4.1 windows 下
+
+#### 1.4.1.1 新建工程
 
 <img src="assets/image-20240104111120569.png" alt="image-20240104111120569" /> 
 
@@ -86,13 +88,13 @@ SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体�
 
 教程采用32bit开发 , 本人尝试使用64bit开发
 
-### 1.4.2 拷贝SDL库到工程目录
+#### 1.4.1.2 拷贝SDL库到工程目录
 
 <img src="assets/image-20240104111702843.png" alt="image-20240104111702843" /> 
 
  <img src="assets/image-20240104141717961.png" alt="image-20240104141717961" /> 
 
-### 1.4.3 修改 `pro` 文件
+#### 1.4.1.3 修改 `pro` 文件
 
 > ```bash
 > TEMPLATE = app
@@ -113,7 +115,7 @@ SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体�
 > #DESTDIR = $$PWD/bin 把输出目录调整到工程文件夹下的bin文件夹
 > ```
 
-### 1.4.4 main.cpp包含头文件并测试
+#### 1.4.1.4 main.cpp包含头文件并测试
 
 > ```c++
 > #include <iostream>
@@ -136,6 +138,10 @@ SDL（Simple DirectMedia Layer）是一套开放源代码的跨平台多媒体�
 > ```
 
 <img src="assets/image-20240104133811110.png" alt="image-20240104133811110" /> 
+
+### 1.4.2 linux 下
+
+### 1.4.3 Macos 下
 
 # 2. SDL 编程
 
