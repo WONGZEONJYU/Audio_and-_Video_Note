@@ -198,14 +198,14 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >     if(!window){
 >         throw (string("err") + SDL_GetError());
 >     }
-> 
+> 	SDL_Delay(10000);
 >     SDL_DestroyWindow(window);
 >     SDL_Quit();
 >     return 0;
 > }
 > ```
 
-
+<img src="assets/image-20240104204925735.png" alt="image-20240104204925735" /> 
 
 ### 2.2.2 SDL数据结构简介
 
@@ -272,7 +272,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > // userdata:SDL_AudioSpec结构中的用户自定义数据,一般情况下可以不用
 > // stream:该指针指向需要填充的音频缓冲区
 > // len:音频缓冲区的大小(以字节为单位) 1024*2*2
-> void (SDLCALL * SDL_AudioCallback) (void *userdata, Uint8 *stream, int len);
+> void (SDLCALL *SDL_AudioCallback) (void *userdata, Uint8 *stream, int len);
 > 
 > // 当pause_on设置为0的时候即可开始播放音频数据。设置为1的时候，将会播放静音的值。
 > void SDLCALL SDL_PauseAudio(int pause_on)
