@@ -176,7 +176,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 * `SDL_Delay()` : 工具函数 , 用于延时
 * `SDL_Quit()` : 退出SDL系统  
 
-#### 2.2.1.1 编程示例
+#### 2.2.1.1 编程实验
 
 [[01-sdl-basic参考链接]](/code/win/1-SDL/01-sdl-basic)
 
@@ -225,6 +225,8 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > ```
 
 <img src="assets/image-20240105152547759.png" alt="image-20240105152547759" /> 
+
+#### 2.2.2.1 编程实验
 
 [[02-sdl-window参考链接]](/code/win/1-SDL/02-sdl-window)
 
@@ -333,6 +335,8 @@ SDL将功能分成下列数个子系统 (subsystem) :
   * `SDL_PeepEvents()` : 从事件队列提取一个事件 ( 调用前建议先调用 `SDL_PumpEvents()` 来更新一下事件队列 )
 * 数据结构
   * `SDL_Event` : 代表一个事件  
+
+### 2.3.1 编程实验
 
 [[03-sdl-event参考链接]](/code/win/1-SDL/03-sdl_event)
 
@@ -488,6 +492,8 @@ SDL将功能分成下列数个子系统 (subsystem) :
 * SDL条件变量 (信号量) 创建/销毁 : `SDL_CreateCond() / SDL_DestoryCond()`
 * SDL条件变量 (信号量) 等待/通知 : `SDL_CondWait() / SDL_CondSingal()`
 
+### 2.4.1 编程实验
+
 [[04-sdl-thread参考链接]](/code/win/1-SDL/04-sdl-thread)
 
 1. `pro` 文件
@@ -584,6 +590,8 @@ SDL将功能分成下列数个子系统 (subsystem) :
 ## 2.5 YUV显示 : SDL视频显示的流程
 
 <img src="assets/image-20240104150917857.png" alt="image-20240104150917857" /> 
+
+### 2.5.1 编程实验
 
 [[05-sdl-yuv参考链接]]()
 
