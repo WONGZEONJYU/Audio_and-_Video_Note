@@ -583,6 +583,10 @@ SDL将功能分成下列数个子系统 (subsystem) :
 
 <img src="assets/image-20240104150917857.png" alt="image-20240104150917857" /> 
 
+[[05-sdl-yuv参考链接]]()
+
+
+
 ## 2.6 SDL播放音频PCM
 
 ### 2.6.1 打开音频设备
@@ -617,7 +621,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > void SDLCALL SDL_PauseAudio(int pause_on)
 > ```
 
+### 2.6.3 编程实验
 
-
-
+[[06-sdl-pcm参考链接]]()
 
