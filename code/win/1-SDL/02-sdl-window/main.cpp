@@ -26,7 +26,7 @@ int main()
     auto texture {SDL_CreateTexture(renderer,
                                     SDL_PIXELFORMAT_RGBA8888,
                                     SDL_TEXTUREACCESS_TARGET,
-                                    640,480)}; //创建纹理
+                                    1280,800)}; //创建纹理
     if(!texture){
         throw (string("err: ") + SDL_GetError());
     }
@@ -35,8 +35,8 @@ int main()
 
     for(;;){
 
-        const SDL_Rect rect{.x = rand() % 600,
-                        .y = rand() % 400,.w = 50,.h = 50};
+        const SDL_Rect rect{.x = rand() % 1000,
+                        .y = rand() % 700,.w = 100,.h = 100};
 
         SDL_SetRenderTarget(renderer,texture); //设置渲染目标为纹理
         SDL_SetRenderDrawColor(renderer,255,0,0,0); //纹理背景颜色(RGBA)
