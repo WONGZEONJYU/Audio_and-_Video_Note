@@ -325,6 +325,8 @@ SDL将功能分成下列数个子系统 (subsystem) :
 * 数据结构
   * `SDL_Event` : 代表一个事件  
 
+
+
 ## 2.4 SDL多线程
 
 * SDL线程创建 : `SDL_CreateThread()`
