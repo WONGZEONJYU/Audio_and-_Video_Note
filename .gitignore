@@ -1,5 +1,5 @@
 /code/win/1-SDL/01-sdl-basic/bin/
 /code/win/1-SDL/02-sdl-window/bin/
 /code/win/1-SDL/03-sdl_event/bin/
-/code/win/1-SDL/03-sdl_thread/bin/
+/code/win/1-SDL/04-sdl-thread/bin/
 .DS_Store
