@@ -469,7 +469,9 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > }
 > ```
 
+<img src="assets/image-20240105134535778.png" alt="image-20240105134535778" /> 
 
+<img src="assets/image-20240105134601217.png" alt="image-20240105134601217" /> 
 
 ## 2.4 SDL多线程
 
