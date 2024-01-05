@@ -482,6 +482,10 @@ SDL将功能分成下列数个子系统 (subsystem) :
 * SDL条件变量 (信号量) 创建/销毁 : `SDL_CreateCond() / SDL_DestoryCond()`
 * SDL条件变量 (信号量) 等待/通知 : `SDL_CondWait() / SDL_CondSingal()`
 
+[[04-sdl-thread参考链接]](/code/win/1-SDL/04-sdl-thread)
+
+
+
 ## 2.5 YUV显示 : SDL视频显示的流程
 
 <img src="assets/image-20240104150917857.png" alt="image-20240104150917857" /> 
