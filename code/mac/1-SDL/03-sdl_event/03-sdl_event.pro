@@ -6,8 +6,8 @@ CONFIG -= qt
 SOURCES += \
         main.cpp
 
-INCLUDEPATH += $$PWD/../SDL2-2.28.5-VC/include
-LIBS += $$PWD/../SDL2-2.28.5-VC/lib/x64/SDL2.lib
+INCLUDEPATH += /opt/homebrew/Cellar/sdl2/2.28.5/include
+LIBS += -L/opt/homebrew/Cellar/sdl2/2.28.5/lib/ -lSDL2
 
 CONFIG += shadow -build
 DESTDIR = $$PWD/bin
