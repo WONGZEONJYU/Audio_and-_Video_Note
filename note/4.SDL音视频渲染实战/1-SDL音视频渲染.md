@@ -585,7 +585,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > 
 > ```
 
-<img src="assets/image-20240105145252529.png" alt="image-20240105145252529" /> 
+<img src="assets/image-20240105160048854.png" alt="image-20240105160048854" />  
 
 ## 2.5 YUV显示 : SDL视频显示的流程
 
