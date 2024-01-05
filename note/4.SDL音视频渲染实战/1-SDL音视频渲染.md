@@ -317,13 +317,157 @@ SDL将功能分成下列数个子系统 (subsystem) :
 ## 2.3 SDL事件
 
 * 函数
-  * `SDL_WaitEvent()` : 等待一个事件
-  * `SDL_PushEvent()` : 发送一个事件
+  * `SDL_WaitEvent()` : 等待一个事件(阻塞)
+  * `SDL_WaitEventTimeout()` : 等待一个事件(阻塞,带超时)
+  * `SDL_PollEvent()` : 轮询是否有事件 , 没有立即返回 (非阻塞)
   * `SDL_PumpEvents()` : 
-    * 将硬件设备产生的事件放入事件队列 , 用于读取事件 , 在调用该函数之前 , 必须调用 `SDL_PumpEvents` 搜集键盘等事件
-  * `SDL_PeepEvents()` : 从事件队列提取一个事件
+    * 将硬件设备产生的事件放入事件队列 , 用于读取事件 , 在调用上述几个函数之前 , 必须调用 `SDL_PumpEvents` 搜集键盘等事件 ( **简单理解就是强制更新事件队列** )
+    * 一般情况下 , 上述三个函数内部会自动调用 `SDL_PumpEvents()` , 用户无需显示调用本函数
+  * `SDL_PushEvent()` : 发送一个事件
+  * `SDL_PeepEvents()` : 从事件队列提取一个事件 ( 调用前建议先调用 `SDL_PumpEvents()` 来更新一下事件队列 )
 * 数据结构
   * `SDL_Event` : 代表一个事件  
+
+[[03-sdl-event参考链接]](/code/win/1-SDL/03-sdl_event)
+
+1. `pro` 文件
+
+> ```bash
+> TEMPLATE = app
+> CONFIG += console c++20
+> CONFIG -= app_bundle
+> CONFIG -= qt
+> 
+> SOURCES += \
+>         main.cpp
+> 
+> INCLUDEPATH += $$PWD/../SDL2-2.28.5-VC/include
+> LIBS += $$PWD/../SDL2-2.28.5-VC/lib/x64/SDL2.lib
+> 
+> CONFIG += shadow -build
+> DESTDIR = $$PWD/bin
+> 
+> ```
+
+2. main.cpp
+
+> ```c++
+> #include <iostream>
+> #include <string>
+> #include <SDL.h>
+> #undef main
+> 
+> using namespace std;
+> 
+> static inline constexpr auto FF_QUIT_EVENT {SDL_USEREVENT + 2}; //用户自定义事件
+> 
+> int main()
+> {
+>     SDL_Init( SDL_INIT_EVERYTHING  );               // Initialize SDL2
+> 
+>     // Create an application window with the following settings:
+>     const auto window { SDL_CreateWindow(
+>                 "An SDL2 window",                  // window title
+>                 SDL_WINDOWPOS_UNDEFINED,           // initial x position
+>                 SDL_WINDOWPOS_UNDEFINED,           // initial y position
+>                 1280,                               // width, in pixels
+>                 800,                               // height, in pixels
+>                 SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS// flags - see below
+>                 )};
+> 
+>     // Check that the window was successfully created
+>     if (!window){
+>         // In the case that the window could not be made...
+>         throw (string("Could not create window: ") + SDL_GetError());
+>     }
+> 
+>     /* We must call SDL_CreateRenderer in order for draw calls to affect this window. */
+>     const auto renderer {SDL_CreateRenderer(window, -1, 0)};
+>     if(!renderer){
+>         throw (string("Could not create Renderer: ") + SDL_GetError());
+>     }
+> 
+>     /* Select the color for drawing. It is set to red here. */
+>     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+> 
+>     /* Clear the entire screen to our selected color. */
+>     SDL_RenderClear(renderer);
+> 
+>     /* Up until now everything was drawn behind the scenes.
+>        This will show the new, red contents of the window. */
+>     SDL_RenderPresent(renderer);
+> 
+>     for (;;){
+> 
+>         bool b_exit {};
+>         SDL_Event event{};
+> 
+> //        if(!SDL_PollEvent(&event)){
+> //            continue;
+> //        }
+> 
+>         SDL_WaitEvent(&event);
+>         switch (event.type){
+> 
+>         case SDL_KEYDOWN:/* 键盘事件 */
+>             switch (event.key.keysym.sym){
+>             case SDLK_a:
+>                 cout << "key down a\n";
+>                 break;
+>             case SDLK_s:
+>                 cout << "key down s\n";
+>                 break;
+>             case SDLK_d:
+>                 cout << "key down d\n";
+>                 break;
+>             case SDLK_w:
+>                 cout << "key down w\n";
+>                 break;
+>             case SDLK_q:{
+>                 cout << "key down q and push quit event\n";
+>                 SDL_Event event_q{};
+>                 event_q.type = FF_QUIT_EVENT;
+>                 SDL_PushEvent(&event_q);
+>                 break;
+>             }
+>             default:
+>                 cout << "key down 0x" << hex << event.key.keysym.sym << "\n";
+>                 break;
+>             }
+>             break;
+>         case SDL_MOUSEBUTTONDOWN:			/* 鼠标按下事件 */
+>             if (event.button.button == SDL_BUTTON_LEFT) {
+>                 cout << "mouse down left\n";
+>             }else if(event.button.button == SDL_BUTTON_RIGHT){
+>                 cout << "mouse down right\n";
+>             }else{
+>                 cout << "mouse down " << event.button.button << "\n";
+>             }
+>             break;
+>         case SDL_MOUSEMOTION:		/* 鼠标移动事件 */
+>             cout << "mouse movie (" << event.button.x << "," << event.button.y << ")\n";
+>             break;
+>         case FF_QUIT_EVENT:
+>             cout << "receive quit event\n";
+>             b_exit = true;
+>             break;
+>         }
+> 
+>         if(b_exit){
+>              break;
+>         }
+>     }
+> 
+>     //destory renderer
+>     SDL_DestroyRenderer(renderer);
+>     // Close and destroy the window
+>     SDL_DestroyWindow(window);
+>     // Clean up
+>     SDL_Quit();
+> 
+>     return 0;
+> }
+> ```
 
 
 
