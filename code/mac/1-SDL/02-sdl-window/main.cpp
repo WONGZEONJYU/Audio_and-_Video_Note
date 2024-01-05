@@ -50,9 +50,10 @@ int main()
         SDL_RenderCopy(renderer, texture, nullptr, nullptr); //拷贝纹理到CPU
 
         SDL_RenderPresent(renderer); //输出到目标窗口上
-        SDL_Delay(300);
 
-        if(++show_count >= 30){
+        SDL_Event event{};
+        SDL_WaitEventTimeout(&event,300);
+        if (event.type == SDL_QUIT) {
             break;
         }
     }
