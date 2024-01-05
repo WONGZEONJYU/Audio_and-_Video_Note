@@ -484,7 +484,96 @@ SDL将功能分成下列数个子系统 (subsystem) :
 
 [[04-sdl-thread参考链接]](/code/win/1-SDL/04-sdl-thread)
 
+1. `pro` 文件
 
+> ```bash
+> TEMPLATE = app
+> CONFIG += console c++20
+> CONFIG -= app_bundle
+> CONFIG -= qt
+> 
+> SOURCES += \
+>         main.cpp
+> 
+> INCLUDEPATH += $$PWD/../SDL2-2.28.5-VC/include
+> LIBS += $$PWD/../SDL2-2.28.5-VC/lib/x64/SDL2.lib
+> 
+> CONFIG += shadow -build
+> DESTDIR = $$PWD/bin
+> ```
+
+2. main.cpp
+
+> ```c++
+> #include <iostream>
+> #include <string>
+> #include <thread>
+> #include <SDL.h>
+> 
+> #undef main
+> using namespace std;
+> using namespace chrono;
+> using namespace this_thread;
+> 
+> SDL_mutex *s_lock {};
+> SDL_cond *s_cond {};
+> 
+> int thread_work(void *arg)
+> {
+>     (void)arg;
+>     SDL_LockMutex(s_lock);
+>     cout << "                <============thread_work sleep\n";
+>     sleep_for(10ms); // 用来测试获取锁
+>     cout << "                <============thread_work wait\n";
+> 
+>     // 释放s_lock资源，并等待signal。之所以释放s_lock是让别的线程能够获取到s_lock
+>     SDL_CondWait(s_cond, s_lock); //另一个线程(1)发送signal和(2)释放lock后，这个函数退出
+> 
+>     cout << "                <===========thread_work receive signal, continue to do ~_~!!!\n";
+>     cout << "                <===========thread_work end\n";
+>     SDL_UnlockMutex(s_lock);
+>     return 0;
+> }
+> 
+> int main()
+> {
+>     s_lock = SDL_CreateMutex();
+>     s_cond = SDL_CreateCond();
+> 
+>     auto t {SDL_CreateThread(thread_work,"thread_work",nullptr)};
+> 
+>     if(!t) {
+>         throw string(SDL_GetError());
+>     }
+> 
+>     for(int i {};i< 2;i++){
+>         sleep_for(10ms);
+>         cout << "main execute =====>\n";
+>     }
+> 
+>     cout << "main SDL_LockMutex(s_lock) before ====================>\n";
+> 
+>     SDL_LockMutex(s_lock);  // 获取锁，但是子线程还拿着锁
+>     cout << "main ready send signal====================>\n";
+>     cout << "main SDL_CondSignal(s_cond) before ====================>\n";
+> 
+>     SDL_CondSignal(s_cond); // 发送信号，唤醒等待的线程
+>     cout << "main SDL_CondSignal(s_cond) after ====================>\n";
+> 
+>     sleep_for(10ms);
+>     SDL_UnlockMutex(s_lock);// 释放锁，让其他线程可以拿到锁
+>     cout << "main SDL_UnlockMutex(s_lock) after ====================>\n";
+> 
+>     SDL_WaitThread(t, nullptr);
+>     SDL_DestroyMutex(s_lock);
+>     SDL_DestroyCond(s_cond);
+> 
+>     return 0;
+> }
+> 
+> ```
+
+<img src="assets/image-20240105145252529.png" alt="image-20240105145252529" /> 
 
 ## 2.5 YUV显示 : SDL视频显示的流程
 
@@ -496,15 +585,15 @@ SDL将功能分成下列数个子系统 (subsystem) :
 
 > ```c++
 > typedef struct SDL_AudioSpec {
->     int freq; // 音频采样率
->     SDL_AudioFormat format; // 音频数据格式
->     Uint8 channels; // 声道数: 1 单声道, 2 立体声
->     Uint8 silence; // 设置静音的值， 因为声音采样是有符号的， 所以0当然就是这个值
->     Uint16 samples; // 音频缓冲区中的采样个数，要求必须是2的n次
->     Uint16 padding; // 考虑到兼容性的一个参数
->     Uint32 size; // 音频缓冲区的大小，以字节为单位
->     SDL_AudioCallback callback; // 填充音频缓冲区的回调函数
->     void *userdata; // 用户自定义的数据
+>         int freq; // 音频采样率
+>         SDL_AudioFormat format; // 音频数据格式
+>         Uint8 channels; // 声道数: 1 单声道, 2 立体声
+>         Uint8 silence; // 设置静音的值， 因为声音采样是有符号的， 所以0当然就是这个值
+>         Uint16 samples; // 音频缓冲区中的采样个数，要求必须是2的n次
+>         Uint16 padding; // 考虑到兼容性的一个参数
+>         Uint32 size; // 音频缓冲区的大小，以字节为单位
+>         SDL_AudioCallback callback; // 填充音频缓冲区的回调函数
+>         void *userdata; // 用户自定义的数据
 > } SDL_AudioSpec;
 > 
 > int SDLCALL SDL_OpenAudio(SDL_AudioSpec* desired,SDL_AudioSpec* obtained);
