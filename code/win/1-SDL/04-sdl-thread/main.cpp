@@ -16,7 +16,7 @@ int thread_work(void *arg)
     (void)arg;
     SDL_LockMutex(s_lock);
     cout << "                <============thread_work sleep\n";
-    sleep_for(10ms); // 用来测试获取锁
+    sleep_for(10s); // 用来测试获取锁
     cout << "                <============thread_work wait\n";
 
     // 释放s_lock资源，并等待signal。之所以释放s_lock是让别的线程能够获取到s_lock
@@ -40,7 +40,7 @@ int main()
     }
 
     for(int i {};i< 2;i++){
-        sleep_for(10ms);
+        sleep_for(2s);
         cout << "main execute =====>\n";
     }
 
@@ -53,7 +53,7 @@ int main()
     SDL_CondSignal(s_cond); // 发送信号，唤醒等待的线程
     cout << "main SDL_CondSignal(s_cond) after ====================>\n";
 
-    sleep_for(10ms);
+    sleep_for(10s);
     SDL_UnlockMutex(s_lock);// 释放锁，让其他线程可以拿到锁
     cout << "main SDL_UnlockMutex(s_lock) after ====================>\n";
 
