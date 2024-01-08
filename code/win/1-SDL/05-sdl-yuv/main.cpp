@@ -105,7 +105,7 @@ int main()
 
     // 打开YUV文件
     constexpr auto yuv_path {"yuv420p_320x240.yuv"};
-    auto video_fd { fopen(yuv_path, "rb")};
+    auto video_fd { fopen(yuv_path, "rb")};/*只读和二进制形式打开*/
     if(!video_fd ){
         SDL_DestroyWindow(window);
         SDL_DestroyRenderer(renderer);

@@ -753,8 +753,8 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >             /*采用planar格式存储,4个Y,对应一个U和一个V*/
 >             SDL_UpdateTexture(texture, nullptr, video_buf, video_width);
 > 
->             // 显示区域,可以通过修改w和h进行缩放,支持拉伸操作
 > #if 1
+>             // 显示区域,可以通过修改w和h进行缩放,支持拉伸操作
 >             const auto w_ratio {win_width * 1.0 /video_width},
 >             h_ratio {win_height * 1.0 /video_height};
 >             SDL_Rect rect{.x = 0,.y = 0,
@@ -870,3 +870,4 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > ```c++
 > 
 > ```
+
