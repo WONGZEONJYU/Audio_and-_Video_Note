@@ -887,7 +887,13 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > #include <string>
 > #include <memory_resource>
 > #include <fstream>
+> #include <thread>
 > #include <SDL.h>
+> 
+> #undef main
+> using namespace std;
+> using namespace chrono;
+> using namespace this_thread;
 > 
 > /**
 >  * SDL2播放PCM
@@ -908,11 +914,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >  *
 >  */
 > 
-> #undef main
-> using namespace std;
 > 
-> //以1024个采样点一帧 2通道 16bit采样点为例(2字节),每次读取2帧数据
-> static inline constexpr auto PCM_BUFFER_SIZE (1024*2*2*2);
 > 
 > // 音频PCM数据缓存
 > static Uint8 *s_audio_buf {};
@@ -952,8 +954,6 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > // 测试PCM文件
 > // ffplay -ar 44100 -ac 2 -f s16le 44100_16bit_2ch.pcm
 > 
-> static inline constexpr auto path{"44100_16bit_2ch.pcm"};
-> 
 > int main()
 > {
 >     //SDL initialize
@@ -962,6 +962,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >     }
 > 
 >     //打开PCM文件
+>     constexpr auto path{"44100_16bit_2ch.pcm"};
 >     ifstream ifs(path,ios::binary);
 >     if(!ifs){
 >         const string errmsg(string("Failed to open pcm file!\n"));
@@ -973,7 +974,8 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >     pmr::synchronized_pool_resource mptool(opt);
 > 
 >     //s_audio_buf = (uint8_t *)malloc(PCM_BUFFER_SIZE);
-> 
+>     //以1024个采样点一帧 2通道 16bit采样点为例(2字节),每次读取2帧数据
+>     constexpr auto PCM_BUFFER_SIZE (1024*2*2*2);
 >     try {
 >         s_audio_buf = static_cast<Uint8*>( mptool.allocate(PCM_BUFFER_SIZE));
 >     } catch (const std::bad_alloc & e) {
@@ -1024,7 +1026,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >         s_audio_pos = s_audio_buf;  // 更新buffer的起始位置
 >         //the main thread wait for a moment
 >         while(s_audio_pos < s_audio_end){
->             SDL_Delay(10);  // 等待PCM数据消耗
+>             sleep_for(10ms);  // 等待PCM数据消耗
 >             /* delay_ms < spec.samples / spec.freq */
 >         }
 >     }
