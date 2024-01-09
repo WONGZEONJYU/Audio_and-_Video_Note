@@ -618,57 +618,39 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > ```c++
 > #include <iostream>
 > #include <string>
-> #include <filesystem>
+> #include <fstream>
+> #include <thread>
 > #include <memory_resource>
 > #include <SDL.h>
 > 
 > #undef main
 > 
 > using namespace std;
-> 
-> //自定义消息类型
-> constexpr auto REFRESH_EVENT  {SDL_USEREVENT + 1};     // 请求画面刷新事件
-> constexpr auto QUIT_EVENT  {SDL_USEREVENT + 2};    // 退出事件
-> 
-> //定义分辨率
-> // YUV像素分辨率
-> constexpr uint32_t YUV_WIDTH {320};
-> constexpr uint32_t YUV_HEIGHT  {240};
-> //定义YUV格式
-> constexpr auto YUV_FORMAT {SDL_PIXELFORMAT_IYUV};
-> 
-> int s_thread_exit {};  // 退出标志 = 1则退出
-> 
-> int refresh_video_timer(void *data)
-> {
->     (void)data;
->     while (!s_thread_exit){
->         SDL_Event event;
->         event.type = REFRESH_EVENT;
->         SDL_PushEvent(&event);
->         SDL_Delay(50);
->     }
-> 
->     s_thread_exit = 0;
-> 
->     //push quit event
->     SDL_Event event;
->     event.type = QUIT_EVENT;
->     SDL_PushEvent(&event);
->     return 0;
-> }
+> using namespace chrono;
+> using namespace this_thread;
 > 
 > int main()
 > {
+>     //自定义消息类型
+>     constexpr auto REFRESH_EVENT  {SDL_USEREVENT + 1};     // 请求画面刷新事件
+>     constexpr auto QUIT_EVENT  {SDL_USEREVENT + 2};    // 退出事件
+> 
+>     //定义分辨率
+>     // YUV像素分辨率
+>     constexpr uint32_t YUV_WIDTH {320},YUV_HEIGHT{240};
+> 
+>     //定义YUV格式
+>     constexpr auto YUV_FORMAT {SDL_PIXELFORMAT_IYUV};
+> 
 >     //初始化 SDL
 >     if(SDL_Init(SDL_INIT_VIDEO)){
 >         throw string("Could not initialize SDL - ") + SDL_GetError();
 >     }
 > 
->     // 分辨率
+>     //分辨率
 >     // 1. YUV的分辨率
 >     constexpr auto video_width {YUV_WIDTH},
->                         video_height {YUV_HEIGHT};
+>                     video_height {YUV_HEIGHT};
 > 
 >     // 2.显示窗口的分辨率
 >     auto win_width {YUV_WIDTH},win_height {YUV_WIDTH};
@@ -682,14 +664,14 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >         throw string("SDL: could not create window, err : ") + SDL_GetError() + "\n";
 >     }
 > 
->     // 基于窗口创建渲染器
+>     //基于窗口创建渲染器
 >     auto renderer {SDL_CreateRenderer(window, -1, 0)};
 >     if(!renderer){
 >         SDL_DestroyWindow(window);
 >         throw string("SDL: could not create Renderer, err : ") + SDL_GetError() + "\n";
 >     }
 > 
->     // 基于渲染器创建纹理
+>     //基于渲染器创建纹理
 >     auto texture { SDL_CreateTexture(renderer,
 >                           YUV_FORMAT, // YUV420P，即是SDL_PIXELFORMAT_IYUV
 >                           SDL_TEXTUREACCESS_STREAMING,
@@ -706,7 +688,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >     std::pmr::pool_options opt{};
 >     std::pmr::synchronized_pool_resource mpool(opt);
 > 
->     // 我们测试的文件是YUV420P格式
+>     //测试的文件是YUV420P格式
 >     constexpr auto y_frame_len {video_width * video_height},
 >     u_frame_len {y_frame_len / 4},v_frame_len {y_frame_len / 4},
 >     yuv_frame_len {y_frame_len + u_frame_len + v_frame_len};
@@ -714,27 +696,44 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >     void *video_buf{};
 >     try {
 >         video_buf = mpool.allocate(yuv_frame_len);
->     } catch (const string &e) {
+>     } catch (const bad_alloc &e) {
 >         SDL_DestroyWindow(window);
 >         SDL_DestroyRenderer(renderer);
 >         SDL_DestroyTexture(texture);
->         throw e + " Failed to alloce yuv frame space!\n";
+>         const string errmsg(e.what());
+>         cerr << errmsg;
+>         throw errmsg + " Failed to alloce yuv frame space!\n";
 >     }
 > 
 >     // 打开YUV文件
 >     constexpr auto yuv_path {"yuv420p_320x240.yuv"};
->     auto video_fd { fopen(yuv_path, "rb")};
->     if(!video_fd ){
+>     ifstream ifs(yuv_path,ios::binary); /*只读和二进制形式打开*/
+>     if(!ifs){
 >         SDL_DestroyWindow(window);
 >         SDL_DestroyRenderer(renderer);
 >         SDL_DestroyTexture(texture);
+>         mpool.deallocate(video_buf,yuv_frame_len);
 >         mpool.release();
 >         cerr << "Failed to open yuv file\n";
 >         throw "Failed to open yuv file\n";
 >     }
 > 
 >     // 创建请求刷新线程
->     auto timer_thread { SDL_CreateThread(refresh_video_timer, nullptr, nullptr)};
+>     bool s_thread_exit {};  // 退出标志 = true则退出
+>     thread timer_thread([&](){
+> 
+>         while (!s_thread_exit){
+>             SDL_Event event{.type = REFRESH_EVENT};
+>             SDL_PushEvent(&event);
+>             sleep_for(50ms);
+>         }
+> 
+>         s_thread_exit = false;
+> 
+>         //push quit event
+>         SDL_Event event{.type = QUIT_EVENT};
+>         SDL_PushEvent(&event);
+>     });
 > 
 >     for(;;){
 > 
@@ -742,19 +741,31 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >         SDL_Event event{};
 >         SDL_WaitEvent(&event);
 > 
->         if(event.type == REFRESH_EVENT){ // 画面刷新事件
+>         if(REFRESH_EVENT == event.type){ // 画面刷新事件
 > 
->             auto video_buff_len {fread(video_buf, 1, yuv_frame_len, video_fd)}; /*一次读取一帧*/
->             if(video_buff_len <= 0){
+>             //auto video_buff_len {fread(video_buf, 1, yuv_frame_len, video_fd)}; /*一次读取一帧*/
+> 
+>             try {
+>                 ifs.read(static_cast<char*>(video_buf),yuv_frame_len);
+>             } catch (const ios::failure &e) {
+>                 cerr << e.what() << "\n";
 >                 cerr << "Failed to read data from yuv file!\n";
+>                 cerr << SDL_GetError();
 >                 goto _FAIL;
+>             }
+> 
+>             const auto video_buff_len {ifs.gcount()};
+> 
+>             if(!video_buff_len){
+>                 cout << "Play finish\n" << flush;
+>                 break;
 >             }
 >             // 设置纹理的数据 video_width = 320, plane
 >             /*采用planar格式存储,4个Y,对应一个U和一个V*/
 >             SDL_UpdateTexture(texture, nullptr, video_buf, video_width);
 > 
-> #if 1
 >             // 显示区域,可以通过修改w和h进行缩放,支持拉伸操作
+> #if 1
 >             const auto w_ratio {win_width * 1.0 /video_width},
 >             h_ratio {win_height * 1.0 /video_height};
 >             SDL_Rect rect{.x = 0,.y = 0,
@@ -783,36 +794,28 @@ SDL将功能分成下列数个子系统 (subsystem) :
 >             SDL_GetWindowSize(window, w, h);/*支持拉伸操作*/
 >             cout << "SDL_WINDOWEVENT win_width : " << *w << ", win_height: " << *h << "\n";
 >         }else if(SDL_QUIT == event.type){ //退出事件
->             s_thread_exit = 1;
+>             s_thread_exit = true;
 >         }else if(QUIT_EVENT == event.type){
+>             cout << "QUIT_EVENT\n";
 >             break;
 >         }else{}
 >     }
 > 
 > _FAIL:
->     s_thread_exit = 1;      // 保证线程能够退出
->     // 释放资源
->     if(timer_thread){
->         SDL_WaitThread(timer_thread, nullptr); // 等待线程退出
->     }
+>     s_thread_exit = true;      // 保证线程能够退出
 > 
+>     timer_thread.join(); // 等待线程退出
+> 
+>     ifs.close();
+>     // 释放资源
+>     mpool.deallocate(video_buf,yuv_frame_len);
 >     mpool.release();
 > 
->     if(video_fd){
->         fclose(video_fd);
->     }
+>     SDL_DestroyTexture(texture);
 > 
->     if(texture){
->         SDL_DestroyTexture(texture);
->     }
+>     SDL_DestroyRenderer(renderer);
 > 
->     if(renderer){
->         SDL_DestroyRenderer(renderer);
->     }
-> 
->     if(window){
->         SDL_DestroyWindow(window);
->     }
+>     SDL_DestroyWindow(window);
 > 
 >     SDL_Quit();
 > 
@@ -848,7 +851,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > ```c++
 > // userdata:SDL_AudioSpec结构中的用户自定义数据,一般情况下可以不用
 > // stream:该指针指向需要填充的音频缓冲区
-> // len:音频缓冲区的大小(以字节为单位) 1024*2*2
+> // len:音频缓冲区的大小(以字节为单位) 1024*2*2=4096bytes (采样数 * 两个字节 * 两个通道)
 > void (SDLCALL *SDL_AudioCallback) (void *userdata, Uint8 *stream, int len);
 > 
 > // 当pause_on设置为0的时候即可开始播放音频数据。设置为1的时候，将会播放静音的值。
@@ -862,12 +865,183 @@ SDL将功能分成下列数个子系统 (subsystem) :
 1. `pro` 文件
 
 > ```bash
+> TEMPLATE = app
+> CONFIG += console c++20
+> CONFIG -= app_bundle
+> CONFIG -= qt
 > 
+> SOURCES += \
+>         main.cpp
+> 
+> INCLUDEPATH += $$PWD/../SDL2-2.28.5-VC/include
+> LIBS += $$PWD/../SDL2-2.28.5-VC/lib/x64/SDL2.lib
+> 
+> CONFIG += shadow -build
+> DESTDIR = $$PWD/bin
 > ```
 
 2. main.cpp
 
 > ```c++
+> #include <iostream>
+> #include <string>
+> #include <memory_resource>
+> #include <fstream>
+> #include <SDL.h>
 > 
+> /**
+>  * SDL2播放PCM
+>  * 本程序使用SDL2播放PCM音频采样数据。SDL实际上是对底层绘图
+>  * API（Direct3D，OpenGL）的封装，使用起来明显简单于直接调用底层
+>  * API。
+>  * 测试的PCM数据采用采样率44.1k, 采用精度S16SYS, 通道数2
+>  *
+>  * 函数调用步骤如下:
+>  *
+>  * [初始化]
+>  * SDL_Init(): 初始化SDL。
+>  * SDL_OpenAudio(): 根据参数（存储于SDL_AudioSpec）打开音频设备。
+>  * SDL_PauseAudio(): 播放音频数据。
+>  *
+>  * [循环播放数据]
+>  * SDL_Delay(): 延时等待播放完成。
+>  *
+>  */
+> 
+> #undef main
+> using namespace std;
+> 
+> //以1024个采样点一帧 2通道 16bit采样点为例(2字节),每次读取2帧数据
+> static inline constexpr auto PCM_BUFFER_SIZE (1024*2*2*2);
+> 
+> // 音频PCM数据缓存
+> static Uint8 *s_audio_buf {};
+> // 目前读取的位置
+> static Uint8 *s_audio_pos {};
+> // 缓存结束位置
+> static Uint8 *s_audio_end {};
+> 
+> //音频设备回调函数(调用次数由读取多少数据决定,调用间隔由spec.samples * spec.channels * spec.format)
+> /*比如,1024个采样点 , 16bit格式 , 2个通道 */
+> void fill_audio_pcm(void *udata, Uint8 *stream, int len)
+> {
+>     (void)udata;
+> 
+>     SDL_memset(stream, 0, len);
+> 
+>     if(s_audio_pos >= s_audio_end) {    //数据读取完毕
+>         return;
+>     }
+> 
+>     // 数据够了就读预设长度，数据不够就只读部分（不够的时候剩多少就读取多少）
+>     /*当remain_buffer_len 比 len 还大 , 就先拷贝len ,
+>      *如果不足len , 直接拷贝剩余的长度remain_buffer_len
+>     */
+>     const auto remain_buffer_len {s_audio_end - s_audio_pos},
+>                 length {(len < remain_buffer_len) ? len : remain_buffer_len};
+> 
+>     // 拷贝数据到stream并调整音量
+>     SDL_MixAudio(stream, s_audio_pos, static_cast<Uint32>(length), SDL_MIX_MAXVOLUME/8);
+> 
+>     cout << "len = " << length << "\n";
+>     s_audio_pos += length;  // 移动缓存指针
+> }
+> 
+> // 提取PCM文件
+> // ffmpeg -i input.mp4 -t 20 -codec:a pcm_s16le -ar 44100 -ac 2 -f s16le 44100_16bit_2ch.pcm
+> // 测试PCM文件
+> // ffplay -ar 44100 -ac 2 -f s16le 44100_16bit_2ch.pcm
+> 
+> static inline constexpr auto path{"44100_16bit_2ch.pcm"};
+> 
+> int main()
+> {
+>     //SDL initialize
+>     if(SDL_Init(SDL_INIT_AUDIO)){    // 支持AUDIO
+>         throw string("Could not initialize SDL - ") + SDL_GetError() + "\n";
+>     }
+> 
+>     //打开PCM文件
+>     ifstream ifs(path,ios::binary);
+>     if(!ifs){
+>         const string errmsg(string("Failed to open pcm file!\n"));
+>         cerr << errmsg;
+>         throw errmsg;
+>     }
+> 
+>     pmr::pool_options opt{};
+>     pmr::synchronized_pool_resource mptool(opt);
+> 
+>     //s_audio_buf = (uint8_t *)malloc(PCM_BUFFER_SIZE);
+> 
+>     try {
+>         s_audio_buf = static_cast<Uint8*>( mptool.allocate(PCM_BUFFER_SIZE));
+>     } catch (const std::bad_alloc & e) {
+>         ifs.close();
+>         cerr << e.what();
+>         throw e.what();
+>     }
+> 
+>     // 音频参数设置SDL_AudioSpec
+>     SDL_AudioSpec spec{};
+>     spec.freq = 44100;          // 采样频率
+>     spec.format = AUDIO_S16SYS; // 采样点格式
+>     spec.channels = 2;          // 2通道
+>     spec.silence = 0;
+>     spec.samples = 1024;       // 23.2ms -> 46.4ms 每次读取的采样数量，多久产生一次回调和 samples
+>     spec.callback = fill_audio_pcm; // 回调函数
+>     spec.userdata = nullptr;
+> 
+>     //打开音频设备
+> 
+>     if(SDL_OpenAudio(&spec, nullptr)) {
+>         mptool.deallocate(s_audio_buf,PCM_BUFFER_SIZE);
+>         mptool.release();
+>         ifs.close();
+>         const string errmsg(string("Failed to open audio device, ")  + SDL_GetError() + "\n");
+>         cout << errmsg;
+>         throw errmsg;
+>     }
+> 
+>     //play audio
+>     SDL_PauseAudio(0);
+> 
+>     long long data_count {};
+> 
+>     for(;;){
+>         // 从文件读取PCM数据
+>         ifs.read(reinterpret_cast<char*>(s_audio_buf),PCM_BUFFER_SIZE);
+>         // 每次缓存的长度
+>         const auto read_buffer_len {ifs.gcount()};
+> 
+>         if(read_buffer_len <= 0) {
+>             break;
+>         }
+> 
+>         data_count += read_buffer_len; // 统计读取的数据总字节数
+>         cout << "now playing " << data_count << " bytes data.\n";
+>         s_audio_end = s_audio_buf + read_buffer_len;    // 更新buffer的结束位置
+>         s_audio_pos = s_audio_buf;  // 更新buffer的起始位置
+>         //the main thread wait for a moment
+>         while(s_audio_pos < s_audio_end){
+>             SDL_Delay(10);  // 等待PCM数据消耗
+>             /* delay_ms < spec.samples / spec.freq */
+>         }
+>     }
+> 
+>     cout << "play PCM finish\n";
+>     // 关闭音频设备
+>     SDL_CloseAudio();
+> 
+>     //release some resources
+>     mptool.deallocate(s_audio_buf,PCM_BUFFER_SIZE);
+>     mptool.release();
+> 
+>     ifs.close();
+>     //quit SDL
+>     SDL_Quit();
+> 
+>     return 0;
+> }
 > ```
 
