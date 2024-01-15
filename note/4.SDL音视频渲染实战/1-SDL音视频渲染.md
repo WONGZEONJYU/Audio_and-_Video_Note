@@ -888,6 +888,7 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > #include <memory_resource>
 > #include <fstream>
 > #include <thread>
+> #include <exception>
 > #include <SDL.h>
 > 
 > #undef main
@@ -1012,7 +1013,15 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > 
 >     for(;;){
 >         // 从文件读取PCM数据
->         ifs.read(reinterpret_cast<char*>(s_audio_buf),PCM_BUFFER_SIZE);
+>         try {
+>             ifs.read(reinterpret_cast<char*>(s_audio_buf),PCM_BUFFER_SIZE);
+>         } catch (const ios::failure &e) {
+>             cerr << e.what() << "\n";
+>             cerr << "Failed to read data from pcm file!\n";
+>             cerr << SDL_GetError();
+>             break;
+>         }
+> 
 >         // 每次缓存的长度
 >         const auto read_buffer_len {ifs.gcount()};
 > 
@@ -1045,5 +1054,6 @@ SDL将功能分成下列数个子系统 (subsystem) :
 > 
 >     return 0;
 > }
+> 
 > ```
 
