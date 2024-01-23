@@ -1,0 +1,14 @@
+prefix=/home/Administrator/ffmpeg/build/ffmepg-6.1
+exec_prefix=${prefix}
+libdir=/home/Administrator/ffmpeg/build/ffmepg-6.1/lib
+includedir=/home/Administrator/ffmpeg/build/ffmepg-6.1/include
+
+Name: libpostproc
+Description: FFmpeg postprocessing library
+Version: 57.3.100
+Requires: 
+Requires.private: libavutil >= 58.29.100
+Conflicts:
+Libs: -L${libdir}  -lpostproc 
+Libs.private: -lm -latomic
+Cflags: -I${includedir}

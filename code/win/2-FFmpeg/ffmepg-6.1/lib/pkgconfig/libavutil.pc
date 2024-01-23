@@ -1,0 +1,14 @@
+prefix=/home/Administrator/ffmpeg/build/ffmepg-6.1
+exec_prefix=${prefix}
+libdir=/home/Administrator/ffmpeg/build/ffmepg-6.1/lib
+includedir=/home/Administrator/ffmpeg/build/ffmepg-6.1/include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 58.29.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil 
+Libs.private: -lm -luser32 -lbcrypt -latomic
+Cflags: -I${includedir}

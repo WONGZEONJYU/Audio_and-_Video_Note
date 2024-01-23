@@ -1,0 +1,14 @@
+prefix=/home/Administrator/ffmpeg/build/ffmepg-6.1
+exec_prefix=${prefix}
+libdir=/home/Administrator/ffmpeg/build/ffmepg-6.1/lib
+includedir=/home/Administrator/ffmpeg/build/ffmepg-6.1/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 60.31.102
+Requires: 
+Requires.private: libswresample >= 4.12.100, libavutil >= 58.29.100
+Conflicts:
+Libs: -L${libdir}  -lavcodec 
+Libs.private: -lvpx -lm -lvpx -lm -lvpx -lm -lvpx -lm -liconv -lm -latomic -llzma -lfdk-aac -lmp3lame -lm -LC:/msys64/home/Administrator/ffmpeg/build/libx264/lib -lx264 -lmfuuid -lole32 -lstrmiids -lole32 -luser32 -lz
+Cflags: -I${includedir}
