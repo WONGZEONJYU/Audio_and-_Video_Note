@@ -4,6 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
+        avframe.cpp \
         avpacket.cpp \
         main.cpp
 
@@ -21,4 +22,5 @@ CONFIG += shadow -build
 DESTDIR = $$PWD/bin
 
 HEADERS += \
+    avframe.h \
     avpacket.h

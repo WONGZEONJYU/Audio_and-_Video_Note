@@ -2,7 +2,7 @@
 #include <iostream>
 
 static constexpr auto MEM_ITEM_SIZE {20*1024*102};
-static constexpr auto AVPACKET_LOOP_COUNT {1000};
+//static constexpr auto AVPACKET_LOOP_COUNT {1000};
 
 // 测试 内存泄漏
 /**
@@ -26,7 +26,8 @@ static void av_packet_test2()
     av_new_packet(pkt, MEM_ITEM_SIZE);
     memccpy(pkt->data, (void *)&av_packet_test1, 1, MEM_ITEM_SIZE);
 //    av_init_packet(pkt);        // 这个时候init就会导致内存无法释放
-    /*av_init_packet会把引用计数置为0*/
+    /*av_init_packet会把引用计数置为0,av_packet_free就不会释放*/
+    /*ffmpeg库提示该函数被弃用*/
     av_packet_free(&pkt);
 }
 
@@ -69,7 +70,7 @@ static void av_packet_test5()
     if(pkt->buf){       // 打印referenc-counted，必须保证传入的是有效指针
         /*printf("%s(%d) ref_count(pkt) = %d\n", __FUNCTION__, __LINE__,
                av_buffer_get_ref_count(pkt->buf));*/
-        std::cout << __FUNCTION__ << " (" << __LINE__ << ")" << "ref_count(pkt) = " <<
+        std::cout << __FUNCTION__ << " (" << __LINE__ << ") " << "ref_count(pkt) = " <<
                      av_buffer_get_ref_count(pkt->buf) << "\n";
     }
 
@@ -78,7 +79,7 @@ static void av_packet_test5()
     if(pkt->buf){        // 打印referenc-counted，必须保证传入的是有效指针
         /*printf("%s(%d) ref_count(pkt) = %d\n", __FUNCTION__, __LINE__,
                av_buffer_get_ref_count(pkt->buf));*/
-        std::cout << __FUNCTION__ << " (" << __LINE__ << ")" << "ref_count(pkt) = " <<
+        std::cout << __FUNCTION__ << " (" << __LINE__ << ") " << "ref_count(pkt) = " <<
                      av_buffer_get_ref_count(pkt->buf) << "\n";
     }
 
@@ -93,38 +94,56 @@ static void av_packet_test5()
     if(pkt->buf){      // 打印referenc-counted，必须保证传入的是有效指针
         /*printf("%s(%d) ref_count(pkt) = %d\n", __FUNCTION__, __LINE__,
                av_buffer_get_ref_count(pkt->buf));*/
-        std::cout << __FUNCTION__ << " (" << __LINE__ << ")" << "ref_count(pkt) = " <<
+        std::cout << __FUNCTION__ << " (" << __LINE__ << ") " << "ref_count(pkt) = " <<
                      av_buffer_get_ref_count(pkt->buf) << "\n";
     }
     if(pkt2->buf) {       // 打印referenc-counted，必须保证传入的是有效指针
     /*    printf("%s(%d) ref_count(pkt) = %d\n", __FUNCTION__, __LINE__,
                av_buffer_get_ref_count(pkt2->buf));*/
-        std::cout << __FUNCTION__ << " (" << __LINE__ << ")" << "ref_count(pkt) = " <<
+        std::cout << __FUNCTION__ << " (" << __LINE__ << ") " << "ref_count(pkt) = " <<
                      av_buffer_get_ref_count(pkt2->buf) << "\n";
     }
     av_packet_unref(pkt);   // 将为2
     av_packet_unref(pkt);   // 做第二次是没有用的
     if(pkt->buf){
-        std::cout << "pkt->buf没有被置NULL\n";
+        std::cout << std::string("pkt->buf没有被置NULL\n");
     }else{
-        std::cout << "pkt->buf已经被置NULL\n";
+        std::cout << std::string("pkt->buf已经被置NULL\n");
     }
 
-    if(pkt2->buf)        // 打印referenc-counted，必须保证传入的是有效指针
-    {    /*printf("%s(%d) ref_count(pkt) = %d\n", __FUNCTION__, __LINE__,
+    if(pkt2->buf) {       // 打印referenc-counted，必须保证传入的是有效指针
+        /*printf("%s(%d) ref_count(pkt) = %d\n", __FUNCTION__, __LINE__,
                av_buffer_get_ref_count(pkt2->buf));*/
-        std::cout << __FUNCTION__ << " (" << __LINE__ << ")" << "ref_count(pkt) = " <<
+        std::cout << __FUNCTION__ << " (" << __LINE__ << ") " << "ref_count(pkt) = " <<
                      av_buffer_get_ref_count(pkt2->buf) << "\n";
     }
+
     av_packet_unref(pkt2);
     av_packet_free(&pkt);
     av_packet_free(&pkt2);
 }
 
+/**
+ * @brief 测试AVPacket整个结构体赋值, 和av_packet_move_ref类似
+ */
+static void av_packet_test6()
+{
+    auto pkt {av_packet_alloc()};
+    av_new_packet(pkt, MEM_ITEM_SIZE);
+    memccpy(pkt->data, (void *)&av_packet_test1, 1, MEM_ITEM_SIZE);
+
+    auto pkt2 {av_packet_alloc()};   // 必须先alloc
+    *pkt2 = *pkt;   // 有点类似 pkt可以重新分配内存
+    av_init_packet(pkt);
+    av_packet_free(&pkt);
+    av_packet_free(&pkt2);
+}
+
 void av_packet_test(){
-    av_packet_test1();
-    av_packet_test2();
-    av_packet_test3();
-    av_packet_test4();
+    //av_packet_test1();
+    //av_packet_test2();
+    //av_packet_test3();
+    //av_packet_test4();
     av_packet_test5();
+    //av_packet_test6();
 }
