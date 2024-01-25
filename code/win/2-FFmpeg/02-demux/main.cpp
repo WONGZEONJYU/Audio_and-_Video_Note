@@ -49,6 +49,8 @@ int main(int argc,const char* argv[])
 
 
 
+
+
     if(ifmt_ctx){
         avformat_close_input(&ifmt_ctx);
     }
