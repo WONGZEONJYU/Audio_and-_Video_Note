@@ -247,8 +247,8 @@ int main(int argc,const char* argv[])
 #endif
 
 #if 1
-    auto videoindex {show_vidio_info(ifmt_ctx)};// 视频索引
-    auto audioindex {show_audio_info(ifmt_ctx)};  // 音频索引
+    const auto videoindex {show_vidio_info(ifmt_ctx)};// 视频索引
+    const auto audioindex {show_audio_info(ifmt_ctx)};// 音频索引
 #endif
     cout << "videoindex = " << videoindex << "\n" <<
             "audioindex = " << audioindex << "\n\n";
