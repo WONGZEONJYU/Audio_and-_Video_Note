@@ -2,8 +2,8 @@
 #include <fstream>
 
 extern "C"{
-#include <libavformat/avio.h>
 #include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
 }
 
 using namespace std;
@@ -79,7 +79,7 @@ int adts_header(char * const p_adts_header, const int data_length,
 int main(int argc, const char *argv[])
 {
     // 设置打印级别
-    av_log_set_level(AV_LOG_DEBUG);
+    //av_log_set_level(AV_LOG_DEBUG);
 
     if(argc < 3){
         cerr << "the count of parameters should be more than three!\n";
@@ -93,7 +93,7 @@ int main(int argc, const char *argv[])
         return -1;
     }
 
-    ofstream acc_out_filename(aac_filename);
+    ofstream acc_out_filename(aac_filename,ios::binary | ios::trunc);
 
     if(!acc_out_filename){
         cerr << "Could not open destination file " << aac_filename << "\n";
@@ -102,16 +102,29 @@ int main(int argc, const char *argv[])
 
     AVFormatContext *ifmt_ctx {};
 
-
+    int ret{-1};
     // 打开输入文件
-    if(avformat_open_input(&ifmt_ctx, in_filename, nullptr, nullptr) < 0) {
-        cerr << "Could not open source file: " << in_filename << "\n";
+    if((ret = avformat_open_input(&ifmt_ctx, in_filename, nullptr, nullptr)) < 0) {
+        //cerr << "Could not open source file: " << in_filename << "\n";
+        char errors[1024]{};
+        av_strerror(ret, errors, sizeof(errors));
+        av_log(NULL, AV_LOG_DEBUG, "Could not open source file: %s, %d(%s)\n",
+               in_filename,
+               ret,
+               errors);
         return -1;
     }
 
     // 获取解码器信息
-    if(avformat_find_stream_info(ifmt_ctx,nullptr) < 0) {
-        cerr << "failed to find stream information: <<" << in_filename << "\n";
+
+    if((ret = avformat_find_stream_info(ifmt_ctx,nullptr)) < 0) {
+        //cerr << "failed to find stream information: <<" << in_filename << "\n";
+        char errors[1024]{};
+        av_strerror(ret, errors, sizeof(errors));
+        av_log(NULL, AV_LOG_DEBUG, "failed to find stream information: %s, %d(%s)\n",
+               in_filename,
+               ret,
+               errors);
         return -1;
     }
 
@@ -122,26 +135,53 @@ int main(int argc, const char *argv[])
     //av_init_packet(&pkt);
     AVPacket pkt{};
 
-    // 查找audio对应的steam index
+    //查找audio对应的steam index
     const auto audio_index {av_find_best_stream(ifmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0)};
     if(audio_index < 0){
 
-        cerr << "Could not find "<< av_get_media_type_string(AVMEDIA_TYPE_AUDIO) <<
-                " stream in input file " << in_filename << "\n";
+//        cerr << "Could not find "<< av_get_media_type_string(AVMEDIA_TYPE_AUDIO) <<
+//                " stream in input file " << in_filename << "\n";
+
+        av_log(nullptr, AV_LOG_DEBUG, "Could not find %s stream in input file %s\n",
+               av_get_media_type_string(AVMEDIA_TYPE_AUDIO),
+               in_filename);
 
         return AVERROR(EINVAL);
     }
 
     // 打印AAC级别
-//    printf("audio profile:%d, FF_PROFILE_AAC_LOW:%d\n",
-//           ifmt_ctx->streams[audio_index]->codecpar->profile,
-//           FF_PROFILE_AAC_LOW);
-
+    const auto profile{ifmt_ctx->streams[audio_index]->codecpar->profile};
+    cout << "\n\naudio profile: " << profile << ", FF_PROFILE_AAC_LOW : " << FF_PROFILE_AAC_LOW << "\n\n";
 
     if(ifmt_ctx->streams[audio_index]->codecpar->codec_id != AV_CODEC_ID_AAC) {
-        printf("the media file no contain AAC stream, it's codec_id is %d\n",
-               ifmt_ctx->streams[audio_index]->codecpar->codec_id);
+
+        const auto codec_id {ifmt_ctx->streams[audio_index]->codecpar->codec_id};
+        cout << "the media file no contain AAC stream, it's codec_id is " << codec_id << "\n";
         goto failed;
+    }
+
+    //读取媒体文件,并把aac数据帧写入到本地文件
+    while(av_read_frame(ifmt_ctx, &pkt) >=0 ) {
+        if(audio_index == pkt.stream_index) {
+            char adts_header_buf[7] {};
+            adts_header(adts_header_buf, pkt.size,
+                        ifmt_ctx->streams[audio_index]->codecpar->profile,
+                        ifmt_ctx->streams[audio_index]->codecpar->sample_rate,
+                        ifmt_ctx->streams[audio_index]->codecpar->ch_layout.nb_channels);
+
+            // 写adts header ,ts流不适用,ts流分离出来的packet带了adts header
+            acc_out_filename.write(adts_header_buf,sizeof(adts_header_buf));
+
+            const auto start_pos {acc_out_filename.tellp() };
+            acc_out_filename.write(reinterpret_cast<const char*>(pkt.data),pkt.size);
+            const auto len {acc_out_filename.tellp() - start_pos};
+
+            if(len != pkt.size) {
+                cout << "warning, length of writed data isn't equal pkt.size(" << len << ", "<< pkt.size << ")\n";
+            }
+        }
+
+        av_packet_unref(&pkt);
     }
 
 failed:
@@ -149,6 +189,7 @@ failed:
     if(ifmt_ctx) {
         avformat_close_input(&ifmt_ctx);
     }
+
     acc_out_filename.close();
 
     return 0;
