@@ -157,8 +157,13 @@ int main(int argc, const char *argv[])
 
         const auto codec_id {ifmt_ctx->streams[audio_index]->codecpar->codec_id};
         cout << "the media file no contain AAC stream, it's codec_id is " << codec_id << "\n";
-        goto failed;
+        if(ifmt_ctx) {
+            avformat_close_input(&ifmt_ctx);
+        }
+
+        acc_out_filename.close();
     }
+
 
     //读取媒体文件,并把aac数据帧写入到本地文件
     while(av_read_frame(ifmt_ctx, &pkt) >=0 ) {
@@ -184,7 +189,6 @@ int main(int argc, const char *argv[])
         av_packet_unref(&pkt);
     }
 
-failed:
     // 关闭输入文件
     if(ifmt_ctx) {
         avformat_close_input(&ifmt_ctx);
