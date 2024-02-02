@@ -164,7 +164,28 @@ int main(int argc, const char *argv[])
         acc_out_filename.close();
     }
 
+#if 0
+    constexpr int64_t start_time_us{191000000},end_time_us{441000000};
 
+    const auto start_time {av_rescale_q(start_time_us, AV_TIME_BASE_Q, ifmt_ctx->streams[audio_index]->time_base)},
+                end_time {av_rescale_q(end_time_us, AV_TIME_BASE_Q, ifmt_ctx->streams[audio_index]->time_base)};
+
+    cout << "start_time = " << start_time << "\n";
+    cout << "end_time = " << end_time << "\n";
+
+    const auto r {avformat_seek_file(ifmt_ctx,audio_index,0,start_time,end_time,0)};
+
+    if(r < 0){
+        cerr << "avformat_seek_file faild\n";
+        if(ifmt_ctx) {
+            avformat_close_input(&ifmt_ctx);
+        }
+
+        acc_out_filename.close();
+        return -1;
+    }
+
+#endif
     //读取媒体文件,并把aac数据帧写入到本地文件
     while(av_read_frame(ifmt_ctx, &pkt) >=0 ) {
         if(audio_index == pkt.stream_index) {
