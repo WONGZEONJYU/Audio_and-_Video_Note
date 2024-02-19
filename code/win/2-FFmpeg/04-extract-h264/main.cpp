@@ -100,7 +100,7 @@ int main(int argc, char **argv)
         }
 
         if((!ret) && (videoindex == pkt->stream_index)){
-#if 1
+#if 0
             const auto input_size {pkt->size};
 
             if (av_bsf_send_packet(bsf_ctx, pkt)) {    // bitstreamfilter内部去维护内存空间
