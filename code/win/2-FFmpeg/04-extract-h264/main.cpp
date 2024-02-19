@@ -73,9 +73,6 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    // 分配数据包
-    auto pkt {av_packet_alloc()};
-
     // 1 获取相应的比特流过滤器
     //FLV/MP4/MKV等结构中，h264需要h264_mp4toannexb处理。添加SPS/PPS等信息。
     // FLV封装时，可以把多个NALU放在一个VIDEO TAG中,结构为4B NALU长度+NALU1+4B NALU长度+NALU2+...,
@@ -86,71 +83,77 @@ int main(int argc, char **argv)
     av_bsf_alloc(bsfilter, &bsf_ctx); //AVBSFContext;
     // 3 添加解码器属性
     avcodec_parameters_copy(bsf_ctx->par_in, ifmt_ctx->streams[videoindex]->codecpar);
+
     av_bsf_init(bsf_ctx);
 
-    int file_end {}; // 文件是否读取结束
-    while (0 == file_end){
+    auto pkt {av_packet_alloc()};   // 分配数据包
+
+    bool file_end {}; // 文件是否读取结束
+
+    while (!file_end){
+
         if((ret = av_read_frame(ifmt_ctx, pkt)) < 0){
             // 没有更多包可读
-            file_end = 1;
-            printf("read file end: ret:%d\n", ret);
+            file_end = true;
+            cout << "read file end: ret: " << ret << "\n";
         }
-        if(ret == 0 && pkt->stream_index == videoindex){
-#if 1
-            auto input_size {pkt->size};
 
-            if (av_bsf_send_packet(bsf_ctx, pkt) != 0) {// bitstreamfilter内部去维护内存空间
+        if((!ret) && (videoindex == pkt->stream_index)){
+#if 1
+            const auto input_size {pkt->size};
+
+            if (av_bsf_send_packet(bsf_ctx, pkt)) {    // bitstreamfilter内部去维护内存空间
                 av_packet_unref(pkt);   // 你不用了就把资源释放掉
                 continue;       // 继续送
             }
-            av_packet_unref(pkt);   // 释放资源
-            int out_pkt_count {};
-            while(av_bsf_receive_packet(bsf_ctx, pkt) == 0)
-            {
-                out_pkt_count++;
-                // printf("fwrite size:%d\n", pkt->size);
-                cout << "write size: " << pkt->size << "\n";
-                auto begin_size{outfp.tellp()};
 
-                //size_t size = fwrite(pkt->data, 1, pkt->size, outfp);
+            av_packet_unref(pkt);   // 释放资源
+
+            int out_pkt_count {};/*用于统计一个packet是否含有多个NALU,有些视频把SEI SPS PPS I帧放在同一个packet*/
+
+            while(!av_bsf_receive_packet(bsf_ctx, pkt)){/*自动加入start code*/
+
+                ++out_pkt_count;
+
+                cout << "write pkt size: " << pkt->size << "\n" << flush;
+
+                const auto begin_size{outfp.tellp()};
+
                 outfp.write(reinterpret_cast<char*>(pkt->data),pkt->size);
 
-                const auto size {outfp.tellp()-begin_size};
+                const auto size {outfp.tellp() - begin_size};
 
                 if(size != pkt->size){
-                    cerr << "fwrite failed-> write: " << size << ", pkt_size : " << pkt->size << "\n";
+                    cerr << "write failed-> write: " << size << ", pkt_size : " << pkt->size << "\n";
                 }
 
                 av_packet_unref(pkt);
             }
 
             if(out_pkt_count >= 2){
-//                printf("cur pkt(size:%d) only get 1 out pkt, it get %d pkts\n",
-//                       input_size, out_pkt_count);
                 cout << "cur pkt(size: " << input_size << ") only get 1 out pkt, it get " << out_pkt_count << " pkts\n";
             }
 #else       // TS流可以直接写入
-            auto begin_size{outfp.tellp()};
-
-            //size_t size = fwrite(pkt->data, 1, pkt->size, outfp);
+            const auto begin_size{outfp.tellp()};
 
             outfp.write(reinterpret_cast<char*>(pkt->data),pkt->size);
 
             const auto size {outfp.tellp()-begin_size};
 
             if(size != pkt->size){
-                cerr << "fwrite failed-> write: " << size << ", pkt_size : " << pkt->size << "\n";
+                cerr << "write failed-> write: " << size << ", pkt_size : " << pkt->size << "\n";
             }
 
             av_packet_unref(pkt);
 #endif
-        }
-        else{
-            if(0 == ret){
+        }else{
+            if(!ret){
                 av_packet_unref(pkt);        // 释放内存
             }
         }
     }
+
+    outfp.close();
 
     if(bsf_ctx){
         av_bsf_free(&bsf_ctx);
