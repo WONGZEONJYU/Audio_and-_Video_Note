@@ -1,5 +1,8 @@
 ﻿#include "FlvMetaData.h"
 #include <cstring>
+#include <iostream>
+
+using namespace std;
 
 FlvMetaData::FlvMetaData(uint8_t *meta, unsigned int length) {
 
@@ -35,6 +38,7 @@ FlvMetaData::FlvMetaData(const FlvMetaData& r) {
     m_videocodecid = r.m_videocodecid;
     m_audiosamplerate = r.m_audiosamplerate;
     m_audiosamplesize = r.m_audiosamplesize;
+    m_audiocodecid = r.m_audiocodecid;
     m_stereo = r.m_stereo;
 }
 
@@ -44,10 +48,7 @@ FlvMetaData&  FlvMetaData::operator=(const FlvMetaData& r) {
         return *this;
     }
 
-    if(m_meta != NULL) {
-        delete m_meta;
-    }
-
+    delete m_meta;
     m_length = r.m_length;
     m_meta = new uint8_t[m_length];
     memcpy(m_meta, r.m_meta, m_length);
@@ -61,24 +62,24 @@ FlvMetaData&  FlvMetaData::operator=(const FlvMetaData& r) {
     m_videocodecid = r.m_videocodecid;
     m_audiosamplerate = r.m_audiosamplerate;
     m_audiosamplesize = r.m_audiosamplesize;
+    m_audiocodecid = r.m_audiocodecid;
     m_stereo = r.m_stereo;
-
     return *this;
 }
 
 FlvMetaData::~FlvMetaData() {
 
-    if(m_meta != NULL) {
+    if(m_meta != nullptr) {
         delete m_meta;
-        m_meta = NULL;
+        m_meta = nullptr;
     }
 }
 
 void FlvMetaData::parseMeta() {
 
     unsigned int arrayLen = 0;
-    unsigned int offset = TAG_HEAD_LEN + 13;
-
+    //unsigned int offset = TAG_HEAD_LEN + 13;
+    unsigned int offset = 13;
     unsigned int nameLen = 0;
     double numValue = 0;
     bool boolValue = false;

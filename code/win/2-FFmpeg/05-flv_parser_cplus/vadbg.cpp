@@ -1,24 +1,22 @@
 ﻿#include <fstream>
-
 #include "vadbg.h"
 
 using namespace std;
 
 namespace vadbg
 {
-	void DumpString(std::string path, std::string str)
+	void DumpString(const string& path,const string& str)
 	{
-		ofstream fin;
-		fin.open(path.c_str(), ios_base::out);
-		fin << str.c_str();
-		fin.close();
+		ofstream fout(path.c_str());
+		fout << str.c_str();
+		fout.close();
 	}
 
-    void DumpBuffer(std::string path, uint8_t *pBuffer, int nBufSize)
+    void DumpBuffer(const string& path, uint8_t *pBuffer,const int nBufSize)
 	{
 		ofstream fin;
 		fin.open(path.c_str(), ios_base::out | ios_base::binary);
-		fin.write((char *)pBuffer, nBufSize);
+		fin.write(reinterpret_cast<char *>(pBuffer), nBufSize);
 		fin.close();
 	}
 }
