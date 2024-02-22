@@ -12,6 +12,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     include_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/include)
 
     link_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/lib)
+
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     # macOS操作系统下的特定配置
     message("macOS operating system detected")
@@ -25,7 +26,9 @@ endif ()
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale)
 
-add_executable(${PROJECT_NAME} main.cpp)
+set(SRC_FILE FlvMetaData.cpp FlvParser.cpp Videojj.cpp vadbg.cpp main.cpp)
+
+add_executable(${PROJECT_NAME} ${SRC_FILE})
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 
