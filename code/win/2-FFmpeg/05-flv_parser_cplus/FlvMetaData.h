@@ -5,46 +5,50 @@
 
 class FlvMetaData
 {
-    public:
-    FlvMetaData(uint8_t *meta, uint32_t length);
+    void Shallow_copy(const FlvMetaData&);
+    void _copy_(const FlvMetaData&);
+    void _shift_(FlvMetaData&&,FlvMetaData&&);
+
+    FlvMetaData() = default;
+public:
+    FlvMetaData(const uint8_t *, uint32_t );
     ~FlvMetaData();
 
     FlvMetaData(const FlvMetaData&);
+    FlvMetaData(FlvMetaData&&) noexcept ;
     FlvMetaData& operator=(const FlvMetaData&);
+    FlvMetaData& operator=(FlvMetaData&&) noexcept;
 
-    double getDuration();
-    double getWidth();
-    double getHeight();
-    double getFramerate();
-    double getVideoDatarate();
-    double getAudioDatarate();
-    double getVideoCodecId();
-    double getAudioCodecId();
-    double getAudioSamplerate();
-    double getAudioSamplesize();
-    bool getStereo();
+    [[nodiscard]] double getDuration() const;
+    [[nodiscard]] double getWidth() const;
+    [[nodiscard]] double getHeight() const;
+    [[nodiscard]] double getFramerate() const;
+    [[nodiscard]] double getVideoDatarate() const;
+    [[nodiscard]] double getAudioDatarate() const;
+    [[nodiscard]] double getVideoCodecId()const;
+    [[nodiscard]] double getAudioCodecId()const;
+    [[nodiscard]] double getAudioSamplerate()const;
+    [[nodiscard]] double getAudioSamplesize()const;
+    [[nodiscard]] bool getStereo()const;
 
 private:
     //convert HEX to double
-    double hexStr2double(const uint8_t* hex, const uint32_t length);
+    static double hexStr2double(const uint8_t* , uint32_t = 8);
     void parseMeta();
 
-private:
-    uint8_t *m_meta;
-    uint32_t m_length;
-
-    double m_duration;
-    double m_width;
-    double m_height;
-    double m_framerate;
-    double m_videodatarate;
-    double m_audiodatarate;
-    double m_videocodecid;
-    double m_audiocodecid;
-    double m_audiosamplerate;
-    double m_audiosamplesize;
-
-    bool m_stereo;
+    uint8_t *m_meta{};
+    uint32_t m_length{};
+    double m_duration{},
+            m_width{},
+            m_height{},
+            m_framerate{},
+            m_videodatarate{},
+            m_audiodatarate{},
+            m_videocodecid{},
+            m_audiocodecid{},
+            m_audiosamplerate{},
+            m_audiosamplesize{};
+    bool m_stereo{};
 };
 
 #endif // FLVMETADATA_H

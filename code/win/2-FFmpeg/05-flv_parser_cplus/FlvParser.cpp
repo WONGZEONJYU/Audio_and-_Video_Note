@@ -19,7 +19,7 @@ static const uint32_t nH264StartCode = 0x01000000;
 
 CFlvParser::CFlvParser()
 {
-    _pFlvHeader = NULL;
+    _pFlvHeader = nullptr;
     _vjj = new CVideojj();
 }
 
@@ -707,13 +707,9 @@ CFlvParser::Tag *CFlvParser::CreateTag(uint8_t *pBuf, int nLeftLen)
 
 int CFlvParser::DestroyTag(Tag *pTag)
 {
-    if (pTag->_pMedia != NULL)
-        delete []pTag->_pMedia;
-    if (pTag->_pTagData!=NULL)
-        delete []pTag->_pTagData;
-    if (pTag->_pTagHeader != NULL)
-        delete []pTag->_pTagHeader;
-
+    delete []pTag->_pMedia;
+    delete []pTag->_pTagData;
+    delete []pTag->_pTagHeader;
     return 1;
 }
 
@@ -725,8 +721,8 @@ int CFlvParser::CVideoTag::ParseH264Tag(CFlvParser *pParser)
     ** 视频数据被压缩之后被打包成数据包在网上传输
     ** 有两种类型的数据包：视频信息包（sps、pps等）和视频数据包（视频的压缩数据）
     */
-    int nAVCPacketType = pd[1];
-    int nCompositionTime = CFlvParser::ShowU24(pd + 2);
+    const int nAVCPacketType = pd[1];
+   // int nCompositionTime = CFlvParser::ShowU24(pd + 2);
 
     // 如果是视频配置信息
     if (nAVCPacketType == 0)    // AVC sequence header

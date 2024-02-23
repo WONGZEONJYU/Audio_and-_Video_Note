@@ -5,9 +5,8 @@
 
 namespace vadbg
 {
-	void DumpString(std::string path, std::string str);
-    void DumpBuffer(std::string path, uint8_t *pBuffer, int nBufSize);
+	void DumpString(const std::string& path, std::string str);
+    void DumpBuffer(const std::string& path,const char *pBuffer, int nBufSize);
 }
-
 
 #endif // VADBG_H

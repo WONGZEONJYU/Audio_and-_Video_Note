@@ -180,7 +180,7 @@ private:
     CVideojj *_vjj;
 
     // H.264
-    int _nNalUnitLength;
+    int _nNalUnitLength{};
 };
 
 #endif // FLVPARSER_H

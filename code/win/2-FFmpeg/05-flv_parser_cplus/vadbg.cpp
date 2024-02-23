@@ -7,16 +7,15 @@ namespace vadbg
 {
 	void DumpString(const string& path,const string& str)
 	{
-		ofstream fout(path.c_str());
+		ofstream fout(path);
 		fout << str.c_str();
 		fout.close();
 	}
 
-    void DumpBuffer(const string& path, uint8_t *pBuffer,const int nBufSize)
+    void DumpBuffer(const string& path, const char *pBuffer,const int nBufSize)
 	{
-		ofstream fin;
-		fin.open(path.c_str(), ios_base::out | ios_base::binary);
-		fin.write(reinterpret_cast<char *>(pBuffer), nBufSize);
-		fin.close();
+		ofstream fout(path,ios_base::binary);
+		fout.write(reinterpret_cast<const char *>(pBuffer), nBufSize);
+		fout.close();
 	}
 }
