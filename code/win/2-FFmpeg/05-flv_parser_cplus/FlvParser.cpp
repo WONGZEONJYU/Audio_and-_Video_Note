@@ -70,29 +70,34 @@ int CFlvParser::PrintInfo()
 {
     Stat();
 
-    cout << "vnum: " << _sStat.nVideoNum << " , anum: " << _sStat.nAudioNum << " , mnum: " << _sStat.nMetaNum << endl;
-    cout << "maxTimeStamp: " << _sStat.nMaxTimeStamp << " ,nLengthSize: " << _sStat.nLengthSize << endl;
+    cout << "vnum: " << _sStat.nVideoNum << " , anum: " << _sStat.nAudioNum << " , mnum: " << _sStat.nMetaNum << "\n";
+    cout << "maxTimeStamp: " << _sStat.nMaxTimeStamp << " ,nLengthSize: " << _sStat.nLengthSize << "\n";
     cout << "Vjj SEI num: " << _vjj->_vVjjSEI.size() << endl;
-    for (int i = 0; i < _vjj->_vVjjSEI.size(); i++)
+    for (int i {}; i < _vjj->_vVjjSEI.size(); i++)
         cout << "SEI time : " << _vjj->_vVjjSEI[i].nTimeStamp << endl;
     return 1;
 }
 
 int CFlvParser::DumpH264(const std::string &path)
 {
-    fstream f;
-    f.open(path.c_str(), ios_base::out|ios_base::binary);
+    fstream f(path.c_str(), ios_base::out|ios_base::binary);
 
-    vector<Tag *>::iterator it_tag;
-    for (it_tag = _vpTag.begin(); it_tag != _vpTag.end(); it_tag++)
-    {
-        if ((*it_tag)->_header.nType != 0x09)
+    // vector<Tag *>::iterator it_tag;
+    // for (it_tag = _vpTag.begin(); it_tag != _vpTag.end(); it_tag++) {
+    //     if ((*it_tag)->_header.nType != 0x09)
+    //         continue;
+    //
+    //     f.write((char *)(*it_tag)->_pMedia, (*it_tag)->_nMediaLen);
+    // }
+
+    for(auto &it_tag:_vpTag) {
+        if (it_tag->_header.nType != 0x09) {
             continue;
-
-        f.write((char *)(*it_tag)->_pMedia, (*it_tag)->_nMediaLen);
+        }
+        f.write(reinterpret_cast<char *>(it_tag->_pMedia), it_tag->_nMediaLen);
     }
-    f.close();
 
+    f.close();
     return 1;
 }
 
@@ -492,18 +497,16 @@ CFlvParser::CMetaDataTag::CMetaDataTag(TagHeader *pHeader, uint8_t *pBuf, int nL
 }
 double CFlvParser::CMetaDataTag::hexStr2double(const uint8_t* hex,
                                                const uint32_t length) {
+    const auto size{length * 2};
+    char hexstr[size];
+    std::fill_n(hexstr,length * 2,0);
 
-    double ret = 0;
-    char hexstr[length * 2];
-    memset(hexstr, 0, sizeof(hexstr));
-
-    for(uint32_t i = 0; i < length; i++)
-    {
+    for(uint32_t i {}; i < length; i++){
         sprintf(hexstr + i * 2, "%02x", hex[i]);
     }
 
+    double ret {};
     sscanf(hexstr, "%llx", (unsigned long long*)&ret);
-
     return ret;
 }
 int CFlvParser::CMetaDataTag::parseMeta(CFlvParser *pParser)

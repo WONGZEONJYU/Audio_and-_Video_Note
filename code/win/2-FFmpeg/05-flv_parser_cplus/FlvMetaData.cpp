@@ -1,11 +1,10 @@
 ﻿#include "FlvMetaData.h"
 #include <cstring>
 #include <iostream>
+#include <string>
+#include <sstream>
 
-using namespace std;
-
-void FlvMetaData::Shallow_copy(const FlvMetaData& r)
-{
+void FlvMetaData::Shallow_copy(const FlvMetaData& r) noexcept{
     m_length = r.m_length;
     m_duration = r.m_duration;
     m_width = r.m_width;
@@ -20,52 +19,74 @@ void FlvMetaData::Shallow_copy(const FlvMetaData& r)
     m_stereo = r.m_stereo;
 }
 
-void FlvMetaData::_copy_(const FlvMetaData& r)
-{
-    Shallow_copy(r);
-    m_meta = new uint8_t[m_length];
-    copy(r.m_meta,r.m_meta + r.m_length,m_meta);
+void FlvMetaData::_Clear_Rvalue(FlvMetaData&& r) noexcept {
+    r.m_length = 0;
+    r.m_meta = nullptr;
+    r.m_duration = 0;
+    r.m_width = 0;
+    r.m_height = 0;
+    r.m_framerate = 0;
+    r.m_videodatarate = 0;
+    r.m_audiodatarate = 0;
+    r.m_videocodecid = 0;
+    r.m_audiosamplerate = 0;
+    r.m_audiosamplesize = 0;
+    r.m_audiocodecid = 0;
+    r.m_stereo = false;
 }
 
-void FlvMetaData::_shift_(FlvMetaData&& r,FlvMetaData&& t)
-{
+void FlvMetaData::_Copy_construct_from(const FlvMetaData& r) noexcept{
     Shallow_copy(r);
-    t.m_meta = m_meta;
+    m_meta = new uint8_t[m_length];
+    std::copy_n(r.m_meta, r.m_length,m_meta);
+}
+
+void FlvMetaData::_Move_construct_from(FlvMetaData&& r) noexcept{
+
+    Shallow_copy(r);
     m_meta = r.m_meta;
+    _Clear_Rvalue(std::move(r));
+}
+
+void FlvMetaData::_Swap(FlvMetaData &r) {
+    std::swap(m_meta,r.m_meta);
+    std::swap(m_length,r.m_length);
+    std::swap(m_duration ,r.m_duration);
+    std::swap(m_width , r.m_width);
+    std::swap(m_height , r.m_height);
+    std::swap(m_framerate , r.m_framerate);
+    std::swap(m_videodatarate , r.m_videodatarate);
+    std::swap(m_audiodatarate , r.m_audiodatarate);
+    std::swap(m_videocodecid , r.m_videocodecid);
+    std::swap(m_audiosamplerate , r.m_audiosamplerate);
+    std::swap(m_audiosamplesize ,r.m_audiosamplesize);
+    std::swap(m_audiocodecid , r.m_audiocodecid);
+    std::swap(m_stereo , r.m_stereo);
 }
 
 FlvMetaData::FlvMetaData(const uint8_t *meta,const uint32_t length):
 m_meta{new uint8_t[length]},m_length{length}
 {
-    copy(meta,meta + m_length,m_meta);
+    std::copy_n(meta,m_length,m_meta);
     parseMeta();
 }
 
 FlvMetaData::FlvMetaData(const FlvMetaData& r) {
-    _copy_(r);
+    _Copy_construct_from(r);
 }
 
 FlvMetaData::FlvMetaData(FlvMetaData&& r) noexcept
 {
-    FlvMetaData temp;
-    _shift_(forward<decltype(r)>(r),forward<decltype(temp)>(temp));
+    _Move_construct_from(std::move(r));
 }
 
 FlvMetaData& FlvMetaData::operator=(const FlvMetaData& r) {
-
-    if(this != &r) {
-        delete[] m_meta;
-        _copy_(r);
-    }
+    FlvMetaData(r)._Swap(*this);
     return *this;
 }
 
-FlvMetaData& FlvMetaData::operator=(FlvMetaData&& r) noexcept
-{
-    if (this != &r){
-        FlvMetaData temp;
-        _shift_(forward<decltype(r)>(r),forward<decltype(temp)>(temp));
-    }
+FlvMetaData& FlvMetaData::operator=(FlvMetaData&& r) noexcept{
+    FlvMetaData(std::move(r))._Swap(*this);
     return *this;
 }
 
@@ -76,10 +97,9 @@ FlvMetaData::~FlvMetaData() {
 
 void FlvMetaData::parseMeta() {
 
-    uint32_t arrayLen{};
     constexpr auto TAG_HEAD_LEN{11};
     //unsigned int offset = TAG_HEAD_LEN + 13;
-    uint32_t offset {13};
+    uint32_t offset {13},arrayLen{};
 
     if(m_meta[offset++] == 0x08) {
 
@@ -94,7 +114,7 @@ void FlvMetaData::parseMeta() {
         //cerr << "ArrayLen = " << arrayLen << endl;
     } else {
         //TODO:
-        cerr << "metadata format error!!!\n";
+        std::cerr << "metadata format error!!!\n";
         return ;
     }
 
@@ -109,7 +129,8 @@ void FlvMetaData::parseMeta() {
         nameLen |= m_meta[offset++];
         //cerr << "name length=" << nameLen << " ";
 
-        char name[nameLen + 1]{};
+        //char name[_nameLen + 1]{};
+        const auto name{new char[nameLen + 1]};
 #if DEBUG
         printf("\norign \n");
         for(uint32_t i {}; i < nameLen + 3; i++) {
@@ -121,7 +142,7 @@ void FlvMetaData::parseMeta() {
         memcpy(name, &m_meta[offset], nameLen);
         name[nameLen + 1] = '\0';
         offset += nameLen;
-        cout << "name = " << name << "\n" << flush;
+        std::cout << "name = " << name << "\n" << std::flush;
         //cerr << "name=" << name << " ";
 #if DEBUG
         printf("memcpy\n");
@@ -190,19 +211,22 @@ void FlvMetaData::parseMeta() {
         } else if(strncmp(name, "stereo", 6) == 0) {
             m_stereo = boolValue;
         }
+        delete[]name;
     }
 }
 
 double FlvMetaData::hexStr2double(const uint8_t* hex, const uint32_t length) {
 
-    double ret {};
-    char hexstr [length * 2]{};
-
+    const auto size{length * 2};
+    char hexstr[size];
+    std::fill_n(hexstr,length * 2,0);
     for(uint32_t i {}; i < length; i++) {
         sprintf(hexstr + i * 2, "%02x", hex[i]);
     }
 
+    double ret {};
     sscanf(hexstr, "%llx", reinterpret_cast<uint64_t*>(&ret));
+
     return ret;
 }
 

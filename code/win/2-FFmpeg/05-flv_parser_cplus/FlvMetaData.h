@@ -5,10 +5,11 @@
 
 class FlvMetaData
 {
-    void Shallow_copy(const FlvMetaData&);
-    void _copy_(const FlvMetaData&);
-    void _shift_(FlvMetaData&&,FlvMetaData&&);
-
+    void Shallow_copy(const FlvMetaData&)noexcept;
+    static void _Clear_Rvalue(FlvMetaData&&) noexcept;
+    void _Copy_construct_from(const FlvMetaData&) noexcept;
+    void _Move_construct_from(FlvMetaData&&) noexcept;
+    void _Swap(FlvMetaData &);
     FlvMetaData() = default;
 public:
     FlvMetaData(const uint8_t *, uint32_t );
