@@ -1,10 +1,8 @@
-﻿#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-
+﻿#include <cstdlib>
+#include <cstring>
+#include <cassert>
 #include <iostream>
 #include <fstream>
-
 #include "FlvParser.h"
 
 using namespace std;
@@ -15,38 +13,33 @@ int CFlvParser::CAudioTag::_aacProfile;
 int CFlvParser::CAudioTag::_sampleRateIndex;
 int CFlvParser::CAudioTag::_channelConfig;
 
-static const uint32_t nH264StartCode = 0x01000000;
+static constexpr uint32_t nH264StartCode {0x01000000};
 
 CFlvParser::CFlvParser()
 {
-    _pFlvHeader = nullptr;
     _vjj = new CVideojj();
 }
 
-CFlvParser::~CFlvParser()
-{
-    for (int i = 0; i < _vpTag.size(); i++)
-    {
+CFlvParser::~CFlvParser(){
+
+    for (int i {}; i < _vpTag.size(); i++){
         DestroyTag(_vpTag[i]);
         delete _vpTag[i];
     }
-    if (_vjj != NULL)
-        delete _vjj;
+    delete _vjj;
 }
 
-int CFlvParser::Parse(uint8_t *pBuf, int nBufSize, int &nUsedLen)
+int CFlvParser::Parse(uint8_t *pBuf,const int nBufSize, int &nUsedLen)
 {
-    int nOffset = 0;
+    int nOffset {};
 
-    if (_pFlvHeader == 0)
-    {
+    if (!_pFlvHeader){
         CheckBuffer(9);
         _pFlvHeader = CreateFlvHeader(pBuf+nOffset);
         nOffset += _pFlvHeader->nHeadSize;
     }
 
-    while (1)
-    {
+    for(;;) {
         CheckBuffer(15); // nPrevSize(4字节) + Tag header(11字节)
         int nPrevSize = ShowU32(pBuf + nOffset);
         nOffset += 4;
@@ -132,7 +125,6 @@ int CFlvParser::DumpFlv(const std::string &path)
     // write flv-header
     f.write((char *)_pFlvHeader->pFlvHeader, _pFlvHeader->nHeadSize);
     uint32_t nLastTagSize = 0;
-
 
     // write flv-tag
     vector<Tag *>::iterator it_tag;

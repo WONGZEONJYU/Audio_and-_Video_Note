@@ -6,8 +6,6 @@
 #include <vector>
 #include "Videojj.h"
 
-using uint64_t = unsigned long long;
-
 class CFlvParser
 {
 public:
@@ -135,8 +133,7 @@ private:
         double m_filesize;
     };
 
-    struct FlvStat
-    {
+    struct FlvStat{
         int nMetaNum, nVideoNum, nAudioNum,nMaxTimeStamp,nLengthSize;
         FlvStat() : nMetaNum(0), nVideoNum(0), nAudioNum(0), nMaxTimeStamp(0), nLengthSize(0){}
     };
@@ -146,14 +143,12 @@ private:
     static uint32_t ShowU16(const uint8_t *pBuf) { return (pBuf[0] << 8) | (pBuf[1]); }
     static uint32_t ShowU8(const uint8_t *pBuf) { return (pBuf[0]); }
 
-    static void WriteU64(uint64_t & x, const int length,const int value)
-    {
+    static void WriteU64(uint64_t & x, const int length,const int value){
         const uint64_t mask {0xFFFFFFFFFFFFFFFF >> (64 - length)};
         x = (x << length) | (static_cast<uint64_t>(value) & mask);
     }
 
-    static uint32_t WriteU32(const uint32_t n)
-    {
+    static uint32_t WriteU32(const uint32_t n){
         uint32_t nn {};
         const auto p { reinterpret_cast<const uint8_t *>(&n)};
         const auto pp {reinterpret_cast<uint8_t *>(&nn)};
@@ -174,10 +169,10 @@ private:
     int StatVideo(Tag *pTag);
     int IsUserDataTag(Tag *pTag);
 
-    FlvHeader* _pFlvHeader;
+    FlvHeader* _pFlvHeader{};
     std::vector<Tag *> _vpTag;
-    FlvStat _sStat;
-    CVideojj *_vjj;
+    FlvStat _sStat{};
+    CVideojj *_vjj{};
 
     // H.264
     int _nNalUnitLength{};
