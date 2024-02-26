@@ -1,7 +1,8 @@
-﻿#include "FlvMetaData.h"
-#include <cstring>
+﻿#include <cstring>
 #include <iostream>
 #include <string>
+#include <algorithm>
+#include "FlvMetaData.h"
 //#include <sstream>
 
 void FlvMetaData::Shallow_copy(const FlvMetaData& r) noexcept{

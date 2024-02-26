@@ -5,6 +5,8 @@
 #include <fstream>
 #include "FlvParser.h"
 
+#include <algorithm>
+
 using namespace std;
 
 #define CheckBuffer(x) { if ((nBufSize-nOffset)<(x)) { nUsedLen = nOffset; return 0;} }
@@ -29,7 +31,7 @@ CFlvParser::~CFlvParser(){
     delete _vjj;
 }
 
-int CFlvParser::Parse(uint8_t *pBuf,const int nBufSize, int &nUsedLen)
+int CFlvParser::Parse(const uint8_t *pBuf,const int nBufSize, int &nUsedLen)
 {
     int nOffset {};
 
@@ -41,12 +43,11 @@ int CFlvParser::Parse(uint8_t *pBuf,const int nBufSize, int &nUsedLen)
 
     for(;;) {
         CheckBuffer(15); // nPrevSize(4字节) + Tag header(11字节)
-        int nPrevSize = ShowU32(pBuf + nOffset);
+        auto nPrevSize { ShowU32(pBuf + nOffset)};
         nOffset += 4;
 
-        Tag *pTag = CreateTag(pBuf + nOffset, nBufSize-nOffset);
-        if (pTag == NULL)
-        {
+        auto pTag {CreateTag(pBuf + nOffset, nBufSize - nOffset)};
+        if (!pTag){
             nOffset -= 4;
             break;
         }
@@ -255,21 +256,36 @@ int CFlvParser::DumpFlv(const std::string &path)
 
 int CFlvParser::Stat()
 {
-    for (int i = 0; i < _vpTag.size(); i++)
-    {
-        switch (_vpTag[i]->_header.nType)
-        {
-        case 0x08:
-            _sStat.nAudioNum++;
-            break;
-        case 0x09:
-            StatVideo(_vpTag[i]);
-            break;
-        case 0x12:
-            _sStat.nMetaNum++;
-            break;
-        default:
-            ;
+    // for (int i {}; i < _vpTag.size(); i++){
+    //     switch (_vpTag[i]->_header.nType)
+    //     {
+    //     case 0x08:
+    //         _sStat.nAudioNum++;
+    //         break;
+    //     case 0x09:
+    //         StatVideo(_vpTag[i]);
+    //         break;
+    //     case 0x12:
+    //         _sStat.nMetaNum++;
+    //         break;
+    //     default:
+    //         ;
+    //     }
+    // }
+
+    for(const auto &i : _vpTag){
+        switch (i->_header.nType) {
+            case 0x08:
+                _sStat.nAudioNum++;
+                break;
+            case 0x09:
+                StatVideo(i);
+                break;
+            case 0x12:
+                _sStat.nMetaNum++;
+                break;
+            default:
+                break;
         }
     }
 
@@ -281,31 +297,31 @@ int CFlvParser::StatVideo(Tag *pTag)
     _sStat.nVideoNum++;
     _sStat.nMaxTimeStamp = pTag->_header.nTimeStamp;
 
-    if (pTag->_pTagData[0] == 0x17 && pTag->_pTagData[1] == 0x00)
-    {
+    if (pTag->_pTagData[0] == 0x17 && pTag->_pTagData[1] == 0x00){
         _sStat.nLengthSize = (pTag->_pTagData[9] & 0x03) + 1;
     }
 
     return 1;
 }
 
-CFlvParser::FlvHeader *CFlvParser::CreateFlvHeader(uint8_t *pBuf)
+CFlvParser::FlvHeader* CFlvParser::CreateFlvHeader(const uint8_t *pBuf)
 {
-    FlvHeader *pHeader = new FlvHeader;
+    const auto pHeader { new FlvHeader};
     pHeader->nVersion = pBuf[3];        // 版本号
     pHeader->bHaveAudio = (pBuf[4] >> 2) & 0x01;    // 是否有音频
     pHeader->bHaveVideo = (pBuf[4] >> 0) & 0x01;    // 是否有视频
     pHeader->nHeadSize = ShowU32(pBuf + 5);         // 头部长度
 
     pHeader->pFlvHeader = new uint8_t[pHeader->nHeadSize];
-    memcpy(pHeader->pFlvHeader, pBuf, pHeader->nHeadSize);
+    //memcpy(pHeader->pFlvHeader, pBuf, pHeader->nHeadSize);
+    std::copy_n(pBuf,pHeader->nHeadSize,pHeader->pFlvHeader);
 
     return pHeader;
 }
 
 int CFlvParser::DestroyFlvHeader(FlvHeader *pHeader)
 {
-    if (pHeader == NULL)
+    if (!pHeader)
         return 0;
 
     delete pHeader->pFlvHeader;
@@ -318,18 +334,20 @@ int CFlvParser::DestroyFlvHeader(FlvHeader *pHeader)
  * @param pBuf
  * @param nLeftLen
  */
-void CFlvParser::Tag::Init(TagHeader *pHeader, uint8_t *pBuf, int nLeftLen)
+void CFlvParser::Tag::Init(const TagHeader *pHeader,const uint8_t *pBuf,const int nLeftLen)
 {
     memcpy(&_header, pHeader, sizeof(TagHeader));
     // 复制标签头部信息 header
     _pTagHeader = new uint8_t[11];
-    memcpy(_pTagHeader, pBuf, 11);      // 头部
+    //memcpy(_pTagHeader, pBuf, 11);      // 头部
+    std::copy_n(pBuf,11,_pTagHeader);
     // 复制标签 body
     _pTagData = new uint8_t[_header.nDataSize];
-    memcpy(_pTagData, pBuf + 11, _header.nDataSize);
+    //memcpy(_pTagData, pBuf + 11, _header.nDataSize);
+    std::copy_n(pBuf + 11,_header.nDataSize,_pTagData);
 }
 
-CFlvParser::CVideoTag::CVideoTag(TagHeader *pHeader, uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
+CFlvParser::CVideoTag::CVideoTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
 {
     // 初始化
     Init(pHeader, pBuf, nLeftLen);
@@ -369,7 +387,7 @@ extracts the channel and sample rate data is encoded in the AAC bitstream.
  * @param nLeftLen
  * @param pParser
  */
-CFlvParser::CAudioTag::CAudioTag(TagHeader *pHeader, uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
+CFlvParser::CAudioTag::CAudioTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
 {
     Init(pHeader, pBuf, nLeftLen);
 
@@ -423,7 +441,7 @@ int CFlvParser::CAudioTag::ParseAudioSpecificConfig(CFlvParser *pParser, uint8_t
     printf("sample rate index:%d\n", _sampleRateIndex);
     printf("channel config:%d\n", _channelConfig);
 
-    _pMedia = NULL;
+    _pMedia = nullptr;
     _nMediaLen = 0;
 
     return 1;
@@ -470,7 +488,7 @@ int CFlvParser::CAudioTag::ParseRawAAC(CFlvParser *pParser, uint8_t *pTagData)
     return 1;
 }
 
-CFlvParser::CMetaDataTag::CMetaDataTag(TagHeader *pHeader, uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
+CFlvParser::CMetaDataTag::CMetaDataTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
 {
     Init(pHeader, pBuf, nLeftLen);
 
@@ -662,7 +680,7 @@ void CFlvParser::CMetaDataTag::printMeta()
     printf("compatible_brands: %s, encoder: %s\n\n", m_compatible_brands.c_str(), m_encoder.c_str());
 }
 
-CFlvParser::Tag *CFlvParser::CreateTag(uint8_t *pBuf, int nLeftLen)
+CFlvParser::Tag *CFlvParser::CreateTag(const uint8_t *pBuf,const int nLeftLen)
 {
     // 开始解析标签头部
     TagHeader header;
@@ -671,17 +689,16 @@ CFlvParser::Tag *CFlvParser::CreateTag(uint8_t *pBuf, int nLeftLen)
     header.nTimeStamp = ShowU24(pBuf + 4);  // 时间戳 低24bit
     header.nTSEx = ShowU8(pBuf + 7);        // 时间戳的扩展字段, 高8bit
     header.nStreamID = ShowU24(pBuf + 8);   // 流的id
-    header.nTotalTS = (uint32_t)((header.nTSEx << 24)) + header.nTimeStamp;
+    header.nTotalTS = static_cast<uint32_t>((header.nTSEx << 24)) + header.nTimeStamp;
     // 标签头部解析结束
 
 //    cout << "total TS : " << header.nTotalTS << endl;
 //    cout << "nLeftLen : " << nLeftLen << " , nDataSize : " << header.nDataSize << endl;
-    if ((header.nDataSize + 11) > nLeftLen)
-    {
-        return NULL;
+    if ((header.nDataSize + 11) > nLeftLen){
+        return nullptr;
     }
 
-    Tag *pTag;
+    Tag *pTag{};
     switch (header.nType) {
     case 0x09:  // 视频类型的Tag
         pTag = new CVideoTag(&header, pBuf, nLeftLen, this);
@@ -695,6 +712,7 @@ CFlvParser::Tag *CFlvParser::CreateTag(uint8_t *pBuf, int nLeftLen)
     default:    // script类型的Tag
         pTag = new Tag();
         pTag->Init(&header, pBuf, nLeftLen);
+        break;
     }
 
     return pTag;

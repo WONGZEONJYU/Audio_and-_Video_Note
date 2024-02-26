@@ -12,7 +12,7 @@ public:
     CFlvParser();
     virtual ~CFlvParser();
 
-    int Parse(uint8_t *pBuf, int nBufSize, int &nUsedLen);
+    int Parse(const uint8_t *pBuf, int nBufSize, int &nUsedLen);
     int PrintInfo();
     int DumpH264(const std::string &);
     int DumpAAC(const std::string &);
@@ -31,35 +31,28 @@ private:
         ** 真实的FLV头部是一个二进制比特串，放在一个buffer中，由pFlvHeader成员指明
         */
         uint8_t *pFlvHeader;
-    } ;
+    };
 
     // Tag头部
-    struct TagHeader
-    {
-        int nType;      // 类型
-        int nDataSize;  // 标签body的大小
-        int nTimeStamp; // 时间戳
-        int nTSEx;      // 时间戳的扩展字节
-        int nStreamID;  // 流的ID，总是0
-        uint32_t nTotalTS;  // 完整的时间戳nTimeStamp和nTSEx拼装
-        TagHeader() : nType(0), nDataSize(0), nTimeStamp(0), nTSEx(0), nStreamID(0), nTotalTS(0) {}
+    struct TagHeader {
+        int nType{};      // 类型
+        int nDataSize{};  // 标签body的大小
+        int nTimeStamp{}; // 时间戳
+        int nTSEx{};      // 时间戳的扩展字节
+        int nStreamID{};  // 流的ID，总是0
+        uint32_t nTotalTS{};  // 完整的时间戳nTimeStamp和nTSEx拼装
     };
 
-    class Tag
-    {
-    public:
-        Tag() : _pTagHeader(nullptr), _pTagData(nullptr), _pMedia(nullptr), _nMediaLen(0) {}
-        void Init(TagHeader *pHeader, uint8_t *pBuf, int nLeftLen);
-
-        TagHeader _header;
-        uint8_t *_pTagHeader;   // 指向标签头部
-        uint8_t *_pTagData;     // 指向标签body，原始的tag data数据
-        uint8_t *_pMedia;       // 指向标签的元数据，改造后的数据
-        int _nMediaLen;         // 数据长度
+    struct Tag{
+        void Init(const TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen);
+        TagHeader _header{};
+        uint8_t *_pTagHeader{};   // 指向标签头部
+        uint8_t *_pTagData{};     // 指向标签body，原始的tag data数据
+        uint8_t *_pMedia{};       // 指向标签的元数据，改造后的数据
+        int _nMediaLen{};         // 数据长度
     };
 
-    class CVideoTag : public Tag
-    {
+    class CVideoTag : public Tag {
     public:
         /**
          * @brief CVideoTag
@@ -68,7 +61,7 @@ private:
          * @param nLeftLen
          * @param pParser
          */
-        CVideoTag(TagHeader *pHeader, uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
+        CVideoTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
         int _nFrameType;    // 帧类型
         int _nCodecID;      // 视频编解码类型
@@ -80,7 +73,7 @@ private:
     class CAudioTag : public Tag
     {
     public:
-        CAudioTag(TagHeader *pHeader, uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
+        CAudioTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
         int _nSoundFormat;  // 音频编码类型
         int _nSoundRate;    // 采样率
@@ -100,9 +93,9 @@ private:
     class CMetaDataTag : public Tag
     {
     public:
-        CMetaDataTag(TagHeader *pHeader, uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
+        CMetaDataTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
-        double hexStr2double(const unsigned char* hex, unsigned int length);
+        static  double hexStr2double(const unsigned char* hex, unsigned int length);
         int parseMeta(CFlvParser *pParser);
         void printMeta();
 
@@ -138,10 +131,10 @@ private:
         FlvStat() : nMetaNum(0), nVideoNum(0), nAudioNum(0), nMaxTimeStamp(0), nLengthSize(0){}
     };
 
-    static uint32_t ShowU32(const uint8_t *pBuf) { return (pBuf[0] << 24) | (pBuf[1] << 16) | (pBuf[2] << 8) | pBuf[3]; }
-    static uint32_t ShowU24(const uint8_t *pBuf) { return (pBuf[0] << 16) | (pBuf[1] << 8) | (pBuf[2]); }
-    static uint32_t ShowU16(const uint8_t *pBuf) { return (pBuf[0] << 8) | (pBuf[1]); }
-    static uint32_t ShowU8(const uint8_t *pBuf) { return (pBuf[0]); }
+    static inline  uint32_t ShowU32(const uint8_t *pBuf) { return (pBuf[0] << 24) | (pBuf[1] << 16) | (pBuf[2] << 8) | pBuf[3]; }
+    static inline uint32_t ShowU24(const uint8_t *pBuf) { return (pBuf[0] << 16) | (pBuf[1] << 8) | (pBuf[2]); }
+    static inline uint32_t ShowU16(const uint8_t *pBuf) { return (pBuf[0] << 8) | (pBuf[1]); }
+    static inline uint32_t ShowU8(const uint8_t *pBuf) { return (pBuf[0]); }
 
     static void WriteU64(uint64_t & x, const int length,const int value){
         const uint64_t mask {0xFFFFFFFFFFFFFFFF >> (64 - length)};
@@ -150,8 +143,8 @@ private:
 
     static uint32_t WriteU32(const uint32_t n){
         uint32_t nn {};
-        const auto p { reinterpret_cast<const uint8_t *>(&n)};
-        const auto pp {reinterpret_cast<uint8_t *>(&nn)};
+        const auto p { reinterpret_cast<const uint8_t *>(&n) };
+        const auto pp { reinterpret_cast<uint8_t *>(&nn) };
         pp[0] = p[3];
         pp[1] = p[2];
         pp[2] = p[1];
@@ -161,9 +154,9 @@ private:
 
     friend class Tag;
 
-    FlvHeader *CreateFlvHeader(uint8_t *pBuf);
-    int DestroyFlvHeader(FlvHeader *pHeader);
-    Tag *CreateTag(uint8_t *pBuf, int nLeftLen);
+    static FlvHeader* CreateFlvHeader(const uint8_t *pBuf);
+    static int DestroyFlvHeader(FlvHeader *pHeader);
+    Tag *CreateTag(const uint8_t *pBuf, int nLeftLen);
     int DestroyTag(Tag *pTag);
     int Stat();
     int StatVideo(Tag *pTag);
