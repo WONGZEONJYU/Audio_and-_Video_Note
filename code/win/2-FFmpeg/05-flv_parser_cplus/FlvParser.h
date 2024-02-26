@@ -61,7 +61,7 @@ private:
          * @param nLeftLen
          * @param pParser
          */
-        CVideoTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
+        CVideoTag(const TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
         int _nFrameType;    // 帧类型
         int _nCodecID;      // 视频编解码类型

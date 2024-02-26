@@ -334,7 +334,8 @@ int CFlvParser::DestroyFlvHeader(FlvHeader *pHeader)
  * @param pBuf
  * @param nLeftLen
  */
-void CFlvParser::Tag::Init(const TagHeader *pHeader,const uint8_t *pBuf,const int nLeftLen)
+void CFlvParser::Tag::Init(const TagHeader *pHeader,
+    const uint8_t *pBuf,const int nLeftLen)
 {
     memcpy(&_header, pHeader, sizeof(TagHeader));
     // 复制标签头部信息 header
@@ -347,17 +348,18 @@ void CFlvParser::Tag::Init(const TagHeader *pHeader,const uint8_t *pBuf,const in
     std::copy_n(pBuf + 11,_header.nDataSize,_pTagData);
 }
 
-CFlvParser::CVideoTag::CVideoTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
-{
-    // 初始化
+CFlvParser::CVideoTag::CVideoTag(const TagHeader *pHeader,
+    const uint8_t *pBuf,
+    const int nLeftLen,
+    CFlvParser *pParser) {
+    // 初始化,把整个tag(包含头部)拷贝到自身成员变量
     Init(pHeader, pBuf, nLeftLen);
 
-    uint8_t *pd = _pTagData;
+    const auto pd {_pTagData};/*tag data的起始位置*/
     _nFrameType = (pd[0] & 0xf0) >> 4;  // 帧类型
     _nCodecID = pd[0] & 0x0f;           // 视频编码类型
     // 开始解析
-    if (_header.nType == 0x09 && _nCodecID == 7)
-    {
+    if (_header.nType == 0x09 && _nCodecID == 7) {
         ParseH264Tag(pParser);
     }
 }
@@ -728,28 +730,21 @@ int CFlvParser::DestroyTag(Tag *pTag)
 
 int CFlvParser::CVideoTag::ParseH264Tag(CFlvParser *pParser)
 {
-    uint8_t *pd = _pTagData;
+    const auto pd { _pTagData};
     /*
     ** 数据包的类型
     ** 视频数据被压缩之后被打包成数据包在网上传输
     ** 有两种类型的数据包：视频信息包（sps、pps等）和视频数据包（视频的压缩数据）
     */
-    const int nAVCPacketType = pd[1];
+    const int nAVCPacketType {pd[1]};
    // int nCompositionTime = CFlvParser::ShowU24(pd + 2);
-
-    // 如果是视频配置信息
-    if (nAVCPacketType == 0)    // AVC sequence header
-    {
+   // AVCPacketType 0:Configuration 1:AVC NALU
+    if (!nAVCPacketType) {  // AVC sequence header
+        // 如果是视频配置信息
         ParseH264Configuration(pParser, pd);
-    }
-    // 如果是视频数据
-    else if (nAVCPacketType == 1) // AVC NALU
-    {
+    }else{  // AVC NALU
+        // 如果是视频数据
         ParseNalu(pParser, pd);
-    }
-    else
-    {
-
     }
     return 1;
 }

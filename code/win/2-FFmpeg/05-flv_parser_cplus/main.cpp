@@ -84,6 +84,7 @@ static void Process(fstream &fin, const char *filename)
         if (!nReadNum) {
             break;
         }
+        
         nFlvPos += nReadNum;
         int nUsedLen{};
         parser.Parse(pBuf, nFlvPos, nUsedLen);
@@ -91,12 +92,12 @@ static void Process(fstream &fin, const char *filename)
         if (nFlvPos != nUsedLen) {
             //memcpy(pBak, pBuf + nUsedLen, nFlvPos - nUsedLen);
             std::copy_n(pBuf + nUsedLen,nFlvPos - nUsedLen,pBak);
-
             //memcpy(pBuf, pBak, nFlvPos - nUsedLen);
             std::copy_n(pBak,nFlvPos - nUsedLen,pBuf);
         }
         nFlvPos -= nUsedLen;
     }
+
     parser.PrintInfo();
     parser.DumpH264("parser.264");
     parser.DumpAAC("parser.aac");
