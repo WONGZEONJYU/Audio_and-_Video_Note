@@ -720,7 +720,7 @@ CFlvParser::Tag *CFlvParser::CreateTag(const uint8_t *pBuf,const int nLeftLen)
     return pTag;
 }
 
-int CFlvParser::DestroyTag(Tag *pTag)
+int CFlvParser::DestroyTag(Tag *const pTag)
 {
     delete []pTag->_pMedia;
     delete []pTag->_pTagData;
@@ -779,10 +779,12 @@ _nNalUnitLength 这个变量告诉我们用几个字节来存储NALU的长度，
  * @param pTagData
  * @return
  */
-int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser, uint8_t *pTagData)
+int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser,
+    const uint8_t *pTagData)
 {
-    uint8_t *pd = pTagData;
-    // 跨过 Tag Data的VIDEODATA(1字节) AVCVIDEOPACKET(AVCPacketType(1字节) 和CompositionTime(3字节) 4字节)
+    const auto pd { pTagData};
+    // 跨过 Tag Data的VIDEODATA(frametype + codecid)(1字节)
+    // AVCVIDEOPACKET(AVCPacketType(1字节) 和CompositionTime(3字节) 4字节)
     // 总共跨过5个字节
 
     // NalUnit长度表示占用的字节
@@ -806,26 +808,26 @@ int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser, uint8_t *
     return 1;
 }
 
-int CFlvParser::CVideoTag::ParseNalu(CFlvParser *pParser, uint8_t *pTagData)
+int CFlvParser::CVideoTag::ParseNalu(CFlvParser *pParser,const uint8_t *pTagData)
 {
-    uint8_t *pd = pTagData;
-    int nOffset = 0;
+    const auto pd { pTagData};
+    //int nOffset {};
 
-    _pMedia = new uint8_t[_header.nDataSize+10];
+    _pMedia = new uint8_t[_header.nDataSize + 10];
     _nMediaLen = 0;
-    // 跨过 Tag Data的VIDEODATA(1字节) AVCVIDEOPACKET(AVCPacketType和CompositionTime 4字节)
-    nOffset = 5; // 总共跨过5个字节 132 - 5 = 127 = _nNalUnitLength(4字节)  + NALU(123字节)
+    // 跨过 Tag Data的VIDEODATA(Frame_Type + CodecID)(1字节)
+    // AVCVIDEOPACKET(AVCPacketType和CompositionTime 4字节)
+    int nOffset {5}; // 总共跨过5个字节 132 - 5 = 127 = _nNalUnitLength(4字节)  + NALU(123字节)
     //                                           startcode(4字节)  + NALU(123字节) = 127
-    while (1)
-    {
+    for(;;) {
         // 如果解析完了一个Tag，那么就跳出循环
-        if (nOffset >= _header.nDataSize)
+        if (nOffset >= _header.nDataSize){
             break;
+        }
         // 计算NALU（视频数据被包装成NALU在网上传输）的长度,
-        // 一个tag可能包含多个nalu, 所以每个nalu前面有NalUnitLength字节表示每个nalu的长度
-        int nNaluLen;
-        switch (pParser->_nNalUnitLength)
-        {
+        // 一个tag可能包含多个nalu,所以每个nalu前面有NalUnitLength字节表示每个nalu的长度
+        int nNaluLen{};
+        switch (pParser->_nNalUnitLength) {
         case 4:
             nNaluLen = CFlvParser::ShowU32(pd + nOffset);
             break;
@@ -837,11 +839,14 @@ int CFlvParser::CVideoTag::ParseNalu(CFlvParser *pParser, uint8_t *pTagData)
             break;
         default:
             nNaluLen = CFlvParser::ShowU8(pd + nOffset);
+            break;
         }
         // 获取NALU的起始码
-        memcpy(_pMedia + _nMediaLen, &nH264StartCode, 4);
+        //memcpy(_pMedia + _nMediaLen, &nH264StartCode, 4);
+        std::copy_n(&nH264StartCode,4,_pMedia + _nMediaLen);
         // 复制NALU的数据
-        memcpy(_pMedia + _nMediaLen + 4, pd + nOffset + pParser->_nNalUnitLength, nNaluLen);
+        //memcpy(_pMedia + _nMediaLen + 4, pd + nOffset + pParser->_nNalUnitLength, nNaluLen);
+        std::copy_n(pd + nOffset + pParser->_nNalUnitLength,nNaluLen,_pMedia + _nMediaLen + 4);
         // 解析NALU
 //        pParser->_vjj->Process(_pMedia+_nMediaLen, 4+nNaluLen, _header.nTotalTS);
         _nMediaLen += (4 + nNaluLen);

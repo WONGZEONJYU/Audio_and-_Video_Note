@@ -66,8 +66,8 @@ private:
         int _nFrameType;    // 帧类型
         int _nCodecID;      // 视频编解码类型
         int ParseH264Tag(CFlvParser *pParser);
-        int ParseH264Configuration(CFlvParser *pParser, uint8_t *pTagData);
-        int ParseNalu(CFlvParser *pParser, uint8_t *pTagData);
+        int ParseH264Configuration(CFlvParser *pParser,const uint8_t *pTagData);
+        int ParseNalu(CFlvParser *pParser,const uint8_t *pTagData);
     };
 
     class CAudioTag : public Tag
@@ -157,7 +157,7 @@ private:
     static FlvHeader* CreateFlvHeader(const uint8_t *pBuf);
     static int DestroyFlvHeader(FlvHeader *pHeader);
     Tag *CreateTag(const uint8_t *pBuf, int nLeftLen);
-    int DestroyTag(Tag *pTag);
+    static  int DestroyTag(Tag *pTag);
     int Stat();
     int StatVideo(Tag *pTag);
     int IsUserDataTag(Tag *pTag);
