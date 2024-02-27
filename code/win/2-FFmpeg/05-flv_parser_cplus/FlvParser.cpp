@@ -750,35 +750,38 @@ int CFlvParser::CVideoTag::ParseH264Tag(CFlvParser *pParser)
 }
 /**
  * @brief
+ * []里面的数值是位置偏移量(下标)
 AVCDecoderConfigurationRecord {
-    uint32_t(8) configurationVersion = 1;  [0]
-    uint32_t(8) AVCProfileIndication;       [1]
-    uint32_t(8) profile_compatibility;      [2]
-    uint32_t(8) AVCLevelIndication;         [3]
-    bit(6) reserved = ‘111111’b;            [4]
-    uint32_t(2) lengthSizeMinusOne;         [4] 计算方法是 1 + (lengthSizeMinusOne & 3)，实际计算结果一直是4
-    bit(3) reserved = ‘111’b;                   [5]
-    uint32_t(5) numOfSequenceParameterSets; [5] SPS 的个数，计算方法是 numOfSequenceParameterSets & 0x1F，实际计算结果一直为1
+    uint32_t(8bit) configurationVersion = 1;   [0]
+    uint32_t(8bit) AVCProfileIndication;       [1]
+    uint32_t(8bit) profile_compatibility;      [2]
+    uint32_t(8bit) AVCLevelIndication;         [3]
+    bit(6bit) reserved = ‘111111’b;            [4]
+    uint32_t(2bit) lengthSizeMinusOne;         [4] 计算方法是 1 + (lengthSizeMinusOne & 3),实际计算结果一直是4
+    bit(3bit) reserved = ‘111’b;               [5]
+    uint32_t(5bit) numOfSequenceParameterSets; [5] SPS 的个数,计算方法是 (numOfSequenceParameterSets & 0x1F),实际计算结果一直为1
     for (i=0; i< numOfSequenceParameterSets; i++) {
-        uint32_t(16) sequenceParameterSetLength ;   [6,7]
-        bit(8*sequenceParameterSetLength) sequenceParameterSetNALUnit;
+        uint32_t(16bit) sequenceParameterSetLength ;   [6,7]
+        bit(8bit * sequenceParameterSetLength) sequenceParameterSetNALUnit;  25个字节    [8~32]
     }
-    uint32_t(8) numOfPictureParameterSets;      PPS 的个数，一直为1
+    uint32_t(8bit) numOfPictureParameterSets;      PPS 的个数，一直为1    [33]
     for (i=0; i< numOfPictureParameterSets; i++) {
-        uint32_t(16) pictureParameterSetLength;
-        bit(8*pictureParameterSetLength) pictureParameterSetNALUnit;
+        uint32_t(16bit) pictureParameterSetLength;     [34,35]
+        bit(8bit * pictureParameterSetLength) pictureParameterSetNALUnit;    [36~40]
     }
 }
 
-_nNalUnitLength 这个变量告诉我们用几个字节来存储NALU的长度，如果NALULengthSizeMinusOne是0，
-那么每个NALU使用一个字节的前缀来指定长度，那么每个NALU包的最大长度是255字节，
-这个明显太小了，使用2个字节的前缀来指定长度，那么每个NALU包的最大长度是64K字节，
-也不一定够，一般分辨率达到1280*720 的图像编码出的I帧，可能大于64K；3字节是比较完美的，
-但是因为一些原因（例如对齐）没有被广泛支持；因此4字节长度的前缀是目前使用最多的方式
+_nNalUnitLength 这个变量告诉我们用几个字节来存储NALU的长度,如果NALULengthSizeMinusOne是0,
+那么每个NALU使用一个字节的前缀来指定长度,那么每个NALU包的最大长度是255字节,
+这个明显太小了,使用2个字节的前缀来指定长度,那么每个NALU包的最大长度是64K字节,
+也不一定够,一般分辨率达到 1280*720 的图像编码出的I帧,可能大于64K;3字节是比较完美的,
+但是因为一些原因(例如对齐)没有被广泛支持;因此4字节长度的前缀是目前使用最多的方式
+
  * @param pParser
  * @param pTagData
  * @return
  */
+
 int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser,
     const uint8_t *pTagData)
 {
@@ -810,6 +813,7 @@ int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser,
 
     //memcpy(_pMedia + 4 + sps_size + 4, pd + 11 + 2 + sps_size + 2 + 1, pps_size);
     std::copy_n(pd + 11 + 2 + sps_size + 2 + 1,pps_size,_pMedia + 4 + sps_size + 4);
+    
     return 1;
 }
 
