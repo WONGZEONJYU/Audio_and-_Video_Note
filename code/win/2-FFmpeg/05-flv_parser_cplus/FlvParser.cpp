@@ -782,29 +782,34 @@ _nNalUnitLength 这个变量告诉我们用几个字节来存储NALU的长度，
 int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser,
     const uint8_t *pTagData)
 {
-    const auto pd { pTagData};
+    const auto pd {pTagData};
     // 跨过 Tag Data的VIDEODATA(frametype + codecid)(1字节)
     // AVCVIDEOPACKET(AVCPacketType(1字节) 和CompositionTime(3字节) 4字节)
     // 总共跨过5个字节
 
     // NalUnit长度表示占用的字节
-    pParser->_nNalUnitLength = (pd[9] & 0x03) + 1;  // lengthSizeMinusOne 9 = 5 + 4
+    pParser->_nNalUnitLength = (pd[9] & 0x03) + 1;  // lengthSizeMinusOne posloca = 9 = 5 + 4
 
-    int sps_size, pps_size;
     // sps（序列参数集）的长度
-    sps_size = CFlvParser::ShowU16(pd + 11);        // sequenceParameterSetLength 11 = 5 + 6
+    const auto sps_size { CFlvParser::ShowU16(pd + 11)};        // sequenceParameterSetLength 11 = 5 + 6
     // pps（图像参数集）的长度
-    pps_size = CFlvParser::ShowU16(pd + 11 + (2 + sps_size) + 1);   // pictureParameterSetLength
+    const auto pps_size {CFlvParser::ShowU16(pd + 11 + (2 + sps_size) + 1)};   // pictureParameterSetLength
 
     // 元数据的长度
     _nMediaLen = 4 + sps_size + 4 + pps_size;   // 添加start code
     _pMedia = new uint8_t[_nMediaLen];
     // 保存元数据
-    memcpy(_pMedia, &nH264StartCode, 4);
-    memcpy(_pMedia + 4, pd + 11 + 2, sps_size);
-    memcpy(_pMedia + 4 + sps_size, &nH264StartCode, 4);
-    memcpy(_pMedia + 4 + sps_size + 4, pd + 11 + 2 + sps_size + 2 + 1, pps_size);
+    //memcpy(_pMedia, &nH264StartCode, 4);
+    std::copy_n(&nH264StartCode,4,_pMedia);
 
+    //memcpy(_pMedia + 4, pd + 11 + 2, sps_size);
+    std::copy_n(pd + 11 + 2,sps_size,_pMedia + 4);
+
+    //memcpy(_pMedia + 4 + sps_size, &nH264StartCode, 4);
+    std::copy_n(&nH264StartCode,4,_pMedia + 4 + sps_size);
+
+    //memcpy(_pMedia + 4 + sps_size + 4, pd + 11 + 2 + sps_size + 2 + 1, pps_size);
+    std::copy_n(pd + 11 + 2 + sps_size + 2 + 1,pps_size,_pMedia + 4 + sps_size + 4);
     return 1;
 }
 
