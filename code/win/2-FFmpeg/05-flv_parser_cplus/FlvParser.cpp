@@ -11,9 +11,9 @@ using namespace std;
 
 #define CheckBuffer(x) { if ((nBufSize-nOffset)<(x)) { nUsedLen = nOffset; return 0;} }
 
-int CFlvParser::CAudioTag::_aacProfile;
-int CFlvParser::CAudioTag::_sampleRateIndex;
-int CFlvParser::CAudioTag::_channelConfig;
+int CFlvParser::CAudioTag::_aacProfile{};
+int CFlvParser::CAudioTag::_sampleRateIndex{};
+int CFlvParser::CAudioTag::_channelConfig{};
 
 static constexpr uint32_t nH264StartCode {0x01000000};
 
@@ -359,7 +359,7 @@ CFlvParser::CVideoTag::CVideoTag(const TagHeader *pHeader,
     _nFrameType = (pd[0] & 0xf0) >> 4;  // 帧类型
     _nCodecID = pd[0] & 0x0f;           // 视频编码类型
     // 开始解析
-    if (_header.nType == 0x09 && _nCodecID == 7) {
+    if ((0x09 == _header.nType) && (7 == _nCodecID) ) {
         ParseH264Tag(pParser);
     }
 }
@@ -389,63 +389,57 @@ extracts the channel and sample rate data is encoded in the AAC bitstream.
  * @param nLeftLen
  * @param pParser
  */
-CFlvParser::CAudioTag::CAudioTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
+CFlvParser::CAudioTag::CAudioTag(TagHeader *pHeader,
+    const uint8_t *pBuf,
+    const int nLeftLen, CFlvParser *pParser)
 {
     Init(pHeader, pBuf, nLeftLen);
 
-    uint8_t *pd = _pTagData;
+    auto pd { _pTagData};
     _nSoundFormat = (pd[0] & 0xf0) >> 4;    // 音频格式
     _nSoundRate = (pd[0] & 0x0c) >> 2;      // 采样率
     _nSoundSize = (pd[0] & 0x02) >> 1;      // 采样精度
     _nSoundType = (pd[0] & 0x01);           // 是否立体声
-    if (_nSoundFormat == 10)                // AAC
-    {
+    if (0x0a == _nSoundFormat) {               // AAC
         ParseAACTag(pParser);
     }
 }
 
 int CFlvParser::CAudioTag::ParseAACTag(CFlvParser *pParser)
 {
-    uint8_t *pd = _pTagData;
+    const auto pd {_pTagData};
 
     // 数据包的类型：音频配置信息，音频数据
-    int nAACPacketType = pd[1];
+    auto nAACPacketType { static_cast<uint32_t>(pd[1])};
 
     // 如果是音频配置信息
-    if (nAACPacketType == 0)    // AAC sequence header
-    {
+    if (!nAACPacketType){    // AAC sequence header
         // 解析配置信息
         ParseAudioSpecificConfig(pParser, pd); // 解析AudioSpecificConfig
-    }
-    // 如果是音频数据
-    else if (nAACPacketType == 1)   // AAC RAW
-    {
+    }else {/* 如果是音频数据  AAC RAW*/
         // 解析音频数据
         ParseRawAAC(pParser, pd);
-    }
-    else
-    {
-
     }
 
     return 1;
 }
 
-int CFlvParser::CAudioTag::ParseAudioSpecificConfig(CFlvParser *pParser, uint8_t *pTagData)
+int CFlvParser::CAudioTag::ParseAudioSpecificConfig(CFlvParser *pParser,
+    const uint8_t *pTagData)
 {
-    uint8_t *pd = _pTagData;
+    const auto pd { _pTagData};
 
-    _aacProfile = ((pd[2]&0xf8)>>3);    // 5bit AAC编码级别
-    _sampleRateIndex = ((pd[2]&0x07)<<1) | (pd[3]>>7);  // 4bit 真正的采样率索引
-    _channelConfig = (pd[3]>>3) & 0x0f;                 // 4bit 通道数量
-    printf("----- AAC ------\n");
-    printf("profile:%d\n", _aacProfile);
-    printf("sample rate index:%d\n", _sampleRateIndex);
-    printf("channel config:%d\n", _channelConfig);
+    _aacProfile = (pd[2] & 0xf8) >> 3;    // 5bit AAC编码级别 /*AudioObjectType*/
+    _sampleRateIndex = ( (pd[2] & 0x07) << 1 ) | (pd[3] >> 7);  // 4bit 真正的采样率索引
+    _channelConfig = ( pd[3] >> 3 ) & 0x0f;                 // 4bit 通道数量
+
+    std::cout << "----- AAC ------\n";
+    std::cout << "profile : " << _aacProfile << "\n";
+    std::cout << "sample rate index : " << _sampleRateIndex << "\n";
+    std::cout << "channel config : " << _channelConfig << "\n";
 
     _pMedia = nullptr;
     _nMediaLen = 0;
-
     return 1;
 }
 

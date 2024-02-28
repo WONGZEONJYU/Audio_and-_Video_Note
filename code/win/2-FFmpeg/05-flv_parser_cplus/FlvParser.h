@@ -52,8 +52,7 @@ private:
         int _nMediaLen{};         // 数据长度
     };
 
-    class CVideoTag : public Tag {
-    public:
+    struct  CVideoTag : Tag {
         /**
          * @brief CVideoTag
          * @param pHeader
@@ -70,7 +69,7 @@ private:
         int ParseNalu(CFlvParser *pParser,const uint8_t *pTagData);
     };
 
-    class CAudioTag : public Tag
+    struct  CAudioTag :  Tag
     {
     public:
         CAudioTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
@@ -86,16 +85,16 @@ private:
         static int _channelConfig;      // 通道设置
 
         int ParseAACTag(CFlvParser *pParser);
-        int ParseAudioSpecificConfig(CFlvParser *pParser, uint8_t *pTagData);
+        int ParseAudioSpecificConfig(CFlvParser *pParser,const uint8_t *pTagData);
         int ParseRawAAC(CFlvParser *pParser, uint8_t *pTagData);
     };
 
-    class CMetaDataTag : public Tag
+    struct  CMetaDataTag : Tag
     {
     public:
         CMetaDataTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
-        static  double hexStr2double(const unsigned char* hex, unsigned int length);
+        static double hexStr2double(const unsigned char* hex, unsigned int length);
         int parseMeta(CFlvParser *pParser);
         void printMeta();
 
@@ -141,7 +140,7 @@ private:
         x = (x << length) | (static_cast<uint64_t>(value) & mask);
     }
 
-    static uint32_t WriteU32(const uint32_t n){
+    static inline uint32_t WriteU32(const uint32_t n){
         uint32_t nn {};
         const auto p { reinterpret_cast<const uint8_t *>(&n) };
         const auto pp { reinterpret_cast<uint8_t *>(&nn) };
