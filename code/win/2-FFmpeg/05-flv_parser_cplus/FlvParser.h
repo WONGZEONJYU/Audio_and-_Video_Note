@@ -47,8 +47,8 @@ private:
         void Init(const TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen);
         TagHeader _header{};
         uint8_t *_pTagHeader{};   // 指向标签头部
-        uint8_t *_pTagData{};     // 指向标签body，原始的tag data数据
-        uint8_t *_pMedia{};       // 指向标签的元数据，改造后的数据
+        uint8_t *_pTagData{};     // 指向标签body,原始的tag data数据
+        uint8_t *_pMedia{};       // 指向标签的元数据,改造后的数据,添加start_code与去除每个NALU payload前4个字节(plyload的真正数据的大小)的数据
         int _nMediaLen{};         // 数据长度
     };
 

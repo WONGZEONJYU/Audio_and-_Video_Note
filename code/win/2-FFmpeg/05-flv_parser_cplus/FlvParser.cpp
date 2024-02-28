@@ -814,11 +814,7 @@ int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser,
 
     //memcpy(_pMedia + 4 + sps_size + 4, pd + 11 + 2 + sps_size + 2 + 1, pps_size);
     std::copy_n(pd + 11 + 2 + sps_size + 2 + 1,pps_size,_pMedia + 4 + sps_size + 4);
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> e82bf5d413806704676581955ee4ecebe9fcc2d6
     return 1;
 }
 
@@ -841,7 +837,9 @@ int CFlvParser::CVideoTag::ParseNalu(CFlvParser *pParser,const uint8_t *pTagData
         // 计算NALU（视频数据被包装成NALU在网上传输）的长度,
         // 一个tag可能包含多个nalu,所以每个nalu前面有NalUnitLength字节表示每个nalu的长度
         int nNaluLen{};
-        switch (pParser->_nNalUnitLength) {
+
+        switch (pParser->_nNalUnitLength) {/*_nNalUnitLength一般都是4,这里判断只是为了防止有其他情况出现*/
+            /* pParser->_nNalUnitLength决定存放NALU length需要用多少个字节,默认是4个字节 */
         case 4:
             nNaluLen = static_cast<int>(CFlvParser::ShowU32(pd + nOffset));
             break;
@@ -861,10 +859,18 @@ int CFlvParser::CVideoTag::ParseNalu(CFlvParser *pParser,const uint8_t *pTagData
         // 复制NALU的数据
         //memcpy(_pMedia + _nMediaLen + 4, pd + nOffset + pParser->_nNalUnitLength, nNaluLen);
         std::copy_n(pd + nOffset + pParser->_nNalUnitLength,nNaluLen,_pMedia + _nMediaLen + 4);
+
+        /* pParser->_nNalUnitLength决定存放NALU length需要用多少个字节,默认是4个字节 */
+
         // 解析NALU
 //        pParser->_vjj->Process(_pMedia+_nMediaLen, 4+nNaluLen, _header.nTotalTS);
         _nMediaLen += (4 + nNaluLen);
-        nOffset += (pParser->_nNalUnitLength + nNaluLen);
+        /*4代表前面start_code(4字节) + 真正数据的大小(已除去了payload的前4个字节)*/
+
+        nOffset += (pParser->_nNalUnitLength + nNaluLen); /* 4 + 每个NALU data前4个字节就是当前NALU的长度*/
+        /*nOffset实际偏移一个NALU payload的长度(4字节 + 真正数据长度)*/
+
+        /*这里_pMedia保存的是每一个没有NALU payload长度的数据,就是真正数据的前面4个字节*/
     }
 
     return 1;
