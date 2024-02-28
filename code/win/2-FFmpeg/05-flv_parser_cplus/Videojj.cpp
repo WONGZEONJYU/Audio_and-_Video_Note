@@ -25,14 +25,15 @@ int CVideojj::Process(uint8_t *pNalu, int nNaluLen, int nTimeStamp)
     // 如果起始码后面的两个字节是0x05或者0x06，那么表示IDR图像或者SEI信息
 	if (pNalu[4] != 0x06 || pNalu[5] != 0x05)
 		return 0;
-    uint8_t *p = pNalu + 4 + 2;
+    auto p { pNalu + 4 + 2};
 	while (*p++ == 0xff);
-	const char *szVideojjUUID = "VideojjLeonUUID";
-	char *pp = (char *)p;
-	for (int i = 0; i < strlen(szVideojjUUID); i++)
-	{
-		if (pp[i] != szVideojjUUID[i])
+	constexpr auto szVideojjUUID { "VideojjLeonUUID"};
+	auto pp {reinterpret_cast<char*>(p)};
+
+	for (int i = 0; i < strlen(szVideojjUUID); i++) {
+		if (pp[i] != szVideojjUUID[i]){
 			return 0;
+		}
 	}
 	
 	VjjSEI sei;
