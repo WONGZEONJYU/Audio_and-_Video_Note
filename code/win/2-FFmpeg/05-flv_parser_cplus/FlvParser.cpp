@@ -798,18 +798,20 @@ int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser,
     // 元数据的长度
     _nMediaLen = 4 + sps_size + 4 + pps_size;   // 添加start code
     _pMedia = new uint8_t[_nMediaLen];
+
     // 保存元数据
     //memcpy(_pMedia, &nH264StartCode, 4);
-    std::copy_n(&nH264StartCode,4,_pMedia);
+    std::copy_n(reinterpret_cast<const uint8_t*>(&nH264StartCode),4,_pMedia);
 
     //memcpy(_pMedia + 4, pd + 11 + 2, sps_size);
     std::copy_n(pd + 11 + 2,sps_size,_pMedia + 4);
 
     //memcpy(_pMedia + 4 + sps_size, &nH264StartCode, 4);
-    std::copy_n(&nH264StartCode,4,_pMedia + 4 + sps_size);
+    std::copy_n(reinterpret_cast<const uint8_t*>(&nH264StartCode),4,_pMedia + 4 + sps_size);
 
     //memcpy(_pMedia + 4 + sps_size + 4, pd + 11 + 2 + sps_size + 2 + 1, pps_size);
     std::copy_n(pd + 11 + 2 + sps_size + 2 + 1,pps_size,_pMedia + 4 + sps_size + 4);
+
     return 1;
 }
 
@@ -834,21 +836,21 @@ int CFlvParser::CVideoTag::ParseNalu(CFlvParser *pParser,const uint8_t *pTagData
         int nNaluLen{};
         switch (pParser->_nNalUnitLength) {
         case 4:
-            nNaluLen = CFlvParser::ShowU32(pd + nOffset);
+            nNaluLen = static_cast<int>(CFlvParser::ShowU32(pd + nOffset));
             break;
         case 3:
-            nNaluLen = CFlvParser::ShowU24(pd + nOffset);
+            nNaluLen = static_cast<int>(CFlvParser::ShowU24(pd + nOffset));
             break;
         case 2:
-            nNaluLen = CFlvParser::ShowU16(pd + nOffset);
+            nNaluLen = static_cast<int>(CFlvParser::ShowU16(pd + nOffset));
             break;
         default:
-            nNaluLen = CFlvParser::ShowU8(pd + nOffset);
+            nNaluLen = static_cast<int>(CFlvParser::ShowU8(pd + nOffset));
             break;
         }
         // 获取NALU的起始码
         //memcpy(_pMedia + _nMediaLen, &nH264StartCode, 4);
-        std::copy_n(&nH264StartCode,4,_pMedia + _nMediaLen);
+        std::copy_n(reinterpret_cast<const uint8_t*>(&nH264StartCode),4,_pMedia + _nMediaLen);
         // 复制NALU的数据
         //memcpy(_pMedia + _nMediaLen + 4, pd + nOffset + pParser->_nNalUnitLength, nNaluLen);
         std::copy_n(pd + nOffset + pParser->_nNalUnitLength,nNaluLen,_pMedia + _nMediaLen + 4);

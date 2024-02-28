@@ -131,13 +131,13 @@ private:
         FlvStat() : nMetaNum(0), nVideoNum(0), nAudioNum(0), nMaxTimeStamp(0), nLengthSize(0){}
     };
 
-    static inline  uint32_t ShowU32(const uint8_t *pBuf) { return (pBuf[0] << 24) | (pBuf[1] << 16) | (pBuf[2] << 8) | pBuf[3]; }
+    static inline uint32_t ShowU32(const uint8_t *pBuf) { return (pBuf[0] << 24) | (pBuf[1] << 16) | (pBuf[2] << 8) | pBuf[3]; }
     static inline uint32_t ShowU24(const uint8_t *pBuf) { return (pBuf[0] << 16) | (pBuf[1] << 8) | (pBuf[2]); }
     static inline uint32_t ShowU16(const uint8_t *pBuf) { return (pBuf[0] << 8) | (pBuf[1]); }
     static inline uint32_t ShowU8(const uint8_t *pBuf) { return (pBuf[0]); }
 
-    static void WriteU64(uint64_t & x, const int length,const int value){
-        const uint64_t mask {0xFFFFFFFFFFFFFFFF >> (64 - length)};
+    static inline void WriteU64(uint64_t & x, const int length,const int value){
+        const auto mask {0xFFFFFFFFFFFFFFFF >> (64 - length)};
         x = (x << length) | (static_cast<uint64_t>(value) & mask);
     }
 
@@ -152,7 +152,7 @@ private:
         return nn;
     }
 
-    friend class Tag;
+    friend struct Tag;
 
     static FlvHeader* CreateFlvHeader(const uint8_t *pBuf);
     static int DestroyFlvHeader(FlvHeader *pHeader);
