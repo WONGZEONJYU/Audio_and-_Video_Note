@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 #include "Videojj.h"
 
 class CFlvParser
@@ -15,7 +16,7 @@ public:
 
     int Parse(const uint8_t *pBuf, int nBufSize, int &nUsedLen);
     int PrintInfo();
-    int DumpH264(const std::string &);
+    int DumpH264(const std::string &) const;
     int DumpAAC(const std::string &);
     int DumpFlv(const std::string &);
 
@@ -61,7 +62,8 @@ private:
          * @param nLeftLen
          * @param pParser
          */
-        CVideoTag(const TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
+        CVideoTag(const TagHeader *pHeader,const uint8_t *pBuf,
+            int nLeftLen, CFlvParser *pParser);
 
         int _nFrameType;    // 帧类型
         int _nCodecID;      // 视频编解码类型
@@ -70,7 +72,7 @@ private:
         int ParseNalu(CFlvParser *pParser,const uint8_t *pTagData);
     };
 
-    struct  CAudioTag :  Tag
+    struct CAudioTag : Tag
     {
         CAudioTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
@@ -156,16 +158,16 @@ private:
     static FlvHeader* CreateFlvHeader(const uint8_t *pBuf);
     static int DestroyFlvHeader(FlvHeader *pHeader);
     Tag *CreateTag(const uint8_t *pBuf, int nLeftLen);
-    static int DestroyTag(Tag *pTag);
+    static int DestroyTag(const Tag *pTag);
     int Stat();
-    int StatVideo(Tag *pTag);
-    int IsUserDataTag(Tag *pTag);
+    int StatVideo(const Tag *pTag) ;
+    //int IsUserDataTag(Tag *pTag);
 
-    FlvHeader* _pFlvHeader{};
+    //CVideojj *_vjj{};
+    std::shared_ptr<CVideojj> _vjj;
     std::vector<Tag *> _vpTag;
+    FlvHeader* _pFlvHeader{};
     FlvStat _sStat{};
-    CVideojj *_vjj{};
-
     // H.264
     int _nNalUnitLength{};
 };

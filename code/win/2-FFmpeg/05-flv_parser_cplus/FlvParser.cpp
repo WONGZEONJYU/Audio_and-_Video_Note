@@ -16,9 +16,8 @@ int CFlvParser::CAudioTag::_channelConfig{};
 
 static constexpr uint32_t nH264StartCode {0x01000000};
 
-CFlvParser::CFlvParser()
+CFlvParser::CFlvParser():_vjj(new CVideojj())
 {
-    _vjj = new CVideojj();
 }
 
 CFlvParser::~CFlvParser(){
@@ -27,7 +26,6 @@ CFlvParser::~CFlvParser(){
         DestroyTag(_vpTag[i]);
         delete _vpTag[i];
     }
-    delete _vjj;
 }
 
 int CFlvParser::Parse(const uint8_t *pBuf,const int nBufSize, int &nUsedLen)
@@ -62,35 +60,27 @@ int CFlvParser::Parse(const uint8_t *pBuf,const int nBufSize, int &nUsedLen)
 int CFlvParser::PrintInfo()
 {
     Stat();
-
     cout << "vnum: " << _sStat.nVideoNum << " , anum: " << _sStat.nAudioNum << " , mnum: " << _sStat.nMetaNum << "\n";
     cout << "maxTimeStamp: " << _sStat.nMaxTimeStamp << " ,nLengthSize: " << _sStat.nLengthSize << "\n";
     cout << "Vjj SEI num: " << _vjj->_vVjjSEI.size() << endl;
-    for (int i {}; i < _vjj->_vVjjSEI.size(); i++)
+    for (uint32_t i {}; i < _vjj->_vVjjSEI.size(); i++)
         cout << "SEI time : " << _vjj->_vVjjSEI[i].nTimeStamp << endl;
     return 1;
 }
 
-int CFlvParser::DumpH264(const std::string &path)
+int CFlvParser::DumpH264(const std::string &path) const
 {
     fstream f(path.c_str(), ios_base::out|ios_base::binary);
 
-    // vector<Tag *>::iterator it_tag;
-    // for (it_tag = _vpTag.begin(); it_tag != _vpTag.end(); it_tag++) {
-    //     if ((*it_tag)->_header.nType != 0x09)
-    //         continue;
-    //
-    //     f.write((char *)(*it_tag)->_pMedia, (*it_tag)->_nMediaLen);
-    // }
-
-    for(auto &it_tag:_vpTag) {
-        if (it_tag->_header.nType != 0x09) {
+    for(const auto &it_tag:_vpTag) {
+        if ( 0x09 != it_tag->_header.nType ) {
             continue;
         }
         f.write(reinterpret_cast<char *>(it_tag->_pMedia), it_tag->_nMediaLen);
     }
 
     f.close();
+
     return 1;
 }
 
@@ -99,18 +89,35 @@ int CFlvParser::DumpAAC(const std::string &path)
     fstream f;
     f.open(path.c_str(), ios_base::out | ios_base::binary);
 
-    vector<Tag *>::iterator it_tag;
-    for (it_tag = _vpTag.begin(); it_tag != _vpTag.end(); it_tag++)
-    {
-        if ((*it_tag)->_header.nType != 0x08)
-            continue;
+    // vector<Tag *>::iterator it_tag;
+    // for (it_tag = _vpTag.begin(); it_tag != _vpTag.end(); it_tag++)
+    // {
+    //     if ((*it_tag)->_header.nType != 0x08)
+    //         continue;
+    //
+    //     CAudioTag *pAudioTag = (CAudioTag *)(*it_tag);
+    //     if (pAudioTag->_nSoundFormat != 10)
+    //         continue;
+    //
+    //     if (pAudioTag->_nMediaLen!=0)
+    //         f.write((char *)(*it_tag)->_pMedia, (*it_tag)->_nMediaLen);
+    // }
 
-        CAudioTag *pAudioTag = (CAudioTag *)(*it_tag);
-        if (pAudioTag->_nSoundFormat != 10)
+    for (const auto &it_tag : _vpTag) {
+        if (0x08 != it_tag->_header.nType) {
             continue;
+        }
 
-        if (pAudioTag->_nMediaLen!=0)
-            f.write((char *)(*it_tag)->_pMedia, (*it_tag)->_nMediaLen);
+        const auto pAudioTag {reinterpret_cast<CAudioTag*>(it_tag)};
+
+        if ( 10 != pAudioTag->_nSoundFormat ) {
+            continue;
+        }
+
+        if (pAudioTag->_nMediaLen) {
+            f.write(reinterpret_cast<const char*>(it_tag->_pMedia),
+                    it_tag->_nMediaLen);
+        }
     }
     f.close();
 
@@ -119,39 +126,38 @@ int CFlvParser::DumpAAC(const std::string &path)
 
 int CFlvParser::DumpFlv(const std::string &path)
 {
-    fstream f;
-    f.open(path.c_str(), ios_base::out | ios_base::binary);
+    fstream f(path.c_str(), ios_base::out | ios_base::binary);
 
     // write flv-header
-    f.write((char *)_pFlvHeader->pFlvHeader, _pFlvHeader->nHeadSize);
-    uint32_t nLastTagSize = 0;
+    f.write(reinterpret_cast<char *>(_pFlvHeader->pFlvHeader), _pFlvHeader->nHeadSize);
+    uint32_t nLastTagSize {};
 
     // write flv-tag
-    vector<Tag *>::iterator it_tag;
-    for (it_tag = _vpTag.begin(); it_tag < _vpTag.end(); it_tag++)
+
+    for (const auto &it_tag : _vpTag)
     {
-        uint32_t nn = WriteU32(nLastTagSize);
-        f.write((char *)&nn, 4);
+        const auto nn { WriteU32(nLastTagSize)};
+        f.write(reinterpret_cast<const char *>(&nn), 4);
 
         //check duplicate start code
-        if ((*it_tag)->_header.nType == 0x09 && *((*it_tag)->_pTagData + 1) == 0x01) {
-            bool duplicate = false;
-            uint8_t *pStartCode = (*it_tag)->_pTagData + 5 + _nNalUnitLength;
+        if ((0x09 == it_tag->_header.nType) && (0x01 == it_tag->_pTagData[1]) ) {
+            bool duplicate {};
+            const auto pStartCode  {it_tag->_pTagData + 5 + _nNalUnitLength};
             //printf("tagsize=%d\n",(*it_tag)->_header.nDataSize);
-            unsigned nalu_len = 0;
-            uint8_t *p_nalu_len=(uint8_t *)&nalu_len;
+            uint32_t nalu_len {};
+            const auto p_nalu_len { reinterpret_cast<uint8_t*>(&nalu_len)};
             switch (_nNalUnitLength) {
             case 4:
-                nalu_len = ShowU32((*it_tag)->_pTagData + 5);
+                nalu_len = ShowU32(it_tag->_pTagData + 5);
                 break;
             case 3:
-                nalu_len = ShowU24((*it_tag)->_pTagData + 5);
+                nalu_len = ShowU24(it_tag->_pTagData + 5);
                 break;
             case 2:
-                nalu_len = ShowU16((*it_tag)->_pTagData + 5);
+                nalu_len = ShowU16(it_tag->_pTagData + 5);
                 break;
             default:
-                nalu_len = ShowU8((*it_tag)->_pTagData + 5);
+                nalu_len = ShowU8(it_tag->_pTagData + 5);
                 break;
             }
             /*
@@ -162,27 +168,24 @@ int CFlvParser::DumpFlv(const std::string &path)
                     (*it_tag)->_pTagData[13]);
             */
 
-            uint8_t *pStartCodeRecord = pStartCode;
-            int i;
-            for (i = 0; i < (*it_tag)->_header.nDataSize - 5 - _nNalUnitLength - 4; ++i) {
+            const auto pStartCodeRecord {pStartCode};
+            int i{};
+            for ( ; i < it_tag->_header.nDataSize - 5 - _nNalUnitLength - 4; ++i) {
                 if (pStartCode[i] == 0x00 && pStartCode[i+1] == 0x00 && pStartCode[i+2] == 0x00 &&
                         pStartCode[i+3] == 0x01) {
                     if (pStartCode[i+4] == 0x67) {
                         //printf("duplicate sps found!\n");
                         i += 4;
                         continue;
-                    }
-                    else if (pStartCode[i+4] == 0x68) {
+                    }else if (pStartCode[i+4] == 0x68) {
                         //printf("duplicate pps found!\n");
                         i += 4;
                         continue;
-                    }
-                    else if (pStartCode[i+4] == 0x06) {
+                    }else if (pStartCode[i+4] == 0x06) {
                         //printf("duplicate sei found!\n");
                         i += 4;
                         continue;
-                    }
-                    else {
+                    }else {
                         i += 4;
                         //printf("offset=%d\n",i);
                         duplicate = true;
@@ -193,60 +196,60 @@ int CFlvParser::DumpFlv(const std::string &path)
 
             if (duplicate) {
                 nalu_len -= i;
-                (*it_tag)->_header.nDataSize -= i;
-                uint8_t *p = (uint8_t *)&((*it_tag)->_header.nDataSize);
-                (*it_tag)->_pTagHeader[1] = p[2];
-                (*it_tag)->_pTagHeader[2] = p[1];
-                (*it_tag)->_pTagHeader[3] = p[0];
+                it_tag->_header.nDataSize -= i;
+                const auto p { reinterpret_cast<uint8_t *>(&it_tag->_header.nDataSize)};
+                it_tag->_pTagHeader[1] = p[2];
+                it_tag->_pTagHeader[2] = p[1];
+                it_tag->_pTagHeader[3] = p[0];
                 //printf("after,tagsize=%d\n",(int)ShowU24((*it_tag)->_pTagHeader + 1));
                 //printf("%x,%x,%x\n",(*it_tag)->_pTagHeader[1],(*it_tag)->_pTagHeader[2],(*it_tag)->_pTagHeader[3]);
 
-                f.write((char *)(*it_tag)->_pTagHeader, 11);
+                f.write(reinterpret_cast<char*>(it_tag->_pTagHeader), 11);
                 switch (_nNalUnitLength) {
                 case 4:
-                    *((*it_tag)->_pTagData + 5) = p_nalu_len[3];
-                    *((*it_tag)->_pTagData + 6) = p_nalu_len[2];
-                    *((*it_tag)->_pTagData + 7) = p_nalu_len[1];
-                    *((*it_tag)->_pTagData + 8) = p_nalu_len[0];
+                    *(it_tag->_pTagData + 5) = p_nalu_len[3];
+                    *(it_tag->_pTagData + 6) = p_nalu_len[2];
+                    *(it_tag->_pTagData + 7) = p_nalu_len[1];
+                    *(it_tag->_pTagData + 8) = p_nalu_len[0];
                     break;
                 case 3:
-                    *((*it_tag)->_pTagData + 5) = p_nalu_len[2];
-                    *((*it_tag)->_pTagData + 6) = p_nalu_len[1];
-                    *((*it_tag)->_pTagData + 7) = p_nalu_len[0];
+                    *(it_tag->_pTagData + 5) = p_nalu_len[2];
+                    *(it_tag->_pTagData + 6) = p_nalu_len[1];
+                    *(it_tag->_pTagData + 7) = p_nalu_len[0];
                     break;
                 case 2:
-                    *((*it_tag)->_pTagData + 5) = p_nalu_len[1];
-                    *((*it_tag)->_pTagData + 6) = p_nalu_len[0];
+                    *(it_tag->_pTagData + 5) = p_nalu_len[1];
+                    *(it_tag->_pTagData + 6) = p_nalu_len[0];
                     break;
                 default:
-                    *((*it_tag)->_pTagData + 5) = p_nalu_len[0];
+                    *(it_tag->_pTagData + 5) = p_nalu_len[0];
                     break;
                 }
                 //printf("after,nalu_len=%d\n",(int)ShowU32((*it_tag)->_pTagData + 5));
-                f.write((char *)(*it_tag)->_pTagData, pStartCode - (*it_tag)->_pTagData);
+                f.write(reinterpret_cast<const char *>(it_tag->_pTagData), pStartCode - it_tag->_pTagData);
                 /*
                 printf("%x,%x,%x,%x,%x,%x,%x,%x,%x\n",(*it_tag)->_pTagData[0],(*it_tag)->_pTagData[1],(*it_tag)->_pTagData[2],
                         (*it_tag)->_pTagData[3],(*it_tag)->_pTagData[4],(*it_tag)->_pTagData[5],(*it_tag)->_pTagData[6],
                         (*it_tag)->_pTagData[7],(*it_tag)->_pTagData[8]);
                 */
-                f.write((char *)pStartCode + i, (*it_tag)->_header.nDataSize - (pStartCode - (*it_tag)->_pTagData));
+                f.write(reinterpret_cast<const char *>(pStartCode + i), it_tag->_header.nDataSize - (pStartCode - it_tag->_pTagData));
                 /*
                 printf("write size:%d\n", (pStartCode - (*it_tag)->_pTagData) +
                         ((*it_tag)->_header.nDataSize - (pStartCode - (*it_tag)->_pTagData)));
                 */
             } else {
-                f.write((char *)(*it_tag)->_pTagHeader, 11);
-                f.write((char *)(*it_tag)->_pTagData, (*it_tag)->_header.nDataSize);
+                f.write(reinterpret_cast<const char *>(it_tag->_pTagHeader), 11);
+                f.write(reinterpret_cast<const char *>(it_tag->_pTagData), it_tag->_header.nDataSize);
             }
         } else {
-            f.write((char *)(*it_tag)->_pTagHeader, 11);
-            f.write((char *)(*it_tag)->_pTagData, (*it_tag)->_header.nDataSize);
+            f.write(reinterpret_cast<const char *>(it_tag->_pTagHeader), 11);
+            f.write(reinterpret_cast<const char *> (it_tag->_pTagData), it_tag->_header.nDataSize);
         }
 
-        nLastTagSize = 11 + (*it_tag)->_header.nDataSize;
+        nLastTagSize = 11 + it_tag->_header.nDataSize;
     }
-    uint32_t nn = WriteU32(nLastTagSize);
-    f.write((char *)&nn, 4);
+    const auto nn {WriteU32(nLastTagSize)};
+    f.write(reinterpret_cast<const char *>(&nn), 4);
 
     f.close();
 
@@ -291,7 +294,7 @@ int CFlvParser::Stat()
     return 1;
 }
 
-int CFlvParser::StatVideo(Tag *pTag)
+int CFlvParser::StatVideo(const Tag * const pTag)
 {
     _sStat.nVideoNum++;
     _sStat.nMaxTimeStamp = pTag->_header.nTimeStamp;
@@ -309,7 +312,7 @@ CFlvParser::FlvHeader* CFlvParser::CreateFlvHeader(const uint8_t *pBuf)
     pHeader->nVersion = pBuf[3];        // 版本号
     pHeader->bHaveAudio = (pBuf[4] >> 2) & 0x01;    // 是否有音频
     pHeader->bHaveVideo = (pBuf[4] >> 0) & 0x01;    // 是否有视频
-    pHeader->nHeadSize = ShowU32(pBuf + 5);         // 头部长度
+    pHeader->nHeadSize = static_cast<int>(ShowU32(pBuf + 5));         // 头部长度
 
     pHeader->pFlvHeader = new uint8_t[pHeader->nHeadSize];
     //memcpy(pHeader->pFlvHeader, pBuf, pHeader->nHeadSize);
@@ -677,16 +680,17 @@ CFlvParser::Tag *CFlvParser::CreateTag(const uint8_t *pBuf,const int nLeftLen)
 {
     // 开始解析标签头部
     TagHeader header;
-    header.nType = ShowU8(pBuf+0);  // 类型
-    header.nDataSize = ShowU24(pBuf + 1);   // 标签body的长度
-    header.nTimeStamp = ShowU24(pBuf + 4);  // 时间戳 低24bit
-    header.nTSEx = ShowU8(pBuf + 7);        // 时间戳的扩展字段, 高8bit
-    header.nStreamID = ShowU24(pBuf + 8);   // 流的id
+    header.nType = static_cast<int>(ShowU8(pBuf+0));  // 类型
+    header.nDataSize = static_cast<int>(ShowU24(pBuf + 1));   // 标签body的长度
+    header.nTimeStamp = static_cast<int>(ShowU24(pBuf + 4));  // 时间戳 低24bit
+    header.nTSEx = static_cast<int>(ShowU8(pBuf + 7));        // 时间戳的扩展字段, 高8bit
+    header.nStreamID = static_cast<int>(ShowU24(pBuf + 8));   // 流的id
     header.nTotalTS = static_cast<uint32_t>((header.nTSEx << 24)) + header.nTimeStamp;
     // 标签头部解析结束
 
 //    cout << "total TS : " << header.nTotalTS << endl;
 //    cout << "nLeftLen : " << nLeftLen << " , nDataSize : " << header.nDataSize << endl;
+
     if ((header.nDataSize + 11) > nLeftLen){
         return nullptr;
     }
@@ -711,7 +715,7 @@ CFlvParser::Tag *CFlvParser::CreateTag(const uint8_t *pBuf,const int nLeftLen)
     return pTag;
 }
 
-int CFlvParser::DestroyTag(Tag *const pTag)
+int CFlvParser::DestroyTag(const Tag * const pTag)
 {
     delete []pTag->_pMedia;
     delete []pTag->_pTagData;
@@ -727,15 +731,15 @@ int CFlvParser::CVideoTag::ParseH264Tag(CFlvParser *pParser)
     ** 视频数据被压缩之后被打包成数据包在网上传输
     ** 有两种类型的数据包：视频信息包（sps、pps等）和视频数据包（视频的压缩数据）
     */
-    const int nAVCPacketType {pd[1]};
+    const auto nAVCPacketType {static_cast<int>(pd[1])};
    // int nCompositionTime = CFlvParser::ShowU24(pd + 2);
    // AVCPacketType 0:Configuration 1:AVC NALU
-    if (!nAVCPacketType) {  // AVC sequence header
-        // 如果是视频配置信息
-        ParseH264Configuration(pParser, pd);
-    }else{  // AVC NALU
+    if (nAVCPacketType) { // AVC NALU
         // 如果是视频数据
         ParseNalu(pParser, pd);
+    }else{  // AVC sequence header
+        // 如果是视频配置信息
+        ParseH264Configuration(pParser, pd);
     }
     return 1;
 }

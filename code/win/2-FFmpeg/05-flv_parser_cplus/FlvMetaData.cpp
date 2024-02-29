@@ -227,7 +227,6 @@ double FlvMetaData::hexStr2double(const uint8_t* hex, const uint32_t length) {
 
     double ret {};
     sscanf(hexstr, "%llx", reinterpret_cast<uint64_t*>(&ret));
-
     return ret;
 }
 
