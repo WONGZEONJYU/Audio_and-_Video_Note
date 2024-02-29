@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
 static void Process(fstream &fin, const char *filename);
 int main(const int argc,const char *argv[])
 {
+	std::cout << sizeof(*argv) << "\n";
+	cout << sizeof(string) << "\n";
     cout << "Hi, this is FLV parser test program!\n";
 
     if (argc < 3){
@@ -58,7 +60,7 @@ int main(const int argc,const char *argv[])
         return -1;
     }
 
-    fstream fin(argv[1],ios_base::binary);
+    fstream fin(argv[1],ios_base::binary | ios_base::in);
 
     if (!fin){
         cerr << "open error\n";

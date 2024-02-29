@@ -1,11 +1,10 @@
 ﻿#include <cstdlib>
 #include <cstring>
-#include <cassert>
 #include <iostream>
 #include <fstream>
-#include "FlvParser.h"
-
 #include <algorithm>
+#include <memory>
+#include "FlvParser.h"
 
 using namespace std;
 
@@ -445,9 +444,9 @@ int CFlvParser::CAudioTag::ParseAudioSpecificConfig(CFlvParser *pParser,
 
 int CFlvParser::CAudioTag::ParseRawAAC(CFlvParser *pParser, uint8_t *pTagData)
 {
-    uint64_t bits = 0;  // 占用8字节
+    uint64_t bits {};  // 占用8字节
     // 数据长度 跳过tag data的第一个第二字节
-    int dataSize = _header.nDataSize - 2;   // 减去两字节的 audio tag data信息部分
+    const auto dataSize { _header.nDataSize - 2};   // 减去两字节的 audio tag data信息部分
 
     // 制作元数据
     WriteU64(bits, 12, 0xFFF);
@@ -465,42 +464,46 @@ int CFlvParser::CAudioTag::ParseRawAAC(CFlvParser *pParser, uint8_t *pTagData)
     WriteU64(bits, 13, 7 + dataSize);
     WriteU64(bits, 11, 0x7FF);
     WriteU64(bits, 2, 0);
-    // WriteU64执行为上述的操作，最高的8bit还没有被移位到，实际是使用7个字节
-    _nMediaLen = 7 + dataSize;
+    // WriteU64执行为上述的操作,最高的8bit还没有被移位到,实际是使用7个字节
+    _nMediaLen = 7 + dataSize;/*ATDS head size + datasize*/
     _pMedia = new uint8_t[_nMediaLen];
-    uint8_t p64[8];
-    p64[0] = (uint8_t)(bits >> 56); // 是bits的最高8bit，实际为0
-    p64[1] = (uint8_t)(bits >> 48); // 才是ADTS起始头 0xfff的高8bit
-    p64[2] = (uint8_t)(bits >> 40);
-    p64[3] = (uint8_t)(bits >> 32);
-    p64[4] = (uint8_t)(bits >> 24);
-    p64[5] = (uint8_t)(bits >> 16);
-    p64[6] = (uint8_t)(bits >> 8);
-    p64[7] = (uint8_t)(bits);
+    uint8_t p64[8]{};
+    p64[0] = static_cast<uint8_t>(bits >> 56); // 是bits的最高8bit，实际为0
+    p64[1] = static_cast<uint8_t>(bits >> 48); // 才是ADTS起始头 0xfff的高8bit
+    p64[2] = static_cast<uint8_t>(bits >> 40);
+    p64[3] = static_cast<uint8_t>(bits >> 32);
+    p64[4] = static_cast<uint8_t>(bits >> 24);
+    p64[5] = static_cast<uint8_t>(bits >> 16);
+    p64[6] = static_cast<uint8_t>(bits >> 8);
+    p64[7] = static_cast<uint8_t>(bits);
 
-    memcpy(_pMedia, p64+1, 7);  // ADTS header, p64+1是从ADTS起始头开始
-    memcpy(_pMedia + 7, pTagData + 2, dataSize); // AAC body
+    //memcpy(_pMedia, p64+1, 7);  // ADTS header, p64+1是从ADTS起始头开始
+    std::copy_n(p64+1,7,_pMedia);
+    //memcpy(_pMedia + 7, pTagData + 2, dataSize); // AAC body
+    std::copy_n(pTagData + 2,dataSize,_pMedia + 7);
 
     return 1;
 }
 
-CFlvParser::CMetaDataTag::CMetaDataTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser)
+CFlvParser::CMetaDataTag::CMetaDataTag(TagHeader *pHeader,const uint8_t *pBuf,
+    const int nLeftLen, CFlvParser *pParser)
 {
     Init(pHeader, pBuf, nLeftLen);
 
-    uint8_t *pd = _pTagData;
+    const auto pd { _pTagData};
     m_amf1_type = ShowU8(pd+0);
     m_amf1_size = ShowU16(pd+1);
 
-    if(m_amf1_type != 2)
-    {
-        printf("no metadata\n");
+    if(2!= m_amf1_type){
+        std::cout << "no metadata\n";
         return;
     }
     // 解析script
-    if(strncmp((const char *)"onMetaData", (const char *)(pd + 3), 10) == 0)
+    if(!strncmp((const char *)"onMetaData", reinterpret_cast<const char *>(pd + 3), 10)){
         parseMeta(pParser);
+    }
 }
+
 double CFlvParser::CMetaDataTag::hexStr2double(const uint8_t* hex,
                                                const uint32_t length) {
     const auto size{length * 2};
@@ -517,48 +520,42 @@ double CFlvParser::CMetaDataTag::hexStr2double(const uint8_t* hex,
 }
 int CFlvParser::CMetaDataTag::parseMeta(CFlvParser *pParser)
 {
-    uint8_t *pd = _pTagData;
-    int dataSize = _header.nDataSize;
+    const auto pd {_pTagData};
+    //int dataSize = _header.nDataSize;
 
-    uint32_t arrayLen = 0;
-    uint32_t offset = 13; // Type + Value_Size + Value占用13字节
+    uint32_t arrayLen {};
+    uint32_t offset {13}; // Type + Value_Size + Value占用13字节
 
-    uint32_t nameLen = 0;
-    double doubleValue = 0;
-    string strValue = "";
-    bool boolValue = false;
-    uint32_t valueLen = 0;
-    uint8_t u8Value = 0;
-    if(pd[offset++] == 0x08)    // 0x8 onMetaData
-    {
+    //cout << "sizeof(string) " << sizeof(string) << "\n";
+   // bool boolValue = false;
+    uint32_t valueLen {};
+    uint8_t u8Value {};
+    if(pd[offset++] == 0x08){    // 0x8 onMetaData
         arrayLen = ShowU32(pd + offset);
         offset += 4;    //跳过 [ECMAArrayLength]占用的字节
-        printf("ArrayLen = %d\n", arrayLen);
-    }
-    else
-    {
-        printf("metadata format error!!!");
+        std::cout << "ArrayLen = " << arrayLen << "\n";
+    }else{
+        std::cout << "metadata format error!!!\n";
         return -1;
     }
 
-    for(uint32_t i = 0; i < arrayLen; i++)
-    {
+    string strValue;
 
-        doubleValue = 0;
-        boolValue = false;
-        strValue = "";
+    for(uint32_t i {}; i < arrayLen; i++)
+    {
+       double doubleValue {};
+        bool boolValue {};
+
         // 读取字段长度
-        nameLen = ShowU16(pd + offset);
+        const auto nameLen {ShowU16(pd + offset)};
         offset += 2;            // 跳过2字节字段长度
 
-        char name[nameLen + 1]; // 获取字段名称
+        string name(&pd[offset],&pd[offset] + nameLen);
 
-        memset(name, 0, sizeof(name));
-        memcpy(name, &pd[offset], nameLen);
-        name[nameLen + 1] = '\0';
         offset += nameLen;      // 跳过字段名占用的长度
 
-        uint8_t amfType = pd[offset++];
+        const auto amfType {pd[offset++]};
+
         switch(amfType)    // 判别值的类型
         {
         case 0x0: //Number type, 就是double类型, 占用8字节
@@ -578,82 +575,82 @@ int CFlvParser::CMetaDataTag::parseMeta(CFlvParser *pParser)
         case 0x2: //String type
             valueLen = ShowU16(pd + offset);
             offset += 2;    // 跳过2字节 length
-            strValue.append(pd + offset, pd + offset + valueLen);
-            strValue.append("");
+            strValue = {pd + offset, pd + offset + valueLen};
             offset += valueLen; // 跳过字段的值的长度
             break;
 
         default:
-            printf("un handle amfType:%d\n", amfType);
+            std::cout << "un handle amfType: " << amfType << "\n";
             break;
         }
 
-        if(strncmp(name, "duration", 8)	== 0)
+
+        if(strncmp(name.c_str(), "duration", 8)	== 0)
         {
             m_duration = doubleValue;
         }
-        else if(strncmp(name, "width", 5)	== 0)
+        else if(strncmp(name.c_str(), "width", 5)	== 0)
         {
             m_width = doubleValue;
         }
-        else if(strncmp(name, "height", 6) == 0)
+        else if(strncmp(name.c_str(), "height", 6) == 0)
         {
             m_height = doubleValue;
         }
-        else if(strncmp(name, "videodatarate", 13) == 0)
+        else if(strncmp(name.c_str(), "videodatarate", 13) == 0)
         {
             m_videodatarate = doubleValue;
         }
-        else if(strncmp(name, "framerate", 9) == 0)
+        else if(strncmp(name.c_str(), "framerate", 9) == 0)
         {
             m_framerate = doubleValue;
         }
-        else if(strncmp(name, "videocodecid", 12) == 0)
+        else if(strncmp(name.c_str(), "videocodecid", 12) == 0)
         {
             m_videocodecid = doubleValue;
         }
-        else if(strncmp(name, "audiodatarate", 13) == 0)
+        else if(strncmp(name.c_str(), "audiodatarate", 13) == 0)
         {
             m_audiodatarate = doubleValue;
         }
-        else if(strncmp(name, "audiosamplerate", 15) == 0)
+        else if(strncmp(name.c_str(), "audiosamplerate", 15) == 0)
         {
             m_audiosamplerate = doubleValue;
         }
-        else if(strncmp(name, "audiosamplesize", 15) == 0)
+        else if(strncmp(name.c_str(), "audiosamplesize", 15) == 0)
         {
             m_audiosamplesize = doubleValue;
         }
-        else if(strncmp(name, "stereo", 6) == 0)
+        else if(strncmp(name.c_str(), "stereo", 6) == 0)
         {
             m_stereo = boolValue;
         }
-        else if(strncmp(name, "audiocodecid", 12) == 0)
+        else if(strncmp(name.c_str(), "audiocodecid", 12) == 0)
         {
             m_audiocodecid = doubleValue;
         }
-        else if(strncmp(name, "major_brand", 11) == 0)
+        else if(strncmp(name.c_str(), "major_brand", 11) == 0)
         {
             m_major_brand = strValue;
         }
-        else if(strncmp(name, "minor_version", 13) == 0)
+        else if(strncmp(name.c_str(), "minor_version", 13) == 0)
         {
-            m_minor_version = strValue;
+           m_minor_version = strValue;
         }
-        else if(strncmp(name, "compatible_brands", 17) == 0)
+        else if(strncmp(name.c_str(), "compatible_brands", 17) == 0)
         {
             m_compatible_brands = strValue;
         }
-        else if(strncmp(name, "encoder", 7) == 0)
+        else if(strncmp(name.c_str(), "encoder", 7) == 0)
         {
             m_encoder = strValue;
         }
-        else if(strncmp(name, "filesize", 8) == 0)
+        else if(strncmp(name.c_str(), "filesize", 8) == 0)
         {
             m_filesize = doubleValue;
         }
+        //delete name;
     }
-
 
     printMeta();
     return 1;

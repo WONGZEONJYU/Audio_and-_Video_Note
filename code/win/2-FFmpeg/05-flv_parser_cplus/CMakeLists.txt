@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(05_flv_parser_cplus)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Windows操作系统下的特定配置

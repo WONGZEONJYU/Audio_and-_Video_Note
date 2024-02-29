@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
+#include <string>
 #include "Videojj.h"
 
 class CFlvParser
@@ -52,7 +53,7 @@ private:
         int _nMediaLen{};         // 数据长度
     };
 
-    struct  CVideoTag : Tag {
+    struct CVideoTag : Tag {
         /**
          * @brief CVideoTag
          * @param pHeader
@@ -71,7 +72,6 @@ private:
 
     struct  CAudioTag :  Tag
     {
-    public:
         CAudioTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
         int _nSoundFormat;  // 音频编码类型
@@ -91,38 +91,38 @@ private:
 
     struct  CMetaDataTag : Tag
     {
-    public:
+
         CMetaDataTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
         static double hexStr2double(const unsigned char* hex, unsigned int length);
         int parseMeta(CFlvParser *pParser);
         void printMeta();
 
-        uint8_t m_amf1_type;
-        uint32_t m_amf1_size;
-        uint8_t m_amf2_type;
-        unsigned char *m_meta;
-        unsigned int m_length;
+        uint8_t m_amf1_type{};
+        uint32_t m_amf1_size{};
+        uint8_t m_amf2_type{};
+        unsigned char *m_meta{};
+        unsigned int m_length{};
 
-        double m_duration;
-        double m_width;
-        double m_height;
-        double m_videodatarate;
-        double m_framerate;
-        double m_videocodecid;
+        double m_duration{};
+        double m_width{};
+        double m_height{};
+        double m_videodatarate{};
+        double m_framerate{};
+        double m_videocodecid{};
 
-        double m_audiodatarate;
-        double m_audiosamplerate;
-        double m_audiosamplesize;
-        bool m_stereo;
-        double m_audiocodecid;
+        double m_audiodatarate{};
+        double m_audiosamplerate{};
+        double m_audiosamplesize{};
+        bool m_stereo{};
+        double m_audiocodecid{};
 
         std::string m_major_brand;
         std::string m_minor_version;
         std::string m_compatible_brands;
         std::string m_encoder;
 
-        double m_filesize;
+        double m_filesize{};
     };
 
     struct FlvStat{
@@ -156,7 +156,7 @@ private:
     static FlvHeader* CreateFlvHeader(const uint8_t *pBuf);
     static int DestroyFlvHeader(FlvHeader *pHeader);
     Tag *CreateTag(const uint8_t *pBuf, int nLeftLen);
-    static  int DestroyTag(Tag *pTag);
+    static int DestroyTag(Tag *pTag);
     int Stat();
     int StatVideo(Tag *pTag);
     int IsUserDataTag(Tag *pTag);
