@@ -2,13 +2,14 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <sstream>
 #include <algorithm>
 #include <memory>
+#include <format>
 #include "FlvParser.h"
 
 using namespace std;
-
-#define CheckBuffer(x) { if ((nBufSize-nOffset)<(x)) { nUsedLen = nOffset; return 0;} }
 
 int CFlvParser::CAudioTag::_aacProfile{};
 int CFlvParser::CAudioTag::_sampleRateIndex{};
@@ -30,6 +31,7 @@ CFlvParser::~CFlvParser(){
 
 int CFlvParser::Parse(const uint8_t *pBuf,const int nBufSize, int &nUsedLen)
 {
+#define CheckBuffer(x) { if ((nBufSize-nOffset)<(x)) { nUsedLen = nOffset; return -1;} }
     int nOffset {};
 
     if (!_pFlvHeader){
@@ -40,7 +42,6 @@ int CFlvParser::Parse(const uint8_t *pBuf,const int nBufSize, int &nUsedLen)
 
     for(;;) {
         CheckBuffer(15); // nPrevSize(4字节) + Tag header(11字节)
-        auto nPrevSize { ShowU32(pBuf + nOffset)};
         nOffset += 4;
 
         auto pTag {CreateTag(pBuf + nOffset, nBufSize - nOffset)};
@@ -124,7 +125,7 @@ int CFlvParser::DumpAAC(const std::string &path)
     return 1;
 }
 
-int CFlvParser::DumpFlv(const std::string &path)
+int CFlvParser::DumpFlv(const std::string &path) const
 {
     fstream f(path.c_str(), ios_base::out | ios_base::binary);
 
@@ -134,14 +135,13 @@ int CFlvParser::DumpFlv(const std::string &path)
 
     // write flv-tag
 
-    for (const auto &it_tag : _vpTag)
-    {
+    for (const auto &it_tag : _vpTag) {
         const auto nn { WriteU32(nLastTagSize)};
         f.write(reinterpret_cast<const char *>(&nn), 4);
 
         //check duplicate start code
         if ((0x09 == it_tag->_header.nType) && (0x01 == it_tag->_pTagData[1]) ) {
-            bool duplicate {};
+
             const auto pStartCode  {it_tag->_pTagData + 5 + _nNalUnitLength};
             //printf("tagsize=%d\n",(*it_tag)->_header.nDataSize);
             uint32_t nalu_len {};
@@ -168,26 +168,27 @@ int CFlvParser::DumpFlv(const std::string &path)
                     (*it_tag)->_pTagData[13]);
             */
 
-            const auto pStartCodeRecord {pStartCode};
+            //const auto pStartCodeRecord {pStartCode};
+            bool duplicate {};
             int i{};
             for ( ; i < it_tag->_header.nDataSize - 5 - _nNalUnitLength - 4; ++i) {
-                if (pStartCode[i] == 0x00 && pStartCode[i+1] == 0x00 && pStartCode[i+2] == 0x00 &&
-                        pStartCode[i+3] == 0x01) {
-                    if (pStartCode[i+4] == 0x67) {
-                        //printf("duplicate sps found!\n");
+                if (0x00 == pStartCode[i] && 0x00 == pStartCode[i+1] && 0x00 == pStartCode[i+2] &&
+                        0x01 == pStartCode[i+3] ) {
+                    if (0x67 == pStartCode[i+4] ) {
+                        std::cout << "duplicate sps found!\n";
                         i += 4;
                         continue;
-                    }else if (pStartCode[i+4] == 0x68) {
-                        //printf("duplicate pps found!\n");
+                    }else if ( 0x68 == pStartCode[i+4] ) {
+                        std::cout << "duplicate pps found!\n";
                         i += 4;
                         continue;
                     }else if (pStartCode[i+4] == 0x06) {
-                        //printf("duplicate sei found!\n");
+                        std::cout << "duplicate sei found!\n";
                         i += 4;
                         continue;
                     }else {
                         i += 4;
-                        //printf("offset=%d\n",i);
+                        //printf("offset = %d\n",i);
                         duplicate = true;
                         break;
                     }
@@ -250,9 +251,7 @@ int CFlvParser::DumpFlv(const std::string &path)
     }
     const auto nn {WriteU32(nLastTagSize)};
     f.write(reinterpret_cast<const char *>(&nn), 4);
-
     f.close();
-
     return 1;
 }
 
@@ -321,13 +320,9 @@ CFlvParser::FlvHeader* CFlvParser::CreateFlvHeader(const uint8_t *pBuf)
     return pHeader;
 }
 
-int CFlvParser::DestroyFlvHeader(FlvHeader *pHeader)
+int CFlvParser::DestroyFlvHeader(const FlvHeader *pHeader)
 {
-    if (!pHeader)
-        return 0;
-
-    delete pHeader->pFlvHeader;
-    return 1;
+    return pHeader ? pHeader->pFlvHeader , 1 : 0;
 }
 
 /**
@@ -391,13 +386,13 @@ extracts the channel and sample rate data is encoded in the AAC bitstream.
  * @param nLeftLen
  * @param pParser
  */
-CFlvParser::CAudioTag::CAudioTag(TagHeader *pHeader,
+CFlvParser::CAudioTag::CAudioTag(const TagHeader *pHeader,
     const uint8_t *pBuf,
     const int nLeftLen, CFlvParser *pParser)
 {
     Init(pHeader, pBuf, nLeftLen);
 
-    auto pd { _pTagData};
+    const auto pd { _pTagData};
     _nSoundFormat = (pd[0] & 0xf0) >> 4;    // 音频格式
     _nSoundRate = (pd[0] & 0x0c) >> 2;      // 采样率
     _nSoundSize = (pd[0] & 0x02) >> 1;      // 采样精度
@@ -412,7 +407,7 @@ int CFlvParser::CAudioTag::ParseAACTag(CFlvParser *pParser)
     const auto pd {_pTagData};
 
     // 数据包的类型：音频配置信息，音频数据
-    auto nAACPacketType { static_cast<uint32_t>(pd[1])};
+    const auto nAACPacketType { static_cast<uint32_t>(pd[1])};
 
     // 如果是音频配置信息
     if (!nAACPacketType){    // AAC sequence header
@@ -480,60 +475,57 @@ int CFlvParser::CAudioTag::ParseRawAAC(CFlvParser *pParser, uint8_t *pTagData)
     p64[6] = static_cast<uint8_t>(bits >> 8);
     p64[7] = static_cast<uint8_t>(bits);
 
-    //memcpy(_pMedia, p64+1, 7);  // ADTS header, p64+1是从ADTS起始头开始
+    // ADTS header, p64+1是从ADTS起始头开始
     std::copy_n(p64+1,7,_pMedia);
-    //memcpy(_pMedia + 7, pTagData + 2, dataSize); // AAC body
+    // AAC body
     std::copy_n(pTagData + 2,dataSize,_pMedia + 7);
 
     return 1;
 }
 
-CFlvParser::CMetaDataTag::CMetaDataTag(TagHeader *pHeader,const uint8_t *pBuf,
+CFlvParser::CMetaDataTag::CMetaDataTag(const TagHeader *pHeader,const uint8_t *pBuf,
     const int nLeftLen, CFlvParser *pParser)
 {
     Init(pHeader, pBuf, nLeftLen);
 
     const auto pd { _pTagData};
-    m_amf1_type = ShowU8(pd+0);
-    m_amf1_size = ShowU16(pd+1);
+    m_amf1_type = ShowU8(pd + 0);
+    m_amf1_size = ShowU16(pd + 1);
 
-    if(2!= m_amf1_type){
+    if(2 != m_amf1_type){
         std::cout << "no metadata\n";
         return;
     }
     // 解析script
-    if(!strncmp((const char *)"onMetaData", reinterpret_cast<const char *>(pd + 3), 10)){
+    if ("onMetaData" == string(reinterpret_cast<const char*>(pd + 3),10)){
         parseMeta(pParser);
     }
 }
 
 double CFlvParser::CMetaDataTag::hexStr2double(const uint8_t* hex,
                                                const uint32_t length) {
-    const auto size{length * 2};
-    char hexstr[size];
-    std::fill_n(hexstr,length * 2,0);
-
+    std::stringstream ss{};
     for(uint32_t i {}; i < length; i++){
-        sprintf(hexstr + i * 2, "%02x", hex[i]);
+        ss << std::hex << std::format("{:02x}",hex[i]);
     }
 
-    double ret {};
-    sscanf(hexstr, "%llx", (unsigned long long*)&ret);
+    uint64_t t_ret{};
+    ss >> t_ret;
+    double ret{};
+    std::copy_n(reinterpret_cast<uint8_t*>(&t_ret),sizeof(ret),reinterpret_cast<uint8_t*>(&ret));
     return ret;
 }
+
 int CFlvParser::CMetaDataTag::parseMeta(CFlvParser *pParser)
 {
     const auto pd {_pTagData};
-    //int dataSize = _header.nDataSize;
-
     uint32_t arrayLen {};
     uint32_t offset {13}; // Type + Value_Size + Value占用13字节
 
-    //cout << "sizeof(string) " << sizeof(string) << "\n";
-   // bool boolValue = false;
     uint32_t valueLen {};
     uint8_t u8Value {};
-    if(pd[offset++] == 0x08){    // 0x8 onMetaData
+
+    if(0x08 == pd[offset++] ){    // 0x8 onMetaData
         arrayLen = ShowU32(pd + offset);
         offset += 4;    //跳过 [ECMAArrayLength]占用的字节
         std::cout << "ArrayLen = " << arrayLen << "\n";
@@ -546,7 +538,7 @@ int CFlvParser::CMetaDataTag::parseMeta(CFlvParser *pParser)
 
     for(uint32_t i {}; i < arrayLen; i++)
     {
-       double doubleValue {};
+        double doubleValue {};
         bool boolValue {};
 
         // 读取字段长度
@@ -559,26 +551,33 @@ int CFlvParser::CMetaDataTag::parseMeta(CFlvParser *pParser)
 
         const auto amfType {pd[offset++]};
 
+        Metadata_Type m;
+
         switch(amfType)    // 判别值的类型
         {
         case 0x0: //Number type, 就是double类型, 占用8字节
             doubleValue = hexStr2double(&pd[offset], 8);
+            m = hexStr2double(&pd[offset], 8);
             offset += 8;        // 跳过8字节
             break;
 
         case 0x1: //Boolean type, 占用1字节
             u8Value = ShowU8(pd+offset);
+
             offset += 1;        // 跳过1字节
-            if(u8Value != 0x00)
-                 boolValue = true;
-            else
-                 boolValue = false;
+            // if(u8Value != 0x00)
+            //      boolValue = true;
+            // else
+            //      boolValue = false;
+            boolValue = u8Value;
+            m = static_cast<bool>(u8Value);
             break;
 
         case 0x2: //String type
             valueLen = ShowU16(pd + offset);
             offset += 2;    // 跳过2字节 length
             strValue = {pd + offset, pd + offset + valueLen};
+            m = strValue;
             offset += valueLen; // 跳过字段的值的长度
             break;
 
@@ -587,93 +586,72 @@ int CFlvParser::CMetaDataTag::parseMeta(CFlvParser *pParser)
             break;
         }
 
+        Metadata[name] = m;
 
-        if(strncmp(name.c_str(), "duration", 8)	== 0)
-        {
+        if("duration" == name){
             m_duration = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "width", 5)	== 0)
-        {
+        }else if("width" == name){
             m_width = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "height", 6) == 0)
-        {
+        }else if("height" == name){
             m_height = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "videodatarate", 13) == 0)
-        {
+        }else if("videodatarate" == name){
             m_videodatarate = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "framerate", 9) == 0)
-        {
+        }else if("framerate" == name){
             m_framerate = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "videocodecid", 12) == 0)
-        {
+        }else if("videocodecid" == name){
             m_videocodecid = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "audiodatarate", 13) == 0)
-        {
+        }else if("audiodatarate" == name){
             m_audiodatarate = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "audiosamplerate", 15) == 0)
-        {
+        }else if("audiosamplerate" == name){
             m_audiosamplerate = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "audiosamplesize", 15) == 0)
-        {
+        }else if("audiosamplesize" == name){
             m_audiosamplesize = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "stereo", 6) == 0)
-        {
+        }else if("stereo" == name){
             m_stereo = boolValue;
-        }
-        else if(strncmp(name.c_str(), "audiocodecid", 12) == 0)
-        {
+        }else if("audiocodecid" == name){
             m_audiocodecid = doubleValue;
-        }
-        else if(strncmp(name.c_str(), "major_brand", 11) == 0)
-        {
+        }else if("major_brand" == name){
             m_major_brand = strValue;
-        }
-        else if(strncmp(name.c_str(), "minor_version", 13) == 0)
-        {
+        }else if("minor_version" == name){
            m_minor_version = strValue;
-        }
-        else if(strncmp(name.c_str(), "compatible_brands", 17) == 0)
-        {
+        }else if("compatible_brands" == name){
             m_compatible_brands = strValue;
-        }
-        else if(strncmp(name.c_str(), "encoder", 7) == 0)
-        {
+        }else if("encoder" == name){
             m_encoder = strValue;
-        }
-        else if(strncmp(name.c_str(), "filesize", 8) == 0)
-        {
+        }else if("filesize" == name){
             m_filesize = doubleValue;
+        }else{
+
         }
-        //delete name;
     }
 
     printMeta();
     return 1;
 }
 
-void CFlvParser::CMetaDataTag::printMeta()
+void CFlvParser::CMetaDataTag::printMeta() const
 {
-    printf("\nduration: %0.2lfs, filesize: %.0lfbytes\n", m_duration, m_filesize);
+    // std::cout << "\nduration: " << m_duration << "s , filesize: " << m_filesize << " bytes\n" <<
+    //         "width: " << m_width << ", height: " << m_height << "\n" <<
+    //         "videodatarate: " << m_videodatarate << "kbps, framerate: " << m_framerate << "fps\n" <<
+    //         "videocodecid: " << m_videocodecid << "\n" <<
+    //         "audiodatarate: " << m_audiodatarate << "kbps, audiosamplerate: " << m_audiosamplerate <<  "Khz\n" <<
+    //         "audiosamplesize: " << m_audiosamplesize << "bit, stereo: " << m_stereo << "\n" <<
+    //         "audiocodecid: " << m_audiocodecid << "\n" <<
+    //         "major_brand: " << m_major_brand << ", minor_version: " << m_minor_version << "\n" <<
+    //         "compatible_brands: " << m_compatible_brands  << ", encoder: " << m_encoder << "\n\n";
 
-    printf("width: %0.0lf, height: %0.0lf\n", m_width, m_height);
-    printf("videodatarate: %0.2lfkbps, framerate: %0.0lffps\n", m_videodatarate, m_framerate);
-    printf("videocodecid: %0.0lf\n", m_videocodecid);
 
-    printf("audiodatarate: %0.2lfkbps, audiosamplerate: %0.0lfKhz\n",
-           m_audiodatarate, m_audiosamplerate);
-    printf("audiosamplesize: %0.0lfbit, stereo: %d\n", m_audiosamplesize, m_stereo);
-    printf("audiocodecid: %0.0lf\n", m_audiocodecid);
+    struct PrintVisitor  {  //visitor
+        void operator()(const double i) const{std::cout << i << '\n';}
+        void operator()(const bool i) const {std::cout << i << '\n';}
+        void operator()(const std::string& i) const {std::cout << i << '\n';}
+    };
 
-    printf("major_brand: %s, minor_version: %s\n", m_major_brand.c_str(), m_minor_version.c_str());
-    printf("compatible_brands: %s, encoder: %s\n\n", m_compatible_brands.c_str(), m_encoder.c_str());
+    for(const auto& i : Metadata){
+        std::cout << i.first << ": ";
+        std::visit(PrintVisitor(), i.second);
+    }
 }
 
 CFlvParser::Tag *CFlvParser::CreateTag(const uint8_t *pBuf,const int nLeftLen)
@@ -794,7 +772,7 @@ int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser,
     const auto pps_size {CFlvParser::ShowU16(pd + 11 + (2 + sps_size) + 1)};   // pictureParameterSetLength
 
     // 元数据的长度
-    _nMediaLen = 4 + sps_size + 4 + pps_size;   // 添加start code
+    _nMediaLen = static_cast<int>(4 + sps_size + 4 + pps_size);   // 添加start code
     _pMedia = new uint8_t[_nMediaLen];
 
     // 保存元数据
@@ -813,7 +791,7 @@ int CFlvParser::CVideoTag::ParseH264Configuration(CFlvParser *pParser,
     return 1;
 }
 
-int CFlvParser::CVideoTag::ParseNalu(CFlvParser *pParser,const uint8_t *pTagData)
+int CFlvParser::CVideoTag::ParseNalu(const CFlvParser *const pParser,const uint8_t *pTagData)
 {
     const auto pd { pTagData};
     //int nOffset {};

@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <variant>
+#include <unordered_map>
 #include "Videojj.h"
 
 class CFlvParser
@@ -16,9 +18,9 @@ public:
 
     int Parse(const uint8_t *pBuf, int nBufSize, int &nUsedLen);
     int PrintInfo();
-    int DumpH264(const std::string &) const;
+    [[nodiscard]]int DumpH264(const std::string &) const;
     int DumpAAC(const std::string &);
-    int DumpFlv(const std::string &);
+    [[nodiscard]]int DumpFlv(const std::string &) const;
 
 private:
     // FLV头
@@ -69,12 +71,12 @@ private:
         int _nCodecID;      // 视频编解码类型
         int ParseH264Tag(CFlvParser *pParser);
         int ParseH264Configuration(CFlvParser *pParser,const uint8_t *pTagData);
-        int ParseNalu(CFlvParser *pParser,const uint8_t *pTagData);
+        int ParseNalu(const CFlvParser *pParser,const uint8_t *pTagData);
     };
 
     struct CAudioTag : Tag
     {
-        CAudioTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
+        CAudioTag(const TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
         int _nSoundFormat;  // 音频编码类型
         int _nSoundRate;    // 采样率
@@ -94,11 +96,11 @@ private:
     struct  CMetaDataTag : Tag
     {
 
-        CMetaDataTag(TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
+        CMetaDataTag(const TagHeader *pHeader,const uint8_t *pBuf, int nLeftLen, CFlvParser *pParser);
 
         static double hexStr2double(const unsigned char* hex, unsigned int length);
         int parseMeta(CFlvParser *pParser);
-        void printMeta();
+        void printMeta() const;
 
         uint8_t m_amf1_type{};
         uint32_t m_amf1_size{};
@@ -123,8 +125,11 @@ private:
         std::string m_minor_version;
         std::string m_compatible_brands;
         std::string m_encoder;
-
         double m_filesize{};
+
+        using Metadata_Type = std::variant<double,bool,std::string>;
+        std::unordered_map<std::string,Metadata_Type> Metadata;
+
     };
 
     struct FlvStat{
@@ -156,7 +161,7 @@ private:
     friend struct Tag;
 
     static FlvHeader* CreateFlvHeader(const uint8_t *pBuf);
-    static int DestroyFlvHeader(FlvHeader *pHeader);
+    static int DestroyFlvHeader(const FlvHeader *pHeader) ;
     Tag *CreateTag(const uint8_t *pBuf, int nLeftLen);
     static int DestroyTag(const Tag *pTag);
     int Stat();

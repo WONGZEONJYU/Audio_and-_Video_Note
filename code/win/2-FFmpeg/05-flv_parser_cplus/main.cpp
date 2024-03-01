@@ -87,25 +87,24 @@ static void Process(fstream &fin, const char *filename)
             break;
         }
         
-        nFlvPos += nReadNum;
+        nFlvPos += static_cast<int>(nReadNum);
         int nUsedLen{};
         parser.Parse(pBuf, nFlvPos, nUsedLen);
 
         if (nFlvPos != nUsedLen) {
-            //memcpy(pBak, pBuf + nUsedLen, nFlvPos - nUsedLen);
+	        std::cout << "nFlvPos = " << nFlvPos << " , nUsedLen = " << nUsedLen << "\n";
             std::copy_n(pBuf + nUsedLen,nFlvPos - nUsedLen,pBak);
-            //memcpy(pBuf, pBak, nFlvPos - nUsedLen);
             std::copy_n(pBak,nFlvPos - nUsedLen,pBuf);
         }
         nFlvPos -= nUsedLen;
     }
 
     parser.PrintInfo();
-    parser.DumpH264("parser.264");
+    (void)parser.DumpH264("parser.264");
     parser.DumpAAC("parser.aac");
 
     //dump into flv
-    parser.DumpFlv(filename);
+    (void)parser.DumpFlv(filename);
 
     delete []pBak;
     delete []pBuf;

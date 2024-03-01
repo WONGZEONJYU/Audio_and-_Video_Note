@@ -1,9 +1,11 @@
 ﻿#include <cstring>
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <format>
 #include <algorithm>
 #include "FlvMetaData.h"
-//#include <sstream>
+
 
 void FlvMetaData::Shallow_copy(const FlvMetaData& r) noexcept{
     m_length = r.m_length;
@@ -218,15 +220,15 @@ void FlvMetaData::parseMeta() {
 
 double FlvMetaData::hexStr2double(const uint8_t* hex, const uint32_t length) {
 
-    const auto size{length * 2};
-    char hexstr[size];
-    std::fill_n(hexstr,length * 2,0);
-    for(uint32_t i {}; i < length; i++) {
-        sprintf(hexstr + i * 2, "%02x", hex[i]);
+    std::stringstream ss{};
+    for(uint32_t i {}; i < length; i++){
+        ss << std::hex << std::format("{:02x}",hex[i]);
     }
 
-    double ret {};
-    sscanf(hexstr, "%llx", reinterpret_cast<uint64_t*>(&ret));
+    uint64_t t_ret{};
+    ss >> t_ret;
+    double ret{};
+    std::copy_n(reinterpret_cast<uint8_t*>(&t_ret),sizeof(ret),reinterpret_cast<uint8_t*>(&ret));
     return ret;
 }
 
