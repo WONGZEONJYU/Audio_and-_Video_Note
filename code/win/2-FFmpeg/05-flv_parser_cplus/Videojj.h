@@ -2,7 +2,6 @@
 #define VIDEOJJ_H
 
 #include <vector>
-#include <cstdint>
 
 class CFlvParser;
 
@@ -23,7 +22,6 @@ public:
 
 private:
 	friend class CFlvParser;
-
 	std::vector<VjjSEI> _vVjjSEI;
 };
 

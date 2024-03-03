@@ -1,8 +1,6 @@
-﻿#include <cstdlib>
-#include <cstring>
+﻿#include <cstring>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <sstream>
 #include <algorithm>
 #include <memory>
@@ -322,7 +320,7 @@ CFlvParser::FlvHeader* CFlvParser::CreateFlvHeader(const uint8_t *pBuf)
 
 int CFlvParser::DestroyFlvHeader(const FlvHeader *pHeader)
 {
-    return pHeader ? pHeader->pFlvHeader , 1 : 0;
+    return pHeader ? delete pHeader->pFlvHeader , 1 : 0;
 }
 
 /**

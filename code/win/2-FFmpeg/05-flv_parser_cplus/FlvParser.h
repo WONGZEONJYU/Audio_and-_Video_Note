@@ -1,11 +1,7 @@
 ﻿#ifndef FLVPARSER_H
 #define FLVPARSER_H
 
-#include <cstdint>
-#include <iostream>
-#include <vector>
 #include <string>
-#include <memory>
 #include <variant>
 #include <unordered_map>
 #include "Videojj.h"

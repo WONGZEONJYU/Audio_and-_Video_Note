@@ -1,11 +1,10 @@
 ﻿#include <cstring>
 #include <iostream>
+#include <format>
 #include <string>
 #include <sstream>
-#include <format>
 #include <algorithm>
 #include "FlvMetaData.h"
-
 
 void FlvMetaData::Shallow_copy(const FlvMetaData& r) noexcept{
     m_length = r.m_length;
