@@ -9,6 +9,7 @@
 /code/win/2-FFmpeg/03-extract-aac/bin
 /code/win/2-FFmpeg/04-extract-h264/bin
 /code/win/2-FFmpeg/05-flv_parser_cplus/cmake-build-debug
+/code/win/2-FFmpeg/06-decode_audio/cmake-build-debug
 /code/mac/1-SDL/01-sdl-basic/bin/
 /code/mac/1-SDL/02-sdl-window/bin/
 /code/mac/1-SDL/03-sdl_event/bin/
