@@ -90,16 +90,68 @@ int main(const int argc,const char* argv[])
     const auto filename {argv[1]};
     const auto outfilename {argv[2]};
 
-    auto pkt {av_packet_alloc()};
     auto audio_codec_id {AV_CODEC_ID_AAC};
 
-    // if (string(filename).find("aac") != std::string::npos){
-    //     audio_codec_id = AV_CODEC_ID_AAC;
-    // }else if (string(filename).find("mp3") != std::string::npos){
-    //
-    // }
+    if (string(filename).find("aac") != std::string::npos){
+        audio_codec_id = AV_CODEC_ID_AAC;
+    }else if (string(filename).find("mp3") != std::string::npos){
+        audio_codec_id = AV_CODEC_ID_MP3;
+    }else{
+        std::cout << "default codec id:" << audio_codec_id << "\n";
+    }
 
-    av_packet_free(&pkt);
+    // 查找解码器
+    const auto codec { avcodec_find_decoder(audio_codec_id)};  // AV_CODEC_ID_AAC
+    if (!codec) {
+        std::cerr << "Codec not found\n";
+        return -1;
+    }
+
+    // 获取裸流的解析器 AVCodecParserContext(数据)  +  AVCodecParser(方法)
+    auto parser {av_parser_init(codec->id)};
+    if (!parser) {
+        std::cerr << "Parser not found\n";
+        return -1;
+    }
+
+    // 分配codec上下文
+    auto codec_ctx { avcodec_alloc_context3(codec)};
+    if (!codec_ctx) {
+        av_parser_close(parser);
+        std::cout << "Could not allocate audio codec context\n";
+        return -1;
+    }
+
+    if(avcodec_open2(codec_ctx,codec,nullptr) < 0){
+        std::cerr << "Could not open codec\n";
+        av_parser_close(parser);
+        avcodec_free_context(&codec_ctx);
+        return -1;
+    }
+
+    /*open input file*/
+    ifstream in_file(filename,ios::binary);
+    if (!in_file){
+        std::cerr << "open input file faild\n";
+        av_parser_close(parser);
+        avcodec_free_context(&codec_ctx);
+        avcodec_free_context(&codec_ctx);
+        return -1;
+    }
+
+    auto pkt {av_packet_alloc()};
+
+    struct _release{
+        ~_release(){
+            av_parser_close(parser);
+            avcodec_free_context(&codec_ctx);
+            av_packet_free(&pkt);
+        }
+    };
+
+    // av_parser_close(parser);
+    // avcodec_free_context(&codec_ctx);
+    // av_packet_free(&pkt);
 
     return 0;
 }
