@@ -216,9 +216,10 @@ int main(const int argc,const char* argv[])
         }
     }
 
+    /*冲刷解码器*/
     pkt.data = nullptr;
     pkt.size = 0;
-    decode(codec_ctx,&pkt,&decoded_frame,out_file);
+    decode(codec_ctx,&pkt,&decoded_frame,out_file); /*进入drain mode*/
     std::cout << "main finish, please enter Enter and exit\n";
     return 0;
 }
