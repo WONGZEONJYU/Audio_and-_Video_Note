@@ -61,19 +61,15 @@ static void decode(AVCodecContext *dec_ctx,const AVPacket *pkt, AVFrame *frame,
             exit(-1);
         }
 
-        static bool s_print_format {};
-
-        if (!s_print_format) {
-            print_sample_format(frame);
-            s_print_format = true;
-        }
+        static bool s_print_format {s_print_format ? s_print_format : (print_sample_format(frame),true)};
+        //s_print_format = s_print_format ? s_print_format : (print_sample_format(frame),true);
 
         /**
             P表示Planar(平面),其数据格式排列方式为:
             LLLLLLRRRRRRLLLLLLRRRRRRLLLLLLRRRRRRL...(每个LLLLLLRRRRRR为一个音频帧)
             而不带P的数据格式(即交错排列)排列方式为:
             LRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRL...(每个LR为一个音频样本)
-            播放范例: ffplay -ar 48000 -ac 2 -f f32le believe.pcm
+            播放范例:ffplay -ar 48000 -ac 2 -f f32le believe.pcm
           **/
 
         for (int i {}; i < frame->nb_samples; i++){
@@ -89,7 +85,7 @@ static void decode(AVCodecContext *dec_ctx,const AVPacket *pkt, AVFrame *frame,
 template<typename T>
 struct destory_ final{
     explicit destory_(T&& f):f(std::move(f)){}
-    ~destory_(){f();}
+    ~destory_(){std::cout << __FUNCTION__ << "\n"; f();}
 private:
     T f;
 };
@@ -113,7 +109,6 @@ int main(const int argc,const char* argv[])
     ofstream out_file(outfilename,ios::binary);
 
     auto destory{[&](){
-        std::cout << "destory()\n";
         in_file.close();
         out_file.close();
         av_parser_close(parser);
