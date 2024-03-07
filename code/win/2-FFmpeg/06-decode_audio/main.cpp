@@ -75,7 +75,6 @@ static void decode(AVCodecContext *dec_ctx,const AVPacket *pkt, AVFrame *frame,
         for (int i {}; i < frame->nb_samples; i++){
             for (int ch {}; ch < dec_ctx->ch_layout.nb_channels; ++ch){
                 //交错的方式写入,大部分float的格式输出
-                //fwrite(frame->data[ch] + data_size * i, 1, data_size, outfile);
                 outfile.write(reinterpret_cast<const char*>(frame->data[ch] + data_size * i),data_size);
             }
         }
@@ -181,11 +180,13 @@ int main(const int argc,const char* argv[])
     uint8_t inbuf[AUDIO_INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE]{};
     auto data{inbuf};
 
+    /*read file decoding*/
     in_file.read(reinterpret_cast<char*>(inbuf),AUDIO_INBUF_SIZE);
     auto read_data_size{in_file.gcount()};
 
     AVFrame decoded_frame{};
     AVPacket pkt{};
+
     while (read_data_size > 0){
 
         const auto ret {av_parser_parse2(parser, codec_ctx, &pkt.data, &pkt.size,
@@ -195,21 +196,20 @@ int main(const int argc,const char* argv[])
             return -1;
         }
 
-        data += ret;
-        read_data_size -= ret;
+        data += ret; /*跳过已经解析的数据*/
+        read_data_size -= ret; /*对应的缓存大小也做相应的减少*/
 
         if (pkt.size){
             decode(codec_ctx,&pkt,&decoded_frame,out_file);
         }
 
-        if (read_data_size < AUDIO_REFILL_THRESH){
-            std::move(data,data + read_data_size,inbuf);
+        if (read_data_size < AUDIO_REFILL_THRESH){ /*数据不足则再次读取*/
+            std::move(data,data + read_data_size,inbuf); /*把之前剩的数据拷贝到inbuf的起始位置*/
             //memmove(inbuf,data,read_data_size);
-            data = inbuf;
+            data = inbuf;   /*把指针更新到inbuf首地址*/
             // 读取数据 长度: AUDIO_INBUF_SIZE - read_data_size
             in_file.read(reinterpret_cast<char*>(data + read_data_size),AUDIO_INBUF_SIZE - read_data_size);
             const auto len{in_file.gcount()};
-            //read_data_size = len > 0 ? read_data_size + len : read_data_size;
             if (len > 0){
                 read_data_size += len;
             }
