@@ -10,7 +10,7 @@ extern "C" {
 
 using namespace std;
 
-static inline constexpr auto AUDIO_INBUF_SIZE {40280};
+static inline constexpr auto AUDIO_INBUF_SIZE {20480};
 static inline constexpr auto AUDIO_REFILL_THRESH {4096};
 
 static std::string av_get_err(const int errnum)
@@ -29,18 +29,16 @@ static void print_sample_format(const AVFrame *const frame)
 }
 
 static void decode(AVCodecContext *dec_ctx,const AVPacket *pkt, AVFrame *frame,
-                   ofstream& outfile)
+                   ofstream &outfile)
 {
     /* send the packet with the compressed data to the decoder */
-    auto ret = avcodec_send_packet(dec_ctx, pkt);
+    auto ret {avcodec_send_packet(dec_ctx, pkt)};
 
     if(AVERROR(EAGAIN) == ret){
         std::cerr << "Receive_frame and send_packet both returned EAGAIN, which is an API violation.\n";
     }else if (ret < 0){
         std::cout << "Error submitting the packet to the decoder, err: " << av_get_err(ret) << " , pkt_size: " << pkt->size << "\n";
         return;
-    }else{
-
     }
 
     /* read all the output frames (infile general there may be any number of them */
@@ -52,7 +50,10 @@ static void decode(AVCodecContext *dec_ctx,const AVPacket *pkt, AVFrame *frame,
         }else if (ret < 0){
             std::cerr << "Error during decoding\n";
             exit(ret);
+        }else{
+
         }
+
         const auto data_size {av_get_bytes_per_sample(dec_ctx->sample_fmt)};
         if (data_size < 0){
             /* This should not occur, checking just for paranoia */
@@ -74,8 +75,9 @@ static void decode(AVCodecContext *dec_ctx,const AVPacket *pkt, AVFrame *frame,
             LRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRL...(每个LR为一个音频样本)
             播放范例: ffplay -ar 48000 -ac 2 -f f32le believe.pcm
           **/
+
         for (int i {}; i < frame->nb_samples; i++){
-            for (int ch {}; ch < dec_ctx->ch_layout.nb_channels; ch++){
+            for (int ch {}; ch < dec_ctx->ch_layout.nb_channels; ++ch){
                 //交错的方式写入,大部分float的格式输出
                 //fwrite(frame->data[ch] + data_size * i, 1, data_size, outfile);
                 outfile.write(reinterpret_cast<const char*>(frame->data[ch] + data_size * i),data_size);
@@ -96,16 +98,17 @@ private:
 int main(const int argc,const char* argv[])
 {
     if (argc <= 2){
-        std::cerr << "Usage: " << argv[0] << "<input file> <output file>\n";
+        std::cerr << "Usage: " << argv[0] << " <input file> <output file>\n";
         return -1;
     }
 
     const auto filename {argv[1]};
     const auto outfilename {argv[2]};
-    AVPacket* pkt{};
+    //AVPacket* pkt{};
+    //AVFrame *decoded_frame{};
     AVCodecParserContext *parser{};
     AVCodecContext *codec_ctx{};
-    AVFrame *decoded_frame{};
+
     ifstream in_file(filename , ios::binary);
     ofstream out_file(outfilename,ios::binary);
 
@@ -115,11 +118,23 @@ int main(const int argc,const char* argv[])
         out_file.close();
         av_parser_close(parser);
         avcodec_free_context(&codec_ctx);
-        av_frame_free(&decoded_frame);
-        av_packet_free(&pkt);
+        //av_frame_free(&decoded_frame);
+        //av_packet_free(&pkt);
     }};
 
     destory_ d(std::move(destory));
+
+    // pkt = av_packet_alloc();
+    // if (!pkt){
+    //     std::cerr << "av_packet_alloc faild\n";
+    //     return -1;
+    // }
+
+    //     decoded_frame = av_frame_alloc();
+    //     if (!decoded_frame){
+    //         std::cerr << "Could not allocate audio frame\n";
+    //         return -1;
+    //     }
 
     auto audio_codec_id {AV_CODEC_ID_AAC};
 
@@ -168,27 +183,17 @@ int main(const int argc,const char* argv[])
         return -1;
     }
 
-    pkt = av_packet_alloc();
-    if (!pkt){
-        std::cerr << "av_packet_alloc faild\n";
-        return -1;
-    }
-
-    decoded_frame = av_frame_alloc();
-    if (!decoded_frame){
-        std::cerr << "Could not allocate audio frame\n";
-        return -1;
-    }
-
     uint8_t inbuf[AUDIO_INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE]{};
     auto data{inbuf};
 
-    in_file.read(reinterpret_cast<char*>(data),AUDIO_INBUF_SIZE);
-    auto read_data_size{in_file.tellg()};
+    in_file.read(reinterpret_cast<char*>(inbuf),AUDIO_INBUF_SIZE);
+    auto read_data_size{in_file.gcount()};
 
+    AVFrame decoded_frame{};
+    AVPacket pkt{};
     while (read_data_size > 0){
 
-        const auto ret {av_parser_parse2(parser, codec_ctx, &pkt->data, &pkt->size,
+        const auto ret {av_parser_parse2(parser, codec_ctx, &pkt.data, &pkt.size,
                                data, read_data_size,AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0) };
         if (ret < 0){
             std::cerr << "Error while parsing\n";
@@ -198,8 +203,8 @@ int main(const int argc,const char* argv[])
         data += ret;
         read_data_size -= ret;
 
-        if (pkt->size){
-            decode(codec_ctx,pkt,decoded_frame,out_file);
+        if (pkt.size){
+            decode(codec_ctx,&pkt,&decoded_frame,out_file);
         }
 
         if (read_data_size < AUDIO_REFILL_THRESH){
@@ -208,7 +213,7 @@ int main(const int argc,const char* argv[])
             data = inbuf;
             // 读取数据 长度: AUDIO_INBUF_SIZE - read_data_size
             in_file.read(reinterpret_cast<char*>(data + read_data_size),AUDIO_INBUF_SIZE - read_data_size);
-            const auto len{in_file.tellg()};
+            const auto len{in_file.gcount()};
             //read_data_size = len > 0 ? read_data_size + len : read_data_size;
             if (len > 0){
                 read_data_size += len;
@@ -216,10 +221,9 @@ int main(const int argc,const char* argv[])
         }
     }
 
-    pkt->data = nullptr;
-    pkt->size = 0;
-    decode(codec_ctx,pkt,decoded_frame,out_file);
-
+    pkt.data = nullptr;
+    pkt.size = 0;
+    decode(codec_ctx,&pkt,&decoded_frame,out_file);
     std::cout << "main finish, please enter Enter and exit\n";
     return 0;
 }
