@@ -57,6 +57,7 @@ static void decode(AVCodecContext &dec_ctx,const AVPacket &pkt, AVFrame &frame,
         // 一般H264默认为 AV_PIX_FMT_YUV420P,具体怎么强制转为 AV_PIX_FMT_YUV420P 在音视频合成输出的时候讲解
         // frame->linesize[1]  对齐的问题
         // 正确写法  linesize[]代表每行的字节数量，所以每行的偏移是linesize[]
+#if 1
         for(int j{}; j<frame.height; j++) {
             const auto p{frame.data[0] + j * frame.linesize[0]};
             outfile.write(reinterpret_cast<const char *>(p),frame.width);
@@ -71,14 +72,15 @@ static void decode(AVCodecContext &dec_ctx,const AVPacket &pkt, AVFrame &frame,
             const auto p{frame.data[2] + j * frame.linesize[2]};
             outfile.write(reinterpret_cast<const char *>(p),frame.width / 2);
         }
-
+#else
         // 错误写法 用source.200kbps.766x322_10s.h264测试时可以看出该种方法是错误的
         //  写入y分量
-//        fwrite(frame->data[0], 1, frame->width * frame->height,  outfile);//Y
-//        // 写入u分量
-//        fwrite(frame->data[1], 1, (frame->width) *(frame->height)/4,outfile);//U:宽高均是Y的一半
-//        //  写入v分量
-//        fwrite(frame->data[2], 1, (frame->width) *(frame->height)/4,outfile);//V：宽高均是Y的一半
+        outfile.write(reinterpret_cast<const char*>(frame.data[0]),frame.width * frame.height);
+        // 写入u分量
+        outfile.write(reinterpret_cast<const char*>(frame.data[1]),(frame.width) *(frame.height)/4);//U:宽高均是Y的一半
+        //  写入v分量
+        outfile.write(reinterpret_cast<const char*>(frame.data[2]),(frame.width) *(frame.height)/4);//V:宽高均是Y的一半
+#endif
     }
 }
 
