@@ -5,6 +5,8 @@
 
 extern "C"{
 #include <libavcodec/avcodec.h>
+#include <libavutil/pixfmt.h>
+#include <libavutil/pixdesc.h>
 }
 
 using namespace std;
@@ -20,7 +22,8 @@ static void print_video_format(const AVFrame &frame)
 {
     std::cout << "width: " << frame.width << "\n";
     std::cout << "height: "<< frame.height << "\n";
-    std::cout << "format: " << frame.format << " " << av_get_sample_fmt_name(static_cast<AVSampleFormat>(frame.format)) << "\n";
+    std::cout << "format: " << frame.format << " " << av_get_pix_fmt_name(static_cast<AVPixelFormat>(frame.format)) << "\n";
+
     // 格式需要注意,实际存储到本地文件时已经改成交错模式
 }
 
@@ -83,7 +86,7 @@ static void decode(AVCodecContext &dec_ctx,const AVPacket &pkt, AVFrame &frame,
 注册测试的时候不同分辨率的问题
 提取H264: ffmpeg -i source.200kbps.768x320_10s.flv -vcodec libx264 -an -f h264 source.200kbps.768x320_10s.h264
 提取MPEG2: ffmpeg -i source.200kbps.768x320_10s.flv -vcodec mpeg2video -an -f mpeg2video source.200kbps.768x320_10s.mpeg2
-播放：ffplay -pixel_format yuv420p -video_size 768x320 -framerate 25  source.200kbps.768x320_10s.yuv
+播放 : ffplay -pixel_format yuv420p -video_size 768x320 -framerate 25 source.200kbps.768x320_10s.yuv
 */
 
 template<typename F>
@@ -113,7 +116,7 @@ int main(const int argc,const char* argv[])
     ifstream in_file(filename,ios::binary);
     ofstream out_file(outfilename,ios::binary);
 
-    pmr::synchronized_pool_resource mpool;
+    pmr::unsynchronized_pool_resource mpool;
 
     AVCodecParserContext *parser{};
     AVCodecContext *codec_ctx{};
@@ -124,9 +127,7 @@ int main(const int argc,const char* argv[])
         out_file.close();
         avcodec_free_context(&codec_ctx);
         av_parser_close(parser);
-        if (inbuf) {
-            mpool.deallocate(inbuf,VIDEO_INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE);
-        }
+        mpool.deallocate(inbuf,VIDEO_INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE);
         mpool.release();
     }};
 
