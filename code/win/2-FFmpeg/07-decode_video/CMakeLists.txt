@@ -3,8 +3,6 @@ project(07_decode_video)
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(CMAKE_CXX_STANDARD 20)
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Windows操作系统下的特定配置
     message("Windows operating system detected")
