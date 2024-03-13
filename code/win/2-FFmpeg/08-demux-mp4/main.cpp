@@ -50,7 +50,6 @@ int main(const int argc,const char* argv[]) {
         out_aac_file.close();
         av_packet_unref(&pkt);
         avformat_close_input(&ifmt_ctx);
-        avformat_free_context(ifmt_ctx);
     }};
 
     Destroyer d(std::move(rres));
@@ -62,10 +61,34 @@ int main(const int argc,const char* argv[]) {
     }
 
     auto ret{avformat_open_input(&ifmt_ctx,in_file,nullptr,nullptr)};
+
     if (ret < 0) {
-        std::cerr << av_get_err(ret);
+        std::cerr << "avformat_open_input failed: " << ret <<
+            "avformat_open_input failed: " << av_get_err(ret) << "\n";
         return -1;
     }
 
+    ret = avformat_find_stream_info(ifmt_ctx,nullptr);
+    if (ret < 0) {
+        std::cerr << "avformat_find_stream_info faild : " << av_get_err(ret) << "\n";
+        return -1;
+    }
+
+    const auto video_index{av_find_best_stream(ifmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0)};
+    if(video_index < 0) {
+        std::cerr << "av_find_best_stream video_index failed\n";
+        return -1;
+    }
+
+    const auto audio_index {av_find_best_stream(ifmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0)};
+    if(audio_index < 0) {
+        std::cerr << "av_find_best_stream audio_index failed\n";
+        return -1;
+    }
+
+
+
+
+    std::cout << "finish demux\n" << std::flush;
     return 0;
 }
