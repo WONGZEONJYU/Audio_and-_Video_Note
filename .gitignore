@@ -11,6 +11,7 @@
 /code/win/2-FFmpeg/05-flv_parser_cplus/cmake-build-debug
 /code/win/2-FFmpeg/06-decode_audio/cmake-build-debug
 /code/win/2-FFmpeg/07-decode_video/cmake-build-debug
+/code/win/2-FFmpeg/08-demux-mp4/cmake-build-debug
 /code/mac/1-SDL/01-sdl-basic/bin/
 /code/mac/1-SDL/02-sdl-window/bin/
 /code/mac/1-SDL/03-sdl_event/bin/
