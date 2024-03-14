@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <memory_resource>
 
 extern "C"{
 #include <libavformat/avformat.h>
@@ -111,7 +110,7 @@ static int adts_header(uint8_t * const p_adts_header, const int &data_length,
     return 0;
 }
 
-static int video_handler_helper(AVBSFContext &bsf_ctx,AVPacket &pkt,std::ofstream& out_vedio_file)
+static int video_handler_helper(AVBSFContext &bsf_ctx,AVPacket &pkt,std::ofstream &out_vedio_file)
 {
     auto ret{av_bsf_send_packet(&bsf_ctx,&pkt)};
 
@@ -141,7 +140,7 @@ static int video_handler_helper(AVBSFContext &bsf_ctx,AVPacket &pkt,std::ofstrea
     return {};
 }
 
-static int audio_handler_helper(const AVFormatContext &ifmt_ctx,AVPacket &pkt,std::ofstream& out_audio_file)
+static int audio_handler_helper(const AVFormatContext &ifmt_ctx,AVPacket &pkt,std::ofstream &out_audio_file)
 {
     const auto profile{ifmt_ctx.streams[pkt.stream_index]->codecpar->profile}
                 ,sample_rate{ifmt_ctx.streams[pkt.stream_index]->codecpar->sample_rate}
@@ -247,7 +246,7 @@ int main(const int argc,const char* argv[]) {
 
     for(;;){
 
-        if ((ret = av_read_frame(ifmt_ctx,&pkt)) < 0){  // 不会去释放pkt的buf，如果我们外部不去释放，就会出现内存泄露
+        if ((ret = av_read_frame(ifmt_ctx,&pkt)) < 0) {  // 不会去释放pkt的buf，如果我们外部不去释放，就会出现内存泄露
             std::cerr << "av_read_frame failed: " << av_get_err(ret) << "\n";
             break;
         }
