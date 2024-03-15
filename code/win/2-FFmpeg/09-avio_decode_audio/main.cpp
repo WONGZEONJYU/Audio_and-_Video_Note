@@ -24,9 +24,10 @@ static inline constexpr auto BUF_SIZE{20480};
 
 static void print_sample_format(const AVFrame &frame)
 {
-    std::cout << "ar-samplerate: " << frame.sample_rate << "Hz\n";
-    std::cout << "ac-channel: "<< frame.ch_layout.nb_channels << "\n";
-    std::cout << "f-format: " << frame.format << " " << av_get_sample_fmt_name(static_cast<AVSampleFormat>(frame.format)) << "\n";
+    std::cout << "ar-samplerate: " << frame.sample_rate << "Hz\n" <<
+                "ac-channel: "<< frame.ch_layout.nb_channels << "\n" <<
+                "f-format: " << frame.format << " " <<
+                av_get_sample_fmt_name(static_cast<AVSampleFormat>(frame.format)) << "\n";
     // 格式需要注意,实际存储到本地文件时已经改成交错模式
 }
 
@@ -36,6 +37,22 @@ static std::string av_get_err(const int& errnum)
     char err_buf[ERROR_STRING_SIZE]{};
     av_strerror(errnum, err_buf, std::size(err_buf));
     return {err_buf};
+}
+
+static int read_packet(void *opaque, uint8_t *buf,const int buf_size)
+{
+    //FILE *in_file = (FILE *)opaque;
+    auto &in_file{*static_cast<std::ifstream*>(opaque)};
+
+    in_file.read(reinterpret_cast<char *>(buf),buf_size);
+    const auto read_size{in_file.gcount()};
+    std::cout << "read_packet read_size : " << read_size << ", buf_size : " << buf_size << "\n";
+
+    if(read_size <=0) {
+        return AVERROR_EOF; // 数据读取完毕
+    }
+
+    return static_cast<int>(read_size);
 }
 
 static void decode(AVCodecContext &dec_ctx,const AVPacket &pkt, AVFrame &frame,
@@ -71,8 +88,8 @@ static void decode(AVCodecContext &dec_ctx,const AVPacket &pkt, AVFrame &frame,
             exit(-1);
         }
 
-        static bool s_print_format {s_print_format ? s_print_format : (print_sample_format(frame),true)};
-        //s_print_format = s_print_format ? s_print_format : (print_sample_format(frame),true);
+        static bool s_print_format {};
+        s_print_format = s_print_format ? s_print_format : (print_sample_format(frame),true);
 
         /**
             P表示Planar(平面),其数据格式排列方式为:
@@ -101,35 +118,91 @@ int main(const int argc,const char* argv[])
     std::ifstream in_file(argv[1],std::ios::binary);
     std::ofstream out_file(argv[2],std::ios::binary);
 
-    AVFormatContext *ifmt_ctx{};
-    AVIOContext *io_ctx{};
+    AVFormatContext *format_ctx{};
+    AVIOContext *avio_ctx{};
+    const AVCodec *codec{};
+    AVCodecContext *codec_ctx{};
+
+    uint8_t* iobuff{};
     AVPacket pkt{};
     AVFrame frame{};
     av_packet_unref(&pkt);
     av_frame_unref(&frame);
 
     std::pmr::unsynchronized_pool_resource mptool;
-    uint8_t* iobuff{};
+
+    auto rres{[&](){
+        av_packet_unref(&pkt);
+        av_frame_unref(&frame);
+        avcodec_free_context(&codec_ctx);
+        avformat_close_input(&format_ctx);
+        avio_close(avio_ctx);
+        mptool.deallocate(iobuff,BUF_SIZE);
+        mptool.release();
+        in_file.close();
+        out_file.close();
+    }};
+
+    Destroyer d(std::move(rres));
 
     try{
-        iobuff = static_cast<uint8_t*>(mptool.allocate(BUF_SIZE));
-    }catch (const std::exception &e){
+        iobuff = static_cast<uint8_t *>(mptool.allocate(BUF_SIZE));
+    }catch (const std::bad_alloc &e){
         std::cerr << "allocate faild : " << e.what() << "\n";
         return -1;
     };
 
-    auto rres{[&](){
-        in_file.close();
-        out_file.close();
-        av_packet_unref(&pkt);
-        av_frame_unref(&frame);
-        avformat_close_input(&ifmt_ctx);
-        mptool.deallocate(iobuff,BUF_SIZE);
-        mptool.release();
-    }};
+    avio_ctx = avio_alloc_context(iobuff,BUF_SIZE,0,static_cast<void*>(&in_file),read_packet,nullptr,nullptr);
+    if (!avio_ctx) {
+        std::cerr << "avio_alloc_context failed : \n";
+        return -1;
+    }
 
-    Destroyer d(std::move(rres));
-    //io_ctx = avio_alloc_context(iobuff,BUF_SIZE,0,static_cast<void*>(&in_file),nullptr,nullptr,nullptr,);
+    format_ctx = avformat_alloc_context();
+    if (!format_ctx) {
+        std::cerr << "avformat_alloc_context failed\n";
+        return -1;
+    }
 
+    format_ctx->pb = avio_ctx;
+
+    auto ret {avformat_open_input(&format_ctx, nullptr, nullptr, nullptr)};
+    if (ret < 0) {
+        std::cerr << "avformat_open_input failed : " << av_get_err(ret) << "\n";
+        return -1;
+    }
+
+    // 编码器查找
+    codec = avcodec_find_decoder(AV_CODEC_ID_AAC);
+    if(!codec) {
+        std::cerr << "avcodec_find_decoder failed\n";
+        return -1;
+    }
+
+    codec_ctx = avcodec_alloc_context3(codec);
+    if (!codec_ctx) {
+        std::cerr << "avcodec_alloc_context3 failed\n";
+        return -1;
+    }
+
+    ret = avcodec_open2(codec_ctx, codec, nullptr);
+    if (ret < 0) {
+        std::cerr << "avcodec_open2 failed : " << av_get_err(ret) << "\n";
+        return -1;
+    }
+
+    for (;;) {
+        ret = av_read_frame(format_ctx,&pkt);
+        if (ret < 0) {
+            std::cerr << "av_read_frame failed : " << av_get_err(ret) << "\n";
+            break;
+        }
+        decode(*codec_ctx,pkt,frame,out_file);
+    }
+    pkt.data = nullptr;
+    pkt.size = 0;
+    decode(*codec_ctx,pkt,frame,out_file);
+
+    std::cout << "read file finish\n" << std::flush;
     return 0;
 }
