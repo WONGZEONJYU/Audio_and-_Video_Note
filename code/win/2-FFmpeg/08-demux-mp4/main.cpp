@@ -192,6 +192,16 @@ int main(const int argc,const char* argv[]) {
 
     Destroyer d(std::move(rres));
 
+    if (!out_h264_file) {
+        std::cerr << "open out_h264_file failed\n";
+        return -1;
+    }
+
+    if (!out_aac_file) {
+        std::cerr << "open out_aac_file\n";
+        return -1;
+    }
+
     ifmt_ctx = avformat_alloc_context();
     if (!ifmt_ctx) {
         std::cerr << "avformat_alloc_context failed\n";
