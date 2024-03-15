@@ -131,7 +131,5 @@ int main(const int argc,const char* argv[])
     Destroyer d(std::move(rres));
     //io_ctx = avio_alloc_context(iobuff,BUF_SIZE,0,static_cast<void*>(&in_file),nullptr,nullptr,nullptr,);
 
-
-
     return 0;
 }
