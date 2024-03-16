@@ -13,7 +13,6 @@ struct Destroyer final{
     Destroyer& operator=(const Destroyer&) = delete;
     explicit Destroyer(F &&f):fn(std::move(f)){}
     ~Destroyer() {
-        std::cerr << __FUNCTION__ << "\n";
         fn();
     }
 private:
@@ -41,7 +40,6 @@ static std::string av_get_err(const int& errnum)
 
 static int read_packet(void *opaque, uint8_t *buf,const int buf_size)
 {
-    //FILE *in_file = (FILE *)opaque;
     auto &in_file{*static_cast<std::ifstream*>(opaque)};
 
     in_file.read(reinterpret_cast<char *>(buf),buf_size);
@@ -118,31 +116,25 @@ int main(const int argc,const char* argv[])
     std::ifstream in_file(argv[1],std::ios::binary);
     std::ofstream out_file(argv[2],std::ios::binary);
 
-    AVFormatContext *format_ctx{};
     AVIOContext *avio_ctx{};
+    AVFormatContext *format_ctx{};
     const AVCodec *codec{};
     AVCodecContext *codec_ctx{};
 
     uint8_t* iobuff{};
     AVPacket pkt{};
     AVFrame frame{};
-    av_packet_unref(&pkt);
-    av_frame_unref(&frame);
 
     std::pmr::unsynchronized_pool_resource mptool;
 
      auto rres{[&](){
-
-         //avcodec_free_context(&codec_ctx);
+         in_file.close();
+         out_file.close();
          mptool.deallocate(iobuff,BUF_SIZE);
-         mptool.release();
-
-          av_packet_unref(&pkt);
-          av_frame_unref(&frame);
          avio_context_free(&avio_ctx);
          avformat_close_input(&format_ctx);
-          in_file.close();
-          out_file.close();
+         avcodec_free_context(&codec_ctx);
+         std::cerr << "destory finish\n";
      }};
 
      Destroyer d(std::move(rres));
@@ -157,6 +149,8 @@ int main(const int argc,const char* argv[])
         return -1;
     }
 
+    //iobuff = static_cast<uint8_t*>(av_malloc(BUF_SIZE));
+
     try{
         iobuff = static_cast<uint8_t *>(mptool.allocate(BUF_SIZE));
     }catch (const std::bad_alloc &e){
@@ -164,13 +158,16 @@ int main(const int argc,const char* argv[])
         return -1;
     };
 
-    avio_ctx = avio_alloc_context(iobuff,BUF_SIZE,0,static_cast<void*>(&in_file),read_packet,nullptr,nullptr);
+    avio_ctx = avio_alloc_context(iobuff,BUF_SIZE,0,static_cast<void*>(&in_file),
+        read_packet,nullptr,nullptr);
+
     if (!avio_ctx) {
         std::cerr << "avio_alloc_context failed : \n";
         return -1;
     }
 
     format_ctx = avformat_alloc_context();
+
     if (!format_ctx) {
         std::cerr << "avformat_alloc_context failed\n";
         return -1;
@@ -197,27 +194,24 @@ int main(const int argc,const char* argv[])
         return -1;
     }
 
-    // ret = avcodec_open2(codec_ctx, codec, nullptr);
-    // if (ret < 0) {
-    //     std::cerr << "avcodec_open2 failed : " << av_get_err(ret) << "\n";
-    //     return -1;
-    // }
+    ret = avcodec_open2(codec_ctx, codec, nullptr);
+    if (ret < 0) {
+        std::cerr << "avcodec_open2 failed : " << av_get_err(ret) << "\n";
+        return -1;
+    }
 
-    avcodec_free_context(&codec_ctx);
-    return 0;
+    for (;;) {
+        ret = av_read_frame(format_ctx,&pkt);
+        if (ret < 0) {
+            std::cerr << "av_read_frame failed : " << av_get_err(ret) << "\n";
+            break;
+        }
+        decode(*codec_ctx,pkt,frame,out_file);
+    }
 
-    // for (;;) {
-    //     ret = av_read_frame(format_ctx,&pkt);
-    //     if (ret < 0) {
-    //         std::cerr << "av_read_frame failed : " << av_get_err(ret) << "\n";
-    //         break;
-    //     }
-    //     decode(*codec_ctx,pkt,frame,out_file);
-    // }
-    //
-    // decode(*codec_ctx,{},frame,out_file);
+    decode(*codec_ctx,{},frame,out_file);
 
-    std::cout << "read file finish\n" << std::flush;
+    std::cout << "read file finish\n";
 
     return 0;
 }
