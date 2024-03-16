@@ -98,7 +98,7 @@ static void decode(AVCodecContext &dec_ctx,const AVPacket &pkt, AVFrame &frame,
             LRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRLRL...(每个LR为一个音频样本)
             播放范例:ffplay -ar 48000 -ac 2 -f f32le believe.pcm
           **/
-
+        //std::cout << "frame.nb_samples : " << frame.nb_samples << "\n";
         for (int i {}; i < frame.nb_samples; i++){
             for (int ch {}; ch < dec_ctx.ch_layout.nb_channels; ++ch){
                 //交错的方式写入,大部分float的格式输出
@@ -131,19 +131,31 @@ int main(const int argc,const char* argv[])
 
     std::pmr::unsynchronized_pool_resource mptool;
 
-    auto rres{[&](){
-        av_packet_unref(&pkt);
-        av_frame_unref(&frame);
-        avcodec_free_context(&codec_ctx);
-        avformat_close_input(&format_ctx);
-        avio_close(avio_ctx);
-        mptool.deallocate(iobuff,BUF_SIZE);
-        mptool.release();
-        in_file.close();
-        out_file.close();
-    }};
+     auto rres{[&](){
 
-    Destroyer d(std::move(rres));
+         //avcodec_free_context(&codec_ctx);
+         mptool.deallocate(iobuff,BUF_SIZE);
+         mptool.release();
+
+          av_packet_unref(&pkt);
+          av_frame_unref(&frame);
+         avio_context_free(&avio_ctx);
+         avformat_close_input(&format_ctx);
+          in_file.close();
+          out_file.close();
+     }};
+
+     Destroyer d(std::move(rres));
+
+    if (!in_file){
+        std::cerr << "open in_file failed\n";
+        return -1;
+    }
+
+    if (!out_file){
+        std::cerr << "open out_file faild\n";
+        return -1;
+    }
 
     try{
         iobuff = static_cast<uint8_t *>(mptool.allocate(BUF_SIZE));
@@ -185,24 +197,27 @@ int main(const int argc,const char* argv[])
         return -1;
     }
 
-    ret = avcodec_open2(codec_ctx, codec, nullptr);
-    if (ret < 0) {
-        std::cerr << "avcodec_open2 failed : " << av_get_err(ret) << "\n";
-        return -1;
-    }
+    // ret = avcodec_open2(codec_ctx, codec, nullptr);
+    // if (ret < 0) {
+    //     std::cerr << "avcodec_open2 failed : " << av_get_err(ret) << "\n";
+    //     return -1;
+    // }
 
-    for (;;) {
-        ret = av_read_frame(format_ctx,&pkt);
-        if (ret < 0) {
-            std::cerr << "av_read_frame failed : " << av_get_err(ret) << "\n";
-            break;
-        }
-        decode(*codec_ctx,pkt,frame,out_file);
-    }
-    pkt.data = nullptr;
-    pkt.size = 0;
-    decode(*codec_ctx,pkt,frame,out_file);
+    avcodec_free_context(&codec_ctx);
+    return 0;
+
+    // for (;;) {
+    //     ret = av_read_frame(format_ctx,&pkt);
+    //     if (ret < 0) {
+    //         std::cerr << "av_read_frame failed : " << av_get_err(ret) << "\n";
+    //         break;
+    //     }
+    //     decode(*codec_ctx,pkt,frame,out_file);
+    // }
+    //
+    // decode(*codec_ctx,{},frame,out_file);
 
     std::cout << "read file finish\n" << std::flush;
+
     return 0;
 }
