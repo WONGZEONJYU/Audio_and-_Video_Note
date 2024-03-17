@@ -122,8 +122,6 @@ int main(const int argc,const char* argv[])
     AVCodecContext *codec_ctx{};
 
     uint8_t* iobuff{};
-    AVPacket pkt{};
-    AVFrame frame{};
 
     std::pmr::unsynchronized_pool_resource mptool;
 
@@ -200,6 +198,8 @@ int main(const int argc,const char* argv[])
         return -1;
     }
 
+    AVPacket pkt{};
+    AVFrame frame{};
     for (;;) {
         ret = av_read_frame(format_ctx,&pkt);
         if (ret < 0) {
