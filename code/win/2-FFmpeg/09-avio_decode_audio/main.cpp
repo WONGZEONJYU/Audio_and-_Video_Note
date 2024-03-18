@@ -123,21 +123,21 @@ int main(const int argc,const char* argv[])
     auto iobuff{av_malloc(BUF_SIZE)};
 
      auto rres{[&](){
-         if (in_file){
-             in_file.close();
+         if (codec_ctx){
+             avcodec_free_context(&codec_ctx);
          }
-         if(out_file){
-             out_file.close();
+         if (format_ctx){
+             avformat_close_input(&format_ctx);
          }
          if (avio_ctx){
              av_freep(&avio_ctx->buffer);
              avio_context_free(&avio_ctx);
          }
-         if (format_ctx){
-             avformat_close_input(&format_ctx);
+         if (in_file){
+             in_file.close();
          }
-         if (codec_ctx){
-             avcodec_free_context(&codec_ctx);
+         if(out_file){
+             out_file.close();
          }
      }};
 
