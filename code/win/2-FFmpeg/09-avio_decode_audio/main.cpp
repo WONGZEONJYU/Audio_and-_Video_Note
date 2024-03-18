@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <memory_resource>
 
 extern "C"{
 #include "libavformat/avformat.h"
@@ -121,18 +120,25 @@ int main(const int argc,const char* argv[])
     const AVCodec *codec{};
     AVCodecContext *codec_ctx{};
 
-    uint8_t* iobuff{};
-
-    std::pmr::unsynchronized_pool_resource mptool;
+    auto iobuff{av_malloc(BUF_SIZE)};
 
      auto rres{[&](){
-         in_file.close();
-         out_file.close();
-         mptool.deallocate(iobuff,BUF_SIZE);
-         avio_context_free(&avio_ctx);
-         avformat_close_input(&format_ctx);
-         avcodec_free_context(&codec_ctx);
-         std::cerr << "destory finish\n";
+         if (in_file){
+             in_file.close();
+         }
+         if(out_file){
+             out_file.close();
+         }
+         if (avio_ctx){
+             av_freep(&avio_ctx->buffer);
+             avio_context_free(&avio_ctx);
+         }
+         if (format_ctx){
+             avformat_close_input(&format_ctx);
+         }
+         if (codec_ctx){
+             avcodec_free_context(&codec_ctx);
+         }
      }};
 
      Destroyer d(std::move(rres));
@@ -147,16 +153,7 @@ int main(const int argc,const char* argv[])
         return -1;
     }
 
-    //iobuff = static_cast<uint8_t*>(av_malloc(BUF_SIZE));
-
-    try{
-        iobuff = static_cast<uint8_t *>(mptool.allocate(BUF_SIZE));
-    }catch (const std::bad_alloc &e){
-        std::cerr << "allocate faild : " << e.what() << "\n";
-        return -1;
-    };
-
-    avio_ctx = avio_alloc_context(iobuff,BUF_SIZE,0,static_cast<void*>(&in_file),
+    avio_ctx = avio_alloc_context(static_cast<uint8_t*>(iobuff),BUF_SIZE,0,static_cast<void*>(&in_file),
         read_packet,nullptr,nullptr);
 
     if (!avio_ctx) {
@@ -200,6 +197,7 @@ int main(const int argc,const char* argv[])
 
     AVPacket pkt{};
     AVFrame frame{};
+
     for (;;) {
         ret = av_read_frame(format_ctx,&pkt);
         if (ret < 0) {
