@@ -93,13 +93,14 @@ static void decode(AVCodecContext &dec_ctx,const AVPacket &pkt, AVFrame &frame,
 
 template<typename F>
 struct Destroyer final{
-    explicit Destroyer(F&& f):f(std::move(f)){}
-    ~Destroyer(){
-        std::cout << __FUNCTION__ << "\n";
-        f();
+    Destroyer(const Destroyer&) = delete;
+    Destroyer& operator=(const Destroyer&) = delete;
+    explicit Destroyer(F &&f):fn(std::move(f)){}
+    ~Destroyer() {
+        fn();
     }
 private:
-    F f;
+    const F fn;
 };
 
 int main(const int argc,const char* argv[])
@@ -124,16 +125,14 @@ int main(const int argc,const char* argv[])
     AVCodecContext *codec_ctx{};
     void *inbuf{};
 
-    auto destory{[&]() {
+    Destroyer d(std::move([&]() {
         in_file.close();
         out_file.close();
         avcodec_free_context(&codec_ctx);
         av_parser_close(parser);
         mpool.deallocate(inbuf,VIDEO_INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE);
         mpool.release();
-    }};
-
-    Destroyer d(std::move(destory));
+    }));
 
     auto video_codec_id {AV_CODEC_ID_H264};
     if(std::string(filename).find("264") != std::string::npos){
