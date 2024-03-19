@@ -81,12 +81,16 @@ static void decode(AVCodecContext *dec_ctx,const AVPacket *pkt, AVFrame *frame,
     }
 }
 
-template<typename T>
-struct destory_ final{
-    explicit destory_(T&& f):f(std::move(f)){}
-    ~destory_(){std::cout << __FUNCTION__ << "\n"; f();}
+template<typename F>
+struct Destroyer final{
+    Destroyer(const Destroyer&) = delete;
+    Destroyer& operator=(const Destroyer&) = delete;
+    explicit Destroyer(F &&f):fn(std::move(f)){}
+    ~Destroyer() {
+        fn();
+    }
 private:
-    T f;
+    const F fn;
 };
 
 // 播放范例: ffplay -ar 48000 -ac 2 -f f32le believe.pcm
@@ -107,16 +111,14 @@ int main(const int argc,const char* argv[])
     ifstream in_file(filename , ios::binary);
     ofstream out_file(outfilename,ios::binary);
 
-    auto destory{[&](){
+    Destroyer d(std::move([&](){
         in_file.close();
         out_file.close();
         av_parser_close(parser);
         avcodec_free_context(&codec_ctx);
         //av_frame_free(&decoded_frame);
         //av_packet_free(&pkt);
-    }};
-
-    destory_ d(std::move(destory));
+    }));
 
     // pkt = av_packet_alloc();
     // if (!pkt){
