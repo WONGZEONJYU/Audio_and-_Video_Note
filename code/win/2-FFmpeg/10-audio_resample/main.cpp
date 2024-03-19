@@ -117,7 +117,7 @@ int main(const int argc,const char* argv[]) {
 
     SwrContext *swr_ctx{};
 
-    const auto rres{[&]() {
+    Destroyer d{std::move([&]() {
         if (dst_filename) {
             dst_filename.close();
         }
@@ -131,9 +131,7 @@ int main(const int argc,const char* argv[]) {
         }
         swr_free(&swr_ctx);
         std::cerr << "destory complete\n";
-    }};
-
-    Destroyer d{std::move(rres)};
+    })};
 
     // 创建重采样器
     /* create resampler context */
