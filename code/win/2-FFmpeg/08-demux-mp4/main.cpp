@@ -182,15 +182,13 @@ int main(const int argc,const char* argv[]) {
     AVPacket pkt{};
     av_packet_unref(&pkt);/*此处用于初始化AVPacket av_init_packet(...)函数官方已经弃用*/
 
-    auto rres{[&]() {
+    Destroyer d(std::move([&]() {
         out_h264_file.close();
         out_aac_file.close();
         av_packet_unref(&pkt);
         avformat_close_input(&ifmt_ctx);
         av_bsf_free(&bsf_ctx);
-    }};
-
-    Destroyer d(std::move(rres));
+    }));
 
     if (!out_h264_file) {
         std::cerr << "open out_h264_file failed\n";
