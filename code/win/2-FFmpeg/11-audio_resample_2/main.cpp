@@ -1,8 +1,7 @@
 #include <iostream>
 #include <fstream>
 
-extern "C"
-{
+extern "C" {
 #include <libavutil/opt.h>
 #include <libavutil/channel_layout.h>
 #include <libavutil/samplefmt.h>
