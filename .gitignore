@@ -14,6 +14,7 @@
 /code/win/2-FFmpeg/08-demux-mp4/cmake-build-debug
 /code/win/2-FFmpeg/09-avio_decode_audio/cmake-build-debug
 /code/win/2-FFmpeg/10-audio_resample/cmake-build-debug
+/code/win/2-FFmpeg/11-audio_resample_2/cmake-build-debug
 /code/mac/1-SDL/01-sdl-basic/bin/
 /code/mac/1-SDL/02-sdl-window/bin/
 /code/mac/1-SDL/03-sdl_event/bin/
