@@ -122,7 +122,7 @@ int main(const int argc,const char* argv[])
 
     auto iobuff{av_malloc(BUF_SIZE)};
 
-     auto rres{[&](){
+    Destroyer d(std::move([&](){
          if (codec_ctx){
              avcodec_free_context(&codec_ctx);
          }
@@ -139,9 +139,7 @@ int main(const int argc,const char* argv[])
          if(out_file){
              out_file.close();
          }
-     }};
-
-     Destroyer d(std::move(rres));
+     }));
 
     if (!in_file){
         std::cerr << "open in_file failed\n";
