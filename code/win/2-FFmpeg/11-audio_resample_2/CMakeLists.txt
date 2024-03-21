@@ -11,7 +11,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # 链接Windows下的特定库
     include_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/include)
 
-    link_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/lib)
+    link_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/bin)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     # macOS操作系统下的特定配置
@@ -26,8 +26,8 @@ endif ()
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale)
 
-set(SRC_FILE main.cpp)
+set(SRC_FILE main.cpp Audio_Resampler.cpp Audio_Resampler.h)
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 
-target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${FFMPEG_LIBS})
