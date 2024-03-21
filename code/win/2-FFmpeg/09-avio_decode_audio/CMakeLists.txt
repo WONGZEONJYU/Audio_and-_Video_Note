@@ -11,7 +11,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # 链接Windows下的特定库
     include_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/include)
 
-    link_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/lib)
+    link_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/bin)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     # macOS操作系统下的特定配置
