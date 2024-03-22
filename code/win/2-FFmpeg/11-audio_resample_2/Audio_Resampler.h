@@ -7,8 +7,9 @@
 extern "C" {
 #include <libavutil/audio_fifo.h>
 #include <libswresample/swresample.h>
-
 }
+
+
 
 namespace rsmp
 {
@@ -17,17 +18,24 @@ namespace rsmp
         AVSampleFormat src_sample_fmt;
         AVChannelLayout src_ch_layout;
         int src_sample_rate;
-        uint64_t src_channel_layout;
+       // uint64_t src_channel_layout;
 
         // output params
         AVSampleFormat dst_sample_fmt;
         AVChannelLayout dst_ch_layout;
         int dst_sample_rate;
-        uint64_t dst_channel_layout;
+       // uint64_t dst_channel_layout;
+
+        explicit operator bool() const noexcept{
+            return dst_sample_fmt == src_sample_fmt &&
+                src_ch_layout.u.mask == dst_ch_layout.u.mask &&
+                    src_sample_rate == dst_sample_rate;
+        }
+
     };
 
-    class Audio_Resampler {
-        bool init();
+    class Audio_Resampler final{
+        bool init(const Audio_Resampler_Params &);
 
     public:
         Audio_Resampler(const Audio_Resampler&) = delete;
@@ -36,20 +44,52 @@ namespace rsmp
         explicit Audio_Resampler(const Audio_Resampler_Params &);
 
     private:
+        ~Audio_Resampler();
+        struct AVAudioFifo_exp final: std::exception {
+            [[nodiscard]] const char * what() const noexcept override;
+        };
+
+        struct AVAudioFifo_t final{
+            AVAudioFifo* m_audio_fifo{};
+
+            AVAudioFifo_t(const AVAudioFifo_t&) = delete;
+            AVAudioFifo_t& operator=(const AVAudioFifo_t&) = delete;
+
+            explicit AVAudioFifo_t(const AVSampleFormat &sample_fmt,
+                const int& channels,
+                const int &nb_samples){
+                m_audio_fifo = av_audio_fifo_alloc(sample_fmt,channels,nb_samples);
+            }
+
+            ~AVAudioFifo_t(){ av_fifo_freep2(reinterpret_cast<AVFifo**>(m_audio_fifo));}
+        };
+
+        struct SwrContext_t final{
+            SwrContext* m_swr_ctx{};
+            SwrContext_t(const SwrContext_t&) = delete;
+            SwrContext_t& operator=(const SwrContext_t&) = delete;
+            explicit SwrContext_t():m_swr_ctx(swr_alloc()){}
+            ~SwrContext_t(){swr_free(&m_swr_ctx);}
+        };
+
+        std::shared_ptr<AVAudioFifo_t> m_audio_fifo;
+        std::shared_ptr<SwrContext_t> m_swr_ctx;
+
         Audio_Resampler_Params m_Resampler_Params{};// 重采样的设置参数
-        std::shared_ptr<SwrContext> m_swr_ctx;
-        std::shared_ptr<AVAudioFifo> m_audio_fifo;
-        std::atomic_bool m_is_fifo_only;
+        std::atomic_bool m_is_fifo_only;    //不需要进行重采样,只需要缓存到 audio_fifo
         std::atomic_bool m_is_flushed;// flush的时候使用
-        int64_t m_start_pts{};          // 起始pts
-        int64_t m_cur_pts{};            // 当前pts
+        int64_t m_start_pts{AV_NOPTS_VALUE};          // 起始pts
+        int64_t m_cur_pts{AV_NOPTS_VALUE};            // 当前pts
         uint8_t **m_resampled_data{};   // 用来缓存重采样后的数据
-        int m_resampled_data_size{};    // 重采样后的采样数
-        int m_src_channels{};           // 输入的通道数
-        int m_dst_channels{};           // 输出通道数
+        uint64_t m_resampled_data_size{};    // 重采样后的采样数
+        uint64_t m_src_channels{};           // 输入的通道数
+        uint64_t m_dst_channels{};           // 输出通道数
         int64_t total_resampled_num{};    // 统计总共的重采样点数,目前只是统计
 
     };
+
+    std::shared_ptr<>
+
 }
 
 
