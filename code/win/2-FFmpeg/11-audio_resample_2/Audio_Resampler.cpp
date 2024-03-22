@@ -1,6 +1,4 @@
-//
-// Created by Administrator on 2024/3/21.
-//
+#include <iostream>
 
 extern "C"{
 #include <libavutil/fifo.h>
@@ -15,33 +13,37 @@ extern "C"{
 
 namespace rsmp {
 
-     const char * Audio_Resampler::AVAudioFifo_exp:: what() const noexcept{
-         return "av_audio_fifo_alloc faild\n";
-     }
+    bool Audio_Resampler::construct() {
 
-    bool Audio_Resampler::init(const Audio_Resampler_Params &params) {
+        m_src_channels = m_Resampler_Params.src_ch_layout.u.mask;
+        m_dst_channels = m_Resampler_Params.dst_ch_layout.u.mask;
 
-        m_audio_fifo = std::move(std::make_shared<AVAudioFifo_t>(params.dst_sample_fmt,
-            m_dst_channels,1));
+        m_audio_fifo = std::move(std::make_shared<AVAudioFifo_t>
+        (m_Resampler_Params.dst_sample_fmt,
+        m_dst_channels,1));
 
-        if (!m_audio_fifo){
-            throw AVAudioFifo_exp();
+        if (!m_audio_fifo) {
+
+            return {};
         }
 
-        m_Resampler_Params = params;
-        m_src_channels = params.src_ch_layout.u.mask;
-        m_dst_channels = params.dst_ch_layout.u.mask;
-
-        if (params){    /*参数相同就不需要做重采样*/
-            m_is_fifo_only = true;
+        if (m_Resampler_Params) {
+            m_is_fifo_only.store(true);
             return true;
         }
 
-        return {};
+        m_swr_ctx = std::move(std::make_shared<SwrContext_t>());
+        if (!m_swr_ctx) {
+
+            return {};
+        }
+
+
+        return true;
     }
 
     Audio_Resampler::Audio_Resampler(const Audio_Resampler_Params & params) {
-        init(params);
+        m_Resampler_Params = params;
     }
 
     Audio_Resampler::~Audio_Resampler(){

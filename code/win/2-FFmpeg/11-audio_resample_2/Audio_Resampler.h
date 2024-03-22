@@ -1,15 +1,13 @@
 #ifndef AUDIO_RESAMPLER_H
 #define AUDIO_RESAMPLER_H
 
-#include <memory>
 #include <atomic>
+#include <memory>
 
 extern "C" {
 #include <libavutil/audio_fifo.h>
 #include <libswresample/swresample.h>
 }
-
-
 
 namespace rsmp
 {
@@ -35,8 +33,8 @@ namespace rsmp
     };
 
     class Audio_Resampler final{
-        bool init(const Audio_Resampler_Params &);
 
+        bool construct();
     public:
         Audio_Resampler(const Audio_Resampler&) = delete;
         Audio_Resampler& operator=(const Audio_Resampler&) = delete;
@@ -45,10 +43,6 @@ namespace rsmp
 
     private:
         ~Audio_Resampler();
-        struct AVAudioFifo_exp final: std::exception {
-            [[nodiscard]] const char * what() const noexcept override;
-        };
-
         struct AVAudioFifo_t final{
             AVAudioFifo* m_audio_fifo{};
 
@@ -88,12 +82,6 @@ namespace rsmp
 
     };
 
-    std::shared_ptr<>
-
 }
-
-
-
-
 
 #endif //AUDIO_RESAMPLER_H
