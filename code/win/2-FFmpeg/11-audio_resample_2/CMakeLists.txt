@@ -26,7 +26,15 @@ endif ()
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale)
 
-set(SRC_FILE main.cpp Audio_Resampler.cpp Audio_Resampler.h)
+set(SRC_FILE main.cpp
+        Audio_Resampler.cpp
+        Audio_Resampler.h
+        AVAudioFifo_t.cpp
+        AVAudioFifo_t.h
+        SwrContext_t.cpp
+        SwrContext_t.h
+        AVHelper.cpp
+        AVHelper.h)
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 

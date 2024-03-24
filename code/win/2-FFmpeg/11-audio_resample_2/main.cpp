@@ -14,7 +14,11 @@ int main(const int argc,const char* argv[])
         .dst_sample_rate = 1152,
     };
 
-    auto re{rsmp::Audio_Resampler::NewInstance(params)};
+     try {
+         auto re{rsmp::Audio_Resampler::create(params)};
+     } catch (std::exception &e) {
+         std::cerr << e.what() << "\n";
+     }
 
     return 0;
 }
