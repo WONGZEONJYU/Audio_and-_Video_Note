@@ -18,7 +18,6 @@ AVAudioFifo_t::AVAudioFifo_sp_t AVAudioFifo_t::create(const AVSampleFormat &samp
                                                                    const int& channels,const int &nb_samples) noexcept(false){
     try {
         AVAudioFifo_sp_t obj(new AVAudioFifo_t);
-
         if(!obj->construct(sample_fmt,channels,nb_samples)) {
             obj.reset();
             throw std::runtime_error("av_audio_fifo_alloc failed\n");
@@ -36,6 +35,11 @@ int AVAudioFifo_t::write(void * const * data,const int& nb_samples) const{
 
 int AVAudioFifo_t::read(void * const * data,const int &nb_samples) const{
     return  av_audio_fifo_read(m_audio_fifo,data,nb_samples);
+}
+
+int AVAudioFifo_t::size() const
+{
+    return av_audio_fifo_size(m_audio_fifo);
 }
 
 AVAudioFifo_t::~AVAudioFifo_t() {

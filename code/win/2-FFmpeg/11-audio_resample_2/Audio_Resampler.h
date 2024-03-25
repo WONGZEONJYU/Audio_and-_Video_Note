@@ -7,6 +7,7 @@ extern "C"{
 }
 
 #include <atomic>
+#include <memory>
 
 class AVAudioFifo_t;
 class SwrContext_t;
@@ -39,7 +40,7 @@ namespace rsmp
 
         bool construct() noexcept;
         explicit Audio_Resampler(const Audio_Resampler_Params &);
-        int init_resampled_data();
+        bool init_resampled_data();
         void destory_resampled_data();
         void av_opt_set_in() const;
         void av_opt_set_out() const;
@@ -50,8 +51,16 @@ namespace rsmp
         Audio_Resampler(const Audio_Resampler&) = delete;
         Audio_Resampler& operator=(const Audio_Resampler&) = delete;
         ~Audio_Resampler();
-    private:
 
+        int send_frame(const AVFrame &);
+        int send_frame(uint8_t **in_data,const int &in_nb_samples,const int64_t &pts);
+        int send_frame(uint8_t *in_data,const int& in_bytes, const int64_t &pts);
+        AVFrame *receive_frame(const int &nb_samples);
+        int receive_frame(uint8_t **out_data,const int &nb_samples, int64_t &pts);
+        int fifo_size() const;
+        int64_t start_pts() const;
+        int64_t cur_pts() const;
+    private:
         std::shared_ptr<AVAudioFifo_t> m_audio_fifo;
         std::shared_ptr<SwrContext_t> m_swr_ctx;
 

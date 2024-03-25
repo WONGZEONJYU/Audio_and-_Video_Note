@@ -3,7 +3,6 @@
 
 extern "C"{
 #include <libavutil/audio_fifo.h>
-#include <libswresample/swresample.h>
 }
 
 #include <memory>
@@ -28,6 +27,7 @@ public:
     ~AVAudioFifo_t();
     int write(void * const *,const int& ) const;
     int read(void * const *,const int& ) const;
+    [[nodiscard]] int size() const;
 };
 
 #endif //AVAUDIOFIFO_T_H
