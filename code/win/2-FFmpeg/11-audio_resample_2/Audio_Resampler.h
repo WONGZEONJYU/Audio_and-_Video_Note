@@ -44,6 +44,7 @@ namespace rsmp
         void destory_resampled_data();
         void av_opt_set_in() const;
         void av_opt_set_out() const;
+        AVFrame *alloc_out_frame(const int&) const;
 
     public:
         using Audio_Resampler_t = std::shared_ptr<Audio_Resampler>;
@@ -61,6 +62,7 @@ namespace rsmp
         int64_t start_pts() const;
         int64_t cur_pts() const;
     private:
+
         std::shared_ptr<AVAudioFifo_t> m_audio_fifo;
         std::shared_ptr<SwrContext_t> m_swr_ctx;
 
@@ -73,7 +75,7 @@ namespace rsmp
         uint64_t m_resampled_data_size{2048};    // 重采样后的采样数
         uint64_t m_src_channels{};           // 输入的通道数
         uint64_t m_dst_channels{};           // 输出通道数
-        int64_t total_resampled_num{};    // 统计总共的重采样点数,目前只是统计
+        int64_t m_total_resampled_num{};    // 统计总共的重采样点数,目前只是统计
 
     };
 

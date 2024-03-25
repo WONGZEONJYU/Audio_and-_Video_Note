@@ -115,6 +115,26 @@ namespace rsmp {
         (void)m_swr_ctx->opt_set_rate("out_sample_rate",m_Resampler_Params.dst_sample_rate);
     }
 
+    AVFrame * Audio_Resampler::alloc_out_frame(const int &nb_samples) const{
+
+        auto frame {av_frame_alloc()};
+
+        if (frame) {
+            frame->nb_samples = nb_samples;
+            frame->ch_layout = m_Resampler_Params.dst_ch_layout;
+            frame->format = m_Resampler_Params.dst_sample_fmt;
+            frame->sample_rate = m_Resampler_Params.dst_sample_rate;
+            const auto ret{av_frame_get_buffer(frame, 0)};
+            /*根据提供的信息分配相对应的数据空间*/
+            if (ret < 0) {
+                av_frame_free(&frame);
+                std::cerr << "cannot allocate audio data buffer : " << ret << "\t" <<
+                AVHelper::av_get_err(ret) << "\n";
+            }
+        }
+
+        return frame;
+    }
 
     Audio_Resampler::~Audio_Resampler(){
         destory_resampled_data();
@@ -191,17 +211,33 @@ namespace rsmp {
     AVFrame* Audio_Resampler::receive_frame(const int& nb_samples){
 
 
-
-
         return {};
     }
 
     int Audio_Resampler::receive_frame(uint8_t** out_data, const int& nb_samples, int64_t& pts){
 
-        const auto need_nb_samples{!nb_samples ? m_audio_fifo->size() : nb_samples};
+        const auto _fifo_size{fifo_size()};
 
+        const auto need_nb_samples{!nb_samples ? _fifo_size : nb_samples};
+        /*参数nb_samples为0,则尝试查看fifo有多数数据*/
+        if (_fifo_size < need_nb_samples || !need_nb_samples) {
+            /*如果fifo为0或fifo数据量小于需要的数据量,则退出当前函数*/
+            return {};
+        }
 
-        return {};
+        const auto read_size {m_audio_fifo->read(reinterpret_cast<void**>(out_data),need_nb_samples)};
+
+        if (read_size < 0) {
+            std::cerr << "avaudio_fifo_read failed errcode : " << read_size << "\t" <<
+                AVHelper::av_get_err(read_size) << "\n";
+            return read_size;
+        }
+
+        pts = m_cur_pts;
+        m_cur_pts += need_nb_samples;
+        m_total_resampled_num += need_nb_samples;
+
+        return read_size;
     }
 
     int Audio_Resampler::fifo_size() const{
