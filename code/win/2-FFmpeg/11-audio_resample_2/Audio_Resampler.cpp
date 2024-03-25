@@ -199,7 +199,7 @@ namespace rsmp {
     int Audio_Resampler::receive_frame(uint8_t** out_data, const int& nb_samples, int64_t& pts){
 
         const auto need_nb_samples{!nb_samples ? m_audio_fifo->size() : nb_samples};
-        
+
 
         return {};
     }
