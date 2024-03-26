@@ -10,8 +10,8 @@ extern "C"{
 
 class SwrContext_t final{
 
-    explicit SwrContext_t() = default;
     SwrContext* m_swr_ctx{};
+    explicit SwrContext_t() = default;
     bool construct();
 
 public:

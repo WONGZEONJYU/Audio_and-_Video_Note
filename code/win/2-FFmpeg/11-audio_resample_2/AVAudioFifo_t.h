@@ -7,10 +7,10 @@ extern "C"{
 
 #include <memory>
 
-class AVAudioFifo_t final{
+class AVAudioFifo_t final {
 
-    explicit AVAudioFifo_t() = default;
     AVAudioFifo *m_audio_fifo{};
+    explicit AVAudioFifo_t() = default;
     bool construct(const AVSampleFormat &sample_fmt,
          const int& channels,
          const int &nb_samples);

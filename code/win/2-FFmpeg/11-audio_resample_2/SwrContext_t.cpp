@@ -6,7 +6,13 @@ extern "C"{
 #include "AVHelper.h"
 #include <iostream>
 
+bool SwrContext_t::construct() {
+    m_swr_ctx = swr_alloc();
+    return m_swr_ctx;
+}
+
 SwrContext_t::SwrContext_sp_t SwrContext_t::create() noexcept(false){
+
     try {
         SwrContext_sp_t obj(new SwrContext_t);
         if (!obj->construct()) {
@@ -18,11 +24,6 @@ SwrContext_t::SwrContext_sp_t SwrContext_t::create() noexcept(false){
         std::cerr << e.what() << "\n";
         throw std::runtime_error("SwrContext_t construct failed\n");
     }
-}
-
-bool SwrContext_t::construct() {
-    m_swr_ctx = swr_alloc();
-    return m_swr_ctx;
 }
 
 bool SwrContext_t::init() const{

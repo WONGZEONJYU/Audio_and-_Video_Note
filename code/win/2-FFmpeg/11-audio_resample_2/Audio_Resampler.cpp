@@ -16,12 +16,12 @@ namespace rsmp {
 
     bool Audio_Resampler::construct() noexcept{
 
-        m_src_channels = m_Resampler_Params.src_ch_layout.u.mask;
-        m_dst_channels = m_Resampler_Params.dst_ch_layout.u.mask;
+        m_src_channels = m_Resampler_Params.dst_ch_layout.nb_channels;
+        m_dst_channels = m_Resampler_Params.dst_ch_layout.nb_channels;
 
         try{
             m_audio_fifo = AVAudioFifo_t::create(m_Resampler_Params.dst_sample_fmt,
-                                                 static_cast<const int >(m_dst_channels),1);
+                                                 m_dst_channels,1);
         }catch (const std::exception &e){
             std::cerr << "AVAudioFifo construct failed " << e.what() << "\n";
             return {};
@@ -57,13 +57,13 @@ namespace rsmp {
             return {};
         }
 
-        std::cout << "construct done\n";
+        std::cout << "construct done\n" << std::flush;
 
         return true;
     }
 
-    std::shared_ptr<Audio_Resampler> Audio_Resampler::create(const Audio_Resampler_Params & params)
-    {
+    std::shared_ptr<Audio_Resampler> Audio_Resampler::create(const Audio_Resampler_Params & params){
+
         try{
            std::shared_ptr<Audio_Resampler> obj{new Audio_Resampler(params)};
             if (!obj->construct()) {
@@ -77,16 +77,17 @@ namespace rsmp {
         }
     }
 
-    Audio_Resampler::Audio_Resampler(const Audio_Resampler_Params &params) {
-        m_Resampler_Params = params;
+    Audio_Resampler::Audio_Resampler(const Audio_Resampler_Params &params):
+    m_Resampler_Params{params} {
+
     }
 
     bool Audio_Resampler::init_resampled_data(){
-
-        destory_resampled_data();/*在发送的时候可能遇到空间不足情况,需重新申请,重新申请之前,先释放原来的空间*/
+        /*在发送的时候可能遇到空间不足情况,需重新申请,重新申请之前,先释放原来的空间*/
+        destory_resampled_data();
         int linesize{};
         const auto ret {av_samples_alloc_array_and_samples(&m_resampled_data,
-                                                            &linesize, static_cast<int>(m_dst_channels),
+                                                            &linesize, m_dst_channels,
                                                      static_cast<int>(m_resampled_data_size),
                                                                 m_Resampler_Params.dst_sample_fmt,
                                                                 0)};
@@ -103,7 +104,6 @@ namespace rsmp {
     }
 
     void Audio_Resampler::av_opt_set_in() const {
-
         (void)m_swr_ctx->opt_set_chlayout("in_channel_layout",&m_Resampler_Params.src_ch_layout);
         (void)m_swr_ctx->opt_set_sample_fmt("in_sample_fmt",m_Resampler_Params.src_sample_fmt);
         (void)m_swr_ctx->opt_set_rate("in_sample_rate",m_Resampler_Params.src_sample_rate);
@@ -134,6 +134,38 @@ namespace rsmp {
         }
 
         return frame;
+    }
+
+    int Audio_Resampler::fifo_read_helper(uint8_t **out_data, const int &need_nb_samples, int64_t &pts) {
+
+        const auto read_size {m_audio_fifo->read(reinterpret_cast<void**>(out_data),need_nb_samples)};
+
+        if (read_size < 0) {
+            std::cerr << "avaudio_fifo_read failed errcode : " << read_size << "\t" <<
+                AVHelper::av_get_err(read_size) << "\n";
+            return read_size;
+        }
+
+        pts = m_cur_pts;
+        m_cur_pts += need_nb_samples;
+        m_total_resampled_num += need_nb_samples;
+
+        return read_size;
+    }
+
+    int Audio_Resampler::need_samples_num(const int &nb_samples) const {
+
+        const auto _fifo_size{fifo_size()};
+
+        const auto need_nb_samples{!nb_samples ? _fifo_size : nb_samples};
+        /*参数nb_samples为0,则尝试查看fifo有多数数据*/
+        if (_fifo_size < need_nb_samples || !need_nb_samples) {
+            /*如果fifo为0或fifo数据量小于需要的数据量,则退出当前函数*/
+            std::cerr << "Not enough data or fifo is empty\n";
+            return {};
+        }
+
+        return need_nb_samples;
     }
 
     Audio_Resampler::~Audio_Resampler(){
@@ -192,12 +224,13 @@ namespace rsmp {
         return w_nb;
     }
 
-    int Audio_Resampler::send_frame(uint8_t* in_data, const int& in_bytes, const int64_t& pts){
+    int Audio_Resampler::send_frame(const uint8_t* in_data, const int& in_bytes, const int64_t& pts){
+
         AVFrame frame{};
         frame.format = m_Resampler_Params.src_sample_fmt;
         frame.ch_layout = m_Resampler_Params.src_ch_layout;
         const auto sample_fmt_size{av_get_bytes_per_sample(m_Resampler_Params.src_sample_fmt)};
-        /*输入的数据数量 ÷ 每个样本的字节数(样本格式大小) ÷  通道数 */
+        /*输入的数据数量 ÷ 每个样本的字节数(样本格式大小) ÷ 通道数 */
         frame.nb_samples = in_bytes / sample_fmt_size / frame.ch_layout.nb_channels;
         frame.pts = pts;
 
@@ -210,34 +243,35 @@ namespace rsmp {
 
     AVFrame* Audio_Resampler::receive_frame(const int& nb_samples){
 
+        const auto need_nb_samples{need_samples_num(nb_samples)};
+        if (!need_nb_samples) {
+            return {};
+        }
 
-        return {};
+        auto frame {alloc_out_frame(need_nb_samples)};
+
+        if (frame) {
+            if (fifo_read_helper(frame->extended_data,need_nb_samples, frame->pts) < 0) {
+                av_frame_free(&frame);
+            }
+        }
+
+        return frame;
     }
 
     int Audio_Resampler::receive_frame(uint8_t** out_data, const int& nb_samples, int64_t& pts){
 
-        const auto _fifo_size{fifo_size()};
+        if (!out_data) {
+            std::cerr << "out_data is empty\n";
+            return AVERROR(ENOMEM);
+        }
 
-        const auto need_nb_samples{!nb_samples ? _fifo_size : nb_samples};
-        /*参数nb_samples为0,则尝试查看fifo有多数数据*/
-        if (_fifo_size < need_nb_samples || !need_nb_samples) {
-            /*如果fifo为0或fifo数据量小于需要的数据量,则退出当前函数*/
+        const auto need_nb_samples{need_samples_num(nb_samples)};
+        if (!need_nb_samples) {
             return {};
         }
 
-        const auto read_size {m_audio_fifo->read(reinterpret_cast<void**>(out_data),need_nb_samples)};
-
-        if (read_size < 0) {
-            std::cerr << "avaudio_fifo_read failed errcode : " << read_size << "\t" <<
-                AVHelper::av_get_err(read_size) << "\n";
-            return read_size;
-        }
-
-        pts = m_cur_pts;
-        m_cur_pts += need_nb_samples;
-        m_total_resampled_num += need_nb_samples;
-
-        return read_size;
+        return fifo_read_helper(out_data, need_nb_samples, pts);
     }
 
     int Audio_Resampler::fifo_size() const{
