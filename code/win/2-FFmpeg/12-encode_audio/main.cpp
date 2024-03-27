@@ -186,11 +186,14 @@ int main(const int argc,const char* argv[])
     std::pmr::unsynchronized_pool_resource mptool;
     std::ifstream in_file(argv[1],std::ios::binary);
     std::ofstream out_file(argv[2],std::ios::binary);
+
     constexpr auto codec_id {AV_CODEC_ID_AAC};
     const AVCodec * codec{};
     AVCodecContext *codec_ctx{};
+    AVPacket *pkt{};
+    AVFrame *frame{};
     uint8_t* pcm_buf{},*pcm_tmp_buf{};
-    std::size_t pcm_buf_size{};
+    std::size_t one_frame_size{};
 
     bool force_{};
     std::string code_name;
@@ -203,17 +206,20 @@ int main(const int argc,const char* argv[])
         }
     }
 
-    const Destroyer d([&](){
+     const Destroyer d([&](){
+
         if (pcm_tmp_buf){
-            mptool.deallocate(pcm_tmp_buf,pcm_buf_size);
+            mptool.deallocate(pcm_tmp_buf,one_frame_size);
         }
         if (pcm_buf){
-            mptool.deallocate(pcm_buf,pcm_buf_size);
+            mptool.deallocate(pcm_buf,one_frame_size);
         }
-
+        av_frame_free(&frame);
+        av_packet_free(&pkt);
         avcodec_free_context(&codec_ctx);
         out_file.close();
         in_file.close();
+        std::cerr << "finish\n";
     });
 
     if (!in_file){
@@ -276,13 +282,112 @@ int main(const int argc,const char* argv[])
 
     codec_ctx->flags = AV_CODEC_FLAG_GLOBAL_HEADER;  //ffmpeg默认的aac是不带adts，而fdk_aac默认带adts，这里我们强制不带
 
+    std::cout << "frame size = " << codec_ctx->frame_size << "\n";
+
     if (avcodec_open2(codec_ctx,codec,nullptr) < 0){
         std::cerr << "avcodec_open2 failed\n";
         return -1;
     }
 
+    std::cout << "frame size = " << codec_ctx->frame_size << "\n";
+    std::cout << "\n\nAudio encode config\n";
+    std::cout << "channels : " << codec_ctx->ch_layout.nb_channels << "\n";
+    std::cout << "sample_rate : " << codec_ctx->sample_rate << "\n";
+    std::cout << "sample_format : " << codec_ctx->sample_fmt << "\n";
 
+    pkt = av_packet_alloc();
+    if (!pkt) {
+        std::cerr << "av_packet_alloc failed\n";
+        return -1;
+    }
 
+    frame = av_frame_alloc();
+    if (!frame) {
+        std::cerr << "av_frame_alloc failed\n";
+        return -1;
+    }
+
+    frame->nb_samples = codec_ctx->frame_size;
+    frame->format = codec_ctx->sample_fmt;
+    frame->ch_layout = codec_ctx->ch_layout;
+
+    if (av_frame_get_buffer(frame,0) < 0) {
+        std::cerr << "Could not allocate audio data buffers\n";
+        return -1;
+    }
+    /*calc one_frame_size*/
+    const auto format_size{av_get_bytes_per_sample(static_cast<AVSampleFormat>(frame->format))};
+    one_frame_size = frame->nb_samples * format_size * frame->ch_layout.nb_channels;
+
+    try {
+        pcm_buf = static_cast<uint8_t *>(mptool.allocate(one_frame_size));
+    } catch (std::exception &e) {
+        std::cout << "alloc pcm_buf failed : " << e.what() << "\n";
+        return -1;
+    }
+    const auto is_FMT_S16{AV_SAMPLE_FMT_S16 == frame->format};
+    if (!is_FMT_S16) {
+        try {
+            pcm_tmp_buf = static_cast<uint8_t *>(mptool.allocate(one_frame_size));
+        } catch (std::exception &e) {
+            std::cout << "alloc pcm_buf failed : " << e.what() << "\n";
+            return -1;
+        }
+    }
+
+    int64_t pts {};
+    std::cout << "start enode\n";
+
+    for(;;) {
+        std::fill_n(pcm_buf,one_frame_size,0);
+        try {
+            in_file.read(reinterpret_cast<char *>(pcm_buf),static_cast<std::streamsize>(one_frame_size));
+            if (in_file.eof()) {
+                std::cerr << "read finish\n";
+                break;
+            }
+        } catch (std::exception &e) {
+            std::cerr << "read failed " << e.what() << "\n";
+            return -1;
+        }
+
+        /* 确保该frame可写,如果编码器内部保持了内存参考计数,则需要重新拷贝一个备份
+            目的是新写入的数据和编码器保存的数据不能产生冲突*/
+        if (av_frame_make_writable(frame) < 0) {
+            std::cerr << "av_frame_make_writable\n";
+        }
+
+        if (is_FMT_S16) {
+            // 将读取到的PCM数据填充到frame去，但要注意格式的匹配, 是planar还是packed都要区分清楚
+            if(av_samples_fill_arrays(frame->data,frame->linesize,pcm_buf,
+                   frame->ch_layout.nb_channels,
+                   frame->nb_samples,static_cast<AVSampleFormat>(frame->format),0) < 0) {
+                std::cerr << "1 av_samples_fill_arrays failed\n";
+                return -1;
+            }
+
+        }else {
+            // 将本地的f32le packed模式的数据转为float palanar
+            std::fill_n(pcm_tmp_buf,one_frame_size,0);
+            f32le_convert_to_fltp(reinterpret_cast<const float *>(pcm_buf),reinterpret_cast<float *>(pcm_tmp_buf),frame->nb_samples);
+            if(av_samples_fill_arrays(frame->data,frame->linesize,pcm_tmp_buf,
+                            frame->ch_layout.nb_channels,
+                            frame->nb_samples,static_cast<AVSampleFormat>(frame->format),0) < 0) {
+                std::cerr << "2 av_samples_fill_arrays failed\n";
+                return -1;
+            }
+        }
+
+        // 设置pts
+        pts += frame->nb_samples;
+        frame->pts = pts;       // 使用采样率作为pts的单位，具体换算成秒 pts*1/采样率
+        if (encode(*codec_ctx,*frame,*pkt,out_file) < 0) {
+            std::cerr << "encode failed\n";
+            break;
+        }
+    }
+
+    encode(*codec_ctx, {}, *pkt, out_file);
 
     return 0;
 }
