@@ -179,7 +179,7 @@ int main(const int argc,const char *argv[]) {
     }
 
     frame = av_frame_alloc();
-    if (!frame){
+    if (!frame) {
         std::cerr << "av_frame_alloc failed\n";
         return -1;
     }
@@ -193,6 +193,22 @@ int main(const int argc,const char *argv[]) {
         std::cerr << "Could not allocate the video frame data " << av_get_err(ret) << "\n";
         return -1;
     }
-    
+
+    one_frame_size = av_image_get_buffer_size(avCodecContext->pix_fmt,avCodecContext->width,avCodecContext->height,1);
+    if (one_frame_size < 0){
+        std::cerr << "av_image_get_buffer_size failed : " << av_get_err(one_frame_size) << "\n";
+        return -1;
+    }
+
+    one_frame_buf = static_cast<uint8_t*>(mptool.allocate(one_frame_size));
+    if (!one_frame_buf){
+        std::cerr << "yuv_buf malloc failed\n";
+        return -1;
+    }
+
+    for(;;){
+
+    }
+
     return 0;
 }
