@@ -1,8 +1,8 @@
 
 extern "C"{
 #include <libavcodec/avcodec.h>
-#include <libavcodec/codec.h>
-#include <libavcodec/codec_id.h>
+//#include <libavcodec/codec.h>
+//#include <libavcodec/codec_id.h>
 #include <libavformat/avformat.h>
 }
 
@@ -10,7 +10,7 @@ extern "C"{
 #include <fstream>
 #include <memory_resource>
 
-static std::string av_get_err(const int errnum)
+static std::string av_get_err(const int& errnum)
 {
     char err_buf[1024]{};
     av_strerror(errnum, err_buf, sizeof(err_buf));
@@ -67,7 +67,7 @@ static bool check_channel_layout(const AVCodec *codec, const AVChannelLayout &ch
 
 static void get_adts_header(const AVCodecContext *ctx, uint8_t *adts_header,const int &aac_length)
 {
-    int freq_idx {};    //0: 96000 Hz  3: 48000 Hz 4: 44100 Hz
+    int freq_idx ;    //0: 96000 Hz  3: 48000 Hz 4: 44100 Hz
     switch (ctx->sample_rate) {
         case 96000: freq_idx = 0; break;
         case 88200: freq_idx = 1; break;
@@ -99,7 +99,8 @@ static void get_adts_header(const AVCodecContext *ctx, uint8_t *adts_header,cons
 static int encode(AVCodecContext &ctx,const AVFrame &frame, AVPacket &pkt, std::ofstream &output)
 {
     /* send the frame for encoding */
-    auto ret {avcodec_send_frame(&ctx, &frame)};
+
+    auto ret {frame.extended_data ? avcodec_send_frame(&ctx, &frame) : avcodec_send_frame(&ctx, nullptr)};
 
     if (ret < 0) {
         std::cout << "Error sending the frame to the encoder\n";
@@ -108,7 +109,7 @@ static int encode(AVCodecContext &ctx,const AVFrame &frame, AVPacket &pkt, std::
 
     /* read all the available output packets (in general there may be any number of them */
     // 编码和解码都是一样的,都是send 1次,然后receive多次, 直到AVERROR(EAGAIN)或者AVERROR_EOF
-    while (ret >= 0) {
+    for(;;) {
         ret = avcodec_receive_packet(&ctx, &pkt);
         if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret ) {
             return 0;
@@ -116,7 +117,6 @@ static int encode(AVCodecContext &ctx,const AVFrame &frame, AVPacket &pkt, std::
             std::cerr << "Error encoding audio frame\n";
             return -1;
         }else{
-
         }
 
         //printf("ctx->flags:0x%x & AV_CODEC_FLAG_GLOBAL_HEADER:0x%x, name:%s\n",ctx.flags, ctx.flags & AV_CODEC_FLAG_GLOBAL_HEADER, ctx.codec->name);
@@ -152,7 +152,7 @@ static int encode(AVCodecContext &ctx,const AVFrame &frame, AVPacket &pkt, std::
         */
         // av_packet_unref(pkt);
     }
-    return -1;
+    //return -1;
 }
 
 static void f32le_convert_to_fltp(const float *f32le, float *fltp,const int &nb_samples) {
@@ -160,7 +160,7 @@ static void f32le_convert_to_fltp(const float *f32le, float *fltp,const int &nb_
     float *fltp_r = fltp + nb_samples;   // 右通道
     for(int i {}; i < nb_samples; i++) {
         fltp_l[i] = f32le[i * 2];     // 0 1   - 2 3
-        fltp_r[i] = f32le[i*2 + 1];   // 可以尝试注释左声道或者右声道听听声音
+        fltp_r[i] = f32le[i * 2 + 1];   // 可以尝试注释左声道或者右声道听听声音
     }
 }
 
@@ -176,6 +176,9 @@ private:
     const F fn;
 };
 
+/*xxx.exe xxx_FMT_S16.pcm xxx.aac libfdk_aac*/
+/*xxx.exe xxx_FMT_FLTP.pcm xxx.aac aac*/
+/*libfdk_aac只支持S16*/
 
 int main(const int argc,const char* argv[])
 {
@@ -254,7 +257,6 @@ int main(const int argc,const char* argv[])
 
     codec_ctx->codec_id = codec_id;
     codec_ctx->codec_type = AVMEDIA_TYPE_AUDIO;
-    //codec_ctx->bit_rate = 128*1024;
     codec_ctx->sample_rate = 48000;
     codec_ctx->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
     codec_ctx->profile = FF_PROFILE_AAC_LOW;
@@ -326,7 +328,9 @@ int main(const int argc,const char* argv[])
         std::cout << "alloc pcm_buf failed : " << e.what() << "\n";
         return -1;
     }
+
     const auto is_FMT_S16{AV_SAMPLE_FMT_S16 == frame->format};
+
     if (!is_FMT_S16) {
         try {
             pcm_tmp_buf = static_cast<uint8_t *>(mptool.allocate(one_frame_size));
@@ -389,6 +393,5 @@ int main(const int argc,const char* argv[])
     }
 
     encode(*codec_ctx, {}, *pkt, out_file);
-
     return 0;
 }
