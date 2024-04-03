@@ -80,7 +80,7 @@ static int encode(AVCodecContext &context,const AVFrame &frame,AVPacket &packet,
 int main(const int argc,const char *argv[]) {
 
     if (argc < 4){
-        std::cerr << "Usage: " << argv[0] << "< input_file out_file codec_name >, argc:%d\n";
+        std::cerr << "Usage: " << argv[0] << "< input_file.yuv out_file.h264 codec_name = such as libx264 >, argc:%d\n";
         return -1;
     }
 
