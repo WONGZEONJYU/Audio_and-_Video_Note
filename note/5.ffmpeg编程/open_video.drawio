@@ -1,0 +1,43 @@
+<mxfile host="Electron" modified="2024-04-09T09:08:40.268Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.1.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="27_L97RWULBO73mVflgz" version="24.1.0" type="device">
+  <diagram name="第 1 页" id="ehSb7dfmFRi_pCBwO8iK">
+    <mxGraphModel dx="2074" dy="1196" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="iOddxxOlNLn_K-lOoWb_-2" target="iOddxxOlNLn_K-lOoWb_-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-2" value="开始" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.start_2;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="830" y="80" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="iOddxxOlNLn_K-lOoWb_-3" target="iOddxxOlNLn_K-lOoWb_-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-3" value="avcodec_open2" style="rounded=0;whiteSpace=wrap;html=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="810" y="230" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-4" value="关联编码器" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="980" y="240" width="110" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="iOddxxOlNLn_K-lOoWb_-5" target="iOddxxOlNLn_K-lOoWb_-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-5" value="alloc_picture" style="rounded=0;whiteSpace=wrap;html=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="810" y="330" width="140" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-6" value="av_frame_alloc&lt;div&gt;设置pix_fmt、width、height&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;text-wrap: wrap;&quot;&gt;av_frame_get_buffer&lt;/span&gt;&lt;br&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="973" y="305" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-7" value="avcodec_parameters_from_context" style="rounded=0;whiteSpace=wrap;html=1;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="727.5" y="430" width="305" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-8" value="end" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.terminator;whiteSpace=wrap;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="830" y="550" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iOddxxOlNLn_K-lOoWb_-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="iOddxxOlNLn_K-lOoWb_-7" target="iOddxxOlNLn_K-lOoWb_-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
