@@ -76,13 +76,16 @@ bool Muxing_FLV::construct() noexcept {
 
    auto ret{avformat_alloc_output_context2(&m_fmt_ctx, nullptr, nullptr, m_filename.c_str())};
 
-   if (ret < 0){
-       //std::cerr << "avformat_alloc_output_context2 failed : " << AVHelper::av_get_err(ret) << "\n";
-       
-       return false;
-   }
+    if (ret < 0) {
+        std::cerr << "avformat_alloc_output_context2 failed code : " << ret << "\t" << AVHelper::av_get_err(ret) << "\n";
+        std::cerr << "Could not deduce output format from file extension: using flv.\n";
+        ret = avformat_alloc_output_context2(&m_fmt_ctx, nullptr, "flv", m_filename.c_str());
 
-
+        if (ret < 0){
+            std::cerr << "avformat_alloc_output_context2 failed : " << AVHelper::av_get_err(ret) << "\n";
+            return false;
+        }
+    }
 
    return true;
 }
