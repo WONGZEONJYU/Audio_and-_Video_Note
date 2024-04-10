@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.27.8)
 project(07_decode_video)
 
 set(CMAKE_CXX_STANDARD 20)
