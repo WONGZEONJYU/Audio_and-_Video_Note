@@ -42,7 +42,7 @@ static int encode(AVCodecContext &context,const AVFrame &frame,AVPacket &packet,
 
     std::cout <<__FUNCTION__  << " begin\n";
 
-    if (frame.extended_data){
+    if (frame.data[0]){
         std::cout << "Send frame " << frame.pts << "\n";
     }
 
