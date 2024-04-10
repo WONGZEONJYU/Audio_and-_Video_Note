@@ -87,7 +87,11 @@ bool Muxing_FLV::construct() noexcept {
         }
     }
 
-   return true;
+    auto output_fmt{const_cast<AVOutputFormat*>(m_fmt_ctx->oformat)};
+    output_fmt->audio_codec = static_cast<AVCodecID>(AV_CODEC_ID_AAC);
+    output_fmt->video_codec = static_cast<AVCodecID>(AV_CODEC_ID_H264);
+
+    return true;
 }
 
 Muxing_FLV::Muxing_FLV_sp_type Muxing_FLV::create(const std::string & filename) noexcept(false) {
@@ -121,3 +125,5 @@ void Muxing_FLV::destory()
 Muxing_FLV::~Muxing_FLV() {
     destory();
 }
+
+

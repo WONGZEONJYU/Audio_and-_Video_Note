@@ -6,6 +6,7 @@
 #define INC_14_MUXING_FLV_MUXING_FLV_H
 
 #include <memory>
+#include <string>
 #include "SwrContext_t.h"
 #include "SwsContext_t.h"
 
@@ -49,9 +50,11 @@ class Muxing_FLV final {
                               const int &width,const int &height);
     static AVFrame *get_audio_frame(OutputStream &ost);
 
+
     explicit Muxing_FLV(std::string );
     bool construct() noexcept;
     void destory();
+    bool add_stream(OutputStream &outputStream);
 public:
     using Muxing_FLV_sp_type = std::shared_ptr<Muxing_FLV>;
     Muxing_FLV(const Muxing_FLV&) = delete;
@@ -62,7 +65,7 @@ public:
 private:
     const std::string m_filename;
     AVFormatContext *m_fmt_ctx{};
-    //AVCodec *video_codec{},*audio_codec{};
+    AVCodec *video_codec{},*audio_codec{};
     AVDictionary* opt{};
     OutputStream m_video_ost{},m_audio_ost{};
 };
