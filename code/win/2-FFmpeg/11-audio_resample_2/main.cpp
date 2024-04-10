@@ -177,9 +177,9 @@ int main(const int argc,const char* argv[])
     const auto get_size{fifo_size > dst_nb_samples ? dst_nb_samples : fifo_size};
     const auto receivce_size{resampler->receive_frame(dst_data,get_size,out_pts)};
 
-    if (receivce_size > 0){
+    if (receivce_size > 0){ /*av_samples_set_silence用于填充音频缓冲区*/
         av_samples_set_silence(dst_data, receivce_size, dst_nb_samples - receivce_size,
-            dst_nb_channels, params.dst_sample_fmt);
+            dst_nb_channels, params.dst_sample_fmt); /*用静音填充*/
         const auto dst_bufsize {av_samples_get_buffer_size(&dst_linesize, dst_nb_channels,
                                                       dst_nb_samples, params.dst_sample_fmt, 1)};
 
