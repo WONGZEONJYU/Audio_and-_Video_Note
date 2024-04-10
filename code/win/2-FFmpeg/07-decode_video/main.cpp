@@ -30,6 +30,7 @@ static void print_video_format(const AVFrame &frame)
 static void decode(AVCodecContext &dec_ctx,const AVPacket &pkt, AVFrame &frame,
                    ofstream &outfile)
 {
+
     /* send the packet with the compressed data to the decoder */
     auto ret { avcodec_send_packet(&dec_ctx, &pkt)};
     if(AVERROR(EAGAIN) == ret){
@@ -220,9 +221,7 @@ int main(const int argc,const char* argv[])
         }
     }
 
-    pkt.data = nullptr;
-    pkt.size = 0;
-    decode(*codec_ctx,pkt,decoded_frame,out_file);
+    decode(*codec_ctx,{},decoded_frame,out_file);
 
     std::cout << "main finish, please enter Enter and exit\n";
     return 0;
