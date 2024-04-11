@@ -1,4 +1,3 @@
-
 extern "C"{
 #include <libswscale/swscale.h>
 }
@@ -7,9 +6,9 @@ extern "C"{
 #include <iostream>
 
 bool SwsContext_t::construct(const int &srcW,const int &srcH,
-                             const AVPixelFormat srcFormat,
+                             const AVPixelFormat &srcFormat,
                              const int &dstW,const int &dstH,
-                             const AVPixelFormat dstFormat,
+                             const AVPixelFormat &dstFormat,
                              const int &flags,
                              SwsFilter *const srcFilter,
                              SwsFilter *const dstFilter,
@@ -22,9 +21,9 @@ bool SwsContext_t::construct(const int &srcW,const int &srcH,
 }
 
 SwsContext_t::SwsContext_t_sp_type SwsContext_t::create(const int &srcW,const int &srcH,
-                                                        const AVPixelFormat srcFormat,
+                                                        const AVPixelFormat &srcFormat,
                                                         const int &dstW,const int &dstH,
-                                                        const AVPixelFormat dstFormat,
+                                                        const AVPixelFormat &dstFormat,
                                                         const int &flags,
                                                         SwsFilter *const srcFilter,
                                                         SwsFilter *const dstFilter,
@@ -46,4 +45,9 @@ SwsContext_t::SwsContext_t_sp_type SwsContext_t::create(const int &srcW,const in
 
 SwsContext_t::~SwsContext_t() {
     sws_freeContext(m_sws);
+}
+
+int SwsContext_t::sws_scale(const uint8_t *const *srcSlice, const int *srcStride, const int &srcSliceY,
+                            const int &srcSliceH, uint8_t *const *dst, const int *dstStride) {
+    return ::sws_scale(m_sws,srcSlice,srcStride,srcSliceY,srcSliceH,dst,dstStride);
 }

@@ -22,8 +22,7 @@ struct AVDictionary;
 class Muxing_FLV final {
 
     static inline constexpr auto STREAM_DURATION{5.0};
-    static inline constexpr auto STREAM_FRAME_RATE{25};
-    static inline constexpr auto STREAM_PIX_FMT{AV_PIX_FMT_YUV420P};
+
     // 封装单个输出AVStream
 //    struct OutputStream final {
 //        OutputStream(const OutputStream&) = delete;

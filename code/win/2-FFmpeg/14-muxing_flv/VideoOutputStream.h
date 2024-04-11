@@ -10,17 +10,20 @@ struct AVStream;
 struct AVFrame;
 struct AVCodec;
 struct AVCodecContext;
+enum AVPixelFormat;
 
 class VideoOutputStream final : public OutputStreamAbstract {
 
-    static void fill_yuv_image(AVFrame &pict,const int &frame_index,
-                    const int &width, const int &height);
-
+    static inline constexpr auto STREAM_PIX_FMT{AV_PIX_FMT_YUV420P};
+    static inline constexpr auto STREAM_FRAME_RATE{25};
+    void fill_yuv_image(AVFrame &pict);
+    AVFrame *alloc_picture();
     explicit VideoOutputStream(AVFormatContext &);
     bool construct();
     void init_codec_parms();
     bool add_stream();
     bool open();
+    bool sws_init();
 
 public:
     void write_frame() override;
