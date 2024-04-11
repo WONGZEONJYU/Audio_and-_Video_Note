@@ -35,6 +35,12 @@ set(SRC_FILE main.cpp
         SwsContext_t.h
         AVHelper.cpp
         AVHelper.h
+        OutputStreamAbstract.cpp
+        OutputStreamAbstract.h
+        VideoOutputStream.cpp
+        VideoOutputStream.h
+        AudioOutputStream.cpp
+        AudioOutputStream.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})

@@ -2,6 +2,9 @@
 #define INC_14_MUXING_FLV_SWSCONTEXT_T_H
 
 #include <memory>
+extern "C"{
+#include <libavutil/pixfmt.h>
+};
 
 struct SwsContext;
 enum AVPixelFormat;

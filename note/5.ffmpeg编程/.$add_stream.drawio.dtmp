@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-04-10T15:49:38.838Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.1.0 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="-4qh-jBsdmmsDO0KUFRk" version="24.1.0" type="device">
+<mxfile host="Electron" modified="2024-04-11T04:19:03.142Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="T0gpXCe2fz02b_3AUN-7" version="22.1.2" type="device">
   <diagram name="第 1 页" id="bIt8fHNzmymoWnp6kEOg">
-    <mxGraphModel dx="1242" dy="793" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
+    <mxGraphModel dx="1713" dy="982" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2336" pageHeight="1654" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -16,7 +16,7 @@
         <mxCell id="75t309C0qriGHZeRkGCD-2" value="avcodec_find_encoder" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" parent="1" vertex="1">
           <mxGeometry x="705" y="190" width="190" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="jSjlnvqLo7mJ36wqMOcA-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="75t309C0qriGHZeRkGCD-3" target="jSjlnvqLo7mJ36wqMOcA-1">
+        <mxCell id="jSjlnvqLo7mJ36wqMOcA-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="75t309C0qriGHZeRkGCD-3" target="jSjlnvqLo7mJ36wqMOcA-1" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="75t309C0qriGHZeRkGCD-3" value="avformat_new_stream" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" parent="1" vertex="1">
@@ -38,7 +38,7 @@
           <mxGeometry x="735" y="797" width="130" height="60" as="geometry" />
         </mxCell>
         <mxCell id="75t309C0qriGHZeRkGCD-13" value="初始化编码器参数" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=18;" parent="1" vertex="1">
-          <mxGeometry x="920" y="520" width="170" height="40" as="geometry" />
+          <mxGeometry x="910" y="600" width="170" height="40" as="geometry" />
         </mxCell>
         <mxCell id="75t309C0qriGHZeRkGCD-14" value="codec_ctx-&amp;gt;flags |= AV_CODEC_FLAG_GLOBAL_HEADER;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=16;" parent="1" vertex="1">
           <mxGeometry x="645" y="680" width="310" height="60" as="geometry" />
@@ -46,10 +46,10 @@
         <mxCell id="75t309C0qriGHZeRkGCD-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="75t309C0qriGHZeRkGCD-14" target="75t309C0qriGHZeRkGCD-7" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="jSjlnvqLo7mJ36wqMOcA-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="jSjlnvqLo7mJ36wqMOcA-1" target="75t309C0qriGHZeRkGCD-5">
+        <mxCell id="jSjlnvqLo7mJ36wqMOcA-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="jSjlnvqLo7mJ36wqMOcA-1" target="75t309C0qriGHZeRkGCD-5" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="jSjlnvqLo7mJ36wqMOcA-1" value="AVStream-&amp;gt;id =&amp;nbsp;&lt;span style=&quot;background-color: rgb(31, 31, 31); color: rgb(204, 204, 204); font-family: Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; white-space: pre;&quot;&gt;AVFormatContext-&amp;gt;&lt;/span&gt;&lt;span style=&quot;color: rgb(156, 220, 254); background-color: rgb(31, 31, 31); font-family: Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; white-space: pre;&quot;&gt;nb_streams&lt;/span&gt;&lt;span style=&quot;background-color: rgb(31, 31, 31); color: rgb(204, 204, 204); font-family: Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; white-space: pre;&quot;&gt; - 1&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="jSjlnvqLo7mJ36wqMOcA-1" value="AVStream-&amp;gt;id =&amp;nbsp;&lt;span style=&quot;background-color: rgb(31, 31, 31); color: rgb(204, 204, 204); font-family: Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; white-space: pre;&quot;&gt;AVFormatContext-&amp;gt;&lt;/span&gt;&lt;span style=&quot;color: rgb(156, 220, 254); background-color: rgb(31, 31, 31); font-family: Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; white-space: pre;&quot;&gt;nb_streams&lt;/span&gt;&lt;span style=&quot;background-color: rgb(31, 31, 31); color: rgb(204, 204, 204); font-family: Menlo, Monaco, &amp;quot;Courier New&amp;quot;, monospace; white-space: pre;&quot;&gt; - 1&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="635" y="380" width="330" height="60" as="geometry" />
         </mxCell>
       </root>
