@@ -76,11 +76,19 @@ namespace  AVHelper {
     void log_packet(const AVFormatContext &fmt_ctx, const AVPacket &pkt) {
 
         const auto time_base{&fmt_ctx.streams[pkt.stream_index]->time_base};
+        char str_temp[AV_TS_MAX_STRING_SIZE]{};
 
-        std::cout << "pts: " << av_ts2str(pkt.pts) << " , pts_time: " << av_ts2timestr(pkt.pts, time_base) <<
-                " , dts: " << av_ts2str(pkt.dts) << " , dts_time: " << av_ts2timestr(pkt.dts, time_base) <<
-                " , duration: " << av_ts2str(pkt.duration) << " , duration_time: " << av_ts2timestr(pkt.duration, time_base) <<
-               " , stream_index " << pkt.stream_index << "\n" << std::flush;
+        const auto fill_str_temp{[&]{
+            std::fill_n(str_temp,AV_TS_MAX_STRING_SIZE,0);
+        }};
+
+        std::cout << "pts: " << av_ts_make_string(str_temp,pkt.pts) <<
+                " , pts_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.pts, time_base)) <<
+                " , dts: " << (fill_str_temp(),av_ts_make_string(str_temp,pkt.dts)) <<
+                " , dts_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.dts, time_base)) <<
+                " , duration: " << (fill_str_temp(),av_ts_make_string(str_temp,pkt.duration)) <<
+                " , duration_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.duration, time_base)) <<
+                " , stream_index " << pkt.stream_index << "\n" << std::flush;
     }
 
 }

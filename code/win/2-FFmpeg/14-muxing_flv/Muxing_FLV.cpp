@@ -26,16 +26,28 @@ bool Muxing_FLV::construct() noexcept {
 
         if (ret < 0){
             std::cerr << "avformat_alloc_output_context2 failed : " << AVHelper::av_get_err(ret) << "\n";
-            return false;
+            return {};
         }
     }
 
-    auto output_fmt{const_cast<AVOutputFormat*>(m_fmt_ctx->oformat)};
-    output_fmt->audio_codec = static_cast<AVCodecID>(AV_CODEC_ID_AAC);
-    output_fmt->video_codec = static_cast<AVCodecID>(AV_CODEC_ID_H264);
+    auto &output_fmt{const_cast<AVOutputFormat&>(*(m_fmt_ctx->oformat))};
 
+//    std::cout << avcodec_get_name(output_fmt.video_codec) << "\n" <<
+//    avcodec_get_name(output_fmt.audio_codec) << "\n";
 
-    return true;
+//    output_fmt.audio_codec = static_cast<AVCodecID>(AV_CODEC_ID_AAC);
+//    output_fmt.video_codec = static_cast<AVCodecID>(AV_CODEC_ID_H264);
+
+    try {
+        video_output_stream = VideoOutputStream::create(*m_fmt_ctx);
+    } catch (std::exception &e) {
+        std::cerr << e.what() << "\n";
+        return {};
+    }
+
+    av_dump_format(m_fmt_ctx, 0, m_filename.c_str(), 1);
+
+    return open_media_file();
 }
 
 Muxing_FLV::Muxing_FLV_sp_type Muxing_FLV::create(const std::string & filename) noexcept(false) {
@@ -58,7 +70,7 @@ void Muxing_FLV::destory()
 {
     if (m_fmt_ctx){
         if (!(m_fmt_ctx->flags & AVFMT_NOFILE)) {
-            avio_close(m_fmt_ctx->pb);
+            avio_closep(&m_fmt_ctx->pb);
         }
 
         avformat_free_context(m_fmt_ctx);
@@ -70,14 +82,55 @@ Muxing_FLV::~Muxing_FLV() {
     destory();
 }
 
-bool Muxing_FLV::add_stream() {
+void Muxing_FLV::exec() noexcept{
 
+    if (!write_header()){
+        return;
+    }
 
-    return false;
+    bool video{};
+    do {
+        video = video_output_stream->write_frame();
+    } while (video);
+
+    write_trailer();
 }
 
-void Muxing_FLV::init_codec_parms() {
+bool Muxing_FLV::open_media_file() {
 
+    if (!(m_fmt_ctx->flags & AVFMT_NOFILE)){
+        const auto ret{avio_open(&m_fmt_ctx->pb,m_filename.c_str(),AVIO_FLAG_WRITE)};
+        if (ret < 0){
+            std::cerr << "Could not open " << m_filename << " : " << AVHelper::av_get_err(ret) << "\n";
+            return {};
+        }
+    }
+
+    return true;
 }
 
+bool Muxing_FLV::write_header() {
 
+    // audio AVstream->base_time = 1/44100, video AVstream->base_time = 1/25
+    /* 写头部到底做了什么操作呢？ 对应steam的time_base被改写和封装格式有关系*/
+    // base_time audio = 1/1000  , video = 1/1000
+    const auto ret{avformat_write_header(m_fmt_ctx, nullptr)};
+    if (ret < 0){
+        std::cerr << "Error occurred when opening output file: " << AVHelper::av_get_err(ret) << "\n";
+        return {};
+    }
+
+    return true;
+}
+
+bool Muxing_FLV::write_trailer() {
+
+    const auto ret{av_write_trailer(m_fmt_ctx)};
+
+    if(ret < 0){
+        std::cerr << "av_write_trailer failed: " << AVHelper::av_get_err(ret) << "\n";
+        return {};
+    }
+
+    return true;
+}

@@ -1,4 +1,5 @@
 #include <iostream>
+#include "Muxing_FLV.h"
 
 int main(const int argc,const char* argv[]) {
 
@@ -14,7 +15,13 @@ int main(const int argc,const char* argv[]) {
         return -1;
     }
 
-
+    try {
+        auto m{Muxing_FLV::create(argv[1])};
+        m->exec();
+    } catch (std::exception &e) {
+        std::cerr << e.what() << "\n";
+        return -1;
+    }
 
     return 0;
 }

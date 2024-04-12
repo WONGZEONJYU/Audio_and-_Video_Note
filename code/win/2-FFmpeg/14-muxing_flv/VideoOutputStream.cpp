@@ -3,7 +3,6 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
-#include <libavformat/avio.h>
 }
 
 #include <iostream>
@@ -52,39 +51,40 @@ void VideoOutputStream::fill_yuv_image(AVFrame &pict)
     }
 }
 
-bool VideoOutputStream::construct()
+bool VideoOutputStream::construct() noexcept
 {
-   return add_stream() && open();
+   return add_stream() && open() && sws_init();
 }
 
+/*
+ * 初始化编码器参数
+ */
 void VideoOutputStream::init_codec_parms()
 {
-    m_avCodecContext->codec_id = m_avFormatContext.oformat->video_codec;
+    m_avCodecContext->codec_id = m_fmt_ctx.oformat->video_codec;
     m_avCodecContext->bit_rate = 400000;
     /* Resolution must be a multiple of two. */
     m_avCodecContext->width = 352;      // 分辨率
     m_avCodecContext->height = 288;
-    m_avCodecContext->max_b_frames = 1;
+   // m_avCodecContext->max_b_frames = 1;
     /* timebase: This is the fundamental unit of time (in seconds) in terms
      * of which frame timestamps are represented. For fixed-fps content,
      * timebase should be 1/framerate and timestamp increments should be
      * identical to 1. */
-    m_stream->time_base = { 1, AV_PIX_FMT_YUV420P };  // 时基
+    m_stream->time_base = { 1, STREAM_FRAME_RATE };  // 时基
     m_avCodecContext->time_base = m_stream->time_base;    // 为什么这里需要设置
     m_avCodecContext->gop_size = STREAM_FRAME_RATE; //
     m_avCodecContext->pix_fmt = STREAM_PIX_FMT;
 
     /* Some formats want stream headers to be separate. */
-    if (m_avFormatContext.oformat->flags & AVFMT_GLOBALHEADER){
+    if (m_fmt_ctx.oformat->flags & AVFMT_GLOBALHEADER){
         m_avCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
 }
 
-VideoOutputStream::VideoOutputStream(AVFormatContext &oc):m_avFormatContext(oc){}
-
 bool VideoOutputStream::add_stream() {
 
-    const auto v_codec_id{m_avFormatContext.oformat->video_codec};
+    const auto v_codec_id{m_fmt_ctx.oformat->video_codec};
     /* 查找编码器 */
     m_codec = avcodec_find_encoder(v_codec_id);
 
@@ -93,13 +93,13 @@ bool VideoOutputStream::add_stream() {
         return {};
     }
 
-    m_stream = avformat_new_stream(&m_avFormatContext, nullptr);
+    m_stream = avformat_new_stream(&m_fmt_ctx, nullptr);
     if (!m_stream){
         std::cerr << "Could not allocate stream\n";
         return {};
     }
 
-    m_stream->id = static_cast<int>(m_avFormatContext.nb_streams - 1);
+    m_stream->id = static_cast<int>(m_fmt_ctx.nb_streams - 1);
 
     m_avCodecContext = avcodec_alloc_context3(m_codec);
     if (!m_avCodecContext){
@@ -144,16 +144,85 @@ bool VideoOutputStream::open()
     return true;
 }
 
-void VideoOutputStream::write_frame()
-{
+bool VideoOutputStream::sws_init() noexcept{
 
+    if (STREAM_PIX_FMT != m_avCodecContext->pix_fmt){
+        try {
+            m_sws = SwsContext_t::create(m_avCodecContext->width,m_avCodecContext->height,STREAM_PIX_FMT,
+                                         m_avCodecContext->width,m_avCodecContext->height,STREAM_PIX_FMT,
+                                         SWS_BICUBIC, nullptr, nullptr, nullptr);
+        } catch (std::runtime_error &e) {
+            std::cerr << e.what() << "\n";
+            return {};
+        }
+    }
+
+    return true;
+}
+
+bool VideoOutputStream::get_one_frame() noexcept(false)
+{
+    /*生成5秒的视频 , 如果超过5秒 , 不再生成帧*/
+    if (av_compare_ts(m_next_pts,m_avCodecContext->time_base,
+                      STREAM_DURATION,{1,1}) >= 0){
+        return {};
+    }
+
+    /* when we pass a frame to the encoder, it may keep a reference to it
+ * internally; make sure we do not overwrite it here */
+    auto ret {av_frame_make_writable(m_frame)};
+    if (ret < 0){
+        throw std::runtime_error("av_frame_make_writable failed :" + AVHelper::av_get_err(ret) + "\n");
+    }
+
+    if (STREAM_PIX_FMT != m_avCodecContext->pix_fmt){
+        fill_yuv_image(*m_tmp_frame);
+        m_sws->sws_scale(m_tmp_frame->data,m_tmp_frame->linesize,0,m_avCodecContext->height,
+                         m_frame->data,m_frame->linesize);
+    }else{
+        fill_yuv_image(*m_frame);
+    };
+
+    m_frame->pts = m_next_pts++;
+
+    return true;
+}
+
+bool VideoOutputStream::write_frame() noexcept(false)
+{
+    try {
+        if (get_one_frame()){
+
+            AVPacket pkt{};
+
+            if (!AVHelper::encode(*m_avCodecContext,*m_frame,pkt)){
+                throw std::runtime_error("encode error\n");
+            }
+
+            const auto ret{write_media_file(m_fmt_ctx,m_avCodecContext->time_base,*m_stream,pkt)};
+            if (ret < 0){
+                throw std::runtime_error("Error while writing video frame: " + AVHelper::av_get_err(ret) + "\n");
+            }
+
+        }else{
+            return {};
+        }
+
+    } catch (std::runtime_error &e) {
+        throw std::runtime_error(e.what());
+    }
+
+    return true;
 }
 
 VideoOutputStream::~VideoOutputStream() {
+    std::cerr << __FUNCTION__ << "\n";
     avcodec_free_context(&m_avCodecContext);
     av_frame_free(&m_frame);
     av_frame_free(&m_tmp_frame);
 }
+
+VideoOutputStream::VideoOutputStream(AVFormatContext &oc):m_fmt_ctx(oc){}
 
 std::shared_ptr<OutputStreamAbstract> VideoOutputStream::create(AVFormatContext &oc)
 {
@@ -165,33 +234,8 @@ std::shared_ptr<OutputStreamAbstract> VideoOutputStream::create(AVFormatContext 
             throw std::runtime_error("VideoOutputStream construct failed\n");
         }
         return obj;
-    } catch (std::exception &e) {
+    } catch (std::bad_alloc &e) {
         std::cerr << e.what() << "\n";
         throw std::runtime_error("new VideoOutputStream failed\n");
     }
 }
-
-bool VideoOutputStream::sws_init() {
-
-//    sws_getContext(codec_ctx->width, codec_ctx->height,
-//                   AV_PIX_FMT_YUV420P,
-//                   codec_ctx->width, codec_ctx->height,
-//                   codec_ctx->pix_fmt,
-//                   SCALE_FLAGS, NULL, NULL, NULL);
-
-    if (STREAM_PIX_FMT != m_avCodecContext->pix_fmt){
-        try {
-            m_sws = SwsContext_t::create();
-        } catch (std::runtime_error &e) {
-            return {};
-        }
-    }
-
-    return true;
-}
-
-
-
-
-
-

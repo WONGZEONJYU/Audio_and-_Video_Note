@@ -4,11 +4,8 @@
 #include <memory>
 extern "C"{
 #include <libavutil/pixfmt.h>
+#include <libswscale/swscale.h>
 };
-
-struct SwsContext;
-enum AVPixelFormat;
-struct SwsFilter;
 
 class SwsContext_t final {
 
