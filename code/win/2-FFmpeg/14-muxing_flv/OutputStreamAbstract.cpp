@@ -10,5 +10,6 @@ int OutputStreamAbstract::write_media_file(AVFormatContext &fmt_ctx, const AVRat
     av_packet_rescale_ts(&pkt, time_base, st.time_base);
     pkt.stream_index = st.index;
     AVHelper::log_packet(fmt_ctx,pkt);
-    return av_interleaved_write_frame(&fmt_ctx, &pkt);
+    //return av_interleaved_write_frame(&fmt_ctx, &pkt);
+    return av_write_frame(&fmt_ctx,&pkt);
 }

@@ -90,7 +90,13 @@ void Muxing_FLV::exec() noexcept{
 
     bool video{};
     do {
-        video = video_output_stream->write_frame();
+        try {
+            video = video_output_stream->write_frame();
+        } catch (std::runtime_error &e) {
+            std::cerr << e.what() << "\n";
+            return;
+        }
+
     } while (video);
 
     write_trailer();

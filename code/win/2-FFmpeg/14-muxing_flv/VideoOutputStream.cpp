@@ -61,18 +61,20 @@ bool VideoOutputStream::construct() noexcept
  */
 void VideoOutputStream::init_codec_parms()
 {
-    m_avCodecContext->codec_id = m_fmt_ctx.oformat->video_codec;
+    //m_avCodecContext->codec_id = m_fmt_ctx.oformat->video_codec;
+    m_avCodecContext->codec_id = AV_CODEC_ID_H264;
     m_avCodecContext->bit_rate = 400000;
     /* Resolution must be a multiple of two. */
     m_avCodecContext->width = 352;      // 分辨率
     m_avCodecContext->height = 288;
-   // m_avCodecContext->max_b_frames = 1;
+    m_avCodecContext->max_b_frames = 1;
     /* timebase: This is the fundamental unit of time (in seconds) in terms
      * of which frame timestamps are represented. For fixed-fps content,
      * timebase should be 1/framerate and timestamp increments should be
      * identical to 1. */
     m_stream->time_base = { 1, STREAM_FRAME_RATE };  // 时基
     m_avCodecContext->time_base = m_stream->time_base;    // 为什么这里需要设置
+    m_avCodecContext->framerate = {STREAM_FRAME_RATE,1};
     m_avCodecContext->gop_size = STREAM_FRAME_RATE; //
     m_avCodecContext->pix_fmt = STREAM_PIX_FMT;
 
@@ -84,7 +86,7 @@ void VideoOutputStream::init_codec_parms()
 
 bool VideoOutputStream::add_stream() {
 
-    const auto v_codec_id{m_fmt_ctx.oformat->video_codec};
+    const auto v_codec_id{AV_CODEC_ID_H264};
     /* 查找编码器 */
     m_codec = avcodec_find_encoder(v_codec_id);
 
@@ -181,7 +183,7 @@ bool VideoOutputStream::get_one_frame() noexcept(false)
                          m_frame->data,m_frame->linesize);
     }else{
         fill_yuv_image(*m_frame);
-    };
+    }
 
     m_frame->pts = m_next_pts++;
 
@@ -201,6 +203,7 @@ bool VideoOutputStream::write_frame() noexcept(false)
 
             const auto ret{write_media_file(m_fmt_ctx,m_avCodecContext->time_base,*m_stream,pkt)};
             if (ret < 0){
+
                 throw std::runtime_error("Error while writing video frame: " + AVHelper::av_get_err(ret) + "\n");
             }
 

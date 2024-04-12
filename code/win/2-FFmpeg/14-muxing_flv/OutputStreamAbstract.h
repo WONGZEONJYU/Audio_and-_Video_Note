@@ -8,7 +8,7 @@ struct AVPacket;
 
 class OutputStreamAbstract {
 public:
-    [[nodiscard]] virtual bool write_frame() = 0;
+    [[nodiscard]] virtual bool write_frame() noexcept(false) = 0 ;
 protected:
    static int write_media_file(AVFormatContext&,const AVRational&,AVStream&,AVPacket&);
 };

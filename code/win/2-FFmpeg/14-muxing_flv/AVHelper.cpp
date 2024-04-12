@@ -36,6 +36,7 @@ namespace  AVHelper {
                 std::cerr << "Error during decoding : " << av_get_err(ret) << "\n";
                 return false;
             }
+
         }
     }
 
@@ -44,7 +45,7 @@ namespace  AVHelper {
 
         auto ret {frame.data[0] ? avcodec_send_frame( &context,&frame) : avcodec_send_frame(&context, nullptr)};
 
-        if (AVERROR(EAGAIN) == ret  || AVERROR_EOF == ret ){
+        if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret ){
             std::cerr << "Receive_packet and send_frame both returned EAGAIN, which is an API violation.\n";
         }else if (ret < 0) {
             std::cerr << "avcodec_send_frame failed : " << ret << "\t" << av_get_err(ret) << "\n";
@@ -52,13 +53,12 @@ namespace  AVHelper {
         }else{}
 
         for (;;) {
-
             ret = avcodec_receive_packet(&context,&packet);
             if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret){
-                std::cerr << "avcodec_receive_packet failed : " << ret << "\t" << av_get_err(ret) << "\n";
+                std::cerr << "avcodec_receive_packet failed: " << ret << "\t" << av_get_err(ret) << "\n";
                 return true;
             }else if(ret < 0){
-                std::cerr << "Error during encoding : " << ret << "\t" << av_get_err(ret) << "\n";
+                std::cerr << "Error during encoding: " << ret << "\t" << av_get_err(ret) << "\n";
                 return false;
             }else{}
 #if 0
@@ -82,13 +82,13 @@ namespace  AVHelper {
             std::fill_n(str_temp,AV_TS_MAX_STRING_SIZE,0);
         }};
 
-        std::cout << "pts: " << av_ts_make_string(str_temp,pkt.pts) <<
+        std::cerr << "pts: " << av_ts_make_string(str_temp,pkt.pts) <<
                 " , pts_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.pts, time_base)) <<
                 " , dts: " << (fill_str_temp(),av_ts_make_string(str_temp,pkt.dts)) <<
                 " , dts_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.dts, time_base)) <<
                 " , duration: " << (fill_str_temp(),av_ts_make_string(str_temp,pkt.duration)) <<
                 " , duration_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.duration, time_base)) <<
-                " , stream_index " << pkt.stream_index << "\n" << std::flush;
+                " , stream_index " << pkt.stream_index << "\n" ;
     }
 
 }
