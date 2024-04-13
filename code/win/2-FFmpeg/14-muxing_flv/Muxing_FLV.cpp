@@ -15,25 +15,13 @@ extern "C"{
 
 Muxing_FLV::Muxing_FLV(std::string filename):m_filename(std::move(filename)){}
 
-bool Muxing_FLV::construct() noexcept {
+bool Muxing_FLV::construct() noexcept
+{
+    const auto ret {alloc_fmt_ctx()};
 
-   auto ret{avformat_alloc_output_context2(&m_fmt_ctx, nullptr, nullptr, m_filename.c_str())};
-
-    if (ret < 0) {
-        std::cerr << "avformat_alloc_output_context2 failed code : " << ret << "\t" << AVHelper::av_get_err(ret) << "\n";
-        std::cerr << "Could not deduce output format from file extension: using flv.\n";
-        ret = avformat_alloc_output_context2(&m_fmt_ctx, nullptr, "flv", m_filename.c_str());
-
-        if (ret < 0){
-            std::cerr << "avformat_alloc_output_context2 failed : " << AVHelper::av_get_err(ret) << "\n";
-            return {};
-        }
+    if (!ret){
+        return {};
     }
-
-    auto &output_fmt{const_cast<AVOutputFormat&>(*(m_fmt_ctx->oformat))};
-
-//    std::cout << avcodec_get_name(output_fmt.video_codec) << "\n" <<
-//    avcodec_get_name(output_fmt.audio_codec) << "\n";
 
 //    output_fmt.audio_codec = static_cast<AVCodecID>(AV_CODEC_ID_AAC);
 //    output_fmt.video_codec = static_cast<AVCodecID>(AV_CODEC_ID_H264);
@@ -50,11 +38,10 @@ bool Muxing_FLV::construct() noexcept {
     return open_media_file();
 }
 
-Muxing_FLV::Muxing_FLV_sp_type Muxing_FLV::create(const std::string & filename) noexcept(false) {
-
+Muxing_FLV::Muxing_FLV_sp_type Muxing_FLV::create(const std::string & filename) noexcept(false)
+{
     try {
         Muxing_FLV_sp_type obj(new Muxing_FLV(filename));
-
         if (!obj->construct()){
             obj.reset();
             throw std::runtime_error("Muxing_FLV construct failed\n");
@@ -68,6 +55,7 @@ Muxing_FLV::Muxing_FLV_sp_type Muxing_FLV::create(const std::string & filename) 
 
 void Muxing_FLV::destory()
 {
+    std::cerr << __FUNCTION__ << "\n";
     if (m_fmt_ctx){
         if (!(m_fmt_ctx->flags & AVFMT_NOFILE)) {
             avio_closep(&m_fmt_ctx->pb);
@@ -100,6 +88,24 @@ void Muxing_FLV::exec() noexcept{
     } while (video);
 
     write_trailer();
+}
+
+bool Muxing_FLV::alloc_fmt_ctx() {
+
+    auto ret{avformat_alloc_output_context2(&m_fmt_ctx, nullptr, nullptr, m_filename.c_str())};
+
+    if (ret < 0) {
+        std::cerr << "avformat_alloc_output_context2 failed code : " << ret << "\t" << AVHelper::av_get_err(ret) << "\n";
+        std::cerr << "Could not deduce output format from file extension: using flv.\n";
+        ret = avformat_alloc_output_context2(&m_fmt_ctx, nullptr, "flv", m_filename.c_str());
+
+        if (ret < 0){
+            std::cerr << "avformat_alloc_output_context2 failed : " << AVHelper::av_get_err(ret) << "\n";
+            return {};
+        }
+    }
+
+    return true;
 }
 
 bool Muxing_FLV::open_media_file() {
@@ -140,3 +146,5 @@ bool Muxing_FLV::write_trailer() {
 
     return true;
 }
+
+

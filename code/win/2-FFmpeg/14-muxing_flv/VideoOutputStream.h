@@ -17,6 +17,7 @@ class VideoOutputStream final : public OutputStreamAbstract {
     static inline constexpr auto STREAM_PIX_FMT{AV_PIX_FMT_YUV420P};
     static inline constexpr auto STREAM_FRAME_RATE{25};
     static inline constexpr auto STREAM_DURATION{5.0};
+
     void fill_yuv_image(AVFrame &pict);
     AVFrame *alloc_picture();
     bool get_one_frame() noexcept(false);
