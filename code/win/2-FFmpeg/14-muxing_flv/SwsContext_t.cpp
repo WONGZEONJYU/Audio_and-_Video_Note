@@ -12,11 +12,11 @@ bool SwsContext_t::construct(const int &srcW,const int &srcH,
                              const int &flags,
                              SwsFilter *const srcFilter,
                              SwsFilter *const dstFilter,
-                             const double *param) noexcept {
+                             const double *param) noexcept
+{
 
     m_sws = sws_getContext(srcW, srcH, srcFormat,dstW, dstH, dstFormat,
                            flags, srcFilter,dstFilter,param);
-
     return m_sws;
 }
 
@@ -37,13 +37,14 @@ SwsContext_t::SwsContext_t_sp_type SwsContext_t::create(const int &srcW,const in
             throw std::runtime_error("sws_getContext failed\n");
         }
         return obj;
-    } catch (std::bad_alloc &e) {
+    } catch (const std::bad_alloc &e) {
         std::cerr << e.what() << "\n";
         throw std::runtime_error("SwsContext_t construct failed\n");
     }
 }
 
 SwsContext_t::~SwsContext_t() {
+    std::cerr << __FUNCTION__ << "\n";
     sws_freeContext(m_sws);
 }
 

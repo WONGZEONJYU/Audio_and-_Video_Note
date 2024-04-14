@@ -20,7 +20,7 @@ SwrContext_t::SwrContext_sp_t SwrContext_t::create() noexcept(false){
             throw std::runtime_error("swr_alloc failed\n");
         }
         return obj;
-    } catch (std::bad_alloc &e) {
+    } catch (const std::bad_alloc &e) {
         std::cerr << e.what() << "\n";
         throw std::runtime_error("SwrContext_t construct failed\n");
     }
@@ -29,7 +29,7 @@ SwrContext_t::SwrContext_sp_t SwrContext_t::create() noexcept(false){
 bool SwrContext_t::init() const{
 
     const auto ret {swr_init(m_swr_ctx)};
-    return ret < 0 ? (std::cerr << AVHelper::av_get_err(ret),false):true;
+    return ret >= 0 || (std::cerr << AVHelper::av_get_err(ret) << "\n", false);
 }
 
 int SwrContext_t::convert(uint8_t **out,const int &out_count,
@@ -58,5 +58,6 @@ int64_t SwrContext_t::get_delay(const int64_t& base) const
 }
 
 SwrContext_t::~SwrContext_t(){
+    std::cerr << __FUNCTION__ << "\n";
     swr_free(&m_swr_ctx);
 }

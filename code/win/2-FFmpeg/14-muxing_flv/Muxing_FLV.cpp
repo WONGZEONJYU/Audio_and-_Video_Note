@@ -12,7 +12,6 @@ extern "C"{
 
 /* Prepare a 16 bit dummy audio frame of 'frame_size' samples and
  * 'nb_channels' channels. */
-
 Muxing_FLV::Muxing_FLV(std::string filename):m_filename(std::move(filename)){}
 
 bool Muxing_FLV::construct() noexcept
@@ -28,6 +27,7 @@ bool Muxing_FLV::construct() noexcept
 
     try {
         video_output_stream = VideoOutputStream::create(*m_fmt_ctx);
+        audio_output_stream = AudioOutputStream::create(*m_fmt_ctx);
     } catch (std::exception &e) {
         std::cerr << e.what() << "\n";
         return {};
@@ -38,7 +38,7 @@ bool Muxing_FLV::construct() noexcept
     return open_media_file();
 }
 
-Muxing_FLV::Muxing_FLV_sp_type Muxing_FLV::create(const std::string & filename) noexcept(false)
+Muxing_FLV::Muxing_FLV_sp_type Muxing_FLV::create(const std::string &filename) noexcept(false)
 {
     try {
         Muxing_FLV_sp_type obj(new Muxing_FLV(filename));
@@ -53,8 +53,7 @@ Muxing_FLV::Muxing_FLV_sp_type Muxing_FLV::create(const std::string & filename) 
     }
 }
 
-void Muxing_FLV::destory()
-{
+Muxing_FLV::~Muxing_FLV() {
     std::cerr << __FUNCTION__ << "\n";
     if (m_fmt_ctx){
         if (!(m_fmt_ctx->flags & AVFMT_NOFILE)) {
@@ -66,26 +65,34 @@ void Muxing_FLV::destory()
     }
 }
 
-Muxing_FLV::~Muxing_FLV() {
-    destory();
-}
-
 void Muxing_FLV::exec() noexcept{
 
     if (!write_header()){
         return;
     }
 
-    bool video{};
-    do {
+    auto video{true},audio{true};
+
+    while (video || audio){
+
         try {
-            video = video_output_stream->write_frame();
-        } catch (std::runtime_error &e) {
+            // video_st.next_pts值 <= audio_st.next_pts时
+            const auto min {av_compare_ts(video_output_stream->nex_pts(),video_output_stream->time_base(),
+                                         audio_output_stream->nex_pts(),audio_output_stream->time_base()) <= 0};
+
+            if (video && (!audio || min)){
+                std::cerr << "write video\n";
+                video = video_output_stream->write_frame();
+            }else{
+                std::cerr << "write audio\n";
+                audio = audio_output_stream->write_frame();
+            }
+
+        }catch (const std::runtime_error &e){
             std::cerr << e.what() << "\n";
             return;
         }
-
-    } while (video);
+    }
 
     write_trailer();
 }
@@ -146,5 +153,3 @@ bool Muxing_FLV::write_trailer() {
 
     return true;
 }
-
-

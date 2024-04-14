@@ -18,7 +18,7 @@ int main(const int argc,const char* argv[]) {
     try {
         auto m{Muxing_FLV::create(argv[1])};
         m->exec();
-    } catch (std::exception &e) {
+    } catch (const std::exception &e) {
         std::cerr << e.what() << "\n";
         return -1;
     }

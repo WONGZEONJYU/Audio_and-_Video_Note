@@ -16,9 +16,9 @@ AVFrame *VideoOutputStream::alloc_picture()
         return {};
     }
 
-    frame->width = m_avCodecContext->width;
-    frame->height = m_avCodecContext->height;
-    frame->format = m_avCodecContext->pix_fmt;
+    frame->width = m_codec_ctx->width;
+    frame->height = m_codec_ctx->height;
+    frame->format = m_codec_ctx->pix_fmt;
 
     if (av_frame_get_buffer(frame, 32) < 0){
         std::cerr << "Could not allocate frame data.\n";
@@ -32,8 +32,8 @@ AVFrame *VideoOutputStream::alloc_picture()
 void VideoOutputStream::fill_yuv_image(AVFrame &pict)
 {
     const auto frame_index{m_next_pts};
-    const auto width {m_avCodecContext->width},
-            height{m_avCodecContext->height};
+    const auto width {m_codec_ctx->width},
+            height{m_codec_ctx->height};
 
     /* Y */
     for (int y {}; y < height; y++){
@@ -53,19 +53,19 @@ void VideoOutputStream::fill_yuv_image(AVFrame &pict)
 
 bool VideoOutputStream::construct() noexcept
 {
-   return add_stream() && open() && sws_init();
+   return add_stream(m_fmt_ctx.oformat->video_codec) && open_video() && sws_init();
 }
 
 /*
  * 初始化编码器参数
  */
-void VideoOutputStream::init_codec_parms()
+void VideoOutputStream::config_codec_params()
 {
    // m_avCodecContext->codec_id = m_fmt_ctx.oformat->video_codec;
-    m_avCodecContext->bit_rate = 400000;
+    m_codec_ctx->bit_rate = 400000;
     /* Resolution must be a multiple of two. */
-    m_avCodecContext->width = 352;      // 分辨率
-    m_avCodecContext->height = 288;
+    m_codec_ctx->width = 352;      // 分辨率
+    m_codec_ctx->height = 288;
     //m_avCodecContext->max_b_frames = 1;
     /* timebase: This is the fundamental unit of time (in seconds) in terms
      * of which frame timestamps are represented. For fixed-fps content,
@@ -74,51 +74,20 @@ void VideoOutputStream::init_codec_parms()
     m_stream->time_base = { 1, STREAM_FRAME_RATE };  // 时基
     //m_avCodecContext->framerate = {STREAM_FRAME_RATE,1};
 
-    m_avCodecContext->time_base = m_stream->time_base;    // 为什么这里需要设置
+    m_codec_ctx->time_base = m_stream->time_base;    // 为什么这里需要设置
 
-    m_avCodecContext->gop_size = STREAM_FRAME_RATE; //
-    m_avCodecContext->pix_fmt = STREAM_PIX_FMT;
+    m_codec_ctx->gop_size = STREAM_FRAME_RATE; //
+    m_codec_ctx->pix_fmt = STREAM_PIX_FMT;
 
     /* Some formats want stream headers to be separate. */
     if (m_fmt_ctx.oformat->flags & AVFMT_GLOBALHEADER){
-        m_avCodecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+        m_codec_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
     }
 }
 
-bool VideoOutputStream::add_stream()
+bool VideoOutputStream::open_video()
 {
-    const auto v_codec_id{m_fmt_ctx.oformat->video_codec};
-    /* 查找编码器 */
-    m_codec = avcodec_find_encoder(v_codec_id);
-
-    if (!m_codec){
-        std::cerr << "Could not find encoder for " << avcodec_get_name(v_codec_id) << "\n";
-        return {};
-    }
-
-    m_stream = avformat_new_stream(&m_fmt_ctx, nullptr);
-    if (!m_stream){
-        std::cerr << "Could not allocate stream\n";
-        return {};
-    }
-
-    m_stream->id = static_cast<int>(m_fmt_ctx.nb_streams - 1);
-
-    m_avCodecContext = avcodec_alloc_context3(m_codec);
-    if (!m_avCodecContext){
-        std::cerr << "Could not alloc an encoding context\n";
-        return {};
-    }
-
-    init_codec_parms();
-    /*初始化编码器参数*/
-
-    return true;
-}
-
-bool VideoOutputStream::open()
-{
-    auto ret {avcodec_open2(m_avCodecContext, m_codec, nullptr)};
+    auto ret {avcodec_open2(m_codec_ctx, m_codec, nullptr)};
     if (ret < 0){
         std::cerr << "Could not open video codec: " << AVHelper::av_get_err(ret) << "\n";
         return {};
@@ -129,7 +98,7 @@ bool VideoOutputStream::open()
         return {};
     }
 
-    if (AV_PIX_FMT_YUV420P != m_avCodecContext->pix_fmt){
+    if (AV_PIX_FMT_YUV420P != m_codec_ctx->pix_fmt){
         // 编码器格式需要的数据不是 AV_PIX_FMT_YUV420P才需要 调用图像scale
         m_tmp_frame = alloc_picture();
         if (!m_tmp_frame){
@@ -139,7 +108,7 @@ bool VideoOutputStream::open()
     }
 
     /* copy the stream parameters to the muxer */
-    if(avcodec_parameters_from_context(m_stream->codecpar, m_avCodecContext) < 0){
+    if(avcodec_parameters_from_context(m_stream->codecpar, m_codec_ctx) < 0){
         std::cerr << "Could not copy the stream parameters\n";
         return {};
     }
@@ -149,12 +118,12 @@ bool VideoOutputStream::open()
 
 bool VideoOutputStream::sws_init() noexcept{
 
-    if (STREAM_PIX_FMT != m_avCodecContext->pix_fmt){
+    if (STREAM_PIX_FMT != m_codec_ctx->pix_fmt){
         try {
-            m_sws = SwsContext_t::create(m_avCodecContext->width,m_avCodecContext->height,STREAM_PIX_FMT,
-                                         m_avCodecContext->width,m_avCodecContext->height,STREAM_PIX_FMT,
+            m_sws = SwsContext_t::create(m_codec_ctx->width,m_codec_ctx->height,STREAM_PIX_FMT,
+                                         m_codec_ctx->width,m_codec_ctx->height,STREAM_PIX_FMT,
                                          SWS_BICUBIC, nullptr, nullptr, nullptr);
-        } catch (std::runtime_error &e) {
+        } catch (const std::runtime_error &e) {
             std::cerr << e.what() << "\n";
             return {};
         }
@@ -166,21 +135,21 @@ bool VideoOutputStream::sws_init() noexcept{
 bool VideoOutputStream::get_one_frame() noexcept(false)
 {
     /*生成5秒的视频 , 如果超过5秒 , 不再生成帧*/
-    if (av_compare_ts(m_next_pts,m_avCodecContext->time_base,
+    if (av_compare_ts(m_next_pts,m_codec_ctx->time_base,
                       STREAM_DURATION,{1,1}) >= 0){
         return {};
     }
 
     /* when we pass a frame to the encoder, it may keep a reference to it
- * internally; make sure we do not overwrite it here */
+    * internally; make sure we do not overwrite it here */
     auto ret {av_frame_make_writable(m_frame)};
     if (ret < 0){
         throw std::runtime_error("av_frame_make_writable failed :" + AVHelper::av_get_err(ret) + "\n");
     }
 
-    if (STREAM_PIX_FMT != m_avCodecContext->pix_fmt){
+    if (STREAM_PIX_FMT != m_codec_ctx->pix_fmt){
         fill_yuv_image(*m_tmp_frame);
-        m_sws->sws_scale(m_tmp_frame->data,m_tmp_frame->linesize,0,m_avCodecContext->height,
+        m_sws->sws_scale(m_tmp_frame->data,m_tmp_frame->linesize,0,m_codec_ctx->height,
                          m_frame->data,m_frame->linesize);
     }else{
         fill_yuv_image(*m_frame);
@@ -194,49 +163,31 @@ bool VideoOutputStream::get_one_frame() noexcept(false)
 bool VideoOutputStream::write_frame() noexcept(false)
 {
     try {
-        if (get_one_frame()){
-
-            AVPacket pkt{};
-
-            if (!AVHelper::encode(*m_avCodecContext,*m_frame,pkt,[&]{
-               const auto ret{write_media_file(m_fmt_ctx,m_avCodecContext->time_base,*m_stream,pkt)};
-                if (ret < 0){
-                    throw std::runtime_error("Error while writing video frame: " + AVHelper::av_get_err(ret) + "\n");
-                }
-            })){
-                throw std::runtime_error("encode error\n");
-            }
-
-        }else{
-            return {};
-        }
-
-    } catch (std::runtime_error &e) {
+        const auto b { get_one_frame()};
+        const auto *frame{b ? m_frame : nullptr};
+        AVPacket pkt{};
+        AVHelper::encode(m_codec_ctx,frame,&pkt,[&]{
+               write_media_file(pkt);
+            });
+        return b;
+    } catch (const std::runtime_error &e) {
         throw std::runtime_error(e.what());
     }
-
-    return true;
 }
 
-VideoOutputStream::~VideoOutputStream() {
-    std::cerr << __FUNCTION__ << "\n";
-    avcodec_free_context(&m_avCodecContext);
-    av_frame_free(&m_frame);
-    av_frame_free(&m_tmp_frame);
-}
-
-VideoOutputStream::VideoOutputStream(AVFormatContext &oc):m_fmt_ctx(oc){}
+VideoOutputStream::VideoOutputStream(AVFormatContext &oc):
+OutputStreamAbstract(oc){}
 
 std::shared_ptr<OutputStreamAbstract> VideoOutputStream::create(AVFormatContext &oc)
 {
     try {
-        std::shared_ptr<VideoOutputStream> obj(new VideoOutputStream(oc));
+        VideoOutputStream_sp_type obj(new VideoOutputStream(oc));
         if (!obj->construct()){
             obj.reset();
             throw std::runtime_error("VideoOutputStream construct failed\n");
         }
         return obj;
-    } catch (std::bad_alloc &e) {
+    } catch (const std::bad_alloc &e) {
         std::cerr << e.what() << "\n";
         throw std::runtime_error("new VideoOutputStream failed\n");
     }

@@ -162,6 +162,9 @@ int main(const int argc,const char* argv[]) {
     * converted input samples
     */
     // 计算输出采样数量
+
+    //计算公式: out_count = in_count ÷ in_sample_rate × out_sample_rate
+
     max_dst_nb_samples = dst_nb_samples =
         av_rescale_rnd(src_nb_samples, dst_rate, src_rate, AV_ROUND_UP);
     // 分配输出缓存内存
