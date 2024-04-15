@@ -9,6 +9,8 @@ struct AVCodecContext;
 struct AVFrame;
 struct AVRational;
 
+#include <memory>
+
 class OutputStreamAbstract {
 
 protected:
@@ -24,14 +26,15 @@ public:
     OutputStreamAbstract(const OutputStreamAbstract&) = delete;
     OutputStreamAbstract& operator=(const OutputStreamAbstract&) = delete;
     [[nodiscard]] virtual bool write_frame() noexcept(false) = 0 ;
-    [[nodiscard("nodiscard nex_pts value")]] auto nex_pts() const{return m_next_pts;};
-    [[nodiscard("nodiscard time_base value")]] AVRational time_base() const;
+    [[nodiscard("nodiscard nex_pts value")]] auto nex_pts() const noexcept(true){return m_next_pts;};
+    [[nodiscard("nodiscard time_base value")]] AVRational time_base() const noexcept(true);
 protected:
-    virtual void config_codec_params() = 0;
-    explicit OutputStreamAbstract(AVFormatContext&);
-    virtual ~OutputStreamAbstract() noexcept;
+    using OutputStreamAbstract_sp_type = std::shared_ptr<OutputStreamAbstract>;
+    virtual void config_codec_params() noexcept(true) = 0;
+    explicit OutputStreamAbstract(AVFormatContext&) noexcept;
+    virtual ~OutputStreamAbstract() ;
     void write_media_file(AVPacket &) noexcept(false);
-    bool add_stream(const int&) noexcept;
+    void add_stream(const int&) noexcept(false);
 };
 
 #endif

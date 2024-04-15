@@ -6,38 +6,51 @@ extern "C"{
 #include "AVHelper.h"
 #include <iostream>
 
-bool SwrContext_t::construct() {
+void SwrContext_t::construct() noexcept(false){
     m_swr_ctx = swr_alloc();
-    return m_swr_ctx;
+    if (!m_swr_ctx){
+        throw std::runtime_error("swr_alloc failed\n");
+    }
 }
 
 SwrContext_t::SwrContext_sp_t SwrContext_t::create() noexcept(false){
 
+    SwrContext_sp_t obj;
+
     try {
-        SwrContext_sp_t obj(new SwrContext_t);
-        if (!obj->construct()) {
-            obj.reset();
-            throw std::runtime_error("swr_alloc failed\n");
-        }
-        return obj;
+        obj = std::move(SwrContext_sp_t(new SwrContext_t));
     } catch (const std::bad_alloc &e) {
-        std::cerr << e.what() << "\n";
-        throw std::runtime_error("SwrContext_t construct failed\n");
+        throw std::runtime_error("new SwrContext_t failed: " + std::string (e.what()) + "\n");
+    }
+
+    try {
+        obj->construct();
+        return obj;
+    } catch (const std::runtime_error &e) {
+        obj.reset();
+        throw std::runtime_error("SwrContext_t construct failed: " + std::string(e.what()) + "\n");
     }
 }
 
-bool SwrContext_t::init() const{
+void SwrContext_t::init() const noexcept(false){
 
     const auto ret {swr_init(m_swr_ctx)};
-    return ret >= 0 || (std::cerr << AVHelper::av_get_err(ret) << "\n", false);
+    if (ret < 0){
+        throw std::runtime_error(AVHelper::av_get_err(ret) + "\n");
+    }
 }
 
 int SwrContext_t::convert(uint8_t **out,const int &out_count,
-    const uint8_t **in, const int &in_count) const {
-    return swr_convert(m_swr_ctx,out,out_count,in,in_count);
+    const uint8_t **in, const int &in_count) const noexcept(false) {
+
+    auto ret {swr_convert(m_swr_ctx,out,out_count,in,in_count)};
+    if (ret < 0){
+        throw std::runtime_error("swr_convert failed: " + AVHelper::av_get_err(ret) + "\n");
+    }
+    return ret;
 }
 
-int SwrContext_t::opt_set_chlayout(const std::string& name, const AVChannelLayout* layout, const int& search_flags) const
+int SwrContext_t::opt_set_ch_layout(const std::string& name, const AVChannelLayout* layout, const int& search_flags) const
 {
     return av_opt_set_chlayout(m_swr_ctx, name.c_str(),layout, search_flags);
 }

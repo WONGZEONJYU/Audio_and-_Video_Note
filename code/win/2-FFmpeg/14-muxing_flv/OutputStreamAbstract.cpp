@@ -23,42 +23,38 @@ void OutputStreamAbstract::write_media_file(AVPacket &pkt) noexcept(false)
     }
 }
 
-bool OutputStreamAbstract::add_stream(const int& codec_id) noexcept
+void OutputStreamAbstract::add_stream(const int& codec_id) noexcept(false)
 {
     /* 查找编码器 */
     m_codec = avcodec_find_encoder(static_cast<AVCodecID>(codec_id));
     if (!m_codec){
-        std::cerr << "Could not find encoder for " << static_cast<AVCodecID>(codec_id) << "\n";
-        return {};
+        throw std::runtime_error("Could not find encoder for " + std::string(avcodec_get_name(static_cast<AVCodecID>(codec_id))) + "\n");
     }
 
     m_stream = avformat_new_stream(&m_fmt_ctx, nullptr);
     if (!m_stream){
-        std::cerr << "Could not allocate stream\n";
-        return {};
+        throw std::runtime_error("Could not allocate stream\n");
     }
 
     m_stream->id = static_cast<int>(m_fmt_ctx.nb_streams - 1);
 
     m_codec_ctx = avcodec_alloc_context3(m_codec);
     if (!m_codec_ctx){
-        std::cerr << "Could not alloc an encoding context\n";
-        return {};
+        throw std::runtime_error("Could not alloc an encoding context\n");
     }
 
     config_codec_params();
-    return true;
 }
 
-OutputStreamAbstract::OutputStreamAbstract(AVFormatContext &oc):m_fmt_ctx(oc) {}
+OutputStreamAbstract::OutputStreamAbstract(AVFormatContext &oc) noexcept :m_fmt_ctx(oc) {}
 
-OutputStreamAbstract::~OutputStreamAbstract() noexcept{
+OutputStreamAbstract::~OutputStreamAbstract() {
     std::cerr << __FUNCTION__ << "\n";
     avcodec_free_context(&m_codec_ctx);
     av_frame_free(&m_frame);
     av_frame_free(&m_tmp_frame);
 }
 
-AVRational OutputStreamAbstract::time_base() const{
+AVRational OutputStreamAbstract::time_base()  const noexcept(true){
     return m_codec_ctx->time_base;
 }
