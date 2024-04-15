@@ -59,9 +59,7 @@ Muxing_FLV::~Muxing_FLV() {
         if (!(m_fmt_ctx->flags & AVFMT_NOFILE)) {
             avio_closep(&m_fmt_ctx->pb);
         }
-
-        avformat_free_context(m_fmt_ctx);
-        m_fmt_ctx = nullptr;
+        avformat_close_input(&m_fmt_ctx);
     }
 }
 
