@@ -4,4 +4,10 @@
 
 #include "Muxer.h"
 
+Muxer::Muxer(const char *url) {
 
+}
+
+void Muxer::construct() noexcept(false) {
+
+}

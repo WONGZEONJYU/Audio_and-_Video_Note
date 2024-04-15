@@ -14,7 +14,7 @@ extern "C"{
 
 namespace AVHelper {
 
-    std::string av_get_err(const int& );
+    std::string av_get_err(const int&);
 
     template<typename F,typename ...Args>
     void decode(AVCodecContext *codec_ctx,const AVPacket *pkt,AVFrame *frame,F&& f,Args&& ...args) noexcept(false)
@@ -68,11 +68,11 @@ namespace AVHelper {
             }else{}
 
             f(args...);
+
         }
     }
 
     void log_packet(const AVFormatContext &, const AVPacket &);
 }
 
-
-#endif //AVHELPER_H
+#endif
