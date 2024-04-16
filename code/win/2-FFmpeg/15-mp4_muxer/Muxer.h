@@ -8,6 +8,8 @@
 #include <string>
 #include <memory>
 
+#include "MuxerAbstract.h"
+
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVStream;
@@ -15,20 +17,21 @@ struct AVStream;
 class Muxer {
 
     explicit Muxer(const char*);
-    void construct() noexcept(false);
+    void Construct() noexcept(false);
+    void DeConstruct() noexcept;
 public:
     using Muxer_sp_type = std::shared_ptr<Muxer>;
-    Muxer(const Muxer&) = delete;
-    Muxer& operator=(const Muxer&) = delete;
+    ~Muxer();
+    void Send_header();
+    void Send_packet() noexcept(false);
+    void Send_trailer() noexcept(false);
 
 private:
     AVFormatContext *m_fmt_ctx{};
     AVCodecContext *m_codec_ctx{};
-    AVStream* m_video_stream{},*m_audio_stream{};
+    AVStream* stream{};
     int m_video_index{-1},m_audio_index{-1};
     std::string m_url;
-
 };
-
 
 #endif //INC_15_MP4_MUXER_MUXER_H
