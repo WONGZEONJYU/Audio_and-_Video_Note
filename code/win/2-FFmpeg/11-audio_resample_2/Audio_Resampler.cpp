@@ -79,7 +79,6 @@ namespace rsmp {
 
     Audio_Resampler::Audio_Resampler(const Audio_Resampler_Params &params):
     m_Resampler_Params{params} {
-
     }
 
     bool Audio_Resampler::init_resampled_data(){
@@ -92,8 +91,8 @@ namespace rsmp {
                                                                 m_Resampler_Params.dst_sample_fmt,
                                                                 0)};
 
-        return ret < 0 ? (std::cerr << "fail accocate audio resampled data buffer errcode : " <<
-            ret << "\t" << AVHelper::av_get_err(ret) << "\n",false):true;
+        return ret >= 0 || (std::cerr << "fail accocate audio resampled data buffer errcode : " <<
+                                      ret << "\t" << AVHelper::av_get_err(ret) << "\n", false);
     }
 
     void Audio_Resampler::destory_resampled_data(){

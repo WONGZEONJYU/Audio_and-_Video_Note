@@ -61,7 +61,7 @@ namespace AVHelper {
         for (;;) {
             ret = avcodec_receive_packet(codec_ctx,packet);
             if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret){
-                //std::cerr << "avcodec_receive_packet failed: " << ret << "\t" << av_get_err(ret) << "\n";
+                std::cerr << "avcodec_receive_packet failed: " << ret << "\t" << av_get_err(ret) << "\n";
                 return;
             }else if(ret < 0){
                 throw std::runtime_error("Error during encoding: " + std::to_string(ret) + "\t" + av_get_err(ret) + "\n");

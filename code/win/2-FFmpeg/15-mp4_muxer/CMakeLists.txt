@@ -35,6 +35,8 @@ set(SRC_FILE main.cpp
         MuxerAbstract.h
         Muxer_mp4.cpp
         Muxer_mp4.h
+        OutputStreamAbstract.cpp
+        OutputStreamAbstract.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
