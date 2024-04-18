@@ -4,9 +4,3 @@
 
 #include "OutputStreamAbstract.h"
 
-
-OutputStreamAbstract::OutputStreamAbstract(AVFormatContext& ) {
-
-}
-
-

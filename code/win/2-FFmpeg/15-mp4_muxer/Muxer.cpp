@@ -14,7 +14,7 @@ Muxer::Muxer_sp_type Muxer::create(std::string &&url) {
     try {
         obj = Muxer_sp_type(new Muxer(std::move(url)));
     } catch (const std::bad_alloc &e) {
-        throw std::runtime_error("new Muxer failed\n");
+        throw std::runtime_error("new Muxer failed: " + std::string(e.what()) + "\n");
     }
 
     try {
@@ -30,30 +30,76 @@ Muxer::Muxer(std::string &&url):m_url(std::move(url)) {
 
 }
 
-void Muxer::Construct() noexcept(false) {
+void Muxer::Construct() {
 
+    Alloc_FormatContext();
+    open();
+}
+
+void Muxer::Alloc_FormatContext() noexcept(false){
+    const auto ret {avformat_alloc_output_context2(&m_fmt_ctx, nullptr, nullptr,m_url.c_str())};
+    if (ret < 0){
+        throw std::runtime_error("avformat_alloc_output_context2 failed: " + AVHelper::av_get_err(ret) + "\n");
+    }
 }
 
 void Muxer::open() noexcept(false) {
 
+    if (!(m_fmt_ctx->flags & AVFMT_NOFILE)){
+        const auto ret{avio_open(&m_fmt_ctx->pb,m_url.c_str(),AVIO_FLAG_WRITE)};
+        if (ret < 0){
+            throw std::runtime_error("Could not open " + m_url + " : " + AVHelper::av_get_err(ret) + "\n");
+        }
+    }
 }
-
 
 void Muxer::Send_header() {
-
+   const auto ret{avformat_write_header(m_fmt_ctx, nullptr)};
+    if (ret < 0){
+        throw std::runtime_error("avformat_write_header failed: " + AVHelper::av_get_err(ret) + "\n");
+    }
 }
 
-void Muxer::Send_packet() noexcept(false) {
+void Muxer::Send_packet(AVPacket *pkt,const AVRational &src,const AVRational& dst) noexcept(false) {
 
+    if (!pkt){
+        return;
+    }
+
+    // 时间基转换
+    pkt->pts = av_rescale_q(pkt->pts,src,dst);
+    pkt->dts = av_rescale_q(pkt->dts,src,dst);
+    pkt->duration = av_rescale_q(pkt->duration,src,dst);
+
+    const auto ret{av_interleaved_write_frame(m_fmt_ctx,pkt)};
+    av_packet_free(&pkt);
+    if (ret < 0){
+        throw std::runtime_error("av_interleaved_write_frame failed: " + AVHelper::av_get_err(ret) + "\n");
+    }
 }
 
 void Muxer::Send_trailer() noexcept(false) {
+    const auto ret{av_write_trailer(m_fmt_ctx)};
+    if (ret < 0){
+        throw std::runtime_error("av_write_trailer failed: " + AVHelper::av_get_err(ret ) + "\n");
+    }
+}
 
+AVStream *Muxer::create_stream() noexcept(false)
+{
+    auto stream{avformat_new_stream(m_fmt_ctx, nullptr)};
+    if (!stream){
+        throw std::runtime_error("stream is empty\n");
+    }
+
+    return stream;
 }
 
 void Muxer::DeConstruct() noexcept {
     if (m_fmt_ctx){
-        avio_close(m_fmt_ctx->pb);
+        if (!(m_fmt_ctx->flags & AVFMT_NOFILE)) {
+            avio_closep(&m_fmt_ctx->pb);
+        }
         avformat_close_input(&m_fmt_ctx);
     }
 }
@@ -61,4 +107,3 @@ void Muxer::DeConstruct() noexcept {
 Muxer::~Muxer() {
     DeConstruct();
 }
-
