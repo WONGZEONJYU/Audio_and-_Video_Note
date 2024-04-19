@@ -27,14 +27,16 @@ public:
     using Muxer_sp_type = std::shared_ptr<Muxer>;
     static Muxer_sp_type create(std::string &&) noexcept(false);
     ~Muxer();
-    void Send_header();
-    void Send_packet(const ShareAVPacket::ShareAVPacket_sp_type& ,const AVRational &,const AVRational &) noexcept(false);
-    void Send_trailer() noexcept(false);
-    AVStream *create_stream() noexcept(false);
+    void Send_header() const noexcept(false);
+    void Send_packet(const ShareAVPacket_sp_type& ,const AVRational &,const AVRational &) const noexcept(false);
+    void Send_trailer() const noexcept(false);
+    [[nodiscard]] AVStream *create_stream() const noexcept(false);
 
 private:
     const std::string m_url;
     AVFormatContext *m_fmt_ctx{};
 };
+
+using Muxer_sp_type = typename Muxer::Muxer_sp_type ;
 
 #endif //INC_15_MP4_MUXER_MUXER_H

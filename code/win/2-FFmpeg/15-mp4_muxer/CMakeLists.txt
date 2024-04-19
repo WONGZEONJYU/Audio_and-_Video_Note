@@ -47,6 +47,8 @@ set(SRC_FILE main.cpp
         ShareAVFrame.hpp
         ShareAVPacket.cpp
         ShareAVPacket.hpp
+        SwrContext_t.cpp
+        SwrContext_t.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})

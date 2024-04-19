@@ -5,24 +5,25 @@
 #ifndef INC_15_MP4_MUXER_VIDEOOUTPUTSTREAM_H
 #define INC_15_MP4_MUXER_VIDEOOUTPUTSTREAM_H
 
-#include <memory>
 #include "OutputStreamAbstract.h"
-
-#include "EncoderAbstract.h"
+#include "VideoEncoder.h"
 
 struct AVStream;
 
+class Muxer;
+
 class VideoOutputStream: public OutputStreamAbstract{
 
-    void Construct() noexcept(false);
     explicit VideoOutputStream()  = default;
-
+    void Construct(const Muxer*) noexcept(false);
 public:
     using VideoOutputStream_sp_type = std::shared_ptr<VideoOutputStream>;
-    static VideoOutputStream_sp_type create();
+    static VideoOutputStream_sp_type create(const Muxer *);
 
 private:
-
+    VideoEncoder_sp_type video_encoder;
 };
+
+using VideoOutputStream_sp_type = typename VideoOutputStream::VideoOutputStream_sp_type;
 
 #endif

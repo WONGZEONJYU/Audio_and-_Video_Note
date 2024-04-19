@@ -11,6 +11,7 @@ extern "C"{
 
 void EncoderAbstract::encode(const ShareAVFrame_sp_type &frame, const int &stream_index, const long long int &pts,
                              const AVRational &time_base,vector_type &packets) const noexcept(false) {
+
     auto pkt{ShareAVPacket::create()};
 
     if (frame){
@@ -19,12 +20,8 @@ void EncoderAbstract::encode(const ShareAVFrame_sp_type &frame, const int &strea
 
     AVHelper::encode("video",m_codec_ctx,frame->m_frame,pkt->m_packet,[&]{
         pkt->m_packet->stream_index = stream_index;
-        packets.push_back(pkt);
+        packets.push_back(std::move(pkt));
     });
-}
-
-AVRational EncoderAbstract::time_base() const noexcept(true) {
-    return m_codec_ctx->time_base;
 }
 
 EncoderAbstract::~EncoderAbstract() {

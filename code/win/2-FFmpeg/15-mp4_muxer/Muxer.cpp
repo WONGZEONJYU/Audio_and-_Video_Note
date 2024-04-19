@@ -30,8 +30,7 @@ Muxer::Muxer(std::string &&url):m_url(std::move(url)) {
 
 }
 
-void Muxer::Construct() {
-
+void Muxer::Construct() noexcept(false){
     Alloc_FormatContext();
     open();
 }
@@ -53,15 +52,16 @@ void Muxer::open() noexcept(false) {
     }
 }
 
-void Muxer::Send_header() {
+void Muxer::Send_header() const noexcept(false){
    const auto ret{avformat_write_header(m_fmt_ctx, nullptr)};
     if (ret < 0){
         throw std::runtime_error("avformat_write_header failed: " + AVHelper::av_get_err(ret) + "\n");
     }
 }
 
-void Muxer::Send_packet(const ShareAVPacket::ShareAVPacket_sp_type& pkt,const AVRational &src,const AVRational& dst) noexcept(false) {
-
+void Muxer::Send_packet(const ShareAVPacket_sp_type& pkt,
+                        const AVRational &src,const AVRational& dst) const noexcept(false)
+{
     // 时间基转换
     pkt->m_packet->pts = av_rescale_q(pkt->m_packet->pts,src,dst);
     pkt->m_packet->dts = av_rescale_q(pkt->m_packet->dts,src,dst);
@@ -74,14 +74,14 @@ void Muxer::Send_packet(const ShareAVPacket::ShareAVPacket_sp_type& pkt,const AV
     }
 }
 
-void Muxer::Send_trailer() noexcept(false) {
+void Muxer::Send_trailer() const noexcept(false) {
     const auto ret{av_write_trailer(m_fmt_ctx)};
     if (ret < 0){
         throw std::runtime_error("av_write_trailer failed: " + AVHelper::av_get_err(ret ) + "\n");
     }
 }
 
-AVStream *Muxer::create_stream() noexcept(false)
+[[maybe_unused]] AVStream *Muxer::create_stream() const noexcept(false)
 {
     auto stream{avformat_new_stream(m_fmt_ctx, nullptr)};
     if (!stream){
@@ -91,7 +91,7 @@ AVStream *Muxer::create_stream() noexcept(false)
     return stream;
 }
 
-void Muxer::DeConstruct() noexcept {
+void Muxer::DeConstruct() noexcept(true) {
     if (m_fmt_ctx){
         if (!(m_fmt_ctx->flags & AVFMT_NOFILE)) {
             avio_closep(&m_fmt_ctx->pb);

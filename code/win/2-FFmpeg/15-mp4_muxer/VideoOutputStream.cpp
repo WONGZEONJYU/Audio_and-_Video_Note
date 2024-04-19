@@ -3,13 +3,13 @@
 //
 
 #include "VideoOutputStream.h"
+#include "Muxer.h"
 
-
-void VideoOutputStream::Construct() noexcept(false) {
-
+void VideoOutputStream::Construct(const Muxer *muxer) noexcept(false) {
+    
 }
 
-VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create() {
+VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create(const Muxer* muxer) {
 
     VideoOutputStream_sp_type obj;
 
@@ -20,7 +20,7 @@ VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create() {
     }
 
     try {
-        obj->Construct();
+        obj->Construct(muxer);
         return obj;
     } catch (const std::runtime_error &e) {
         obj.reset();

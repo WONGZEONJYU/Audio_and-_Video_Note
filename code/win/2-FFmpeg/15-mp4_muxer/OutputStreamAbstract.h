@@ -22,11 +22,11 @@ public:
     OutputStreamAbstract& operator=(const OutputStreamAbstract&) = delete;
 
     using OutputStreamAbstract_sp_type = std::shared_ptr<OutputStreamAbstract>;
-    [[nodiscard]]  int Stream_index() const noexcept(true) {
+    [[nodiscard]] int Stream_index() const noexcept(true) {
         return m_stream->index;
     }
 
-    [[nodiscard]]  AVRational Stream_time_base() const noexcept(true){
+    [[nodiscard]] AVRational Stream_time_base() const noexcept(true){
         return m_stream->time_base;
     };
 
@@ -38,6 +38,6 @@ protected:
     virtual ~OutputStreamAbstract() = default;
 };
 
-using OutputStreamAbstract_sp_type = typename std::shared_ptr<OutputStreamAbstract>;
+using OutputStreamAbstract_sp_type = typename OutputStreamAbstract::OutputStreamAbstract_sp_type ;
 
 #endif

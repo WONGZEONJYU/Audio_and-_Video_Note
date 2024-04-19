@@ -26,12 +26,16 @@ public:
     void encode(const ShareAVFrame_sp_type &,const int &stream_index,const long long &pts,
                        const AVRational& time_base,vector_type& ) const noexcept(false);
 
-    [[nodiscard]] AVRational time_base() const noexcept(true) ;
+    [[nodiscard]] AVRational time_base() const noexcept(true) {
+        return m_codec_ctx->time_base;
+    }
 
 protected:
     AVCodecContext *m_codec_ctx{};
     explicit EncoderAbstract() = default;
     virtual ~EncoderAbstract();
 };
+
+using EncoderAbstract_sp_type = typename EncoderAbstract::EncoderAbstract_sp_type;
 
 #endif
