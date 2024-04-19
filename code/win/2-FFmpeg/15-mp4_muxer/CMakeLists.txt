@@ -31,8 +31,6 @@ set(SRC_FILE main.cpp
         AVHelper.h
         Muxer.cpp
         Muxer.h
-        MuxerAbstract.cpp
-        MuxerAbstract.h
         Muxer_mp4.cpp
         Muxer_mp4.h
         OutputStreamAbstract.cpp
@@ -43,6 +41,12 @@ set(SRC_FILE main.cpp
         EncoderAbstract.h
         VideoEncoder.cpp
         VideoEncoder.h
+        AudioEncoder.cpp
+        AudioEncoder.h
+        ShareAVFrame.cpp
+        ShareAVFrame.hpp
+        ShareAVPacket.cpp
+        ShareAVPacket.hpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})

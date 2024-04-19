@@ -9,8 +9,12 @@
 #include <memory>
 
 struct AVRational;
-struct AVFrame;
-struct AVPacket;
+struct AVCodecContext;
+
+#include "ShareAVPacket.hpp"
+#include "ShareAVFrame.hpp"
+
+using vector_type = typename std::pmr::vector<ShareAVPacket_sp_type>;
 
 class EncoderAbstract {
 
@@ -19,14 +23,15 @@ public:
     EncoderAbstract(const EncoderAbstract&) = delete;
     EncoderAbstract& operator=(const EncoderAbstract&) = delete;
 
-    virtual void encode(AVFrame *frame,const int &stream_index,const long long &pts,
-                       const AVRational& time_base,std::vector<AVPacket*>& packets) const noexcept(false) = 0;
-    [[nodiscard]] virtual AVRational time_base() const noexcept(true) = 0;
+    void encode(const ShareAVFrame_sp_type &,const int &stream_index,const long long &pts,
+                       const AVRational& time_base,vector_type& ) const noexcept(false);
+
+    [[nodiscard]] AVRational time_base() const noexcept(true) ;
 
 protected:
+    AVCodecContext *m_codec_ctx{};
     explicit EncoderAbstract() = default;
-    virtual ~EncoderAbstract() = default;
-
+    virtual ~EncoderAbstract();
 };
 
 #endif

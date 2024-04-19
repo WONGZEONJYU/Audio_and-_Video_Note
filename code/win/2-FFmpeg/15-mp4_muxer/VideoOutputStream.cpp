@@ -28,10 +28,3 @@ VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create() {
     }
 }
 
-int VideoOutputStream::Stream_index() const noexcept{
-    return m_stream_index;
-}
-
-AVRational VideoOutputStream::Stream_time_base() const noexcept{
-    return m_time_base;
-}

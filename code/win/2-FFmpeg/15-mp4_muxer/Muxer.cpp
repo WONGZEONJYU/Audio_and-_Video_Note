@@ -60,19 +60,15 @@ void Muxer::Send_header() {
     }
 }
 
-void Muxer::Send_packet(AVPacket *pkt,const AVRational &src,const AVRational& dst) noexcept(false) {
-
-    if (!pkt){
-        return;
-    }
+void Muxer::Send_packet(const ShareAVPacket::ShareAVPacket_sp_type& pkt,const AVRational &src,const AVRational& dst) noexcept(false) {
 
     // 时间基转换
-    pkt->pts = av_rescale_q(pkt->pts,src,dst);
-    pkt->dts = av_rescale_q(pkt->dts,src,dst);
-    pkt->duration = av_rescale_q(pkt->duration,src,dst);
+    pkt->m_packet->pts = av_rescale_q(pkt->m_packet->pts,src,dst);
+    pkt->m_packet->dts = av_rescale_q(pkt->m_packet->dts,src,dst);
+    pkt->m_packet->duration = av_rescale_q(pkt->m_packet->duration,src,dst);
 
-    const auto ret{av_interleaved_write_frame(m_fmt_ctx,pkt)};
-    av_packet_free(&pkt);
+    const auto ret{av_interleaved_write_frame(m_fmt_ctx,pkt->m_packet)};
+
     if (ret < 0){
         throw std::runtime_error("av_interleaved_write_frame failed: " + AVHelper::av_get_err(ret) + "\n");
     }

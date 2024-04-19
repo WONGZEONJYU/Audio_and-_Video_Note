@@ -8,8 +8,9 @@
 #include <memory>
 #include "OutputStreamAbstract.h"
 
+#include "EncoderAbstract.h"
+
 struct AVStream;
-struct AVFrame;
 
 class VideoOutputStream: public OutputStreamAbstract{
 
@@ -19,13 +20,9 @@ class VideoOutputStream: public OutputStreamAbstract{
 public:
     using VideoOutputStream_sp_type = std::shared_ptr<VideoOutputStream>;
     static VideoOutputStream_sp_type create();
-    [[nodiscard]] int Stream_index() const noexcept override;
-    [[nodiscard]] AVRational Stream_time_base() const noexcept override;
+
 private:
-    AVStream *m_stream{};
-    AVFrame * m_frame{};
-    int m_stream_index{};
-    AVRational m_time_base{};
+
 };
 
 #endif

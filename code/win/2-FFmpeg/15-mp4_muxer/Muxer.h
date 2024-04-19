@@ -8,11 +8,12 @@
 #include <string>
 #include <memory>
 
-#include "MuxerAbstract.h"
 
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVStream;
+
+#include "ShareAVPacket.hpp"
 
 class Muxer {
 
@@ -27,7 +28,7 @@ public:
     static Muxer_sp_type create(std::string &&) noexcept(false);
     ~Muxer();
     void Send_header();
-    void Send_packet(AVPacket *,const AVRational &,const AVRational &) noexcept(false);
+    void Send_packet(const ShareAVPacket::ShareAVPacket_sp_type& ,const AVRational &,const AVRational &) noexcept(false);
     void Send_trailer() noexcept(false);
     AVStream *create_stream() noexcept(false);
 
