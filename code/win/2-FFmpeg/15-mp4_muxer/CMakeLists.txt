@@ -49,6 +49,8 @@ set(SRC_FILE main.cpp
         ShareAVPacket.hpp
         SwrContext_t.cpp
         SwrContext_t.h
+        AudioOutputStream.cpp
+        AudioOutputStream.hpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})

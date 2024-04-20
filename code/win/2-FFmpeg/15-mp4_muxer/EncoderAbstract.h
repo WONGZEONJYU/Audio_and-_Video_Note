@@ -30,6 +30,8 @@ public:
         return m_codec_ctx->time_base;
     }
 
+    int parameters_from_context(AVCodecParameters *);
+
 protected:
     AVCodecContext *m_codec_ctx{};
     explicit EncoderAbstract() = default;

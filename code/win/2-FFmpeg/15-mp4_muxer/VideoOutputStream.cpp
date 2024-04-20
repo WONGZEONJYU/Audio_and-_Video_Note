@@ -4,13 +4,24 @@
 
 #include "VideoOutputStream.h"
 #include "Muxer.h"
+#include "VideoEncoder.h"
 
-void VideoOutputStream::Construct(const Muxer *muxer) noexcept(false) {
-    
+void VideoOutputStream::Construct(const Muxer_sp_type& muxer,
+                                  const Video_Encoder_params& params) noexcept(false) {
+
+    m_encoder = VideoEncoder::create(params);
+
+    m_stream = muxer->create_stream();
+    if (!m_stream){
+        throw std::runtime_error("");
+    }
+
+    m_encoder->parameters_from_context(m_stream->codecpar);
+    muxer->dump_format(m_stream->index);
 }
 
-VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create(const Muxer* muxer) {
-
+VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create(const Muxer_sp_type& muxer,
+                                                                       const Video_Encoder_params& params) {
     VideoOutputStream_sp_type obj;
 
     try {
@@ -20,7 +31,7 @@ VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create(const Mux
     }
 
     try {
-        obj->Construct(muxer);
+        obj->Construct(muxer,params);
         return obj;
     } catch (const std::runtime_error &e) {
         obj.reset();

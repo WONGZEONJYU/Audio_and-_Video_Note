@@ -31,7 +31,10 @@ public:
     void Send_packet(const ShareAVPacket_sp_type& ,const AVRational &,const AVRational &) const noexcept(false);
     void Send_trailer() const noexcept(false);
     [[nodiscard]] AVStream *create_stream() const noexcept(false);
-
+    [[nodiscard]] std::string url() const noexcept(true){
+        return m_url;
+    }
+    void dump_format(const int& ) const noexcept(true);
 private:
     const std::string m_url;
     AVFormatContext *m_fmt_ctx{};

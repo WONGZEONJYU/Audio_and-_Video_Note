@@ -103,3 +103,7 @@ void Muxer::DeConstruct() noexcept(true) {
 Muxer::~Muxer() {
     DeConstruct();
 }
+
+void Muxer::dump_format(const int& index) const noexcept(true) {
+    av_dump_format(m_fmt_ctx,index,m_url.c_str(),1);
+}

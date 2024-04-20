@@ -27,3 +27,8 @@ void EncoderAbstract::encode(const ShareAVFrame_sp_type &frame, const int &strea
 EncoderAbstract::~EncoderAbstract() {
     avcodec_free_context(&m_codec_ctx);
 }
+
+int EncoderAbstract::parameters_from_context(AVCodecParameters *par) {
+
+    return avcodec_parameters_from_context(par,m_codec_ctx);
+}
