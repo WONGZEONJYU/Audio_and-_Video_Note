@@ -29,7 +29,7 @@ SwrContext_t::SwrContext_sp_t SwrContext_t::create() noexcept(false){
 bool SwrContext_t::init() const{
 
     const auto ret {swr_init(m_swr_ctx)};
-    return ret < 0 ? (std::cerr << AVHelper::av_get_err(ret),false):true;
+    return ret >= 0 || (std::cerr << AVHelper::av_get_err(ret), false);
 }
 
 int SwrContext_t::convert(uint8_t **out,const int &out_count,

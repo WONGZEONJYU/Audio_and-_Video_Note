@@ -19,12 +19,9 @@ class AudioOutputStream final : public OutputStreamAbstract{
 public:
     using AudioOutputStream_sp_type = std::shared_ptr<AudioOutputStream>;
     static AudioOutputStream_sp_type create(const std::shared_ptr<Muxer>&,
-                                            const Audio_encoder_params&);
-
-private:
-    AudioEncoder_sp_type m_audio_encoder;
+                                            const Audio_encoder_params&) noexcept(false);
 };
 
 using AudioOutputStream_sp_type = typename AudioOutputStream::AudioOutputStream_sp_type;
 
-#endif //INC_15_MP4_MUXER_AUDIOOUTPUTSTREAM_HPP
+#endif

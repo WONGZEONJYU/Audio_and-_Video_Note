@@ -1,12 +1,23 @@
 //
 // Created by Administrator on 2024/4/19.
 //
-
 extern "C"{
 #include <libavcodec/avcodec.h>
 }
 
+#include <string>
 #include "ShareAVPacket.hpp"
+
+ShareAVPacket::ShareAVPacket()noexcept(true):
+m_packet(av_packet_alloc()) {
+
+}
+
+void ShareAVPacket::Construct() const noexcept(false) {
+    if (!m_packet){
+        throw std::runtime_error("av_packet_alloc failed\n");
+    }
+}
 
 ShareAVPacket::ShareAVPacket_sp_type ShareAVPacket::create() noexcept(false) {
     ShareAVPacket_sp_type obj;
@@ -25,15 +36,8 @@ ShareAVPacket::ShareAVPacket_sp_type ShareAVPacket::create() noexcept(false) {
     }
 }
 
-void ShareAVPacket::Construct() noexcept(false) {
-    m_packet = av_packet_alloc();
-    if (!m_packet){
-        throw std::runtime_error("av_packet_alloc failed\n");
-    }
-}
-
 void ShareAVPacket::DeConstruct() noexcept(true) {
-    av_packet_free(&m_packet);
+    av_packet_free(const_cast<AVPacket**>(&m_packet));
 }
 
 ShareAVPacket::~ShareAVPacket() {

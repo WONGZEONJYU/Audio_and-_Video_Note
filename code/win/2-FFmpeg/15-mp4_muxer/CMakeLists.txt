@@ -51,6 +51,10 @@ set(SRC_FILE main.cpp
         SwrContext_t.h
         AudioOutputStream.cpp
         AudioOutputStream.hpp
+        Audio_Resampler.cpp
+        Audio_Resampler.h
+        AVAudioFifo_t.cpp
+        AVAudioFifo_t.h
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})

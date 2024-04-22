@@ -7,9 +7,14 @@ extern "C"{
 }
 
 #include "ShareAVFrame.hpp"
+#include <string>
 
-void ShareAVFrame::Construct() noexcept(false) {
-    m_frame = av_frame_alloc();
+ShareAVFrame:: ShareAVFrame() noexcept(true):
+m_frame{av_frame_alloc()}{
+
+}
+
+void ShareAVFrame::Construct() const noexcept(false) {
     if (!m_frame){
         throw std::runtime_error("av_frame_alloc failed");
     }
@@ -37,5 +42,5 @@ ShareAVFrame::~ShareAVFrame() noexcept(true) {
 }
 
 void ShareAVFrame::DeConstruct() noexcept(true) {
-    av_frame_free(&m_frame);
+    av_frame_free(const_cast<AVFrame**>(&m_frame));
 }

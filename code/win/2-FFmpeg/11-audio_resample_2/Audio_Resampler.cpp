@@ -16,7 +16,7 @@ namespace rsmp {
 
     bool Audio_Resampler::construct() noexcept{
 
-        m_src_channels = m_Resampler_Params.dst_ch_layout.nb_channels;
+        m_src_channels = m_Resampler_Params.src_ch_layout.nb_channels;
         m_dst_channels = m_Resampler_Params.dst_ch_layout.nb_channels;
 
         try{
@@ -38,6 +38,7 @@ namespace rsmp {
             std::cerr << "SwrContext construct failed " << e.what() << "\n";
             return {};
         }
+
         av_opt_set_in();
         av_opt_set_out();
 
@@ -103,15 +104,16 @@ namespace rsmp {
     }
 
     void Audio_Resampler::av_opt_set_in() const {
-        (void)m_swr_ctx->opt_set_chlayout("in_channel_layout",&m_Resampler_Params.src_ch_layout);
-        (void)m_swr_ctx->opt_set_sample_fmt("in_sample_fmt",m_Resampler_Params.src_sample_fmt);
-        (void)m_swr_ctx->opt_set_rate("in_sample_rate",m_Resampler_Params.src_sample_rate);
+        auto ret = m_swr_ctx->opt_set_chlayout("ichl",&m_Resampler_Params.src_ch_layout);
+        std::cerr << AVHelper::av_get_err(ret) << "\n";
+        ret = m_swr_ctx->opt_set_sample_fmt("isf",m_Resampler_Params.src_sample_fmt);
+        ret = m_swr_ctx->opt_set_rate("isr",m_Resampler_Params.src_sample_rate);
     }
 
     void Audio_Resampler::av_opt_set_out() const{
-        (void)m_swr_ctx->opt_set_chlayout("out_channel_layout",&m_Resampler_Params.dst_ch_layout);
-        (void)m_swr_ctx->opt_set_sample_fmt("out_sample_fmt",m_Resampler_Params.dst_sample_fmt);
-        (void)m_swr_ctx->opt_set_rate("out_sample_rate",m_Resampler_Params.dst_sample_rate);
+        auto ret = m_swr_ctx->opt_set_chlayout("ochl",&m_Resampler_Params.dst_ch_layout);
+        ret = m_swr_ctx->opt_set_sample_fmt("osf",m_Resampler_Params.dst_sample_fmt);
+        ret = m_swr_ctx->opt_set_rate("osr",m_Resampler_Params.dst_sample_rate);
     }
 
     AVFrame * Audio_Resampler::alloc_out_frame(const int &nb_samples) const{

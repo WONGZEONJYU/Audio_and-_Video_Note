@@ -15,11 +15,10 @@ struct ShareAVPacket final {
     ShareAVPacket& operator=(const ShareAVPacket&) = delete;
     static ShareAVPacket_sp_type create() noexcept(false);
     ~ShareAVPacket();
-    AVPacket *m_packet{};
+    AVPacket * const m_packet{};
 private:
-    explicit ShareAVPacket() = default;
-
-    void Construct() noexcept(false);
+    explicit ShareAVPacket() noexcept(true);
+    void Construct() const noexcept(false);
     void DeConstruct() noexcept(true);
 };
 

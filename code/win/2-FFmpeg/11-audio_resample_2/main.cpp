@@ -133,8 +133,11 @@ int main(const int argc,const char* argv[])
     double t{};
 
      do{
+         /***************************填充pcm数据 , 演示用没有任何意义************************/
+
          fill_samples(reinterpret_cast<double*>(src_data[0]),src_nb_samples,
              src_nb_channels, params.src_sample_rate, t);
+        /************************************************************************************/
 
          const auto send_size{resampler->send_frame(src_data,src_nb_samples,in_pts)};
 
@@ -156,17 +159,20 @@ int main(const int argc,const char* argv[])
                  return -1;
              }
 
-             std::cout << "dst_bufsize = " << dst_bufsize <<
-                 " ,dst_linesize = " << dst_linesize << "\n" << std::flush;
+            std::cerr << "=====================ok begin==========================\n" <<
 
-             std::cout << "t: " << t << " in: " << src_nb_samples << " out: " << receive_size <<
-                 ", out_pts: " << out_pts << "\n" << std::flush;
+              "dst_bufsize = " << dst_bufsize <<
+                 " ,dst_linesize = " << dst_linesize << "\n" <<
 
+              "t: " << t << " in: " << src_nb_samples << " out: " << receive_size <<
+                 ", out_pts: " << out_pts << "\n" <<
+
+             "=====================ok end============================\n";
             out_file.write(reinterpret_cast<const char*>(dst_data[0]),dst_bufsize);
          }else{
-             std::cout << "can't get " << dst_nb_samples <<
+             std::cerr << "can't get " << dst_nb_samples <<
                  " samples, receive_size : " << receive_size << ", cur_size : " <<
-                     resampler->fifo_size() << "\n" << std::flush;
+                     resampler->fifo_size() << "\n";
          }
 
      }while (t < 10);
@@ -187,7 +193,7 @@ int main(const int argc,const char* argv[])
             std::cerr << "Could not get sample buffer size\n";
             return -1;
         }
-        std::cout << "flush in: " << receivce_size << ", out_pts: " << out_pts << "\n" << std::flush;
+        std::cerr << "flush in: " << receivce_size << ", out_pts: " << out_pts << "\n" << std::flush;
         out_file.write(reinterpret_cast<const char*>(dst_data[0]),dst_bufsize);
      }
 

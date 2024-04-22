@@ -10,7 +10,6 @@ extern "C"{
 #include <libavformat/avformat.h>
 }
 
-
 #include "EncoderAbstract.h"
 
 struct AVStream;
@@ -31,12 +30,12 @@ public:
     };
 
 protected:
+    explicit OutputStreamAbstract() = default;
+    virtual ~OutputStreamAbstract() = default;
+
     AVStream *m_stream{};
     ShareAVFrame_sp_type m_frame;
     EncoderAbstract_sp_type m_encoder;
-
-    explicit OutputStreamAbstract() = default;
-    virtual ~OutputStreamAbstract() = default;
 };
 
 using OutputStreamAbstract_sp_type = typename OutputStreamAbstract::OutputStreamAbstract_sp_type ;

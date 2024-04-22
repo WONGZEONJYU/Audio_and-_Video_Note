@@ -8,8 +8,9 @@
 #include <vector>
 #include <memory>
 
-struct AVRational;
-struct AVCodecContext;
+extern "C"{
+#include <libavcodec/avcodec.h>
+};
 
 #include "ShareAVPacket.hpp"
 #include "ShareAVFrame.hpp"

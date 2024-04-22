@@ -15,10 +15,10 @@ struct ShareAVFrame final {
     ShareAVFrame(const ShareAVFrame&) = delete;
     ShareAVFrame& operator=(const ShareAVFrame&) = delete;
     ~ShareAVFrame() noexcept(true);
-    AVFrame *m_frame{};
+    AVFrame * const m_frame{};
 private:
-    explicit ShareAVFrame() = default;
-    void Construct() noexcept(false);
+    explicit ShareAVFrame() noexcept(true);
+    void Construct() const noexcept(false);
     void DeConstruct() noexcept(true);
 };
 
