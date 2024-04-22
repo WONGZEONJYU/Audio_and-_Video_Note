@@ -2,46 +2,21 @@
 
 extern "C"{
 #include <libavutil/opt.h>
-#include <libavutil/avutil.h>
 #include <libavutil/frame.h>
 #include <libavcodec/avcodec.h>
 }
 
-#include "Audio_Resampler.h"
+#include "Audio_Resample.h"
 #include "AVAudioFifo_t.h"
 #include "SwrContext_t.h"
 #include "AVHelper.h"
 
 #define FUNCTION_NAME std::string(__FUNCTION__)
 
-constexpr Audio_Resample_Params::Audio_Resample_Params(const AVSampleFormat& src_sample_fmt,
-                                                       const AVChannelLayout& src_ch_layout,
-                                                       const int &src_sample_rate,
-                                                       const AVSampleFormat& dst_sample_fmt,
-                                                       const AVChannelLayout& dst_ch_layout,
-                                                       const int &dst_sample_rate) noexcept(true) :
-                                                       m_src_sample_fmt(src_sample_fmt),
-                                                       m_dst_sample_fmt(dst_sample_fmt),
-                                                       m_src_ch_layout(src_ch_layout),
-                                                       m_dst_ch_layout(dst_ch_layout),
-                                                       m_src_sample_rate(src_sample_rate),
-                                                       m_dst_sample_rate(dst_sample_rate)
-{
-
-}
-
-constexpr Audio_Resample_Params::operator bool() const noexcept(true)
-{
-    return m_src_sample_fmt == m_dst_sample_fmt &&
-            m_src_ch_layout.u.mask == m_dst_ch_layout.u.mask &&
-            m_src_sample_rate == m_dst_sample_rate;
-}
-
 void Audio_Resample::Construct() noexcept{
 
     m_audio_fifo = AVAudioFifo_t::create(m_Resample_Params.m_dst_sample_fmt,
-                                         m_Resample_Params.m_dst_ch_layout.nb_channels,
-                                         1);
+                                         m_Resample_Params.m_dst_ch_layout.nb_channels);
 
     if (m_Resample_Params) {
         m_is_fifo_only.store(true);
@@ -59,16 +34,16 @@ void Audio_Resample::Construct() noexcept{
                 m_Resample_Params.m_dst_sample_rate);
         init_resampled_data();
     } catch (const std::runtime_error &e) {
+        destroy_resample_data();
         m_audio_fifo.reset();
         m_swr_ctx.reset();
-        destroy_resample_data();
         throw std::runtime_error(e.what());
     }
 
     std::cerr << "Audio_Resample init success\n";
 }
 
-Audio_Resample_type Audio_Resample::create(const Audio_Resample_Params & params){
+Audio_Resample_type Audio_Resample::create(const Audio_Resample_Params &params){
 
     Audio_Resample_type obj;
     try {
@@ -89,9 +64,10 @@ Audio_Resample_type Audio_Resample::create(const Audio_Resample_Params & params)
 Audio_Resample::Audio_Resample(const Audio_Resample_Params &params) noexcept(true):
 m_Resample_Params{params}
 {
+
 }
 
-void Audio_Resample::init_resampled_data(){
+void Audio_Resample::init_resampled_data() noexcept(false){
     /*在发送的时候可能遇到空间不足情况,需重新申请,重新申请之前,先释放原来的空间*/
     destroy_resample_data();
     int line_size{};
@@ -109,7 +85,8 @@ void Audio_Resample::init_resampled_data(){
     }
 }
 
-void Audio_Resample::destroy_resample_data(){
+void Audio_Resample::destroy_resample_data() noexcept(true){
+
     if (m_resampled_data){
         av_freep(&m_resampled_data[0]);
         av_freep(&m_resampled_data);
@@ -165,6 +142,7 @@ int Audio_Resample::need_samples_num(const int &nb_samples) const {
 }
 
 Audio_Resample::~Audio_Resample(){
+    std::cerr << __FUNCTION__ << "\n";
     destroy_resample_data();
 }
 

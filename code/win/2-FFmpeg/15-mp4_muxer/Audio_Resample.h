@@ -14,27 +14,39 @@ class SwrContext_t;
 
 struct Audio_Resample_Params {
     // input params
+    constexpr Audio_Resample_Params(const AVSampleFormat &src_sample_fmt,
+                                                           const AVChannelLayout &src_ch_layout,
+                                                           const int &src_sample_rate,
+                                                           const AVSampleFormat &dst_sample_fmt,
+                                                           const AVChannelLayout &dst_ch_layout,
+                                                           const int &dst_sample_rate) noexcept(true) :
+            m_src_sample_fmt(src_sample_fmt),
+            m_dst_sample_fmt(dst_sample_fmt),
+            m_src_ch_layout(src_ch_layout),
+            m_dst_ch_layout(dst_ch_layout),
+            m_src_sample_rate(src_sample_rate),
+            m_dst_sample_rate(dst_sample_rate)
+    {
 
-   constexpr Audio_Resample_Params(const AVSampleFormat& src_sample_fmt,
-                           const AVChannelLayout& src_ch_layout,
-                           const int &src_sample_rate,
-                           const AVSampleFormat& dst_sample_fmt,
-                           const AVChannelLayout& dst_ch_layout,
-                           const int &dst_sample_rate) noexcept(true);
+    }
 
     const AVSampleFormat m_src_sample_fmt{},m_dst_sample_fmt{};
     const AVChannelLayout m_src_ch_layout{},m_dst_ch_layout{};
     const int m_src_sample_rate{},m_dst_sample_rate{};
 
-    constexpr explicit operator bool() const noexcept(true);
+    constexpr explicit operator bool() const noexcept(true){
+        return m_src_sample_fmt == m_dst_sample_fmt &&
+               m_src_ch_layout.u.mask == m_dst_ch_layout.u.mask &&
+               m_src_sample_rate == m_dst_sample_rate;
+    }
 };
 
 class Audio_Resample final{
 
     void Construct() noexcept;
     explicit Audio_Resample(const Audio_Resample_Params &) noexcept(true);
-    void init_resampled_data();
-    void destroy_resample_data();
+    void init_resampled_data() noexcept(false);
+    void destroy_resample_data() noexcept(true);
     [[nodiscard]] ShareAVFrame_sp_type alloc_out_frame(const int&) const noexcept(false);
     int fifo_read_helper(uint8_t** , const int& , int64_t& ) noexcept(false);
     [[nodiscard]] int need_samples_num(const int&) const;
