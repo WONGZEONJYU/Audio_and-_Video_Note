@@ -41,6 +41,7 @@ AudioEncoder::AudioEncoder_sp_type AudioEncoder::create(const Audio_encoder_para
     } catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("AudioEncoder Construct failed: " + std::string (e.what()) + "\n");
+
     }
 }
 

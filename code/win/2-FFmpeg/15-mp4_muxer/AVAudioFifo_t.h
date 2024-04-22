@@ -19,7 +19,7 @@ public:
     AVAudioFifo_t& operator=(const AVAudioFifo_t&) = delete;
     static AVAudioFifo_sp_t create(const AVSampleFormat &sample_fmt,
          const int& channels,
-         const int &nb_samples) noexcept(false);
+         const int &nb_samples = 1) noexcept(false);
 
     ~AVAudioFifo_t();
     int write(void * const *,const int& ) const noexcept(false);

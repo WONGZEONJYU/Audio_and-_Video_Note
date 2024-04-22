@@ -32,6 +32,22 @@ class AudioEncoder final : public EncoderAbstract{
 public:
     using AudioEncoder_sp_type = std::shared_ptr<AudioEncoder>;
     static AudioEncoder_sp_type create(const Audio_encoder_params&);
+
+    [[nodiscard]] auto sample_rate() const noexcept(true){
+        return m_codec_ctx->sample_rate;
+    }
+
+    [[nodiscard]] auto sample_fmt() const noexcept(true){
+        return m_codec_ctx->sample_fmt;
+    }
+
+    [[nodiscard]] auto channel_layout() const noexcept(true){
+        return m_codec_ctx->ch_layout;
+    }
+
+    [[nodiscard]] auto frame_size() const noexcept(true){
+        return m_codec_ctx->frame_size;
+    }
 };
 
 using AudioEncoder_sp_type = AudioEncoder::AudioEncoder_sp_type;

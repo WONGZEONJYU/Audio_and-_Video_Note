@@ -51,8 +51,8 @@ set(SRC_FILE main.cpp
         SwrContext_t.h
         AudioOutputStream.cpp
         AudioOutputStream.hpp
-        Audio_Resampler.cpp
-        Audio_Resampler.h
+        Audio_Resample.cpp
+        Audio_Resample.h
         AVAudioFifo_t.cpp
         AVAudioFifo_t.h
 )
