@@ -25,6 +25,7 @@ void EncoderAbstract::encode(const ShareAVFrame_sp_type &frame, const int &strea
 }
 
 EncoderAbstract::~EncoderAbstract() {
+    std::cerr << __FUNCTION__ << "\n";
     avcodec_free_context(&m_codec_ctx);
 }
 

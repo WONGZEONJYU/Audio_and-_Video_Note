@@ -10,10 +10,13 @@
 struct Audio_encoder_params{
     constexpr explicit Audio_encoder_params(const int &bit_rate = 128*1024,
                                    const int &sample_rate = 44100,
-                                   const AVSampleFormat & = AV_SAMPLE_FMT_S16,
-                                   const AVChannelLayout & = AV_CHANNEL_LAYOUT_STEREO,
+                                   const AVSampleFormat &sample_fmt = AV_SAMPLE_FMT_FLTP,
+                                   const AVChannelLayout &ch_layout = AV_CHANNEL_LAYOUT_STEREO,
                                    const int &flags = AV_CODEC_FLAG_GLOBAL_HEADER,
-                                   const AVCodecID &  = AV_CODEC_ID_AAC);
+                                   const AVCodecID &codec_id  = AV_CODEC_ID_AAC) noexcept(true):
+            m_sample_rate(sample_rate),m_flags(flags),
+            m_bit_rate(bit_rate),m_sample_fmt{sample_fmt},
+            m_ch_layout{ch_layout},m_codec_id(codec_id){}
 
     const int m_sample_rate{},m_flags{};
     const int64_t m_bit_rate{};

@@ -9,19 +9,8 @@ extern "C"{
 #include "AudioEncoder.h"
 #include "AVHelper.h"
 
-constexpr Audio_encoder_params::Audio_encoder_params(const int &bit_rate,
-                                                     const int &sample_rate,
-                                                     const AVSampleFormat &sample_fmt,
-                                                     const AVChannelLayout &ch_layout,
-                                                     const int &flags,
-                                                     const AVCodecID &codec_id):
-        m_sample_rate(sample_rate),m_flags(flags),
-        m_bit_rate(bit_rate),m_sample_fmt{sample_fmt},
-        m_ch_layout{ch_layout},m_codec_id(codec_id)
+void AudioEncoder::Construct(const Audio_encoder_params& params) noexcept(false)
 {
-}
-
-void AudioEncoder::Construct(const Audio_encoder_params& params) noexcept(false) {
     init_codec(params);
 }
 
@@ -41,7 +30,6 @@ AudioEncoder::AudioEncoder_sp_type AudioEncoder::create(const Audio_encoder_para
     } catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("AudioEncoder Construct failed: " + std::string (e.what()) + "\n");
-
     }
 }
 

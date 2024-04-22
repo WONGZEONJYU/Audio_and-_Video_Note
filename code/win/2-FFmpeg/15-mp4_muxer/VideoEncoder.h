@@ -17,7 +17,9 @@ struct Video_Encoder_params{
                          const AVRational &time_base = {1,25},
                          const int64_t &bit_rate = 500*1024,
                          const AVCodecID &CodecID = AV_CODEC_ID_H264,
-                         const int &flags = AV_CODEC_FLAG_GLOBAL_HEADER);
+                         const int &flags = AV_CODEC_FLAG_GLOBAL_HEADER) noexcept(true):
+            m_width(width),m_height(height),m_gop_size(gop_size),max_b_frames(max_b_frames),m_flags(flags),
+            m_pix_fmt{pix_fmt}, m_time_base(time_base),m_bit_rate(bit_rate),m_Codec_ID(CodecID){}
 
    const int m_width{},m_height{},m_gop_size{},max_b_frames{},m_flags{};
    const AVPixelFormat m_pix_fmt{};

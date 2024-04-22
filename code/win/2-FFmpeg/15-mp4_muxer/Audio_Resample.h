@@ -14,21 +14,18 @@ class SwrContext_t;
 
 struct Audio_Resample_Params {
     // input params
-    constexpr Audio_Resample_Params(const AVSampleFormat &src_sample_fmt,
-                                    const AVChannelLayout &src_ch_layout,
-                                    const int &src_sample_rate,
-                                    const AVSampleFormat &dst_sample_fmt,
-                                    const AVChannelLayout &dst_ch_layout,
-                                    const int &dst_sample_rate) noexcept(true):
+    constexpr explicit Audio_Resample_Params(const AVSampleFormat &src_sample_fmt = AV_SAMPLE_FMT_S16,
+                                    const AVChannelLayout &src_ch_layout = AV_CHANNEL_LAYOUT_STEREO,
+                                    const int &src_sample_rate = 44100,
+                                    const AVSampleFormat &dst_sample_fmt = AV_SAMPLE_FMT_FLTP,
+                                    const AVChannelLayout &dst_ch_layout = AV_CHANNEL_LAYOUT_STEREO,
+                                    const int &dst_sample_rate = 44100) noexcept(true):
             m_src_sample_fmt(src_sample_fmt),
             m_dst_sample_fmt(dst_sample_fmt),
             m_src_ch_layout(src_ch_layout),
             m_dst_ch_layout(dst_ch_layout),
             m_src_sample_rate(src_sample_rate),
-            m_dst_sample_rate(dst_sample_rate)
-    {
-
-    }
+            m_dst_sample_rate(dst_sample_rate){}
 
     const AVSampleFormat m_src_sample_fmt{},m_dst_sample_fmt{};
     const AVChannelLayout m_src_ch_layout{},m_dst_ch_layout{};

@@ -9,21 +9,6 @@ extern "C"{
 #include "VideoEncoder.h"
 #include "AVHelper.h"
 
-constexpr Video_Encoder_params::Video_Encoder_params(const int &width,
-                                           const int &height,
-                                           const int &gop_size,
-                                           const int &max_b_frames,
-                                           const AVPixelFormat &pix_fmt,
-                                           const AVRational &time_base,
-                                           const int64_t &bit_rate,
-                                           const AVCodecID &CodecID,
-                                           const int &flags):
-        m_width(width),m_height(height),m_gop_size(gop_size),max_b_frames(max_b_frames),m_flags(flags),
-        m_pix_fmt{pix_fmt}, m_time_base(time_base),m_bit_rate(bit_rate),m_Codec_ID(CodecID)
-{
-
-}
-
 VideoEncoder::VideoEncoder_sp_type VideoEncoder::create(const Video_Encoder_params & params) noexcept(false) {
 
     VideoEncoder_sp_type obj;

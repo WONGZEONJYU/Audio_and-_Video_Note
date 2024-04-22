@@ -28,8 +28,8 @@ void Audio_Resample::Construct() noexcept(false){
                 m_Resample_Params.m_dst_sample_fmt,
                 m_Resample_Params.m_dst_sample_rate,
                 &m_Resample_Params.m_src_ch_layout,
-                m_Resample_Params.m_dst_sample_fmt,
-                m_Resample_Params.m_dst_sample_rate);
+                m_Resample_Params.m_src_sample_fmt,
+                m_Resample_Params.m_src_sample_rate);
         init_resampled_data();
     } catch (const std::runtime_error &e) {
         destroy_resample_data();
