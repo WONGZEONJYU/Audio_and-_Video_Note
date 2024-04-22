@@ -15,11 +15,11 @@ class SwrContext_t;
 struct Audio_Resample_Params {
     // input params
     constexpr Audio_Resample_Params(const AVSampleFormat &src_sample_fmt,
-                                                           const AVChannelLayout &src_ch_layout,
-                                                           const int &src_sample_rate,
-                                                           const AVSampleFormat &dst_sample_fmt,
-                                                           const AVChannelLayout &dst_ch_layout,
-                                                           const int &dst_sample_rate) noexcept(true) :
+                                    const AVChannelLayout &src_ch_layout,
+                                    const int &src_sample_rate,
+                                    const AVSampleFormat &dst_sample_fmt,
+                                    const AVChannelLayout &dst_ch_layout,
+                                    const int &dst_sample_rate) noexcept(true):
             m_src_sample_fmt(src_sample_fmt),
             m_dst_sample_fmt(dst_sample_fmt),
             m_src_ch_layout(src_ch_layout),
