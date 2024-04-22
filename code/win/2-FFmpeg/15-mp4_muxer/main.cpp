@@ -7,6 +7,7 @@
 // 执行文件  yuv文件 pcm文件 输出mp4文件
 
 #include "Audio_Resample.h"
+#include "SwrContext_t.h"
 #include "VideoEncoder.h"
 #include "AudioEncoder.h"
 
@@ -35,7 +36,16 @@ int main(const int argc,const char* const *argv) {
     try {
         constexpr Audio_Resample_Params s;
         auto audio_resample = Audio_Resample::create(s);
-        const auto s16_pcm_buffer_size {av_get_bytes_per_sample(s.m_src_sample_fmt) * 1024 * s.m_src_ch_layout.nb_channels};
+        auto swr{SwrContext_t::create(
+                &s.m_dst_ch_layout,
+                s.m_dst_sample_fmt,
+                s.m_dst_sample_rate,
+                &s.m_src_ch_layout,
+                s.m_src_sample_fmt,
+                s.m_src_sample_rate
+                )};
+        const auto s16_pcm_buffer_size {av_get_bytes_per_sample(s.m_src_sample_fmt) *
+        1024 * s.m_src_ch_layout.nb_channels};
         auto s16_pcm_buffer{new uint8_t[s16_pcm_buffer_size]{0}};
         int64_t src_pts{};
 
@@ -46,19 +56,28 @@ int main(const int argc,const char* const *argv) {
             if (in_pcm_file.eof()){
                 break;
             }
-
-            audio_resample->send_frame(s16_pcm_buffer,s16_pcm_buffer_size,src_pts);
+            const auto read_size{in_pcm_file.gcount()};
+            audio_resample->send_frame(s16_pcm_buffer,read_size,src_pts);
             auto frame {audio_resample->receive_frame(0)};
+
 
             std::cerr << "fltp pts: " << frame->m_frame->pts << "\n";
 
-            int data_size = av_get_bytes_per_sample(static_cast<AVSampleFormat>(frame->m_frame->format));
+            const auto data_size = av_get_bytes_per_sample(static_cast<AVSampleFormat>(frame->m_frame->format));
 
-            for (int i{};i< frame->m_frame->nb_samples;++i){
-                for (int ch{}; ch < frame->m_frame->ch_layout.nb_channels; ++ch) {
+//            for (int i{};i< frame->m_frame->nb_samples;++i){
+//                for (int ch{}; ch < frame->m_frame->ch_layout.nb_channels; ++ch) {
+//                    out_pcm_file.write(reinterpret_cast<const char*>(frame->m_frame->data[ch] + data_size * i), data_size);
+//                }
+//            }
+
+            for (int i {};i < frame->m_frame->nb_samples;i++){
+                for (int ch{};ch < frame->m_frame->ch_layout.nb_channels;ch++) {
                     out_pcm_file.write(reinterpret_cast<const char*>(frame->m_frame->data[ch] + data_size * i), data_size);
                 }
             }
+
+            src_pts += frame->m_frame->nb_samples;
         }
 
         delete [] s16_pcm_buffer;

@@ -14,7 +14,7 @@ class SwrContext_t;
 
 struct Audio_Resample_Params {
     // input params
-    constexpr explicit Audio_Resample_Params(const AVSampleFormat &src_sample_fmt = AV_SAMPLE_FMT_S16,
+    constexpr explicit Audio_Resample_Params(const AVSampleFormat &src_sample_fmt = AV_SAMPLE_FMT_S16P,
                                     const AVChannelLayout &src_ch_layout = AV_CHANNEL_LAYOUT_STEREO,
                                     const int &src_sample_rate = 44100,
                                     const AVSampleFormat &dst_sample_fmt = AV_SAMPLE_FMT_FLTP,
