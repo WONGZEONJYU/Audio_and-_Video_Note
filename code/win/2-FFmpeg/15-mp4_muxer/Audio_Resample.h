@@ -43,7 +43,7 @@ struct Audio_Resample_Params {
 
 class Audio_Resample final{
 
-    void Construct() noexcept;
+    void Construct() noexcept(false);
     explicit Audio_Resample(const Audio_Resample_Params &) noexcept(true);
     void init_resampled_data() noexcept(false);
     void destroy_resample_data() noexcept(true);
@@ -53,7 +53,8 @@ class Audio_Resample final{
 
 public:
     using Audio_Resample_t = std::shared_ptr<Audio_Resample>;
-    static Audio_Resample_t create(const Audio_Resample_Params & );
+
+    static Audio_Resample_t create(const Audio_Resample_Params & ) noexcept(false);
     Audio_Resample(const Audio_Resample&) = delete;
     Audio_Resample& operator=(const Audio_Resample&) = delete;
     ~Audio_Resample();
@@ -79,16 +80,13 @@ private:
     std::shared_ptr<AVAudioFifo_t> m_audio_fifo;
     std::shared_ptr<SwrContext_t> m_swr_ctx;
 
-    std::atomic_bool m_is_fifo_only;    //不需要进行重采样,只需要缓存到 audio_fifo
-    std::atomic_bool m_is_flushed;// flush的时候使用
+    std::atomic_bool m_is_fifo_only; //不需要进行重采样,只需要缓存到 audio_fifo
+    std::atomic_bool m_is_flushed;//flush的时候使用
     int64_t m_start_pts{AV_NOPTS_VALUE};          // 起始pts
     int64_t m_cur_pts{AV_NOPTS_VALUE};            // 当前pts
     uint8_t **m_resampled_data{};   // 用来缓存重采样后的数据
     int m_resampled_data_size {2048};    // 重采样后的采样数
-//    int m_src_channels{};           // 输入的通道数
-//    int m_dst_channels{};           // 输出通道数
     int64_t m_total_resampled_num{};    // 统计总共的重采样点数,目前只是统计
-
 };
 
 using Audio_Resample_type = typename Audio_Resample::Audio_Resample_t;

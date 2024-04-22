@@ -11,9 +11,7 @@ extern "C"{
 #include "SwrContext_t.h"
 #include "AVHelper.h"
 
-#define FUNCTION_NAME std::string(__FUNCTION__)
-
-void Audio_Resample::Construct() noexcept{
+void Audio_Resample::Construct() noexcept(false){
 
     m_audio_fifo = AVAudioFifo_t::create(m_Resample_Params.m_dst_sample_fmt,
                                          m_Resample_Params.m_dst_ch_layout.nb_channels);
@@ -43,7 +41,7 @@ void Audio_Resample::Construct() noexcept{
     std::cerr << "Audio_Resample init success\n";
 }
 
-Audio_Resample_type Audio_Resample::create(const Audio_Resample_Params &params){
+Audio_Resample_type Audio_Resample::create(const Audio_Resample_Params &params) noexcept(false){
 
     Audio_Resample_type obj;
     try {
@@ -64,7 +62,6 @@ Audio_Resample_type Audio_Resample::create(const Audio_Resample_Params &params){
 Audio_Resample::Audio_Resample(const Audio_Resample_Params &params) noexcept(true):
 m_Resample_Params{params}
 {
-
 }
 
 void Audio_Resample::init_resampled_data() noexcept(false){
@@ -111,7 +108,7 @@ ShareAVFrame_sp_type Audio_Resample::alloc_out_frame(const int &nb_samples) cons
         }
         return frame;
     } catch (const std::runtime_error &e) {
-        throw std::runtime_error(FUNCTION_NAME + "\t" + e.what());
+        throw std::runtime_error(std::string(__FUNCTION__ ) + "\t" + e.what());
     }
 }
 

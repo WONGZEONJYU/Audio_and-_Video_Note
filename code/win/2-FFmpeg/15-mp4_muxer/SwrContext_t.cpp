@@ -5,8 +5,6 @@ extern "C"{
 #include "SwrContext_t.h"
 #include "AVHelper.h"
 
-#define FUNCTION_NAME std::string(__FUNCTION__)
-
 SwrContext_t* SwrContext_t::new_SwrContext_t() noexcept(false)
 {
     try {
@@ -123,6 +121,8 @@ int SwrContext_t::opt_set_sample_rate(const std::string& name,
 {
     return av_opt_set_int(m_swr_ctx, name.c_str(), val, 0);
 }
+
+#define FUNCTION_NAME std::string(__FUNCTION__)
 
 void SwrContext_t::set_input_ch_layout(const AVChannelLayout *layout) const noexcept(false)
 {
