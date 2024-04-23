@@ -31,7 +31,11 @@
 ## 1.7 播放PCM数据
 
 * `ffplay -ar 48000 -ac 2 -f f32le 48000_2_f32le.pcm`
+  
+* `ffplay -ar 48000 -ch_layout stereo -f f32le xxxx.pcm`
   * `-ar` set audio sampling rate (in Hz) (from 0 to INT_MAX) (default 0)  (设置音频采样率,从0 到 INT_MAX , 默认为0)
   * `-ac` set number of audio channels (from 0 to INT_MAX) (default 0)  (设置音频通道数量 , 从 0 到 INT_MAX , 默认为0)
-
+  * `-ch_layout` 设置通道布局 , ffmpeg 6.0以上已经删除 `-ac` 选项 
+  
 * 参数必须要设置正确 , 不然可能播放时候会会奇奇怪怪！
+
