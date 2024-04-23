@@ -32,4 +32,8 @@ private:
 
 using AVAudioFifo_sp_type = typename AVAudioFifo_t::AVAudioFifo_sp_t;
 
-#endif //AVAUDIOFIFO_T_H
+AVAudioFifo_sp_type new_AVAudioFifo_t(const AVSampleFormat &sample_fmt,
+                                      const int& channels,
+                                      const int &nb_samples = 1);
+
+#endif

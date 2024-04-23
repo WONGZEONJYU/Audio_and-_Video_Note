@@ -11,8 +11,7 @@ extern "C"{
 }
 
 #include "EncoderAbstract.h"
-
-struct AVStream;
+#include "ShareAVFrame.hpp"
 
 class OutputStreamAbstract {
 
@@ -21,6 +20,7 @@ public:
     OutputStreamAbstract& operator=(const OutputStreamAbstract&) = delete;
 
     using OutputStreamAbstract_sp_type = std::shared_ptr<OutputStreamAbstract>;
+
     [[nodiscard]] int Stream_index() const noexcept(true) {
         return m_stream->index;
     }

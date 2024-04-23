@@ -11,6 +11,15 @@
 #include "VideoEncoder.h"
 #include "AudioEncoder.h"
 
+#if 0
+
+int main(const int argc,const char* const *argv)
+{
+
+    std::cerr << "process normal exit\n";
+    return 0;
+}
+#else
 int main(const int argc,const char* const *argv) {
     (void )argc,(void )(argv);
 
@@ -34,7 +43,7 @@ int main(const int argc,const char* const *argv) {
     }
 
     try {
-        constexpr Audio_Resample_Params s;
+        const Audio_Resample_Params s;
         auto audio_resample = Audio_Resample::create(s);
         auto swr{SwrContext_t::create(
                 &s.m_dst_ch_layout,
@@ -60,16 +69,9 @@ int main(const int argc,const char* const *argv) {
             audio_resample->send_frame(s16_pcm_buffer,read_size,src_pts);
             auto frame {audio_resample->receive_frame(0)};
 
-
             std::cerr << "fltp pts: " << frame->m_frame->pts << "\n";
 
             const auto data_size = av_get_bytes_per_sample(static_cast<AVSampleFormat>(frame->m_frame->format));
-
-//            for (int i{};i< frame->m_frame->nb_samples;++i){
-//                for (int ch{}; ch < frame->m_frame->ch_layout.nb_channels; ++ch) {
-//                    out_pcm_file.write(reinterpret_cast<const char*>(frame->m_frame->data[ch] + data_size * i), data_size);
-//                }
-//            }
 
             for (int i {};i < frame->m_frame->nb_samples;i++){
                 for (int ch{};ch < frame->m_frame->ch_layout.nb_channels;ch++) {
@@ -91,3 +93,5 @@ int main(const int argc,const char* const *argv) {
 
     return 0;
 }
+
+#endif

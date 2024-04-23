@@ -9,7 +9,7 @@
 
 struct Video_Encoder_params{
 
-    constexpr explicit Video_Encoder_params(const int &width,
+    explicit Video_Encoder_params(const int &width,
                          const int &height,
                          const int &gop_size = 25,
                          const int &max_b_frames = 0,
@@ -21,11 +21,11 @@ struct Video_Encoder_params{
             m_width(width),m_height(height),m_gop_size(gop_size),max_b_frames(max_b_frames),m_flags(flags),
             m_pix_fmt{pix_fmt}, m_time_base(time_base),m_bit_rate(bit_rate),m_Codec_ID(CodecID){}
 
-   const int m_width{},m_height{},m_gop_size{},max_b_frames{},m_flags{};
-   const AVPixelFormat m_pix_fmt{};
-   const AVRational m_time_base{};
-   const int64_t m_bit_rate{};
-   const AVCodecID m_Codec_ID{};
+   int m_width{},m_height{},m_gop_size{},max_b_frames{},m_flags{};
+   AVPixelFormat m_pix_fmt{};
+   AVRational m_time_base{};
+   int64_t m_bit_rate{};
+   AVCodecID m_Codec_ID{};
 };
 
 class VideoEncoder final : public EncoderAbstract {
@@ -39,5 +39,7 @@ public:
 };
 
 using VideoEncoder_sp_type = typename VideoEncoder::VideoEncoder_sp_type;
+
+VideoEncoder_sp_type new_VideoEncoder(const Video_Encoder_params &) noexcept(false);
 
 #endif

@@ -185,3 +185,27 @@ void SwrContext_t::DeConstruct() noexcept(true)
 SwrContext_t::~SwrContext_t(){
     DeConstruct();
 }
+
+
+SwrContext_sp_type new_SwrContext_t() noexcept(false){
+    return SwrContext_t::create();
+}
+
+SwrContext_sp_type new_SwrContext_t(const AVChannelLayout *out_ch_layout,
+                                    const AVSampleFormat &out_sample_fmt,
+                                    const int &out_sample_rate,
+                                    const AVChannelLayout *in_ch_layout,
+                                    const AVSampleFormat &in_sample_fmt,
+                                    const int &in_sample_rate,
+                                    const int &log_offset,
+                                    void *log_ctx) noexcept(false)
+{
+    return SwrContext_t::create(out_ch_layout,
+                                out_sample_fmt,
+                                out_sample_rate,
+                                in_ch_layout,
+                                in_sample_fmt,
+                                in_sample_rate,
+                                log_offset,
+                                log_ctx);
+}

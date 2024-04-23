@@ -15,7 +15,7 @@ struct AVStream;
 
 #include "ShareAVPacket.hpp"
 
-class Muxer {
+class Muxer final {
 
     explicit Muxer(std::string &&);
     void Construct() noexcept(false);
@@ -28,7 +28,7 @@ public:
     static Muxer_sp_type create(std::string &&) noexcept(false);
     ~Muxer();
     void Send_header() const noexcept(false);
-    void Send_packet(const ShareAVPacket_sp_type& ,const AVRational &,const AVRational &) const noexcept(false);
+    void Send_packet(const ShareAVPacket_sp_type& ,const AVRational &codec_time_base,const AVRational &stream_time_base) const noexcept(false);
     void Send_trailer() const noexcept(false);
     [[nodiscard]] AVStream *create_stream() const noexcept(false);
     [[nodiscard]] std::string url() const noexcept(true){
@@ -41,5 +41,7 @@ private:
 };
 
 using Muxer_sp_type = typename Muxer::Muxer_sp_type ;
+
+Muxer_sp_type new_Muxer(std::string &&) noexcept(false);
 
 #endif //INC_15_MP4_MUXER_MUXER_H

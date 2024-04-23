@@ -59,3 +59,9 @@ void VideoEncoder::init_codec(const Video_Encoder_params &params) noexcept(false
 
     std::cerr << "init video encoder success\n";
 }
+
+
+VideoEncoder_sp_type new_VideoEncoder(const Video_Encoder_params &params) noexcept(false)
+{
+    return VideoEncoder::create(params);
+}

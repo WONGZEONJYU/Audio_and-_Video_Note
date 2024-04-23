@@ -24,4 +24,6 @@ private:
 
 using ShareAVPacket_sp_type = typename ShareAVPacket::ShareAVPacket_sp_type;
 
+ShareAVPacket_sp_type new_ShareAVPacket() noexcept(false);
+
 #endif //INC_15_MP4_MUXER_SHAREAVPACKET_HPP

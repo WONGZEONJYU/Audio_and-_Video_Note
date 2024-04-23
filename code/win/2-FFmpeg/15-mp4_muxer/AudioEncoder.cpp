@@ -58,3 +58,8 @@ void AudioEncoder::init_codec(const Audio_encoder_params &params) noexcept(false
 
     std::cerr << "init audio encoder success\n";
 }
+
+AudioEncoder_sp_type new_AudioEncoder(const Audio_encoder_params &params) noexcept(false)
+{
+    return AudioEncoder::create(params);
+}

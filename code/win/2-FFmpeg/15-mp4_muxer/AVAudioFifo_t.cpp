@@ -68,3 +68,10 @@ void AVAudioFifo_t::DeConstruct() noexcept(true) {
 AVAudioFifo_t::~AVAudioFifo_t() {
     DeConstruct();
 }
+
+AVAudioFifo_sp_type new_AVAudioFifo_t(const AVSampleFormat &sample_fmt,
+                                      const int& channels,
+                                      const int &nb_samples)
+{
+    return AVAudioFifo_t::create(sample_fmt,channels,nb_samples);
+}

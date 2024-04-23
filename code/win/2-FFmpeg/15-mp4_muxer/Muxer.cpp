@@ -60,12 +60,12 @@ void Muxer::Send_header() const noexcept(false){
 }
 
 void Muxer::Send_packet(const ShareAVPacket_sp_type& pkt,
-                        const AVRational &src,const AVRational& dst) const noexcept(false)
+                        const AVRational &codec_time_base,const AVRational &stream_time_base) const noexcept(false)
 {
     // 时间基转换
-    pkt->m_packet->pts = av_rescale_q(pkt->m_packet->pts,src,dst);
-    pkt->m_packet->dts = av_rescale_q(pkt->m_packet->dts,src,dst);
-    pkt->m_packet->duration = av_rescale_q(pkt->m_packet->duration,src,dst);
+    pkt->m_packet->pts = av_rescale_q(pkt->m_packet->pts,codec_time_base,stream_time_base);
+    pkt->m_packet->dts = av_rescale_q(pkt->m_packet->dts,codec_time_base,stream_time_base);
+    pkt->m_packet->duration = av_rescale_q(pkt->m_packet->duration,codec_time_base,stream_time_base);
 
     const auto ret{av_interleaved_write_frame(m_fmt_ctx,pkt->m_packet)};
 
@@ -77,7 +77,7 @@ void Muxer::Send_packet(const ShareAVPacket_sp_type& pkt,
 void Muxer::Send_trailer() const noexcept(false) {
     const auto ret{av_write_trailer(m_fmt_ctx)};
     if (ret < 0){
-        throw std::runtime_error("av_write_trailer failed: " + AVHelper::av_get_err(ret ) + "\n");
+        throw std::runtime_error("av_write_trailer failed: " + AVHelper::av_get_err(ret) + "\n");
     }
 }
 
@@ -106,4 +106,9 @@ Muxer::~Muxer() {
 
 void Muxer::dump_format(const int& index) const noexcept(true) {
     av_dump_format(m_fmt_ctx,index,m_url.c_str(),1);
+}
+
+Muxer_sp_type new_Muxer(std::string &&url) noexcept(false)
+{
+    return Muxer::create(std::move(url));
 }

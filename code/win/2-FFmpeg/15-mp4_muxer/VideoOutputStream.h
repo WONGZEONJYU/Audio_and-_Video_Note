@@ -7,8 +7,6 @@
 
 #include "OutputStreamAbstract.h"
 
-
-struct AVStream;
 struct Video_Encoder_params;
 class Muxer;
 
@@ -20,10 +18,11 @@ class VideoOutputStream final : public OutputStreamAbstract{
 public:
     using VideoOutputStream_sp_type = std::shared_ptr<VideoOutputStream>;
     static VideoOutputStream_sp_type create(const std::shared_ptr<Muxer>&,
-            const Video_Encoder_params&);
-    
+                                            const Video_Encoder_params&);
 };
 
 using VideoOutputStream_sp_type = typename VideoOutputStream::VideoOutputStream_sp_type;
 
+VideoOutputStream_sp_type new_VideoOutputStream(const std::shared_ptr<Muxer>&,
+                                                const Video_Encoder_params&) noexcept(false);
 #endif

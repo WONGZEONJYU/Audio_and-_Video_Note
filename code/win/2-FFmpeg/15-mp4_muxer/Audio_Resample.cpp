@@ -1,11 +1,4 @@
 #include <iostream>
-
-extern "C"{
-#include <libavutil/opt.h>
-#include <libavutil/frame.h>
-#include <libavcodec/avcodec.h>
-}
-
 #include "Audio_Resample.h"
 #include "AVAudioFifo_t.h"
 #include "SwrContext_t.h"
@@ -13,7 +6,7 @@ extern "C"{
 
 void Audio_Resample::Construct() noexcept(false){
 
-    m_audio_fifo = AVAudioFifo_t::create(m_Resample_Params.m_dst_sample_fmt,
+    m_audio_fifo = new_AVAudioFifo_t(m_Resample_Params.m_dst_sample_fmt,
                                          m_Resample_Params.m_dst_ch_layout.nb_channels);
 
     if (m_Resample_Params) {
@@ -23,7 +16,7 @@ void Audio_Resample::Construct() noexcept(false){
     }
 
     try {
-        m_swr_ctx = SwrContext_t::create(
+        m_swr_ctx = new_SwrContext_t(
                 &m_Resample_Params.m_dst_ch_layout,
                 m_Resample_Params.m_dst_sample_fmt,
                 m_Resample_Params.m_dst_sample_rate,
@@ -32,9 +25,9 @@ void Audio_Resample::Construct() noexcept(false){
                 m_Resample_Params.m_src_sample_rate);
         init_resampled_data();
     } catch (const std::runtime_error &e) {
-        destroy_resample_data();
         m_audio_fifo.reset();
         m_swr_ctx.reset();
+        destroy_resample_data();
         throw std::runtime_error(e.what());
     }
 
@@ -44,6 +37,7 @@ void Audio_Resample::Construct() noexcept(false){
 Audio_Resample_type Audio_Resample::create(const Audio_Resample_Params &params) noexcept(false){
 
     Audio_Resample_type obj;
+
     try {
         obj = std::move(Audio_Resample_type(new Audio_Resample(params)));
     } catch (const std::bad_alloc &e) {
@@ -68,13 +62,12 @@ void Audio_Resample::init_resampled_data() noexcept(false){
     /*在发送的时候可能遇到空间不足情况,需重新申请,重新申请之前,先释放原来的空间*/
     destroy_resample_data();
     int line_size{};
-    const auto dst_channels{m_Resample_Params.m_dst_ch_layout.nb_channels};
-    const auto dst_sample_fmt{m_Resample_Params.m_dst_sample_fmt};
 
     const auto ret {av_samples_alloc_array_and_samples(&m_resampled_data,
-                                                        &line_size, dst_channels,
+                                                        &line_size,
+                                                       m_Resample_Params.m_dst_ch_layout.nb_channels,
                                                  m_resampled_data_size,
-                                                       dst_sample_fmt,
+                                                       m_Resample_Params.m_dst_sample_fmt,
                                                             0)};
 
     if (ret < 0){
@@ -125,10 +118,11 @@ int Audio_Resample::fifo_read_helper(uint8_t **out_data, const int &need_nb_samp
 
 int Audio_Resample::need_samples_num(const int &nb_samples) const {
 
-    const auto _fifo_size{fifo_size()};
+    const auto _fifo_size{m_audio_fifo->size()};
 
-    const auto need_nb_samples{!nb_samples ? _fifo_size : nb_samples};
     /*参数nb_samples为0,则尝试查看fifo有多数数据*/
+    const auto need_nb_samples{!nb_samples ? _fifo_size : nb_samples};
+
     if (_fifo_size < need_nb_samples || !need_nb_samples) {
         /*如果fifo为0或fifo数据量小于需要的数据量,则退出当前函数*/
         std::cerr << "Not enough data or fifo is empty\n";
@@ -143,7 +137,7 @@ Audio_Resample::~Audio_Resample(){
     destroy_resample_data();
 }
 
-int Audio_Resample::send_frame(const AVFrame& frame) {
+int Audio_Resample::send_frame(const AVFrame &frame) {
 
     const auto src_data{frame.extended_data};     //输入源的buffer
     const auto src_nb_samples{frame.nb_samples};// 输入源采样点数量
@@ -252,4 +246,9 @@ int Audio_Resample::receive_frame(uint8_t** out_data, const int& nb_samples, int
 
 int Audio_Resample::fifo_size() const noexcept(true){
     return m_audio_fifo->size();
+}
+
+Audio_Resample_type new_Audio_Resample(const Audio_Resample_Params & params) noexcept(false)
+{
+    return Audio_Resample::create(params);
 }

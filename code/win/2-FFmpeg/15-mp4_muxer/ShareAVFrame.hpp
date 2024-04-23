@@ -24,4 +24,6 @@ private:
 
 using ShareAVFrame_sp_type = typename ShareAVFrame::ShareAVFrame_sp_type;
 
+ShareAVFrame_sp_type new_ShareAVFrame() noexcept(false);
+
 #endif //INC_15_MP4_MUXER_SHAREAVFRAME_HPP

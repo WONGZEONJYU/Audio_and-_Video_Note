@@ -6,22 +6,31 @@
 #define INC_15_MP4_MUXER_AUDIOOUTPUTSTREAM_HPP
 
 #include "OutputStreamAbstract.h"
-#include "AudioEncoder.h"
+#include "Audio_Resample.h"
 
+struct Audio_encoder_params;
 class Muxer;
 
 class AudioOutputStream final : public OutputStreamAbstract{
 
     explicit AudioOutputStream() = default;
     void Construct(const std::shared_ptr<Muxer>&,
-                   const Audio_encoder_params&) noexcept(false);
+                   const Audio_encoder_params&,
+                   const Audio_Resample_Params &) noexcept(false);
 
 public:
     using AudioOutputStream_sp_type = std::shared_ptr<AudioOutputStream>;
     static AudioOutputStream_sp_type create(const std::shared_ptr<Muxer>&,
-                                            const Audio_encoder_params&) noexcept(false);
+                                            const Audio_encoder_params&,
+                                            const Audio_Resample_Params &) noexcept(false);
+private:
+    Audio_Resample_type m_audioResample;
 };
 
 using AudioOutputStream_sp_type = typename AudioOutputStream::AudioOutputStream_sp_type;
+
+AudioOutputStream_sp_type new_AudioOutputStream(const std::shared_ptr<Muxer>&,
+                                                const Audio_encoder_params&,
+                                                const Audio_Resample_Params &) noexcept(false);
 
 #endif

@@ -38,3 +38,8 @@ VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create(const Mux
     }
 }
 
+VideoOutputStream_sp_type new_VideoOutputStream(const std::shared_ptr<Muxer> &muxer,
+                                                const Video_Encoder_params &params) noexcept(false)
+{
+    return VideoOutputStream::create(muxer,params);
+}

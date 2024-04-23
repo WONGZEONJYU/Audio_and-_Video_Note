@@ -37,10 +37,15 @@ ShareAVFrame::ShareAVFrame_sp_type ShareAVFrame::create() {
     }
 }
 
+void ShareAVFrame::DeConstruct() noexcept(true) {
+    av_frame_free(const_cast<AVFrame**>(&m_frame));
+}
+
 ShareAVFrame::~ShareAVFrame() noexcept(true) {
     DeConstruct();
 }
 
-void ShareAVFrame::DeConstruct() noexcept(true) {
-    av_frame_free(const_cast<AVFrame**>(&m_frame));
+ShareAVFrame_sp_type new_ShareAVFrame() noexcept(false)
+{
+    return ShareAVFrame::create();
 }

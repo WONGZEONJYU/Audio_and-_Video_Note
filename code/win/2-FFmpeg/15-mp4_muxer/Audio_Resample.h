@@ -1,20 +1,19 @@
-#ifndef AUDIO_RESAMPLER_H
-#define AUDIO_RESAMPLER_H
+#ifndef AUDIO_RESAMPLE_H
+#define AUDIO_RESAMPLE_H
 
 extern "C"{
 #include <libswresample/swresample.h>
 }
 
 #include <atomic>
-#include <memory>
-#include "ShareAVFrame.hpp"
 
-class AVAudioFifo_t;
-class SwrContext_t;
+#include "AVAudioFifo_t.h"
+#include "SwrContext_t.h"
+#include "ShareAVFrame.hpp"
 
 struct Audio_Resample_Params {
     // input params
-    constexpr explicit Audio_Resample_Params(const AVSampleFormat &src_sample_fmt = AV_SAMPLE_FMT_S16P,
+    explicit Audio_Resample_Params(const AVSampleFormat &src_sample_fmt = AV_SAMPLE_FMT_S16,
                                     const AVChannelLayout &src_ch_layout = AV_CHANNEL_LAYOUT_STEREO,
                                     const int &src_sample_rate = 44100,
                                     const AVSampleFormat &dst_sample_fmt = AV_SAMPLE_FMT_FLTP,
@@ -27,9 +26,9 @@ struct Audio_Resample_Params {
             m_src_sample_rate(src_sample_rate),
             m_dst_sample_rate(dst_sample_rate){}
 
-    const AVSampleFormat m_src_sample_fmt{},m_dst_sample_fmt{};
-    const AVChannelLayout m_src_ch_layout{},m_dst_ch_layout{};
-    const int m_src_sample_rate{},m_dst_sample_rate{};
+    AVSampleFormat m_src_sample_fmt{},m_dst_sample_fmt{};
+    AVChannelLayout m_src_ch_layout{},m_dst_ch_layout{};
+    int m_src_sample_rate{},m_dst_sample_rate{};
 
     constexpr explicit operator bool() const noexcept(true){
         return m_src_sample_fmt == m_dst_sample_fmt &&
@@ -74,13 +73,12 @@ public:
 
 private:
     const Audio_Resample_Params &m_Resample_Params;// 重采样的设置参数
-    std::shared_ptr<AVAudioFifo_t> m_audio_fifo;
-    std::shared_ptr<SwrContext_t> m_swr_ctx;
-
+    AVAudioFifo_sp_type m_audio_fifo;
+    SwrContext_sp_type m_swr_ctx;
     std::atomic_bool m_is_fifo_only; //不需要进行重采样,只需要缓存到 audio_fifo
     std::atomic_bool m_is_flushed;//flush的时候使用
-    int64_t m_start_pts{AV_NOPTS_VALUE};          // 起始pts
-    int64_t m_cur_pts{AV_NOPTS_VALUE};            // 当前pts
+    int64_t m_start_pts{AV_NOPTS_VALUE}; // 起始pts
+    int64_t m_cur_pts{AV_NOPTS_VALUE}; // 当前pts
     uint8_t **m_resampled_data{};   // 用来缓存重采样后的数据
     int m_resampled_data_size {2048};    // 重采样后的采样数
     int64_t m_total_resampled_num{};    // 统计总共的重采样点数,目前只是统计
@@ -88,4 +86,7 @@ private:
 
 using Audio_Resample_type = typename Audio_Resample::Audio_Resample_t;
 
-#endif //AUDIO_RESAMPLER_H
+
+Audio_Resample_type new_Audio_Resample(const Audio_Resample_Params & ) noexcept(false);
+
+#endif

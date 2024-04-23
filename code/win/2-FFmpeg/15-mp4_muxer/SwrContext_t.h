@@ -71,4 +71,14 @@ private:
 
 using SwrContext_sp_type = typename SwrContext_t::SwrContext_sp_t;
 
+SwrContext_sp_type new_SwrContext_t() noexcept(false);
+SwrContext_sp_type new_SwrContext_t(const AVChannelLayout *out_ch_layout,
+                                    const AVSampleFormat &out_sample_fmt,
+                                    const int &out_sample_rate,
+                                    const AVChannelLayout *in_ch_layout,
+                                    const AVSampleFormat &in_sample_fmt,
+                                    const int &in_sample_rate,
+                                    const int &log_offset = 0,
+                                    void *log_ctx  = nullptr) noexcept(false);
+
 #endif

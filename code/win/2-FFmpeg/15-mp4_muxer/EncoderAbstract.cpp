@@ -9,7 +9,7 @@ extern "C"{
 #include "EncoderAbstract.h"
 #include "AVHelper.h"
 
-void EncoderAbstract::encode(const ShareAVFrame_sp_type &frame, const int &stream_index, const long long int &pts,
+void EncoderAbstract::encode(const std::string &name, const ShareAVFrame_sp_type &frame, const int &stream_index, const long long int &pts,
                              const AVRational &time_base,vector_type &packets) const noexcept(false) {
 
     auto pkt{ShareAVPacket::create()};
@@ -18,7 +18,7 @@ void EncoderAbstract::encode(const ShareAVFrame_sp_type &frame, const int &strea
         frame->m_frame->pts = av_rescale_q(pts,time_base,m_codec_ctx->time_base);
     }
 
-    AVHelper::encode("video",m_codec_ctx,frame->m_frame,pkt->m_packet,[&]{
+    AVHelper::encode(name,m_codec_ctx,frame->m_frame,pkt->m_packet,[&]{
         pkt->m_packet->stream_index = stream_index;
         packets.push_back(std::move(pkt));
     });
@@ -29,7 +29,10 @@ EncoderAbstract::~EncoderAbstract() {
     avcodec_free_context(&m_codec_ctx);
 }
 
-int EncoderAbstract::parameters_from_context(AVCodecParameters *par) {
+void EncoderAbstract::parameters_from_context(AVCodecParameters *par) noexcept(false){
 
-    return avcodec_parameters_from_context(par,m_codec_ctx);
+    const auto ret {avcodec_parameters_from_context(par,m_codec_ctx)};
+    if (ret < 0){
+        throw std::runtime_error("avcodec_parameters_from_context failed: " + AVHelper::av_get_err(ret) + "\n");
+    }
 }

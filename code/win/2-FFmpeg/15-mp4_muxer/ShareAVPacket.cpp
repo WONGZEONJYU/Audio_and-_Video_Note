@@ -43,3 +43,8 @@ void ShareAVPacket::DeConstruct() noexcept(true) {
 ShareAVPacket::~ShareAVPacket() {
     DeConstruct();
 }
+
+ShareAVPacket_sp_type new_ShareAVPacket() noexcept(false)
+{
+    return ShareAVPacket::create();
+}
