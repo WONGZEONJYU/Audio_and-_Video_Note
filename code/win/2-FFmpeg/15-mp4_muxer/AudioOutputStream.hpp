@@ -23,6 +23,15 @@ public:
     static AudioOutputStream_sp_type create(const std::shared_ptr<Muxer>&,
                                             const Audio_encoder_params&,
                                             const Audio_Resample_Params &) noexcept(false);
+
+    [[nodiscard]] auto Frame_size() const noexcept(true){
+        return m_stream->codecpar->frame_size;
+    }
+
+    [[nodiscard]] auto nb_Frames() const noexcept(true){
+        return m_stream->nb_frames;
+    }
+
 private:
     Audio_Resample_type m_audioResample;
 };

@@ -1,25 +1,35 @@
 #include <iostream>
-#include <fstream>
-//#include "Muxer_mp4.h"
+#include "Muxer_mp4.h"
 
 //ffmpeg -i sound_in_sync_test.mp4 -pix_fmt yuv420p 720x576_yuv420p.yuv
 //ffmpeg -i sound_in_sync_test.mp4 -vn -ar 44100 -ac 2 -f s16le 44100_2_s16le.pcm
 // 执行文件  yuv文件 pcm文件 输出mp4文件
 
-#include "Audio_Resample.h"
-#include "SwrContext_t.h"
-#include "VideoEncoder.h"
-#include "AudioEncoder.h"
-
-#if 0
+#if 1
 
 int main(const int argc,const char* const *argv)
 {
+    if (argc < 4){
+        std::cerr << "usage : in.yuv in.pcm out.mp4\n";
+        return -1;
+    }
+
+    try {
+         auto mp4_muxer{new_Muxer_mp4(argv[1],argv[2],argv[3])};
+
+    }catch (const std::exception &e){
+        std::cerr << e.what() << "\n";
+    }
 
     std::cerr << "process normal exit\n";
     return 0;
 }
 #else
+
+#include "Audio_Resample.h"
+#include "SwrContext_t.h"
+#include "VideoEncoder.h"
+#include "AudioEncoder.h"
 int main(const int argc,const char* const *argv) {
     (void )argc,(void )(argv);
 

@@ -16,7 +16,6 @@ extern "C"{
 
 #include "AudioOutputStream.hpp"
 #include "VideoOutputStream.h"
-
 #include "Muxer.h"
 
 class Muxer_mp4 {
@@ -54,6 +53,7 @@ private:
     VideoOutputStream_sp_type m_VideoOutputStream;
     uint8_t *m_yuv_buffer{},*m_pcm_buffer{};
     uint64_t m_yuv_buffer_size{},m_pcm_buffer_size{};
+    int64_t video_pts{},audio_pts{};
 };
 
 using Muxer_mp4_sp_type = typename Muxer_mp4::Muxer_mp4_sp_type;
@@ -62,4 +62,4 @@ Muxer_mp4_sp_type new_Muxer_mp4(const std::string &yuv_file_name,
                                 const std::string &pcm_file_name,
                                 std::string &&out_file) noexcept(false);
 
-#endif //INC_15_MP4_MUXER_MUXER_MP4_H
+#endif

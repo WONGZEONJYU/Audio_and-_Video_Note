@@ -8,24 +8,17 @@
 
 void AudioOutputStream::Construct(const std::shared_ptr<Muxer> &muxer,
                                 const Audio_encoder_params &encoderParams ,
-                                const Audio_Resample_Params &audioResampleParams) noexcept(false) {
-
+                                const Audio_Resample_Params &audioResampleParams) noexcept(false)
+{
     m_encoder = new_AudioEncoder(encoderParams);
-
     m_stream = muxer->create_stream();
-
     m_encoder->parameters_from_context(m_stream->codecpar);
-
     auto ar_params{audioResampleParams};
-
     const auto audioEncoder {std::dynamic_pointer_cast<AudioEncoder>(m_encoder)};
-
     ar_params.m_dst_ch_layout = audioEncoder->channel_layout();
     ar_params.m_dst_sample_fmt = audioEncoder->sample_fmt();
     ar_params.m_dst_sample_rate = audioEncoder->sample_rate();
-
     m_audioResample = new_Audio_Resample(ar_params);
-
     muxer->dump_format(m_stream->index);
 }
 
