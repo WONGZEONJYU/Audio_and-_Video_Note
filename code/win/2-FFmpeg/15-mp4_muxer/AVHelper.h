@@ -64,7 +64,6 @@ namespace AVHelper {
         if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret){
             std::cerr << name + " Receive_packet and send_frame both returned EAGAIN, which is an API violation.\n";
         }else if (ret < 0) {
-
             const auto errmsg(name + " avcodec_send_frame failed : " + av_get_err(ret) + "\n");
             throw std::system_error(make_error_code_helper(ret),errmsg);
         }else{}
@@ -74,10 +73,8 @@ namespace AVHelper {
             ret = avcodec_receive_packet(codec_ctx,packet);
 
             if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret){
-
                 const auto msg(name + " avcodec_receive_packet failed: " +
                                std::to_string(ret) +  "\t" + av_get_err(ret) + "\n");
-
                 throw std::system_error(make_error_code_helper(ret),msg);
             }else if(ret < 0){
 

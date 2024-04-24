@@ -18,22 +18,23 @@ void EncoderAbstract::encode(const std::string &name, const ShareAVFrame_sp_type
         in_frame = frame->m_frame;
     }
 
-//    auto pkt{new_ShareAVPacket()};
-//
-//    try {
-//        AVHelper::encode(name, m_codec_ctx, in_frame, pkt->m_packet, [&] {
-//            pkt->m_packet->stream_index = stream_index;
-//            packets.push_back(std::move(pkt));
-//        });
-//    } catch (const std::system_error &e) {
-//        pkt.reset();
-//        const auto error_code{e.code().value()};
-//        if (AVERROR_EOF == error_code || AVERROR(EAGAIN) == error_code){
-//            return;
-//        } else{
-//            throw std::runtime_error(e.what());
-//        }
-//    }
+    auto pkt{new_ShareAVPacket()};
+
+    try {
+        AVHelper::encode(name, m_codec_ctx, in_frame, pkt->m_packet, [&] {
+            pkt->m_packet->stream_index = stream_index;
+            packets.push_back(std::move(pkt));
+            pkt = new_ShareAVPacket();
+        });
+    } catch (const std::system_error &e) {
+        pkt.reset();
+        const auto error_code{e.code().value()};
+        if (AVERROR_EOF == error_code || AVERROR(EAGAIN) == error_code){
+            return;
+        } else{
+            throw std::runtime_error(e.what());
+        }
+    }
 }
 
 EncoderAbstract::~EncoderAbstract() {

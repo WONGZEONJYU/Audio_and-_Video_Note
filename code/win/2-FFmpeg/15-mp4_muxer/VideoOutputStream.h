@@ -16,13 +16,14 @@ class VideoOutputStream final : public OutputStreamAbstract{
     explicit VideoOutputStream()  = default;
     void Construct(const std::shared_ptr<Muxer>&,
             const Video_Encoder_params&) noexcept(false);
-    void encoder(const ShareAVFrame_sp_type &,const long long &pts,
-                 const AVRational& time_base,vector_type& ) const noexcept(false) override;
+
 public:
     using VideoOutputStream_sp_type = std::shared_ptr<VideoOutputStream>;
     static VideoOutputStream_sp_type create(const std::shared_ptr<Muxer>&,
                                             const Video_Encoder_params&);
 
+    void encoder(const ShareAVFrame_sp_type &,const long long &pts,
+                 const AVRational& time_base,vector_type& ) const noexcept(false);
 private:
     ShareAVFrame_sp_type m_frame;
 };
