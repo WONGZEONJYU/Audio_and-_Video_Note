@@ -11,7 +11,6 @@ extern "C"{
 }
 
 #include "EncoderAbstract.h"
-#include "ShareAVFrame.hpp"
 
 class OutputStreamAbstract {
 
@@ -29,12 +28,14 @@ public:
         return m_stream->time_base;
     };
 
+    virtual void encoder(const ShareAVFrame_sp_type &,const long long &pts,
+                 const AVRational& time_base,vector_type& ) const noexcept(false) = 0;
+
 protected:
     explicit OutputStreamAbstract() = default;
     virtual ~OutputStreamAbstract() = default;
 
     AVStream *m_stream{};
-    ShareAVFrame_sp_type m_frame;
     EncoderAbstract_sp_type m_encoder;
 };
 

@@ -51,6 +51,7 @@ void VideoEncoder::init_codec(const Video_Encoder_params &params) noexcept(false
     m_codec_ctx->bit_rate = params.m_bit_rate;
     m_codec_ctx->gop_size = params.m_gop_size;
     m_codec_ctx->max_b_frames = params.max_b_frames;
+    m_codec_ctx->framerate = params.m_framerate;
 
     const auto ret{avcodec_open2(m_codec_ctx, nullptr, nullptr)};
     if (ret < 0){

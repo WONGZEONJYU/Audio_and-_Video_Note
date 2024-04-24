@@ -38,33 +38,32 @@ void Muxer_mp4::Construct(std::string &&url) noexcept(false)
 
     m_VideoOutputStream = new_VideoOutputStream(m_muxer,videoEncoderParams);
 
-    {
+    try {
         constexpr auto y_size {YUV_WIDTH * YUV_HEIGHT},u_size{y_size / 4},v_size{y_size / 4};
         m_yuv_buffer_size = y_size + u_size + v_size;
 
-        try {
-            m_yuv_buffer = static_cast<uint8_t*>(m_mem_pool.allocate(m_yuv_buffer_size));
-        } catch (const std::exception &e) {
-            throw std::runtime_error("yuv_buffer allocate failed: " + std::string(e.what()) + "\n");
-        }
+        m_yuv_buffer = static_cast<uint8_t*>(m_mem_pool.allocate(m_yuv_buffer_size));
+        std::fill_n(m_yuv_buffer,m_yuv_buffer_size,0);
+    } catch (const std::exception &e) {
+        throw std::runtime_error("yuv_buffer allocate failed: " + std::string(e.what()) + "\n");
     }
 
-    {
-        const auto nb_frames{m_AudioOutputStream->Frame_size()};
-        m_pcm_buffer_size = av_get_bytes_per_sample(PCM_FMT) * CHANNEL_LAYOUT.nb_channels * 1024;
-        try {
-            m_pcm_buffer = static_cast<uint8_t*>(m_mem_pool.allocate(m_pcm_buffer_size));
-        }catch (const std::exception &e){
-            throw std::runtime_error("pcm_buffer allocate failed: " + std::string(e.what()) + "\n");
-        }
+    try {
+        const auto frame_size{m_AudioOutputStream->Frame_size()};
+        m_pcm_buffer_size = av_get_bytes_per_sample(PCM_FMT) * CHANNEL_LAYOUT.nb_channels * frame_size;
+        m_pcm_buffer = static_cast<uint8_t*>(m_mem_pool.allocate(m_pcm_buffer_size));
+        std::fill_n(m_pcm_buffer,m_pcm_buffer_size,0);
+    }catch (const std::exception &e){
+        throw std::runtime_error("pcm_buffer allocate failed: " + std::string(e.what()) + "\n");
     }
 
+    v_duration = 1.0 / YUV_FPS * TIME_BASE.den;
+    a_duration = 1.0 * m_AudioOutputStream->Frame_size() / PCM_SAMPLE_RATE * TIME_BASE.den;
 }
 
 Muxer_mp4_sp_type Muxer_mp4::create(const std::string &yuv_file_name,
                                     const std::string &pcm_file_name,
                                     std::string&& out_file) noexcept(false) {
-
     Muxer_mp4_sp_type obj;
     try {
         obj = std::move(Muxer_mp4_sp_type(new Muxer_mp4(yuv_file_name,pcm_file_name)));
@@ -81,16 +80,16 @@ Muxer_mp4_sp_type Muxer_mp4::create(const std::string &yuv_file_name,
     }
 }
 
-Muxer_mp4::~Muxer_mp4() {
-    std::cerr << __FUNCTION__  << "\n";
-    DeConstruct();
-}
-
 void Muxer_mp4::DeConstruct() noexcept(true) {
     m_yuv_file.close();
     m_pcm_file.close();
     m_mem_pool.deallocate(m_yuv_buffer,m_yuv_buffer_size);
     m_mem_pool.deallocate(m_pcm_buffer,m_pcm_buffer_size);
+}
+
+Muxer_mp4::~Muxer_mp4() {
+    std::cerr << __FUNCTION__  << "\n";
+    DeConstruct();
 }
 
 Muxer_mp4_sp_type new_Muxer_mp4(const std::string &yuv_file_name,

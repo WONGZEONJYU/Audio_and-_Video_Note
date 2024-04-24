@@ -38,6 +38,12 @@ VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create(const Mux
     }
 }
 
+void VideoOutputStream::encoder(const ShareAVFrame_sp_type &frame, const long long int &pts,
+                                const AVRational &time_base, vector_type &packets) const noexcept(false)
+{
+    m_encoder->encode("video",frame,m_stream->index,pts,time_base,packets);
+}
+
 VideoOutputStream_sp_type new_VideoOutputStream(const std::shared_ptr<Muxer> &muxer,
                                                 const Video_Encoder_params &params) noexcept(false)
 {

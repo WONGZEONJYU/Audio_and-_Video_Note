@@ -10,18 +10,30 @@ extern "C"{
 #include "AVHelper.h"
 
 void EncoderAbstract::encode(const std::string &name, const ShareAVFrame_sp_type &frame, const int &stream_index, const long long int &pts,
-                             const AVRational &time_base,vector_type &packets) const noexcept(false) {
-
-    auto pkt{ShareAVPacket::create()};
-
+                             const AVRational &time_base,vector_type &packets) const noexcept(false)
+{
+    AVFrame *in_frame{};
     if (frame){
         frame->m_frame->pts = av_rescale_q(pts,time_base,m_codec_ctx->time_base);
+        in_frame = frame->m_frame;
     }
 
-    AVHelper::encode(name,m_codec_ctx,frame->m_frame,pkt->m_packet,[&]{
-        pkt->m_packet->stream_index = stream_index;
-        packets.push_back(std::move(pkt));
-    });
+//    auto pkt{new_ShareAVPacket()};
+//
+//    try {
+//        AVHelper::encode(name, m_codec_ctx, in_frame, pkt->m_packet, [&] {
+//            pkt->m_packet->stream_index = stream_index;
+//            packets.push_back(std::move(pkt));
+//        });
+//    } catch (const std::system_error &e) {
+//        pkt.reset();
+//        const auto error_code{e.code().value()};
+//        if (AVERROR_EOF == error_code || AVERROR(EAGAIN) == error_code){
+//            return;
+//        } else{
+//            throw std::runtime_error(e.what());
+//        }
+//    }
 }
 
 EncoderAbstract::~EncoderAbstract() {

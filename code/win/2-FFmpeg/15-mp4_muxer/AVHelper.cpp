@@ -2,7 +2,7 @@
 
 namespace  AVHelper {
 
-    std::string av_get_err(const int& errnum) {
+    std::string av_get_err(const int& errnum) noexcept(true){
         constexpr auto ERROR_STRING_SIZE {1024};
         char err_buf[ERROR_STRING_SIZE]{};
         av_strerror(errnum, err_buf, std::size(err_buf));
@@ -10,7 +10,7 @@ namespace  AVHelper {
     }
 
 
-    void log_packet(const AVFormatContext &fmt_ctx, const AVPacket &pkt) {
+    void log_packet(const AVFormatContext &fmt_ctx, const AVPacket &pkt) noexcept(true) {
 
         const auto time_base{&fmt_ctx.streams[pkt.stream_index]->time_base};
         char str_temp[AV_TS_MAX_STRING_SIZE]{};

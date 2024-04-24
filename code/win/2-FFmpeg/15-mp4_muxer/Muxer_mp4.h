@@ -53,7 +53,9 @@ private:
     VideoOutputStream_sp_type m_VideoOutputStream;
     uint8_t *m_yuv_buffer{},*m_pcm_buffer{};
     uint64_t m_yuv_buffer_size{},m_pcm_buffer_size{};
-    int64_t video_pts{},audio_pts{};
+    double video_pts{},audio_pts{};
+    double v_duration{},a_duration{};
+
 };
 
 using Muxer_mp4_sp_type = typename Muxer_mp4::Muxer_mp4_sp_type;
