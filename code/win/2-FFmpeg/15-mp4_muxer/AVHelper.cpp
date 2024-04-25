@@ -2,13 +2,16 @@
 
 namespace  AVHelper {
 
-    std::string av_get_err(const int& errnum) noexcept(true){
-        constexpr auto ERROR_STRING_SIZE {1024};
-        char err_buf[ERROR_STRING_SIZE]{};
-        av_strerror(errnum, err_buf, std::size(err_buf));
-        return {err_buf};
+    std::error_code make_error_code_helper(const int &errcode) noexcept(true) {
+        return std::make_error_code(static_cast<std::errc>(errcode));
     }
 
+    std::string av_get_err(const int& error_num) noexcept(true){
+        constexpr auto ERROR_STRING_SIZE {1024};
+        char err_buf[ERROR_STRING_SIZE]{};
+        av_strerror(error_num, err_buf, std::size(err_buf));
+        return {err_buf};
+    }
 
     void log_packet(const AVFormatContext &fmt_ctx, const AVPacket &pkt) noexcept(true) {
 

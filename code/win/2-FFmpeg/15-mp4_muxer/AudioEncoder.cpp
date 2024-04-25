@@ -14,7 +14,7 @@ void AudioEncoder::Construct(const Audio_encoder_params& params) noexcept(false)
     init_codec(params);
 }
 
-AudioEncoder::AudioEncoder_sp_type AudioEncoder::create(const Audio_encoder_params &params) {
+AudioEncoder_sp_type AudioEncoder::create(const Audio_encoder_params &params) noexcept(false){
 
     AudioEncoder_sp_type obj;
 
@@ -57,6 +57,15 @@ void AudioEncoder::init_codec(const Audio_encoder_params &params) noexcept(false
     }
 
     std::cerr << "init audio encoder success\n";
+}
+
+void AudioEncoder::encode(const ShareAVFrame_sp_type &frame,
+            const int &stream_index,
+            const long long int &pts,
+            const AVRational &time_base,
+            vector_type &packets) const noexcept(false)
+{
+    encode("audio",frame,stream_index,pts,time_base,packets);
 }
 
 AudioEncoder_sp_type new_AudioEncoder(const Audio_encoder_params &params) noexcept(false)

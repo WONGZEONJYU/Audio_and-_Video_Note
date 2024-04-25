@@ -12,17 +12,18 @@ extern "C"{
 #include <libavutil/timestamp.h>
 }
 
+#include "ShareAVFrame.hpp"
+#include "ShareAVPacket.hpp"
+
 namespace AVHelper {
 
     std::string av_get_err(const int&) noexcept(true);
     void log_packet(const AVFormatContext &, const AVPacket &)  noexcept(true);
 
-    static inline auto make_error_code_helper(const int &errcode) noexcept(true) {
-        return std::make_error_code(static_cast<std::errc>(errcode));
-    }
+    std::error_code make_error_code_helper(const int &errcode) noexcept(true);
 
     template<typename F,typename ...Args>
-    static inline void decode(const std::string &name,AVCodecContext *codec_ctx,const AVPacket *pkt,AVFrame *frame,
+    static inline void decode(const std::string &name,AVCodecContext *codec_ctx,const AVPacket *pkt,ShareAVFrame_sp_type &frame,
                 F&& f,Args&& ...args) noexcept(false)
     {
         /* send the packet with the compressed data to the decoder */
@@ -39,7 +40,7 @@ namespace AVHelper {
         /* read all the output frames (infile general there may be any number of them */
         for(;;){
             // 对于frame, avcodec_receive_frame内部每次都先调用
-            ret = avcodec_receive_frame(codec_ctx, frame);
+            ret = avcodec_receive_frame(codec_ctx, frame->m_frame);
 
             if (AVERROR(EAGAIN) == ret  || AVERROR_EOF == ret) {
 
@@ -56,7 +57,7 @@ namespace AVHelper {
     }
 
     template<typename F,typename ...Args>
-    static inline void encode(const std::string &name,AVCodecContext *codec_ctx,const AVFrame *frame,AVPacket *packet,
+    static inline void encode(const std::string &name,AVCodecContext *codec_ctx,const AVFrame *frame ,ShareAVPacket_sp_type &packet,
                 F&& f,Args&& ...args) noexcept(false)
     {
         auto ret{avcodec_send_frame(codec_ctx,frame)};
@@ -70,7 +71,7 @@ namespace AVHelper {
 
         for (;;) {
 
-            ret = avcodec_receive_packet(codec_ctx,packet);
+            ret = avcodec_receive_packet(codec_ctx,packet->m_packet);
 
             if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret){
                 const auto msg(name + " avcodec_receive_packet failed: " +

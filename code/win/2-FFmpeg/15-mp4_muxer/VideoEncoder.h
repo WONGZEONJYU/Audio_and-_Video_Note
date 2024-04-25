@@ -38,9 +38,40 @@ class VideoEncoder final : public EncoderAbstract {
     void Construct(const Video_Encoder_params &) noexcept(false);
     explicit VideoEncoder() = default;
     void init_codec(const Video_Encoder_params &) noexcept(false);
+    void init_frame() noexcept(false);
+    void image_fill_arrays(const uint8_t* , const size_t &) noexcept(false);
+    using EncoderAbstract::encode;
 public:
     using VideoEncoder_sp_type = std::shared_ptr<VideoEncoder>;
     static VideoEncoder_sp_type create(const Video_Encoder_params &) noexcept(false);
+
+    [[nodiscard]] auto pix_fmt() const noexcept(true){
+        return m_codec_ctx->pix_fmt;
+    }
+
+    [[nodiscard]] auto width() const noexcept(true){
+        return m_codec_ctx->width;
+    }
+
+    [[nodiscard]] auto height() const noexcept(true){
+        return m_codec_ctx->height;
+    }
+
+    void encode(const ShareAVFrame_sp_type &,
+                 const int &stream_index,
+                 const int64_t &pts,
+                 const AVRational &,
+                 vector_type &) const noexcept(false);
+
+    void encode(const uint8_t* ,
+                const size_t &,
+                const int &stream_index,
+                const int64_t &pts,
+                const AVRational &,
+                vector_type &) noexcept(false);
+
+private:
+    ShareAVFrame_sp_type m_frame;
 };
 
 using VideoEncoder_sp_type = typename VideoEncoder::VideoEncoder_sp_type;

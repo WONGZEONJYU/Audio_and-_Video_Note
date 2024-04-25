@@ -4,6 +4,7 @@
 
 extern "C"{
 #include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
 }
 
 #include "VideoEncoder.h"
@@ -29,6 +30,7 @@ VideoEncoder::VideoEncoder_sp_type VideoEncoder::create(const Video_Encoder_para
 
 void VideoEncoder::Construct(const Video_Encoder_params &params) noexcept(false) {
     init_codec(params);
+    init_frame();
 }
 
 void VideoEncoder::init_codec(const Video_Encoder_params &params) noexcept(false) {
@@ -61,6 +63,57 @@ void VideoEncoder::init_codec(const Video_Encoder_params &params) noexcept(false
     std::cerr << "init video encoder success\n";
 }
 
+void VideoEncoder::init_frame() noexcept(false)
+{
+    m_frame = new_ShareAVFrame();
+    m_frame->m_frame->width = m_codec_ctx->width;
+    m_frame->m_frame->height = m_codec_ctx->height;
+    m_frame->m_frame->format = m_codec_ctx->pix_fmt;
+}
+
+void VideoEncoder::image_fill_arrays(const uint8_t* yuv_buffer, const size_t &yuv_buffer_size) noexcept(false)
+{
+    if (m_frame){
+        init_frame();
+    }
+
+    const auto ret {av_image_fill_arrays(m_frame->m_frame->data,m_frame->m_frame->linesize,
+                                         yuv_buffer,m_codec_ctx->pix_fmt,
+                                         m_codec_ctx->width,
+                                         m_codec_ctx->height,1)};
+    if (ret < 0){
+        m_frame.reset();
+        throw std::runtime_error("av_image_fill_arrays failed: " + AVHelper::av_get_err(ret) + "\n");
+    }else if (yuv_buffer_size != ret){
+        m_frame.reset();
+        throw std::runtime_error("yuv_buffer_size: " + std::to_string(yuv_buffer_size) +
+                                " != ret_size: " + std::to_string(ret) + "\n");
+    } else{}
+}
+
+void VideoEncoder::encode(const ShareAVFrame_sp_type &frame,
+                           const int &stream_index,
+                           const int64_t &pts,
+                           const AVRational &time_base,
+                           vector_type &packets) const noexcept(false)
+{
+    encode("video",frame,stream_index,pts,time_base,packets);
+}
+
+void VideoEncoder::encode(const uint8_t* yuv_buffer,
+            const size_t &yuv_size,
+            const int &stream_index,
+            const int64_t &pts,
+            const AVRational &time_base,
+            vector_type &packets) noexcept(false)
+{
+    ShareAVFrame_sp_type frame;
+    if (yuv_buffer){
+        image_fill_arrays(yuv_buffer,yuv_size);
+        frame = m_frame;
+    }
+    encode(frame,stream_index,pts,time_base,packets);
+}
 
 VideoEncoder_sp_type new_VideoEncoder(const Video_Encoder_params &params) noexcept(false)
 {

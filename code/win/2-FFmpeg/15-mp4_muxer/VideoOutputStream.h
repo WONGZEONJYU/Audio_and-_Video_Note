@@ -6,7 +6,7 @@
 #define INC_15_MP4_MUXER_VIDEOOUTPUTSTREAM_H
 
 #include "OutputStreamAbstract.h"
-#include "ShareAVFrame.hpp"
+#include "VideoEncoder.h"
 
 struct Video_Encoder_params;
 class Muxer;
@@ -20,12 +20,16 @@ class VideoOutputStream final : public OutputStreamAbstract{
 public:
     using VideoOutputStream_sp_type = std::shared_ptr<VideoOutputStream>;
     static VideoOutputStream_sp_type create(const std::shared_ptr<Muxer>&,
-                                            const Video_Encoder_params&);
+                                            const Video_Encoder_params&) noexcept(false);
 
-    void encoder(const ShareAVFrame_sp_type &,const long long &pts,
-                 const AVRational& time_base,vector_type& ) const noexcept(false);
+    void encoder(const uint8_t* ,
+                 const size_t& ,
+                 const long long &pts,
+                 const AVRational& ,
+                 vector_type& ) noexcept(false);
+
 private:
-    ShareAVFrame_sp_type m_frame;
+    VideoEncoder_sp_type m_encoder;
 };
 
 using VideoOutputStream_sp_type = typename VideoOutputStream::VideoOutputStream_sp_type;

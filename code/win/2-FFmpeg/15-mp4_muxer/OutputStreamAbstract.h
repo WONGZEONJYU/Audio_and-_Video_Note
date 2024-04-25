@@ -10,7 +10,7 @@ extern "C"{
 #include <libavformat/avformat.h>
 }
 
-#include "EncoderAbstract.h"
+#include <memory>
 
 class OutputStreamAbstract {
 
@@ -28,13 +28,10 @@ public:
         return m_stream->time_base;
     };
 
-
 protected:
     explicit OutputStreamAbstract() = default;
     virtual ~OutputStreamAbstract() = default;
-
     AVStream *m_stream{};
-    EncoderAbstract_sp_type m_encoder;
 };
 
 using OutputStreamAbstract_sp_type = typename OutputStreamAbstract::OutputStreamAbstract_sp_type ;

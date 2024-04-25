@@ -2,15 +2,15 @@
 // Created by Administrator on 2024/4/18.
 //
 
-extern "C"{
-#include <libavcodec/avcodec.h>
-}
-
 #include "EncoderAbstract.h"
 #include "AVHelper.h"
 
-void EncoderAbstract::encode(const std::string &name, const ShareAVFrame_sp_type &frame, const int &stream_index, const long long int &pts,
-                             const AVRational &time_base,vector_type &packets) const noexcept(false)
+void EncoderAbstract::encode(const std::string &name,
+                             const ShareAVFrame_sp_type &frame,
+                             const int &stream_index,
+                             const long long int &pts,
+                             const AVRational &time_base,
+                             vector_type &packets) const noexcept(false)
 {
     AVFrame *in_frame{};
     if (frame){
@@ -21,7 +21,7 @@ void EncoderAbstract::encode(const std::string &name, const ShareAVFrame_sp_type
     auto pkt{new_ShareAVPacket()};
 
     try {
-        AVHelper::encode(name, m_codec_ctx, in_frame, pkt->m_packet, [&] {
+        AVHelper::encode(name, m_codec_ctx, in_frame, pkt, [&] {
             pkt->m_packet->stream_index = stream_index;
             packets.push_back(std::move(pkt));
             pkt = new_ShareAVPacket();
@@ -38,7 +38,7 @@ void EncoderAbstract::encode(const std::string &name, const ShareAVFrame_sp_type
 }
 
 EncoderAbstract::~EncoderAbstract() {
-    std::cerr << __FUNCTION__ << "\n";
+    std::cerr << __FUNCTION__ << "\t" << m_codec_ctx->codec->name << "\n";
     avcodec_free_context(&m_codec_ctx);
 }
 

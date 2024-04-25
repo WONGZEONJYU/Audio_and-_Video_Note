@@ -1,26 +1,26 @@
 //
 // Created by Administrator on 2024/4/18.
 //
+
+extern "C"{
+#include <libavutil/imgutils.h>
+}
+
 #include "VideoOutputStream.h"
 #include "Muxer.h"
-#include "VideoEncoder.h"
 
 void VideoOutputStream::Construct(const Muxer_sp_type& muxer,
-                                  const Video_Encoder_params& params) noexcept(false) {
-
+                                  const Video_Encoder_params& params) noexcept(false)
+{
     m_encoder = VideoEncoder::create(params);
-
     m_stream = muxer->create_stream();
-    if (!m_stream){
-        throw std::runtime_error("");
-    }
-
     m_encoder->parameters_from_context(m_stream->codecpar);
     muxer->dump_format(m_stream->index);
 }
 
-VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create(const Muxer_sp_type& muxer,
-                                                                       const Video_Encoder_params& params) {
+VideoOutputStream_sp_type VideoOutputStream::create(const Muxer_sp_type& muxer,
+                                                   const Video_Encoder_params& params) noexcept(false)
+{
     VideoOutputStream_sp_type obj;
 
     try {
@@ -38,13 +38,16 @@ VideoOutputStream::VideoOutputStream_sp_type VideoOutputStream::create(const Mux
     }
 }
 
-void VideoOutputStream::encoder(const ShareAVFrame_sp_type &frame, const long long int &pts,
-                                const AVRational &time_base, vector_type &packets) const noexcept(false)
+void VideoOutputStream::encoder(const uint8_t* yuv_buffer,
+                                const size_t& yuv_size,
+                                const long long &pts,
+                                const AVRational& time_base,
+                                vector_type& packets) noexcept(false)
 {
-    m_encoder->encode("video",frame,m_stream->index,pts,time_base,packets);
+    m_encoder->encode(yuv_buffer,yuv_size,m_stream->index,pts,time_base,packets);
 }
 
-VideoOutputStream_sp_type new_VideoOutputStream(const std::shared_ptr<Muxer> &muxer,
+VideoOutputStream_sp_type new_VideoOutputStream(const Muxer_sp_type &muxer,
                                                 const Video_Encoder_params &params) noexcept(false)
 {
     return VideoOutputStream::create(muxer,params);

@@ -14,10 +14,10 @@ void AudioOutputStream::Construct(const std::shared_ptr<Muxer> &muxer,
     m_stream = muxer->create_stream();
     m_encoder->parameters_from_context(m_stream->codecpar);
     auto ar_params{audioResampleParams};
-    const auto audioEncoder {std::dynamic_pointer_cast<AudioEncoder>(m_encoder)};
-    ar_params.m_dst_ch_layout = audioEncoder->channel_layout();
-    ar_params.m_dst_sample_fmt = audioEncoder->sample_fmt();
-    ar_params.m_dst_sample_rate = audioEncoder->sample_rate();
+
+    ar_params.m_dst_ch_layout = m_encoder->channel_layout();
+    ar_params.m_dst_sample_fmt = m_encoder->sample_fmt();
+    ar_params.m_dst_sample_rate = m_encoder->sample_rate();
     m_audioResample = new_Audio_Resample(ar_params);
     muxer->dump_format(m_stream->index);
 }
@@ -40,6 +40,14 @@ AudioOutputStream_sp_type AudioOutputStream::create(const std::shared_ptr<Muxer>
     } catch (const std::runtime_error &e) {
         throw std::runtime_error("AudioOutputStream  Construct failed: " + std::string(e.what()) + "\n");
     }
+}
+
+void AudioOutputStream::encoder(const ShareAVFrame_sp_type &frame,
+                                const int64_t &pts,
+                                const AVRational &time_base,
+                                vector_type &packets) const noexcept(false)
+{
+    m_encoder->encode(frame,m_stream->index,pts,time_base,packets);
 }
 
 AudioOutputStream_sp_type new_AudioOutputStream(const std::shared_ptr<Muxer>& muxer,

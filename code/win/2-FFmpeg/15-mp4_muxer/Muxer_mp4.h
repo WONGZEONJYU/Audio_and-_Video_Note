@@ -18,7 +18,7 @@ extern "C"{
 #include "VideoOutputStream.h"
 #include "Muxer.h"
 
-class Muxer_mp4 {
+class Muxer_mp4 final {
     static inline constexpr auto PACKETS_SIZE {100*100*1024};
     static inline constexpr auto YUV_WIDTH{720},YUV_HEIGHT{576};
     static inline constexpr auto YUV_FPS {25};
@@ -33,6 +33,14 @@ class Muxer_mp4 {
     explicit Muxer_mp4(const std::string &,const std::string &) noexcept(true);
     void Construct(std::string &&) noexcept(false);
     void DeConstruct() noexcept(true);
+
+    void init_AudioOutputStream() noexcept(false);
+    void init_VideoOutputStream() noexcept(false);
+    void alloc_yuv_buffer() noexcept(false);
+    void alloc_pcm_buffer() noexcept(false);
+    void video_processing() noexcept(false);
+    void audio_processing() noexcept(false);
+
 public:
     using Muxer_mp4_sp_type = std::shared_ptr<Muxer_mp4>;
     Muxer_mp4(const Muxer_mp4&) = delete;
@@ -41,6 +49,7 @@ public:
                                     const std::string &pcm_file_name,
                                     std::string&& url) noexcept(false);
     ~Muxer_mp4();
+    void exec() noexcept(false);
 
 private:
     std::ifstream m_yuv_file;
@@ -55,7 +64,7 @@ private:
     uint64_t m_yuv_buffer_size{},m_pcm_buffer_size{};
     double video_pts{},audio_pts{};
     double v_duration{},a_duration{};
-
+    std::atomic_bool audio_finish{},video_finish{};
 };
 
 using Muxer_mp4_sp_type = typename Muxer_mp4::Muxer_mp4_sp_type;
@@ -63,5 +72,4 @@ using Muxer_mp4_sp_type = typename Muxer_mp4::Muxer_mp4_sp_type;
 Muxer_mp4_sp_type new_Muxer_mp4(const std::string &yuv_file_name,
                                 const std::string &pcm_file_name,
                                 std::string &&out_file) noexcept(false);
-
 #endif

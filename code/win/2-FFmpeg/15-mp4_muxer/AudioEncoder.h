@@ -30,9 +30,10 @@ class AudioEncoder final : public EncoderAbstract{
     explicit AudioEncoder() = default;
     void Construct(const Audio_encoder_params&) noexcept(false);
     void init_codec(const Audio_encoder_params&) noexcept(false);
+    using EncoderAbstract::encode;
 public:
     using AudioEncoder_sp_type = std::shared_ptr<AudioEncoder>;
-    static AudioEncoder_sp_type create(const Audio_encoder_params&);
+    static AudioEncoder_sp_type create(const Audio_encoder_params&) noexcept(false);
 
     [[nodiscard]] auto sample_rate() const noexcept(true){
         return m_codec_ctx->sample_rate;
@@ -49,6 +50,12 @@ public:
     [[nodiscard]] auto frame_size() const noexcept(true){
         return m_codec_ctx->frame_size;
     }
+
+    void encode(const ShareAVFrame_sp_type &,
+                const int &stream_index,
+                const int64_t &pts,
+                const AVRational &,
+                vector_type &) const noexcept(false);
 };
 
 using AudioEncoder_sp_type = AudioEncoder::AudioEncoder_sp_type;

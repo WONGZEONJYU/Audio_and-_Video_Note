@@ -24,9 +24,6 @@ public:
     EncoderAbstract(const EncoderAbstract&) = delete;
     EncoderAbstract& operator=(const EncoderAbstract&) = delete;
 
-    void encode(const std::string &,const ShareAVFrame_sp_type &,const int &stream_index,const long long &pts,
-                       const AVRational& time_base,vector_type& ) const noexcept(false);
-
     [[nodiscard]] AVRational time_base() const noexcept(true) {
         return m_codec_ctx->time_base;
     }
@@ -37,6 +34,8 @@ protected:
     AVCodecContext *m_codec_ctx{};
     explicit EncoderAbstract() = default;
     virtual ~EncoderAbstract();
+    void encode(const std::string &,const ShareAVFrame_sp_type &,const int &stream_index,const long long &pts,
+                const AVRational& time_base,vector_type& ) const noexcept(false);
 };
 
 using EncoderAbstract_sp_type = typename EncoderAbstract::EncoderAbstract_sp_type;
