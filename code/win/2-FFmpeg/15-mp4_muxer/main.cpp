@@ -15,8 +15,8 @@ int main(const int argc,const char* const *argv)
     }
 
     try {
-         auto mp4_muxer{new_Muxer_mp4(argv[1],argv[2],argv[3])};
-        mp4_muxer->exec();
+        auto mp4_muxer{new_Muxer_mp4(argv[1],argv[2],argv[3])};
+        //mp4_muxer->exec();
     }catch (const std::exception &e){
         std::cerr << e.what() << "\n";
     }

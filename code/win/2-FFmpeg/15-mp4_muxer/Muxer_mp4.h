@@ -61,9 +61,9 @@ private:
     AudioOutputStream_sp_type m_AudioOutputStream;
     VideoOutputStream_sp_type m_VideoOutputStream;
     uint8_t *m_yuv_buffer{},*m_pcm_buffer{};
-    uint64_t m_yuv_buffer_size{},m_pcm_buffer_size{};
-    double video_pts{},audio_pts{};
-    double v_duration{},a_duration{};
+    int64_t m_yuv_buffer_size{},m_pcm_buffer_size{};
+    double m_video_pts{},m_audio_pts{};
+    double m_video_duration{},m_audio_duration{};
     std::atomic_bool audio_finish{},video_finish{};
 };
 

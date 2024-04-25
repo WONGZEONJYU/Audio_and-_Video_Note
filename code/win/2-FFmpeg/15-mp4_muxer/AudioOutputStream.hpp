@@ -30,12 +30,12 @@ public:
         return m_stream->codecpar->frame_size;
     }
 
-//    [[nodiscard]] auto nb_Frames() const noexcept(true){
-//        return m_stream->nb_frames;
-//    }
-
     void encoder(const ShareAVFrame_sp_type &,const long long &pts,
                  const AVRational& ,vector_type& ) const noexcept(false);
+
+    void resample(const uint8_t* , const size_t &);
+
+
 
 private:
     AudioEncoder_sp_type m_encoder;

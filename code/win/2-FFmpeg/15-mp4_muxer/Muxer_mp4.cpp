@@ -30,8 +30,8 @@ void Muxer_mp4::Construct(std::string &&url) noexcept(false)
     alloc_yuv_buffer();
     alloc_pcm_buffer();
 
-    v_duration = 1.0 / YUV_FPS * TIME_BASE.den;
-    a_duration = 1.0 * m_AudioOutputStream->Frame_size() / PCM_SAMPLE_RATE * TIME_BASE.den;
+    m_video_duration = 1.0 / YUV_FPS * TIME_BASE.den;
+    m_audio_duration = 1.0 * m_AudioOutputStream->Frame_size() / PCM_SAMPLE_RATE * TIME_BASE.den;
 }
 
 void Muxer_mp4::init_AudioOutputStream() noexcept(false)
@@ -116,16 +116,48 @@ Muxer_mp4_sp_type new_Muxer_mp4(const std::string &yuv_file_name,
 
 void Muxer_mp4::video_processing() noexcept(false)
 {
-    if (!video_finish && (audio_finish || audio_pts > video_pts)){
-        std::cerr << __FUNCTION__  << "\n";
+    if (!video_finish && (audio_finish || m_audio_pts > m_video_pts)){
 
+        std::fill_n(m_yuv_buffer,m_yuv_buffer_size,0);
+        m_yuv_file.read(reinterpret_cast<char *>(m_yuv_buffer),m_yuv_buffer_size);
+
+        auto t_yuv_buffer{m_yuv_buffer};
+        auto t_yuv_size{m_yuv_file.gcount()};
+
+        if (t_yuv_size <  m_yuv_buffer_size || m_yuv_file.eof()){
+            video_finish = true;
+            t_yuv_buffer = nullptr;
+            t_yuv_size = 0;
+        }
+
+        m_VideoOutputStream->encoder(t_yuv_buffer,t_yuv_size,
+                                     static_cast<int64_t>(m_video_pts),TIME_BASE,m_packets);
+        m_video_pts += m_video_duration;
+        for (const auto &i:m_packets) {
+            m_muxer->Send_packet(i,TIME_BASE,m_VideoOutputStream->Stream_time_base());
+        }
+
+        m_packets.clear();
     }
 }
 
 void Muxer_mp4::audio_processing() noexcept(false)
 {
     if (!audio_finish){
-        std::cerr << __FUNCTION__  << "\n";
+
+        std::fill_n(m_pcm_buffer,m_pcm_buffer_size,0);
+        m_pcm_file.read(reinterpret_cast<char*>(m_pcm_buffer),m_pcm_buffer_size);
+        auto t_pcm_buffer{m_pcm_buffer};
+        auto t_pcm_buffer_size{m_pcm_file.gcount()};
+
+        if (t_pcm_buffer_size < m_pcm_buffer_size || m_pcm_file.eof()){
+            audio_finish = true;
+            t_pcm_buffer = nullptr;
+            t_pcm_buffer_size = 0;
+        }
+
+
+
     }
 }
 
