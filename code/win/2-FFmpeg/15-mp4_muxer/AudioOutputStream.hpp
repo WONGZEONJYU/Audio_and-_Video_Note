@@ -33,9 +33,7 @@ public:
     void encoder(const ShareAVFrame_sp_type &,const long long &pts,
                  const AVRational& ,vector_type& ) const noexcept(false);
 
-    void resample(const uint8_t* , const size_t &);
-
-
+    ShareAVFrame_sp_type resample(const uint8_t* , const int &) noexcept(false);
 
 private:
     AudioEncoder_sp_type m_encoder;

@@ -15,6 +15,9 @@ void VideoOutputStream::Construct(const Muxer_sp_type& muxer,
     m_encoder = VideoEncoder::create(params);
     m_stream = muxer->create_stream();
     m_encoder->parameters_from_context(m_stream->codecpar);
+    m_encoder->h264_set_preset(preset_medium);
+    m_encoder->h264_set_tune(tune_zerolatency);
+    m_encoder->h264_set_profile(profile_high);
     muxer->dump_format(m_stream->index);
 }
 

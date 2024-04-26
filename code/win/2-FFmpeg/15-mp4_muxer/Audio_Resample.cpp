@@ -1,7 +1,4 @@
-#include <iostream>
 #include "Audio_Resample.h"
-#include "AVAudioFifo_t.h"
-#include "SwrContext_t.h"
 #include "AVHelper.h"
 
 void Audio_Resample::Construct() noexcept(false){
@@ -105,7 +102,7 @@ ShareAVFrame_sp_type Audio_Resample::alloc_out_frame(const int &nb_samples) cons
     }
 }
 
-int Audio_Resample::fifo_read_helper(uint8_t **out_data, const int &need_nb_samples, int64_t &pts) noexcept(false){
+int Audio_Resample::fifo_read_helper(uint8_t **out_data, const int &need_nb_samples, int64_t &pts)  noexcept(false){
 
     const auto read_size {m_audio_fifo->read(reinterpret_cast<void**>(out_data),need_nb_samples)};
 
@@ -116,7 +113,7 @@ int Audio_Resample::fifo_read_helper(uint8_t **out_data, const int &need_nb_samp
     return read_size;
 }
 
-int Audio_Resample::need_samples_num(const int &nb_samples) const {
+int Audio_Resample::need_samples_num(const int &nb_samples) const noexcept(true){
 
     const auto _fifo_size{m_audio_fifo->size()};
 
@@ -171,6 +168,7 @@ int Audio_Resample::send_frame(uint8_t** const in_data, const int& in_nb_samples
         m_Resample_Params.m_src_sample_rate,AV_ROUND_UP)};
 
     try {
+
         if (dst_nb_samples > m_resampled_data_size) {
             m_resampled_data_size = static_cast<int>(dst_nb_samples);
             init_resampled_data();
@@ -186,28 +184,39 @@ int Audio_Resample::send_frame(uint8_t** const in_data, const int& in_nb_samples
     }
 }
 
-int Audio_Resample::send_frame(const uint8_t* in_data, const int& in_bytes, const int64_t& pts) noexcept(false)
+void Audio_Resample::fill_audio_frame_helper(const uint8_t* in_data,
+                                             const int& in_bytes,AVFrame& frame) noexcept(false)
 {
-    AVFrame frame{};
     frame.format = m_Resample_Params.m_src_sample_fmt;
+
     frame.ch_layout = m_Resample_Params.m_src_ch_layout;
 
     const auto sample_fmt_size{av_get_bytes_per_sample(m_Resample_Params.m_src_sample_fmt)};
+
     if (sample_fmt_size < 0){
         throw std::runtime_error("av_get_bytes_per_sample failed: " + AVHelper::av_get_err(sample_fmt_size) + "\n");
     }
 
     /* 样本数 = 输入的数据数量 ÷ 每个样本的字节数(样本格式大小) ÷ 通道数 */
     frame.nb_samples = in_bytes / sample_fmt_size / frame.ch_layout.nb_channels;
+
+    if (in_data){
+        const auto ret{avcodec_fill_audio_frame(&frame, frame.ch_layout.nb_channels,
+                                                m_Resample_Params.m_src_sample_fmt,
+                                                in_data,in_bytes, 1) };
+
+        if (ret < 0){
+            throw std::runtime_error("avcodec_fill_audio_frame failed: " + AVHelper::av_get_err(ret) + "\n");
+        }
+    }
+}
+
+int Audio_Resample::send_frame(const uint8_t* in_data, const int& in_bytes, const int64_t& pts) noexcept(false)
+{
+    AVFrame frame{};
     frame.pts = pts;
 
-    const auto ret{avcodec_fill_audio_frame(&frame, frame.ch_layout.nb_channels,
-                                 m_Resample_Params.m_src_sample_fmt, in_data,
-                                 in_bytes, 0) };
-
-    if (ret < 0){
-        throw std::runtime_error("avcodec_fill_audio_frame failed: " + AVHelper::av_get_err(ret) + "\n");
-    }
+    fill_audio_frame_helper(in_data,in_bytes,frame);
 
     return send_frame(frame);
 }

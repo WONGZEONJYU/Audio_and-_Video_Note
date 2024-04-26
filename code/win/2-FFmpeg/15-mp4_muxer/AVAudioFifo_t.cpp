@@ -39,7 +39,7 @@ AVAudioFifo_sp_type AVAudioFifo_t::create(const AVSampleFormat &sample_fmt,
     }
 }
 
-int AVAudioFifo_t::write(void * const * data,const int& nb_samples) const{
+int AVAudioFifo_t::write(void * const * data,const int& nb_samples) const noexcept(false){
 
     const auto ret{av_audio_fifo_write(m_audio_fifo,data,nb_samples)};
     if (ret < 0){
@@ -48,7 +48,7 @@ int AVAudioFifo_t::write(void * const * data,const int& nb_samples) const{
     return ret;
 }
 
-int AVAudioFifo_t::read(void * const * data,const int &nb_samples) const{
+int AVAudioFifo_t::read(void * const * data,const int &nb_samples) const noexcept(false){
 
     const auto ret{av_audio_fifo_read(m_audio_fifo,data,nb_samples)};
     if (ret < 0){

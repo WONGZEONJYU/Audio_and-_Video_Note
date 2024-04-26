@@ -67,6 +67,8 @@ void Muxer::Send_packet(const ShareAVPacket_sp_type& pkt,
     pkt->m_packet->dts = av_rescale_q(pkt->m_packet->dts,codec_time_base,stream_time_base);
     pkt->m_packet->duration = av_rescale_q(pkt->m_packet->duration,codec_time_base,stream_time_base);
 
+    std::cerr << "stream index = " << pkt->m_packet->stream_index << " pts: " << pkt->m_packet->pts << "\n";
+
     const auto ret{av_interleaved_write_frame(m_fmt_ctx,pkt->m_packet)};
 
     if (ret < 0){

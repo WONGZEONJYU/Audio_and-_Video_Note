@@ -6,6 +6,7 @@
 #define INC_15_MP4_MUXER_VIDEOENCODER_H
 
 #include "EncoderAbstract.h"
+#include "H264_encode_params.hpp"
 
 struct Video_Encoder_params{
 
@@ -40,6 +41,7 @@ class VideoEncoder final : public EncoderAbstract {
     void init_codec(const Video_Encoder_params &) noexcept(false);
     void init_frame() noexcept(false);
     void image_fill_arrays(const uint8_t* , const size_t &) noexcept(false);
+    void h264_set_params(std::string &&,std::string &&) noexcept(false);
     using EncoderAbstract::encode;
 public:
     using VideoEncoder_sp_type = std::shared_ptr<VideoEncoder>;
@@ -55,6 +57,24 @@ public:
 
     [[nodiscard]] auto height() const noexcept(true){
         return m_codec_ctx->height;
+    }
+
+    template<typename T>
+    inline std::enable_if_t<std::is_base_of_v<preset,T>,void>
+    h264_set_preset(const T& v) noexcept(false) {
+        h264_set_params(v.first,v.second);
+    }
+
+    template<typename T>
+    inline std::enable_if_t<std::is_base_of_v<profile,T>,void >
+    h264_set_profile(const T& v){
+        h264_set_params(v.first,v.second);
+    }
+
+    template<typename T>
+    inline std::enable_if_t<std::is_base_of_v<tune,T>,void >
+    h264_set_tune(const T& v){
+        h264_set_params(v.first,v.second);
     }
 
     void encode(const ShareAVFrame_sp_type &,

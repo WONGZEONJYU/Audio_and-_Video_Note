@@ -56,3 +56,9 @@ AudioOutputStream_sp_type new_AudioOutputStream(const std::shared_ptr<Muxer>& mu
 {
     return AudioOutputStream::create(muxer,audioEncoderParams,audioResampleParams);
 }
+
+ShareAVFrame_sp_type AudioOutputStream::resample(const uint8_t* in_data, const int &in_size) noexcept(false)
+{
+    m_audioResample->send_frame(in_data,static_cast<int>(in_size),0);
+    return m_audioResample->receive_frame();
+}

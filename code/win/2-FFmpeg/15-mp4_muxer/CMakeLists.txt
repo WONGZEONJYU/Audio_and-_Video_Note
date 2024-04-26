@@ -55,6 +55,7 @@ set(SRC_FILE main.cpp
         Audio_Resample.h
         AVAudioFifo_t.cpp
         AVAudioFifo_t.h
+        H264_encode_params.hpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})

@@ -5,6 +5,7 @@
 extern "C"{
 #include <libavcodec/avcodec.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/opt.h>
 }
 
 #include "VideoEncoder.h"
@@ -113,6 +114,19 @@ void VideoEncoder::encode(const uint8_t* yuv_buffer,
         frame = m_frame;
     }
     encode(frame,stream_index,pts,time_base,packets);
+}
+
+void VideoEncoder::h264_set_params(std::string &&first,std::string &&second) noexcept(false)
+{
+    if (AV_CODEC_ID_H264 != m_codec_ctx->codec_id){
+        std::cerr << "The current encoder is not an H264 encoder\n";
+        return;
+    }
+
+    const auto ret {av_opt_set(m_codec_ctx->priv_data,first.c_str(),second.c_str(),0)};
+    if (ret < 0){
+        throw std::runtime_error("set preset failed\n");
+    }
 }
 
 VideoEncoder_sp_type new_VideoEncoder(const Video_Encoder_params &params) noexcept(false)

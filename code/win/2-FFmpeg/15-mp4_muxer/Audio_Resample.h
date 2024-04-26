@@ -1,10 +1,6 @@
 #ifndef AUDIO_RESAMPLE_H
 #define AUDIO_RESAMPLE_H
 
-extern "C"{
-#include <libswresample/swresample.h>
-}
-
 #include <atomic>
 
 #include "AVAudioFifo_t.h"
@@ -45,8 +41,8 @@ class Audio_Resample final{
     void destroy_resample_data() noexcept(true);
     [[nodiscard]] ShareAVFrame_sp_type alloc_out_frame(const int&) const noexcept(false);
     int fifo_read_helper(uint8_t** , const int& , int64_t& ) noexcept(false);
-    [[nodiscard]] int need_samples_num(const int&) const;
-
+    [[nodiscard]] int need_samples_num(const int&) const noexcept(true);
+    void fill_audio_frame_helper(const uint8_t* , const int& ,AVFrame&) noexcept(false);
 public:
     using Audio_Resample_t = std::shared_ptr<Audio_Resample>;
 
@@ -58,7 +54,7 @@ public:
     int send_frame(const AVFrame &) noexcept(false);
     int send_frame(uint8_t **in_data,const int &in_nb_samples,const int64_t &pts) noexcept(false);
     int send_frame(const uint8_t *in_data,const int& in_bytes, const int64_t &pts) noexcept(false);
-    ShareAVFrame_sp_type receive_frame(const int &nb_samples) noexcept(false);
+    ShareAVFrame_sp_type receive_frame(const int &nb_samples = 0) noexcept(false);
     int receive_frame(uint8_t **out_data,const int &nb_samples, int64_t &pts) noexcept(false);
 
     [[nodiscard]] int fifo_size() const noexcept(true);
@@ -72,7 +68,7 @@ public:
     }
 
 private:
-    const Audio_Resample_Params &m_Resample_Params;// 重采样的设置参数
+    const Audio_Resample_Params m_Resample_Params{};// 重采样的设置参数
     AVAudioFifo_sp_type m_audio_fifo;
     SwrContext_sp_type m_swr_ctx;
     std::atomic_bool m_is_fifo_only; //不需要进行重采样,只需要缓存到 audio_fifo
@@ -85,7 +81,6 @@ private:
 };
 
 using Audio_Resample_type = typename Audio_Resample::Audio_Resample_t;
-
 
 Audio_Resample_type new_Audio_Resample(const Audio_Resample_Params & ) noexcept(false);
 

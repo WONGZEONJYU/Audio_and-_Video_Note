@@ -23,7 +23,10 @@ namespace AVHelper {
     std::error_code make_error_code_helper(const int &errcode) noexcept(true);
 
     template<typename F,typename ...Args>
-    static inline void decode(const std::string &name,AVCodecContext *codec_ctx,const AVPacket *pkt,ShareAVFrame_sp_type &frame,
+    static inline void decode(const std::string &name,
+                              AVCodecContext *codec_ctx,
+                              const AVPacket *pkt,
+                              ShareAVFrame_sp_type &frame,
                 F&& f,Args&& ...args) noexcept(false)
     {
         /* send the packet with the compressed data to the decoder */
@@ -57,7 +60,10 @@ namespace AVHelper {
     }
 
     template<typename F,typename ...Args>
-    static inline void encode(const std::string &name,AVCodecContext *codec_ctx,const AVFrame *frame ,ShareAVPacket_sp_type &packet,
+    static inline void encode(const std::string &name,
+                              AVCodecContext *codec_ctx,
+                              const AVFrame *frame ,
+                              ShareAVPacket_sp_type &packet,
                 F&& f,Args&& ...args) noexcept(false)
     {
         auto ret{avcodec_send_frame(codec_ctx,frame)};

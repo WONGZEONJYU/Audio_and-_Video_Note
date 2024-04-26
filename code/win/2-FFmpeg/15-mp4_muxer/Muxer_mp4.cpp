@@ -32,6 +32,7 @@ void Muxer_mp4::Construct(std::string &&url) noexcept(false)
 
     m_video_duration = 1.0 / YUV_FPS * TIME_BASE.den;
     m_audio_duration = 1.0 * m_AudioOutputStream->Frame_size() / PCM_SAMPLE_RATE * TIME_BASE.den;
+
 }
 
 void Muxer_mp4::init_AudioOutputStream() noexcept(false)
@@ -39,6 +40,7 @@ void Muxer_mp4::init_AudioOutputStream() noexcept(false)
     const Audio_encoder_params audioEncoderParams{AUDIO_BIT_RATE,
                                                   PCM_SAMPLE_RATE};
     const Audio_Resample_Params audioResampleParams{PCM_FMT,CHANNEL_LAYOUT};
+
     m_AudioOutputStream = new_AudioOutputStream(m_muxer,audioEncoderParams,audioResampleParams);
 }
 
@@ -55,7 +57,7 @@ void Muxer_mp4::alloc_yuv_buffer() noexcept(false)
         m_yuv_buffer_size = y_size + u_size + v_size;
 
         m_yuv_buffer = static_cast<uint8_t*>(m_mem_pool.allocate(m_yuv_buffer_size));
-        std::fill_n(m_yuv_buffer,m_yuv_buffer_size,0);
+
     } catch (const std::exception &e) {
         throw std::runtime_error("yuv_buffer allocate failed: " + std::string(e.what()) + "\n");
     }
@@ -70,7 +72,6 @@ void Muxer_mp4::alloc_pcm_buffer() noexcept(false)
 
         m_pcm_buffer = static_cast<uint8_t*>(m_mem_pool.allocate(m_pcm_buffer_size));
 
-        std::fill_n(m_pcm_buffer,m_pcm_buffer_size,0);
     }catch (const std::exception &e){
         throw std::runtime_error("pcm_buffer allocate failed: " + std::string(e.what()) + "\n");
     }
@@ -128,6 +129,7 @@ void Muxer_mp4::video_processing() noexcept(false)
             video_finish = true;
             t_yuv_buffer = nullptr;
             t_yuv_size = 0;
+            std::cerr << "video finish\n";
         }
 
         m_VideoOutputStream->encoder(t_yuv_buffer,t_yuv_size,
@@ -136,7 +138,6 @@ void Muxer_mp4::video_processing() noexcept(false)
         for (const auto &i:m_packets) {
             m_muxer->Send_packet(i,TIME_BASE,m_VideoOutputStream->Stream_time_base());
         }
-
         m_packets.clear();
     }
 }
@@ -154,10 +155,19 @@ void Muxer_mp4::audio_processing() noexcept(false)
             audio_finish = true;
             t_pcm_buffer = nullptr;
             t_pcm_buffer_size = 0;
+            std::cerr << "audio finish\n";
         }
 
+        auto frame{m_AudioOutputStream->resample(t_pcm_buffer,static_cast<int>(t_pcm_buffer_size))};
 
+        m_AudioOutputStream->encoder(frame,static_cast<int64_t>(m_audio_pts),TIME_BASE,m_packets);
 
+        m_audio_pts += m_audio_duration;
+
+        for (const auto &i: m_packets){
+            m_muxer->Send_packet(i,{1,PCM_SAMPLE_RATE},m_AudioOutputStream->Stream_time_base());
+        }
+        m_packets.clear();
     }
 }
 
@@ -167,8 +177,8 @@ void Muxer_mp4::exec() noexcept(false)
 
     while (!video_finish || !audio_finish) {
 
-//        std::cerr << "audio_pts: " <<std::fixed << std::setprecision(5) <<video_pts <<
-//                    " video_pts: " << std::fixed << std::setprecision(5) << audio_pts << "\n";
+        std::cerr << "audio_pts: " <<std::fixed << std::setprecision(5) <<m_video_pts <<
+                    " video_pts: " << std::fixed << std::setprecision(5) << m_audio_pts << "\n";
 
         audio_processing();
         video_processing();
