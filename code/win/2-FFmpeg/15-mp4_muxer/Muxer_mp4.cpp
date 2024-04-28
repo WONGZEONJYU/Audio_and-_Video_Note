@@ -53,8 +53,14 @@ void Muxer_mp4::init_VideoOutputStream() noexcept(false)
 void Muxer_mp4::alloc_yuv_buffer() noexcept(false)
 {
     try {
-        constexpr auto y_size {YUV_WIDTH * YUV_HEIGHT},u_size{y_size / 4},v_size{y_size / 4};
-        m_yuv_buffer_size = y_size + u_size + v_size;
+//        constexpr auto y_size {YUV_WIDTH * YUV_HEIGHT},u_size{y_size / 4},v_size{y_size / 4};
+//        m_yuv_buffer_size = y_size + u_size + v_size;
+
+        m_yuv_buffer_size = 3 * YUV_WIDTH * YUV_HEIGHT / 2;
+
+        // YUV_WIDTH * YUV_HEIGHT + YUV_WIDTH * YUV_HEIGHT / 4 + YUV_WIDTH * YUV_HEIGHT / 4
+        // simplification result YUV_WIDTH * YUV_HEIGHT * (1 + 1/4 + 1/4)
+        // YUV_WIDTH * YUV_HEIGHT * 3 / 2
 
         m_yuv_buffer = static_cast<uint8_t*>(m_mem_pool.allocate(m_yuv_buffer_size));
 
