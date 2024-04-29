@@ -19,6 +19,7 @@
 /code/win/2-FFmpeg/13-encode_video/cmake-build-debug
 /code/win/2-FFmpeg/14-muxing_flv/cmake-build-debug
 /code/win/2-FFmpeg/15-mp4_muxer/cmake-build-debug
+/code/win/2-FFmpeg/16-video-filter/cmake-build-debug
 /code/mac/1-SDL/01-sdl-basic/bin/
 /code/mac/1-SDL/02-sdl-window/bin/
 /code/mac/1-SDL/03-sdl_event/bin/
