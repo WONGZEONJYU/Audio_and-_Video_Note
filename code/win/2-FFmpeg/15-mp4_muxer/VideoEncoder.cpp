@@ -81,7 +81,7 @@ void VideoEncoder::image_fill_arrays(const uint8_t* yuv_buffer, const size_t &yu
     const auto ret {av_image_fill_arrays(m_frame->m_frame->data,m_frame->m_frame->linesize,
                                          yuv_buffer,m_codec_ctx->pix_fmt,
                                          m_codec_ctx->width,
-                                         m_codec_ctx->height,1)};
+                                         m_codec_ctx->height,1)}; /*此函数只需要屌用一次即可*/
     if (ret < 0){
         m_frame.reset();
         throw std::runtime_error("av_image_fill_arrays failed: " + AVHelper::av_get_err(ret) + "\n");
