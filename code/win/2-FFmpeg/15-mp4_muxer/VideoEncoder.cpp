@@ -110,7 +110,11 @@ void VideoEncoder::encode(const uint8_t* yuv_buffer,
 {
     ShareAVFrame_sp_type frame;
     if (yuv_buffer){
-        image_fill_arrays(yuv_buffer,yuv_size);
+
+        if (!m_frame->m_frame->data[0]){
+            image_fill_arrays(yuv_buffer,yuv_size);
+        }
+
         frame = m_frame;
     }
     encode(frame,stream_index,pts,time_base,packets);
