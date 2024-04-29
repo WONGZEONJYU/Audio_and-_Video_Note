@@ -1,4 +1,5 @@
 #include "AVHelper.h"
+#include <fstream>
 
 namespace  AVHelper {
 
@@ -11,6 +12,25 @@ namespace  AVHelper {
         char err_buf[ERROR_STRING_SIZE]{};
         av_strerror(error_num, err_buf, std::size(err_buf));
         return {err_buf};
+    }
+
+    void avfilter_graph_dump(AVFilterGraph * Graph,const std::string & filename) noexcept(false)
+    {
+        std::ofstream graphFile(filename,std::ios::trunc);
+
+        if (!graphFile){
+            throw std::runtime_error("open out_graphFile failed\n");
+        }
+
+        auto graph_src {avfilter_graph_dump(Graph, nullptr)};
+
+        if (!graph_src){
+            throw std::runtime_error("avfilter_graph_dump alloc string failed\n");
+        }
+
+        graphFile << graph_src;
+
+        av_freep(&graph_src);
     }
 
     void log_packet(const AVFormatContext &fmt_ctx, const AVPacket &pkt) noexcept(true) {
@@ -30,5 +50,4 @@ namespace  AVHelper {
                 " , duration_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.duration, time_base)) <<
                 " , stream_index " << pkt.stream_index << "\n" ;
     }
-
 }
