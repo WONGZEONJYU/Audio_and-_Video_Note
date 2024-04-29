@@ -74,7 +74,7 @@ void VideoEncoder::init_frame() noexcept(false)
 
 void VideoEncoder::image_fill_arrays(const uint8_t* yuv_buffer, const size_t &yuv_buffer_size) noexcept(false)
 {
-    if (m_frame){
+    if (!m_frame){
         init_frame();
     }
 
