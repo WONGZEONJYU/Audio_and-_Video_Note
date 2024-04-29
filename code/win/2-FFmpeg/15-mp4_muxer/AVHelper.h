@@ -10,6 +10,7 @@ extern "C"{
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/timestamp.h>
+#include <libavfilter/avfilter.h>
 }
 
 #include "ShareAVFrame.hpp"
@@ -19,6 +20,8 @@ namespace AVHelper {
 
     std::string av_get_err(const int&) noexcept(true);
     void log_packet(const AVFormatContext &, const AVPacket &)  noexcept(true);
+
+    void avfilter_graph_dump(AVFilterGraph *,const std::string & ) noexcept(false);
 
     std::error_code make_error_code_helper(const int &errcode) noexcept(true);
 
