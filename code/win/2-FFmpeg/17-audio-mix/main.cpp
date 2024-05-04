@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include "Audio_Mix.hpp"
+#include "ShareAVFrame.hpp"
 
 int main(const int argc,const char **argv) {
 
@@ -10,7 +11,7 @@ int main(const int argc,const char **argv) {
     }
 
     try {
-        auto mix {new_Audio_Mix(argv[1],argv[2],argv[3])};
+        auto mix {new_Audio_Mix()};
 
         AudioInfo info0("input(0)",48000,AV_SAMPLE_FMT_FLTP,AV_CHANNEL_LAYOUT_STEREO);
         AudioInfo info1("input(1)",48000,AV_SAMPLE_FMT_S16,AV_CHANNEL_LAYOUT_STEREO);
@@ -22,6 +23,8 @@ int main(const int argc,const char **argv) {
         mix->push_out_audio_info(std::move(out_info));
 
         mix->init();
+
+
 
     } catch (const std::exception &e) {
         std::cerr << e.what() << "\n";

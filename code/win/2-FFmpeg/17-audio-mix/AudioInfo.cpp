@@ -19,7 +19,7 @@ void AudioInfo::_move_construct_from(AudioInfo && r) noexcept(true)
 }
 
 AudioInfo::AudioInfo(std::string &&name,const int &sample_rate,
-                     const AVSampleFormat &sample_fmt,const AVChannelLayout &ch_layout):
+                     const AVSampleFormat &sample_fmt,const AVChannelLayout &ch_layout)noexcept(true):
         m_name(std::move(name)),
         m_sample_rate(sample_rate),
         m_sample_fmt(sample_fmt),

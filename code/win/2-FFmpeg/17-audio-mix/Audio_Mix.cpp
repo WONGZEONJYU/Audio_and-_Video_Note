@@ -1,34 +1,24 @@
 //
 // Created by Administrator on 2024/5/4.
 //
+
+extern "C"{
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+#include <libavutil/samplefmt.h>
+}
+
 #include <sstream>
 #include "Audio_Mix.hpp"
 #include "AVHelper.h"
 
-Audio_Mix::Audio_Mix(const std::string & in_1,
-                   const std::string & in_2,
-                   const std::string & out):
-        m_input_file_1(in_1,std::ios::binary),
-        m_input_file_2(in_2,std::ios::binary),
-        m_output_file(out,std::ios::binary),
+Audio_Mix::Audio_Mix() noexcept(true):
         m_FilterGraph(avfilter_graph_alloc())
 {
 }
 
 void Audio_Mix::Construct() noexcept(false)
 {
-    if (!m_input_file_1){
-        throw std::runtime_error("open file_1 failed\n");
-    }
-
-    if (!m_input_file_2){
-        throw std::runtime_error("open file_2 failed\n");
-    }
-
-    if (!m_output_file){
-        throw std::runtime_error("open output failed\n");
-    }
-
     if (!m_FilterGraph){
         throw std::runtime_error("alloc FilterGraph error\n");
     }
@@ -196,11 +186,82 @@ void Audio_Mix::push_out_audio_info(AudioInfo &&info) noexcept(false)
     }
 }
 
+void Audio_Mix::add_frame(const int &index,const uint8_t *src,const size_t& pcm_size) noexcept(false)
+{
+    if (!m_initialized){
+        throw std::runtime_error("Uninitialized\n");
+    }
+
+    const auto &item {m_Audio_infos.at(index)};
+
+    AVFrame *frame{};
+    ShareAVFrame_sp_type shareAvFrame;
+
+    if (src && pcm_size > 0) {
+        shareAvFrame = new_ShareAVFrame();
+        shareAvFrame->m_frame->sample_rate = item.m_sample_rate;
+        shareAvFrame->m_frame->ch_layout = item.m_ch_layout;
+        shareAvFrame->m_frame->format = item.m_sample_fmt;
+        const auto nb_samples{pcm_size /
+                                                av_get_bytes_per_sample(item.m_sample_fmt) /
+                                                item.m_ch_layout.nb_channels};
+
+        shareAvFrame->m_frame->nb_samples = static_cast<int>(nb_samples);
+
+        const auto ret {av_samples_fill_arrays(shareAvFrame->m_frame->extended_data,
+                                               shareAvFrame->m_frame->linesize,
+                                               src,
+                                               shareAvFrame->m_frame->ch_layout.nb_channels,
+                                               shareAvFrame->m_frame->nb_samples,
+                                               item.m_sample_fmt,1)};
+        if (ret < 0){
+            throw std::runtime_error("av_samples_fill_arrays failed: " + AVHelper::av_get_err(ret) + "\t" +
+                                             item.m_name + "\n");
+        }
+
+        frame = shareAvFrame->m_frame;
+    }
+
+    const auto ret {av_buffersrc_add_frame(item.m_filter_ctx,frame)};
+    if (ret < 0){
+        throw std::runtime_error("av_buffersrc_add_frame(" + std::to_string(index) + ")error: " +
+                                AVHelper::av_get_err(ret) + "\n");
+    }
+}
+
+int Audio_Mix::get_frame(uint8_t *dst) noexcept(false)
+{
+    if (!m_initialized){
+        throw std::runtime_error("Uninitialized\n");
+    }
+
+    if (!dst){
+        throw std::runtime_error("dst is empty\n");
+    }
+
+    auto frame{new_ShareAVFrame()};
+
+    const auto ret {av_buffersink_get_frame(m_sink_buffer_filter_ctx, frame->m_frame)};
+    if (ret < 0){
+        throw std::runtime_error("av_buffersink_get_frame error: " + AVHelper::av_get_err(ret) + "\n");
+    }
+
+    const auto size {av_samples_get_buffer_size(nullptr,
+                                               frame->m_frame->ch_layout.nb_channels,
+                                               frame->m_frame->nb_samples,
+                                               static_cast<AVSampleFormat>(frame->m_frame->format),
+                                               1)};
+    if (size < 0){
+        throw std::runtime_error("av_samples_get_buffer_size error: " + AVHelper::av_get_err(size) + "\n");
+    }
+
+    std::copy_n(frame->m_frame->extended_data[0],size,dst);
+
+    return size;
+}
+
 void Audio_Mix::DeConstruct() noexcept(true)
 {
-    m_input_file_1.close();
-    m_input_file_2.close();
-    m_output_file.close();
     avfilter_graph_free(&m_FilterGraph);
 }
 
@@ -209,13 +270,11 @@ Audio_Mix::~Audio_Mix()
     DeConstruct();
 }
 
-Audio_Mix_sp_type Audio_Mix::create(const std::string & in_1,
-                                const std::string & in_2,
-                                const std::string & out) noexcept(false)
+Audio_Mix_sp_type Audio_Mix::create() noexcept(false)
 {
     Audio_Mix_sp_type obj;
     try {
-        obj = std::move(Audio_Mix_sp_type(new Audio_Mix(in_1,in_2,out)));
+        obj = std::move(Audio_Mix_sp_type(new Audio_Mix()));
     } catch (const std::bad_alloc &e) {
         throw std::runtime_error("new Audio_Mix error: " + std::string(e.what()) + "\n");
     }
@@ -229,9 +288,7 @@ Audio_Mix_sp_type Audio_Mix::create(const std::string & in_1,
     }
 }
 
-Audio_Mix_sp_type new_Audio_Mix(const std::string & in_1,
-                                const std::string & in_2,
-                                const std::string & out) noexcept(false)
+Audio_Mix_sp_type new_Audio_Mix() noexcept(false)
 {
-    return Audio_Mix::create(in_1,in_2,out);
+    return Audio_Mix::create();
 }

@@ -42,8 +42,10 @@ set(SRC_FILE main.cpp
         AVHelper.cpp
         ShareAVFrame.hpp
         ShareAVFrame.cpp
-ShareAVPacket.hpp
-ShareAVPacket.cpp)
+        ShareAVPacket.hpp
+        ShareAVPacket.cpp
+        Mixer.cpp
+        Mixer.hpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 

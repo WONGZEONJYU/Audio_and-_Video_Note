@@ -15,11 +15,11 @@ extern "C"{
 class AudioInfo {
     void _swap(AudioInfo &) noexcept(true);
     void _move_construct_from(AudioInfo &&) noexcept(true);
-
+    friend class Audio_Mix;
 public:
     explicit AudioInfo(std::string &&,const int &,
                        const AVSampleFormat&,
-                       const AVChannelLayout&);
+                       const AVChannelLayout&) noexcept(true);
     AudioInfo(const AudioInfo&) = delete;
     AudioInfo& operator=(const AudioInfo&) = delete;
     AudioInfo(AudioInfo&&) noexcept(true);
@@ -31,8 +31,6 @@ private:
     AVSampleFormat m_sample_fmt{};
     AVChannelLayout m_ch_layout{};
     AVFilterContext *m_filter_ctx{};
-
-    friend class Audio_Mix;
 };
 
 using AudioInfo_sp_type = std::shared_ptr<AudioInfo>;
