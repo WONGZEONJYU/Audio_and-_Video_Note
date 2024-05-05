@@ -267,7 +267,7 @@ void AVFilter_Demo::exec() noexcept(false)
 
         m_in_yuv_file.read(reinterpret_cast<char *>(m_read_buffer),static_cast<int64_t>(m_read_size));
 
-        if (m_in_yuv_file.eof() || m_in_yuv_file.gcount() < m_read_size){
+        if (m_in_yuv_file.eof() || m_in_yuv_file.gcount() < m_read_size) {
             std::cerr << "m_in_yuv_file read finish\n";
             break;
         }
