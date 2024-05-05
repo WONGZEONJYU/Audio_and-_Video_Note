@@ -18,8 +18,10 @@ AVFilter_Demo::AVFilter_Demo(const std::string &in,const std::string &out) noexc
 m_in_yuv_file(in,std::ios::binary),
 m_out_yuv_file(out,std::ios::binary),
 m_read_size(av_image_get_buffer_size(YUV_FMT,width,height,1)),
-m_read_buffer(static_cast<decltype(m_read_buffer)>(m_mem_pool.allocate(m_read_size))),
-m_avFilterGraph(avfilter_graph_alloc()){}
+m_avFilterGraph(avfilter_graph_alloc())
+{
+
+}
 
 void AVFilter_Demo::Construct() noexcept(false)
 {
@@ -35,8 +37,10 @@ void AVFilter_Demo::Construct() noexcept(false)
         throw std::runtime_error("avfilter_graph_alloc failed\n");
     }
 
-    if (!m_read_buffer){
-
+    try {
+        m_read_buffer = static_cast<decltype(m_read_buffer)>(m_mem_pool.allocate(m_read_size));
+    } catch (const std::bad_alloc &e) {
+        throw std::runtime_error("alloc read_buffer error: " + std::string(e.what()) + "\n");
     }
 
     init_source_filter();

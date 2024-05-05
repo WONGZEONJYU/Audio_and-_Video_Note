@@ -48,8 +48,8 @@ private:
     std::ifstream m_in_yuv_file;
     std::ofstream m_out_yuv_file;
     const size_t m_read_size{};
-    uint8_t *m_read_buffer{};
     AVFilterGraph *m_avFilterGraph{};
+    uint8_t *m_read_buffer{};
     AVFilterContext *m_bufferSrc_ctx{},
                     *m_Buffer_Sink_ctx{},
                     *m_splitFilter_ctx{},
