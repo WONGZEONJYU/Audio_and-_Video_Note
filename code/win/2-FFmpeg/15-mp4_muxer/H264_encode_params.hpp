@@ -72,7 +72,6 @@ static inline constexpr preset_slower_t preset_slower{};
 static inline constexpr preset_veryslow_t preset_veryslow{};
 static inline constexpr preset_placebo_t preset_placebo{};
 
-
 struct tune {
 
     static inline constexpr auto first{"tune"};
