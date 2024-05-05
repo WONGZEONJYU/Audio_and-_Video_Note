@@ -41,14 +41,10 @@ public:
     int get_frame(uint8_t *dst) noexcept(false);
 
 private:
-
     AVFilterGraph *m_FilterGraph{};
-
     AVFilterContext *m_mix_filter_ctx{},
     *m_sink_buffer_filter_ctx{};
-
     AudioInfo_sp_type m_output_filter;
-
     std::map<int,AudioInfo> m_Audio_infos;
     std::atomic_bool m_initialized{};
 };

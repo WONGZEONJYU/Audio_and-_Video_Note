@@ -44,6 +44,18 @@ void Mixer::Construct() noexcept(false)
     } catch (const std::bad_alloc &e) {
         throw std::runtime_error("alloc " + std::string(e.what()) + "\n");
     }
+
+    m_audio_mix = new_Audio_Mix();
+
+    AudioInfo info0("input(0)",48000,FMT_0,CH_0);
+    AudioInfo info1("input(1)",48000,FMT_1,CH_1);
+    AudioInfo out_info("out",96000,AV_SAMPLE_FMT_S16,AV_CHANNEL_LAYOUT_STEREO);
+
+    m_audio_mix->push_in_audio_info(0,std::move(info0));
+    m_audio_mix->push_in_audio_info(1,std::move(info1));
+    m_audio_mix->push_out_audio_info(std::move(out_info));
+
+    m_audio_mix->init();
 }
 
 void Mixer::DeConstruct() noexcept(true)
@@ -88,12 +100,42 @@ Mixer_sp_type Mixer::create(const char **argv)
 
 void Mixer::exec() noexcept(false)
 {
-    size_t read_pcm_flt_size{},read_pcm_s16_size{};
-    for(;;){
+    bool read_pcm_flt_finish{},read_pcm_s16_finish{};
+    int read_out_size{};
 
+    while (!read_pcm_flt_finish || !read_pcm_s16_finish){
 
+        if (m_input_file_1.eof()){
+            if (!read_pcm_flt_finish){
+                read_pcm_flt_finish = true;
+                m_audio_mix->add_frame(0, nullptr,0);
+            }
+        }else{
+            std::fill_n(m_pcm_flt_buf,m_pcm_flt_buf_size,0);
+            m_input_file_1.read(reinterpret_cast<char*>(m_pcm_flt_buf),m_pcm_flt_buf_size);
+            const auto read_pcm_flt_size {m_input_file_1.gcount()};
+            m_audio_mix->add_frame(0, m_pcm_flt_buf,read_pcm_flt_size);
+        }
 
+        if (m_input_file_2.eof()){
+            if (!read_pcm_s16_finish){
+                read_pcm_s16_finish = true;
+                m_audio_mix->add_frame(1, nullptr,0);
+            }
+        } else{
+            std::fill_n(m_pcm_s16_buf,m_pcm_s16_buf_size,0);
+            m_input_file_2.read(reinterpret_cast<char*>(m_pcm_s16_buf),m_pcm_s16_buf_size);
+            const auto read_pcm_s16_size {m_input_file_2.gcount()};
+            m_audio_mix->add_frame(1, m_pcm_s16_buf,read_pcm_s16_size);
+        }
 
+        while ((read_out_size = m_audio_mix->get_frame(m_out_buf)) > 0) {
+
+            if (read_out_size > m_out_buf_size){
+                throw std::runtime_error("read_out_size > m_out_buf_size\n");
+            }
+            m_output_file.write(reinterpret_cast<const char *>(m_out_buf),read_out_size);
+        }
     }
 }
 

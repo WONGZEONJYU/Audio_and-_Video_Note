@@ -9,6 +9,7 @@ extern "C"{
 }
 
 #include <sstream>
+#include <algorithm>
 #include "Audio_Mix.hpp"
 #include "AVHelper.h"
 
@@ -36,6 +37,8 @@ void Audio_Mix::init_audio_mix_filter(const std::string &duration) noexcept(fals
     args << "duration=" << duration << ":";
     args << "dropout_transition=0";
 
+    std::cerr << args.str() << "\n";
+
     auto ret {avfilter_graph_create_filter(&m_mix_filter_ctx,amix_filter,
                                            "amix",
                                            args.str().c_str(),
@@ -62,6 +65,8 @@ void Audio_Mix::init_audio_format_filter() noexcept(false)
     args << "sample_fmts=" << av_get_sample_fmt_name(m_output_filter->m_sample_fmt) << ":";
     args << "channel_layouts=" << m_output_filter->m_ch_layout.u.mask;
 
+    std::cerr << args.str() << "\n";
+
     const auto ret {avfilter_graph_create_filter(&m_output_filter->m_filter_ctx,aformat_filter,
                                                  "aformat",
                                                  args.str().c_str(),
@@ -75,6 +80,7 @@ void Audio_Mix::init_audio_format_filter() noexcept(false)
 void Audio_Mix::init_audio_sink_buffer_filter() noexcept(false)
 {
     const auto sink_filter{avfilter_get_by_name("abuffersink")};
+
     if (!sink_filter){
         throw std::runtime_error("abuffersink_filter not found\n");
     }
@@ -103,6 +109,8 @@ void Audio_Mix::init_audio_input_info() noexcept(false)
         args << "sample_rate=" << item.second.m_sample_rate << ":";
         args << "sample_fmt=" << av_get_sample_fmt_name(item.second.m_sample_fmt) << ":";
         args << "channel_layout=" << item.second.m_ch_layout.u.mask;
+
+        std::cerr << args.str() << "\n";
 
         auto ret {avfilter_graph_create_filter(&item.second.m_filter_ctx,abuffer_filter,
                                                      item.second.m_name.c_str(),
@@ -208,12 +216,13 @@ void Audio_Mix::add_frame(const int &index,const uint8_t *src,const size_t& pcm_
 
         shareAvFrame->m_frame->nb_samples = static_cast<int>(nb_samples);
 
-        const auto ret {av_samples_fill_arrays(shareAvFrame->m_frame->extended_data,
+        const auto ret {av_samples_fill_arrays(shareAvFrame->m_frame->data,
                                                shareAvFrame->m_frame->linesize,
                                                src,
                                                shareAvFrame->m_frame->ch_layout.nb_channels,
                                                shareAvFrame->m_frame->nb_samples,
-                                               item.m_sample_fmt,1)};
+                                               static_cast<AVSampleFormat>(shareAvFrame->m_frame->format),
+                                               0)};
         if (ret < 0){
             throw std::runtime_error("av_samples_fill_arrays failed: " + AVHelper::av_get_err(ret) + "\t" +
                                              item.m_name + "\n");
@@ -242,7 +251,10 @@ int Audio_Mix::get_frame(uint8_t *dst) noexcept(false)
     auto frame{new_ShareAVFrame()};
 
     const auto ret {av_buffersink_get_frame(m_sink_buffer_filter_ctx, frame->m_frame)};
-    if (ret < 0){
+
+    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF){
+        return ret;
+    }else if (ret < 0){
         throw std::runtime_error("av_buffersink_get_frame error: " + AVHelper::av_get_err(ret) + "\n");
     }
 
@@ -250,7 +262,7 @@ int Audio_Mix::get_frame(uint8_t *dst) noexcept(false)
                                                frame->m_frame->ch_layout.nb_channels,
                                                frame->m_frame->nb_samples,
                                                static_cast<AVSampleFormat>(frame->m_frame->format),
-                                               1)};
+                                               0)};
     if (size < 0){
         throw std::runtime_error("av_samples_get_buffer_size error: " + AVHelper::av_get_err(size) + "\n");
     }

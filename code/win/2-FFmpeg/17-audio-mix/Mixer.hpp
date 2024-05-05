@@ -9,7 +9,7 @@
 #include <memory_resource>
 
 class Mixer final {
-    static inline constexpr auto FMT_0{AV_SAMPLE_FMT_FLTP},
+    static inline constexpr auto FMT_0{AV_SAMPLE_FMT_FLT},
                                 FMT_1{AV_SAMPLE_FMT_S16};
     static inline constexpr AVChannelLayout CH_0 AV_CHANNEL_LAYOUT_STEREO,
     CH_1 = CH_0;
@@ -28,8 +28,9 @@ private:
     std::ifstream m_input_file_1,m_input_file_2;
     std::ofstream m_output_file;
     std::pmr::unsynchronized_pool_resource m_mem_pool;
-    size_t m_pcm_flt_buf_size{},m_pcm_s16_buf_size{},m_out_buf_size{};
+    int64_t m_pcm_flt_buf_size{},m_pcm_s16_buf_size{},m_out_buf_size{};
     uint8_t *m_pcm_flt_buf{},*m_pcm_s16_buf{},*m_out_buf{};
+    Audio_Mix_sp_type m_audio_mix;
 };
 
 using Mixer_sp_type = Mixer::Mixer_sp_type;
