@@ -88,15 +88,12 @@ Muxer_mp4_sp_type Muxer_mp4::create(const std::string &yuv_file_name,
                                     std::string&& out_file) noexcept(false) {
     Muxer_mp4_sp_type obj;
     try {
-        obj = std::move(Muxer_mp4_sp_type(new Muxer_mp4(yuv_file_name,pcm_file_name)));
-    } catch (const std::bad_alloc &e) {
-        throw std::runtime_error("new Muxer_mp4 failed\n");
-    }
-
-    try {
+        obj.reset(new Muxer_mp4(yuv_file_name,pcm_file_name));
         obj->Construct(std::move(out_file));
         return obj;
-    } catch (const std::runtime_error &e) {
+    } catch (const std::bad_alloc &e) {
+        throw std::runtime_error("new Muxer_mp4 failed: " + std::string(e.what()) + "\n");
+    }catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("");
     }

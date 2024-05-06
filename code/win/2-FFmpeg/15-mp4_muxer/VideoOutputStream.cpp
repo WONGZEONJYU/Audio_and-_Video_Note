@@ -25,17 +25,13 @@ VideoOutputStream_sp_type VideoOutputStream::create(const Muxer_sp_type& muxer,
                                                    const Video_Encoder_params& params) noexcept(false)
 {
     VideoOutputStream_sp_type obj;
-
     try {
-        obj = VideoOutputStream_sp_type(new VideoOutputStream);
-    } catch (const std::bad_alloc &e) {
-        throw std::runtime_error("new VideoOutputStream failed: " + std::string (e.what()) + "\n");
-    }
-
-    try {
+        obj.reset(new VideoOutputStream);
         obj->Construct(muxer,params);
         return obj;
-    } catch (const std::runtime_error &e) {
+    } catch (const std::bad_alloc &e) {
+        throw std::runtime_error("new VideoOutputStream failed: " + std::string (e.what()) + "\n");
+    }catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("VideoOutputStream Construct failed: "  + std::string (e.what()) + "\n");
     }

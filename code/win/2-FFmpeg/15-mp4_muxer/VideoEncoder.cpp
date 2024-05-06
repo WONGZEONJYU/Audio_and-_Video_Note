@@ -15,15 +15,12 @@ VideoEncoder::VideoEncoder_sp_type VideoEncoder::create(const Video_Encoder_para
 
     VideoEncoder_sp_type obj;
     try {
-        obj = std::move(VideoEncoder_sp_type(new VideoEncoder));
-    } catch (const std::bad_alloc &e) {
-        throw std::runtime_error("new VideoEncoder failed" + std::string (e.what()) + "\n");
-    }
-
-    try {
+        obj.reset(new VideoEncoder);
         obj->Construct(params);
         return obj;
-    } catch (const std::runtime_error &e) {
+    } catch (const std::bad_alloc &e) {
+        throw std::runtime_error("new VideoEncoder failed" + std::string (e.what()) + "\n");
+    }catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("VideoEncoder Construct failed: " + std::string (e.what()) + "\n");
     }

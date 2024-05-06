@@ -19,15 +19,12 @@ AudioEncoder_sp_type AudioEncoder::create(const Audio_encoder_params &params) no
     AudioEncoder_sp_type obj;
 
     try {
-        obj = std::move(AudioEncoder_sp_type(new AudioEncoder));
-    }catch (const std::bad_alloc &e){
-        throw std::runtime_error("new AudioEncoder failed: " + std::string (e.what()) + "\n");
-    }
-
-    try {
+        obj.reset(new AudioEncoder);
         obj->Construct(params);
         return obj;
-    } catch (const std::runtime_error &e) {
+    }catch (const std::bad_alloc &e){
+        throw std::runtime_error("new AudioEncoder failed: " + std::string (e.what()) + "\n");
+    }catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("AudioEncoder Construct failed: " + std::string (e.what()) + "\n");
     }

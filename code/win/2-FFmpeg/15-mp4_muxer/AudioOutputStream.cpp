@@ -29,15 +29,12 @@ AudioOutputStream_sp_type AudioOutputStream::create(const std::shared_ptr<Muxer>
 {
     AudioOutputStream_sp_type obj;
     try {
-        obj = std::move(AudioOutputStream_sp_type(new AudioOutputStream));
-    }catch (const std::bad_alloc &e){
-        throw std::runtime_error("new AudioOutputStream failed: " + std::string(e.what()) + "\n");
-    }
-
-    try {
+        obj.reset(new AudioOutputStream);
         obj->Construct(muxer,encoderParams,audioResampleParams);
         return obj;
-    } catch (const std::runtime_error &e) {
+    }catch (const std::bad_alloc &e){
+        throw std::runtime_error("new AudioOutputStream failed: " + std::string(e.what()) + "\n");
+    }catch (const std::runtime_error &e) {
         throw std::runtime_error("AudioOutputStream  Construct failed: " + std::string(e.what()) + "\n");
     }
 }

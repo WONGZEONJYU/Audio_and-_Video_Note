@@ -36,15 +36,12 @@ Audio_Resample_type Audio_Resample::create(const Audio_Resample_Params &params) 
     Audio_Resample_type obj;
 
     try {
-        obj = std::move(Audio_Resample_type(new Audio_Resample(params)));
-    } catch (const std::bad_alloc &e) {
-        throw std::runtime_error("new Audio_Resample failed: " + std::string(e.what()) + "\n");
-    }
-
-    try {
+        obj.reset(new Audio_Resample(params));
         obj->Construct();
         return obj;
-    } catch (const std::runtime_error &e) {
+    } catch (const std::bad_alloc &e) {
+        throw std::runtime_error("new Audio_Resample failed: " + std::string(e.what()) + "\n");
+    }catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("Audio_Resample Construct failed: " + std::string(e.what()) + "\n");
     }

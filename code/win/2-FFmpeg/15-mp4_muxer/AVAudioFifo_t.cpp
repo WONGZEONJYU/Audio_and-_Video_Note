@@ -25,14 +25,11 @@ AVAudioFifo_sp_type AVAudioFifo_t::create(const AVSampleFormat &sample_fmt,
     AVAudioFifo_sp_type obj;
 
     try {
-        obj = std::move(AVAudioFifo_sp_type(new AVAudioFifo_t(sample_fmt,channels,nb_samples)));
-    }catch (const std::bad_alloc &e){
-        throw std::runtime_error("new AVAudioFifo_t failed: " + std::string (e.what()) + "\n");
-    }
-
-    try {
+        obj.reset(new AVAudioFifo_t(sample_fmt,channels,nb_samples));
         obj->Construct();
         return obj;
+    }catch (const std::bad_alloc &e){
+        throw std::runtime_error("new AVAudioFifo_t failed: " + std::string (e.what()) + "\n");
     }catch (const std::runtime_error &e){
         obj.reset();
         throw std::runtime_error("AVAudioFifo_t construct failed: " + std::string(e.what()) + "\n");
