@@ -167,7 +167,7 @@ void Audio_Mix::init(const std::string &duration) noexcept(false)
     link_filter();
     config_FilterGraph();
 
-    AVHelper::avfilter_graph_dump(m_FilterGraph,"m_FilterGraph.txt");
+    AVHelper::av_filter_graph_dump(m_FilterGraph,"m_FilterGraph.txt");
     std::cerr << "init finish\n";
     m_initialized = true;
 }

@@ -23,15 +23,12 @@ void ShareAVFrame::Construct() const noexcept(false) {
 ShareAVFrame::ShareAVFrame_sp_type ShareAVFrame::create() {
     ShareAVFrame_sp_type obj;
     try {
-        obj = std::move(ShareAVFrame_sp_type(new ShareAVFrame));
-    }catch (const std::bad_alloc &e){
-        throw std::runtime_error("new ShareAVFrame  failed: " + std::string (e.what()) + "\n");
-    }
-
-    try {
+        obj.reset(new ShareAVFrame);
         obj->Construct();
         return obj;
-    } catch (const std::runtime_error &e) {
+    }catch (const std::bad_alloc &e){
+        throw std::runtime_error("new ShareAVFrame  failed: " + std::string (e.what()) + "\n");
+    }catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("ShareAVFrame Construct failed: " + std::string (e.what()) + "\n");
     }

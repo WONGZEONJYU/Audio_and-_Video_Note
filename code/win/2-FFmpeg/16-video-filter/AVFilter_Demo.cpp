@@ -52,7 +52,7 @@ void AVFilter_Demo::Construct() noexcept(false)
     init_io_frame();
     link();
     check_filter_graph();
-    AVHelper::avfilter_graph_dump(m_avFilterGraph,"graphFile.txt");
+    AVHelper::av_filter_graph_dump(m_avFilterGraph,"graphFile.txt");
 }
 
 void AVFilter_Demo::init_source_filter() noexcept(false)
