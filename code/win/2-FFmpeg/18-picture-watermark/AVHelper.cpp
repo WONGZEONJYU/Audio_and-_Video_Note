@@ -14,7 +14,7 @@ namespace  AVHelper {
         return {err_buf};
     }
 
-    void avfilter_graph_dump(AVFilterGraph * Graph,const std::string & filename) noexcept(false)
+    void av_filter_graph_dump(AVFilterGraph * Graph,const std::string & filename) noexcept(false)
     {
         std::ofstream graphFile(filename,std::ios::trunc);
 
