@@ -21,7 +21,7 @@ namespace AVHelper {
     std::string av_get_err(const int&) noexcept(true);
     void log_packet(const AVFormatContext &, const AVPacket &)  noexcept(true);
 
-    void avfilter_graph_dump(AVFilterGraph *,const std::string & ) noexcept(false);
+    void av_filter_graph_dump(AVFilterGraph *,const std::string &) noexcept(false);
 
     std::error_code make_error_code_helper(const int &errcode) noexcept(true);
 
@@ -30,23 +30,22 @@ namespace AVHelper {
                               AVCodecContext *codec_ctx,
                               const AVPacket *pkt,F&& f,Args&& ...args) noexcept(false)
     {
-        /* send the packet with the compressed data to the decoder */
         auto ret { avcodec_send_packet(codec_ctx, pkt) };
 
         if(AVERROR(EAGAIN) == ret || AVERROR_EOF == ret){
             std::cerr << name + " Receive_frame and send_packet both returned EAGAIN, which is an API violation.\n";
         }else if (ret < 0){
-            const auto errmsg (name + " Error submitting the packet to the decoder: " + av_get_err(ret) +
-                      " , pkt_size : " + std::to_string(pkt->size) + "\n");
-            throw std::system_error(make_error_code_helper(ret),errmsg);
+//            const auto errmsg (name + " Error submitting the packet to the decoder: " + av_get_err(ret) +
+//                      " , pkt_size : " + std::to_string(pkt->size) + "\n");
+//            throw std::system_error(make_error_code_helper(ret),errmsg);
+
+            throw std::runtime_error(name + " Error submitting the packet to the decoder: " + av_get_err(ret) +
+                                     " , pkt_size : " + std::to_string(pkt->size) + "\n");
         }else{}
 
-        /* read all the output frames (infile general there may be any number of them */
-
         for(;;){
-            // 对于frame, avcodec_receive_frame内部每次都先调用
-            ShareAVFrame_sp_type frame;
 
+            ShareAVFrame_sp_type frame;
             try {
                 frame = new_ShareAVFrame();
             } catch (const std::exception &e) {
@@ -55,15 +54,16 @@ namespace AVHelper {
 
             ret = avcodec_receive_frame(codec_ctx, frame->m_frame);
 
-            if (AVERROR(EAGAIN) == ret  || AVERROR_EOF == ret) {
+            if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret) {
                 frame.reset();
 //                const auto errmsg(name + " avcodec_receive_frame failed: " +av_get_err(ret) + "\n");
 //                throw std::system_error(make_error_code_helper(ret),errmsg);
                 return;
             }else if (ret < 0){
                 frame.reset();
-                const auto errmsg(name + " Error during decoding : " + av_get_err(ret) + "\n");
-                throw std::system_error(make_error_code_helper(ret),errmsg);
+                //const auto errmsg(name + " Error during decoding : " + av_get_err(ret) + "\n");
+                //throw std::system_error(make_error_code_helper(ret),errmsg);
+                throw std::runtime_error(name + " Error during decoding : " + av_get_err(ret) + "\n");
             }else{
                 f(frame,args...);
             }
@@ -80,14 +80,15 @@ namespace AVHelper {
         if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret){
             std::cerr << name + " Receive_packet and send_frame both returned EAGAIN, which is an API violation.\n";
         }else if (ret < 0) {
-            const auto errmsg(name + " avcodec_send_frame failed : " + av_get_err(ret) + "\n");
-            throw std::system_error(make_error_code_helper(ret),errmsg);
+//            const auto errmsg(name + " avcodec_send_frame failed : " + av_get_err(ret) + "\n");
+//            throw std::system_error(make_error_code_helper(ret),errmsg);
+            throw std::runtime_error(name + " avcodec_send_frame failed: " + av_get_err(ret) + "\n");
+
         }else{}
 
         for (;;) {
 
             ShareAVPacket_sp_type packet;
-
             try {
                 packet = new_ShareAVPacket();
             } catch (const std::runtime_error &e) {
@@ -98,22 +99,21 @@ namespace AVHelper {
 
             if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret){
                 packet.reset();
-//                const auto msg(name + " avcodec_receive_packet failed: " +
-//                               std::to_string(ret) +  "\t" + av_get_err(ret) + "\n");
+//                const auto msg(name + " avcodec_receive_packet failed: " + std::to_string(ret) +  "\t" + av_get_err(ret) + "\n");
 //                throw std::system_error(make_error_code_helper(ret),msg);
                 return;
             }else if(ret < 0){
                 packet.reset();
-                const auto errmsg(name + " Error during encoding: " +
+//                const auto errmsg(name + " Error during encoding: " + std::to_string(ret) + "\t" + av_get_err(ret) + "\n");
+//                throw std::system_error(make_error_code_helper(ret),errmsg);
+                throw std::runtime_error(name + " Error during encoding: " +
                                             std::to_string(ret) + "\t" + av_get_err(ret) + "\n");
-                throw std::system_error(make_error_code_helper(ret),errmsg);
             }else{
                 f(packet,args...);
             }
         }
     }
 }
-
 
 template<typename F>
 struct Destroyer final{
