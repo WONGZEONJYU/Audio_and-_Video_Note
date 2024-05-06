@@ -237,18 +237,15 @@ AVFilter_Demo_sp_type AVFilter_Demo::create(const std::string &in,const std::str
 {
     AVFilter_Demo_sp_type obj;
     try {
-        obj = std::move(AVFilter_Demo_sp_type(new AVFilter_Demo(in,out)));
-    } catch (const std::bad_alloc &e) {
-        throw std::runtime_error("new AVFilter_Demo failed: " + std::string (e.what()) + "\n");
-    }
-
-    try {
+        obj.reset(new AVFilter_Demo(in,out));
         obj->Construct();
         return obj;
-    } catch (const std::runtime_error &e) {
+    } catch (const std::bad_alloc &e) {
+        throw std::runtime_error("new AVFilter_Demo failed: " + std::string (e.what()) + "\n");
+    }catch (const std::runtime_error &e) {
         obj.reset();
         throw std::runtime_error("AVFilter_Demo Construct failed: " +
-                                    std::string (e.what()) + "\n");
+                                 std::string (e.what()) + "\n");
     }
 }
 
