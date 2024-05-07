@@ -115,6 +115,8 @@ void Watermark_Demo::init_filters() noexcept(false)
             m_logo_frame->m_frame->sample_aspect_ratio.num << "/" << m_logo_frame->m_frame->sample_aspect_ratio.den <<
             "[logo];";
 
+    //args << "movie=logo.jpg[logo];";
+
     args << "[main][logo]overlay=0:200[result];";
     args << "[result]buffersink";
 
