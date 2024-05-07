@@ -119,7 +119,7 @@ void Watermark_Demo::init_filters() noexcept(false)
     args << "[result]buffersink";
 
     std::cerr << args.str() << "\n";
-    AVFilterInOut *inputs {},*outputs {};
+    AVFilterInOut *inputs {},*outputs{};
 
     auto ret {avfilter_graph_parse2(m_avFilterGraph, args.str().c_str(), &inputs, &outputs)};
     if (ret < 0) {
