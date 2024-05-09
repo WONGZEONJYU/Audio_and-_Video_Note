@@ -8,7 +8,6 @@
 #include <string>
 #include <memory>
 
-
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVStream;
