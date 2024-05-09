@@ -417,7 +417,6 @@ static int packet_queue_put_private(PacketQueue *q, AVPacket *pkt)
     if (q->abort_request)
        return -1;
 
-
     pkt1.pkt = pkt;
     pkt1.serial = q->serial;
 
@@ -2706,6 +2705,10 @@ out:
 
 static int decode_interrupt_cb(void *ctx)
 {
+    static int64_t s_pre_time ;
+    int64_t cur_time = av_gettime_relative() / 1000;
+    fprintf(stderr,"decode_interrupt_cb interval: %%lldms\n",cur_time - s_pre_time);
+    s_pre_time = cur_time;
     VideoState *is = ctx;
     return is->abort_request;
 }
