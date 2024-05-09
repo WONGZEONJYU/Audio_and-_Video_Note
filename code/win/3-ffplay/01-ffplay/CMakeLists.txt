@@ -22,6 +22,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     link_directories(c:/ffmepg-6.1/bin)
     link_directories(C:/SDL2-2.28.5-VC/lib/x64)
 
+    set(FFPLAY_SRC ffplay_win.c)
+
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     # macOS操作系统下的特定配置
     message("macOS operating system detected")
@@ -29,20 +31,23 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     add_definitions(-DMACOS)
     # 链接macOS下的特定库
     include_directories(/usr/local/ffmpeg/include)
+    include_directories(/opt/homebrew/Cellar/sdl2/2.30.1/include/SDL2)
 
     link_directories(/usr/local/ffmpeg/lib)
+    link_directories(/opt/homebrew/Cellar/sdl2/2.30.1/lib)
+    set(FFPLAY_SRC ffplay_mac.c)
 endif ()
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)
 
-set(SRC_FILE ffplay.c
+set(SRC_FILE ${FFPLAY_SRC}
         cmdutils.c
         config.h
         cmdutils.h
         config_components.h
         fopen_utf8.h
         opt_common.h
-opt_common.c)
+        opt_common.c)
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 
