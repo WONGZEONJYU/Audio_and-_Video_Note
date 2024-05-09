@@ -37,7 +37,12 @@ set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample sw
 
 set(SRC_FILE ffplay.c
         cmdutils.c
-        config.h)
+        config.h
+        cmdutils.h
+        config_components.h
+        fopen_utf8.h
+        opt_common.h
+opt_common.c)
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 
