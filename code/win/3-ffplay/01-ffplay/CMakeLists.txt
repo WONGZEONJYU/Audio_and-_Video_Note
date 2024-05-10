@@ -16,13 +16,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
     # link_directories(${PROJECT_SOURCE_DIR}/../ffmepg-6.1/bin)
 
-    include_directories(c:/ffmepg-6.1/include)
+    include_directories(c:/ffmepg-7.1/include)
     include_directories(C:/SDL2-2.28.5-VC/include)
 
-    link_directories(c:/ffmepg-6.1/bin)
+    link_directories(c:/ffmepg-7.1/bin)
     link_directories(C:/SDL2-2.28.5-VC/lib/x64)
-
-    set(FFPLAY_SRC ffplay_win.c)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     # macOS操作系统下的特定配置
@@ -35,7 +33,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
 
     link_directories(/usr/local/ffmpeg/lib)
     link_directories(/opt/homebrew/Cellar/sdl2/2.30.1/lib)
-    set(FFPLAY_SRC ffplay_mac.c)
+
 endif ()
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)
@@ -47,9 +45,10 @@ set(SRC_FILE ${FFPLAY_SRC}
         config_components.h
         fopen_utf8.h
         opt_common.h
-        opt_common.c)
+        opt_common.c
+        ffplay.c
+        ffplay_renderer.c)
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
-
