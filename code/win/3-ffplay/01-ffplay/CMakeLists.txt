@@ -47,7 +47,8 @@ set(SRC_FILE ${FFPLAY_SRC}
         opt_common.h
         opt_common.c
         ffplay.c
-        ffplay_renderer.c)
+        ffplay_renderer.c
+        ffplay_renderer.h)
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 
