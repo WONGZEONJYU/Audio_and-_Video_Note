@@ -2784,6 +2784,9 @@ out:
 
 static int decode_interrupt_cb(void *ctx)
 {
+    static int64_t s_pre_time;
+    int64_t cur_time = av_gettime_relative() / 1000;
+    fprintf(stderr,"decode_interrupt_cb interval: %lldms",cur_time-s_pre_time);
     VideoState *is = ctx;
     return is->abort_request;
 }
