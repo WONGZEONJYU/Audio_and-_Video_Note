@@ -36,3 +36,4 @@ set(SRC_FILE ffplay.c)
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
+
