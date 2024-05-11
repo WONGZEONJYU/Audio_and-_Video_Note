@@ -3064,7 +3064,7 @@ static int read_thread(void *arg)
         }
 
         /* if the queue are full, no need to read more */
-        if (infinite_buffer<1 &&
+        if (infinite_buffer < 1 &&
               (is->audioq.size + is->videoq.size + is->subtitleq.size > MAX_QUEUE_SIZE
             || (stream_has_enough_packets(is->audio_st, is->audio_stream, &is->audioq) &&
                 stream_has_enough_packets(is->video_st, is->video_stream, &is->videoq) &&
