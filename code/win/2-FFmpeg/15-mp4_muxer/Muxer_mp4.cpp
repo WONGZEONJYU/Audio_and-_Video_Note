@@ -32,7 +32,6 @@ void Muxer_mp4::Construct(std::string &&url) noexcept(false)
 
     m_video_duration = 1.0 / YUV_FPS * TIME_BASE.den;
     m_audio_duration = 1.0 * m_AudioOutputStream->Frame_size() / PCM_SAMPLE_RATE * TIME_BASE.den;
-
 }
 
 void Muxer_mp4::init_AudioOutputStream() noexcept(false)
