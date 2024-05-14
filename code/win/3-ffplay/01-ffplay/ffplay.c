@@ -3053,7 +3053,7 @@ static int read_thread(void *arg)
             if (is->paused)
                 step_to_next_frame(is);
         }
-        if (is->queue_attachments_req) {
+        if (is->queue_attachments_req) { /*seek后请求封面*/
             if (is->video_st && is->video_st->disposition & AV_DISPOSITION_ATTACHED_PIC) {
                 if ((ret = av_packet_ref(pkt, &is->video_st->attached_pic)) < 0)
                     goto fail;
