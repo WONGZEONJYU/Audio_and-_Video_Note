@@ -2794,7 +2794,7 @@ static int decode_interrupt_cb(void *ctx)
 static int stream_has_enough_packets(AVStream *st, int stream_id, PacketQueue *queue) {
     return stream_id < 0 ||
            queue->abort_request ||
-           (st->disposition & AV_DISPOSITION_ATTACHED_PIC) ||
+           (st->disposition & AV_DISPOSITION_ATTACHED_PIC) || /*是否为封面图*/
            queue->nb_packets > MIN_FRAMES && (!queue->duration || av_q2d(st->time_base) * queue->duration > 1.0);
 }
 
@@ -3110,13 +3110,16 @@ static int read_thread(void *arg)
             is->eof = 0;
         }
         /* check if packet is in play range specified by user, then queue, otherwise discard */
+        /*检查数据包是否在用户指定的播放范围内，然后排队，否则丢弃*/
         stream_start_time = ic->streams[pkt->stream_index]->start_time;
         pkt_ts = pkt->pts == AV_NOPTS_VALUE ? pkt->dts : pkt->pts;
-        pkt_in_play_range = duration == AV_NOPTS_VALUE ||
-                (pkt_ts - (stream_start_time != AV_NOPTS_VALUE ? stream_start_time : 0)) *
-                av_q2d(ic->streams[pkt->stream_index]->time_base) -
-                (double)(start_time != AV_NOPTS_VALUE ? start_time : 0) / 1000000
-                <= ((double)duration / 1000000);
+
+        const double t_Delta  = (double )(pkt_ts - (stream_start_time != AV_NOPTS_VALUE ? stream_start_time : 0));
+        const double st_tb = av_q2d(ic->streams[pkt->stream_index]->time_base);
+        const double _start_time = (double)(start_time != AV_NOPTS_VALUE ? start_time : 0) / AV_TIME_BASE;
+
+        pkt_in_play_range = (duration == AV_NOPTS_VALUE) || (t_Delta * st_tb - _start_time <= ((double)duration / AV_TIME_BASE));
+
         if (pkt->stream_index == is->audio_stream && pkt_in_play_range) {
             packet_queue_put(&is->audioq, pkt);
         } else if (pkt->stream_index == is->video_stream && pkt_in_play_range
