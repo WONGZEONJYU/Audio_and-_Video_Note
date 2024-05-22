@@ -1759,7 +1759,7 @@ static int queue_picture(VideoState *is, AVFrame *src_frame, double pts, double 
            av_get_picture_type_char(src_frame->pict_type), pts);
 #endif
 
-    if (!(vp = frame_queue_peek_writable(&is->pictq)))
+    if (!(vp = frame_queue_peek_writable(&is->pictq))) /*检查队列是否有空间可写,有空间则返回一个可写的自定义的Frame*/
         return -1;
 
     vp->sar = src_frame->sample_aspect_ratio;
@@ -2159,7 +2159,7 @@ static int video_thread(void *arg)
     double pts;
     double duration;
     int ret;
-    AVRational tb = is->video_st->time_base;
+    AVRational tb = is->video_st->time_base; /*流的time_base*/
     AVRational frame_rate = av_guess_frame_rate(is->ic, is->video_st, NULL);
 
     AVFilterGraph *graph = NULL;
@@ -2238,10 +2238,12 @@ static int video_thread(void *arg)
             if (fabs(is->frame_last_filter_delay) > AV_NOSYNC_THRESHOLD / 10.0)
                 is->frame_last_filter_delay = 0;
             tb = av_buffersink_get_time_base(filt_out);
-            duration = (frame_rate.num && frame_rate.den ? av_q2d((AVRational){frame_rate.den, frame_rate.num}) : 0);
-            pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : frame->pts * av_q2d(tb);
+
+            duration = (frame_rate.num && frame_rate.den ? av_q2d((AVRational){frame_rate.den, frame_rate.num}) : 0); /*计算帧间隔,如果分子或分母为0,先用0代替,播放的时候还会再算一次*/
+
+            pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : frame->pts * av_q2d(tb); /*转成单位秒*/
             ret = queue_picture(is, frame, pts, duration, fd ? fd->pkt_pos : -1, is->viddec.pkt_serial);
-            av_frame_unref(frame);
+            av_frame_unref(frame); /*queue_picture 已经把frame mov_ref了*/
             if (is->videoq.serial != is->viddec.pkt_serial)
                 break;
         }
@@ -2386,7 +2388,7 @@ static int audio_decode_frame(VideoState *is)
                                            af->frame->format, 1);
 
     wanted_nb_samples = synchronize_audio(is, af->frame->nb_samples);
-
+/*******************************************************************重采样有关***************************************************************************************/
     if (af->frame->format        != is->audio_src.fmt            ||
         av_channel_layout_compare(&af->frame->ch_layout, &is->audio_src.ch_layout) ||
         af->frame->sample_rate   != is->audio_src.freq           ||
@@ -2443,6 +2445,7 @@ static int audio_decode_frame(VideoState *is)
         }
         is->audio_buf = is->audio_buf1;
         resampled_data_size = len2 * is->audio_tgt.ch_layout.nb_channels * av_get_bytes_per_sample(is->audio_tgt.fmt);
+/******************************************************************重采样有关****************************************************************************************/
     } else {
         is->audio_buf = af->frame->data[0];
         resampled_data_size = data_size;
@@ -2476,7 +2479,7 @@ static void sdl_audio_callback(void *opaque, Uint8 *stream, int len)
     audio_callback_time = av_gettime_relative();
 
     while (len > 0) {
-        if (is->audio_buf_index >= is->audio_buf_size) {
+        if (is->audio_buf_index >= is->audio_buf_size) { /*如果is->audio_buf_index < is->audio_buf_size,先把之前剩余的数据拷贝到stream*/
            audio_size = audio_decode_frame(is);
            if (audio_size < 0) {
                 /* if error, just output silence */
@@ -2485,19 +2488,21 @@ static void sdl_audio_callback(void *opaque, Uint8 *stream, int len)
            } else {
                if (is->show_mode != SHOW_MODE_VIDEO)
                    update_sample_display(is, (int16_t *)is->audio_buf, audio_size);
-               is->audio_buf_size = audio_size;
+               is->audio_buf_size = audio_size; /*读到多少字节数据*/
            }
            is->audio_buf_index = 0;
         }
         len1 = is->audio_buf_size - is->audio_buf_index;
         if (len1 > len)
             len1 = len;
-        if (!is->muted && is->audio_buf && is->audio_volume == SDL_MIX_MAXVOLUME)
+        if (!is->muted && is->audio_buf && is->audio_volume == SDL_MIX_MAXVOLUME){
             memcpy(stream, (uint8_t *)is->audio_buf + is->audio_buf_index, len1);
+        }
         else {
             memset(stream, 0, len1);
-            if (!is->muted && is->audio_buf)
+            if (!is->muted && is->audio_buf){
                 SDL_MixAudioFormat(stream, (uint8_t *)is->audio_buf + is->audio_buf_index, AUDIO_S16SYS, len1, is->audio_volume);
+            }
         }
         len -= len1;
         stream += len1;
@@ -2578,7 +2583,9 @@ static int audio_open(void *opaque, AVChannelLayout *wanted_channel_layout, int 
     audio_hw_params->freq = spec.freq;
     if (av_channel_layout_copy(&audio_hw_params->ch_layout, wanted_channel_layout) < 0)
         return -1;
+    /*计算一个采样点占用多少个字节*/
     audio_hw_params->frame_size = av_samples_get_buffer_size(NULL, audio_hw_params->ch_layout.nb_channels, 1, audio_hw_params->fmt, 1);
+    /*通过采样法计算每一秒需要多少个字节去填充*/
     audio_hw_params->bytes_per_sec = av_samples_get_buffer_size(NULL, audio_hw_params->ch_layout.nb_channels, audio_hw_params->freq, audio_hw_params->fmt, 1);
     if (audio_hw_params->bytes_per_sec <= 0 || audio_hw_params->frame_size <= 0) {
         av_log(NULL, AV_LOG_ERROR, "av_samples_get_buffer_size failed\n");
