@@ -865,22 +865,28 @@ static void calculate_display_rect(SDL_Rect *rect,
     AVRational aspect_ratio = pic_sar;
     int64_t width, height, x, y;
 
-    if (av_cmp_q(aspect_ratio, av_make_q(0, 1)) <= 0)
-        aspect_ratio = av_make_q(1, 1);
+    if (av_cmp_q(aspect_ratio, av_make_q(0, 1)) <= 0) /*如果frame的比例是0/1或者比0/1更小*/
+        aspect_ratio = av_make_q(1, 1);/*重置为1/1*/
 
+    /*frame的宽高与比例相乘*/
+    /*aspect_ratio x av_make_q(pic_width, pic_height)*/
     aspect_ratio = av_mul_q(aspect_ratio, av_make_q(pic_width, pic_height));
 
     /* XXX: we suppose the screen has a 1.0 pixel ratio */
     height = scr_height;
-    width = av_rescale(height, aspect_ratio.num, aspect_ratio.den) & ~1;
+    /*通过height和比例计算高度*/
+    width = av_rescale(height, aspect_ratio.num, aspect_ratio.den) & ~1; /*& ~1作用是把结果变成偶数*/
+
     if (width > scr_width) {
         width = scr_width;
-        height = av_rescale(width, aspect_ratio.den, aspect_ratio.num) & ~1;
+        height = av_rescale(width, aspect_ratio.den, aspect_ratio.num) & ~1; /*& ~1 与上同理*/
     }
+    /*计算渲染的坐标*/
     x = (scr_width - width) / 2;
     y = (scr_height - height) / 2;
     rect->x = scr_xleft + x;
     rect->y = scr_ytop  + y;
+    /*通过比例计算后的宽高,设置矩形区域*/
     rect->w = FFMAX((int)width,  1);
     rect->h = FFMAX((int)height, 1);
 }
@@ -1337,8 +1343,8 @@ static void set_default_window_size(int width, int height, AVRational sar)
     SDL_Rect rect;
     int max_width  = screen_width  ? screen_width  : INT_MAX;
     int max_height = screen_height ? screen_height : INT_MAX;
-    if (max_width == INT_MAX && max_height == INT_MAX)
-        max_height = height;
+    if (max_width == INT_MAX && max_height == INT_MAX) /*如果没有指定最大宽高*/
+        max_height = height;    /*则使用外部传入的高作为最大高度*/
     calculate_display_rect(&rect, 0, 0, max_width, max_height, width, height, sar);
     default_width  = rect.w;
     default_height = rect.h;
@@ -1626,8 +1632,8 @@ retry:
                 goto display;
 
             /* compute nominal last_duration */
-            last_duration = vp_duration(is, lastvp, vp);
-            delay = compute_target_delay(last_duration, is);
+            last_duration = vp_duration(is, lastvp, vp);/*计算上一帧应显示时间*/
+            delay = compute_target_delay(last_duration, is); /*计算上一帧lastvp还要播放的时间*/
 
             time= av_gettime_relative()/1000000.0;
             if (time < is->frame_timer + delay) {
