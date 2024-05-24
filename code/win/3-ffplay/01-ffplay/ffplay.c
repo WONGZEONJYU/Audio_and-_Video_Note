@@ -1650,10 +1650,10 @@ retry:
                 update_video_pts(is, vp->pts, vp->serial);
             SDL_UnlockMutex(is->pictq.mutex);
 
-            if (frame_queue_nb_remaining(&is->pictq) > 1) {
+            if (frame_queue_nb_remaining(&is->pictq) > 1) { /*帧队列最低有两帧才能进行丢弃一帧*/
                 Frame *nextvp = frame_queue_peek_next(&is->pictq);
                 duration = vp_duration(is, vp, nextvp);
-                if(!is->step && (framedrop>0 || (framedrop && get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER)) && time > is->frame_timer + duration){
+                if(!is->step && (framedrop>0 || (framedrop && get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER)) && time > is->frame_timer + duration) {
                     is->frame_drops_late++;
                     frame_queue_next(&is->pictq);
                     goto retry;
