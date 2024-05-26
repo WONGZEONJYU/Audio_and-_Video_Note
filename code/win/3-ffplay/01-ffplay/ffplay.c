@@ -1654,6 +1654,8 @@ retry:
                 Frame *nextvp = frame_queue_peek_next(&is->pictq);
                 duration = vp_duration(is, vp, nextvp);
                 if(!is->step && (framedrop>0 || (framedrop && get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER)) && time > is->frame_timer + duration) {
+                    /*time > is->frame_timer + duration检查是否落后一帧了*/
+                    /*如果是,下面的执行就是丢帧的操作*/
                     is->frame_drops_late++;
                     frame_queue_next(&is->pictq);
                     goto retry;
