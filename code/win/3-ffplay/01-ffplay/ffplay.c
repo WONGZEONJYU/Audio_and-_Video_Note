@@ -2463,6 +2463,8 @@ static int audio_decode_frame(VideoState *is)
     /* update the audio clock with the pts */
     if (!isnan(af->pts))
         is->audio_clock = af->pts + (double) af->frame->nb_samples / af->frame->sample_rate;
+        /*由于frame的pts是从0开始, 所以每次需要加上(double) af->frame->nb_samples / af->frame->sample_rate */
+        /*第一个frame的pts是0,并非它的时间就是0*/
     else
         is->audio_clock = NAN;
     is->audio_clock_serial = af->serial;
