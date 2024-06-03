@@ -1552,6 +1552,10 @@ static double compute_target_delay(double delay, VideoState *is)
         /* skip or repeat frame. We take into account the
            delay to compute the threshold. I still don't know
            if it is the best guess */
+
+        /*AV_SYNC_THRESHOLD_MIN = 0.04
+         * AV_SYNC_THRESHOLD_MAX = 0.1*/
+
         sync_threshold = FFMAX(AV_SYNC_THRESHOLD_MIN, FFMIN(AV_SYNC_THRESHOLD_MAX, delay));
         if (!isnan(diff) && fabs(diff) < is->max_frame_duration) {
             if (diff <= -sync_threshold)
@@ -2464,7 +2468,7 @@ static int audio_decode_frame(VideoState *is)
     if (!isnan(af->pts))
         is->audio_clock = af->pts + (double) af->frame->nb_samples / af->frame->sample_rate;
         /*由于frame的pts是从0开始, 所以每次需要加上(double) af->frame->nb_samples / af->frame->sample_rate */
-        /*第一个frame的pts是0,并非它的时间就是0*/
+        /*第一个frame的pts是0,并非它的时间就是0,pts是一个刻度值*/
     else
         is->audio_clock = NAN;
     is->audio_clock_serial = af->serial;
