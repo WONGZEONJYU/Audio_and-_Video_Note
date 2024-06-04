@@ -105,25 +105,27 @@ const int program_birth_year = 2003;
 
 #define USE_ONEPASS_SUBTITLE_RENDER 1
 
-typedef struct MyAVPacketList {
-    AVPacket *pkt;
-    int serial;
+typedef struct MyAVPacketList { /*PacketQueue队列存放的元素模型*/
+    AVPacket *pkt;  /*解封装后的packet*/
+    int serial;     /*播放序列,用于快进快退*/
 } MyAVPacketList;
 
-typedef struct PacketQueue {
-    AVFifo *pkt_list;
-    int nb_packets;
-    int size;
-    int64_t duration;
-    int abort_request;
-    int serial;
-    SDL_mutex *mutex;
-    SDL_cond *cond;
+typedef struct PacketQueue { /*包队列*/
+    AVFifo *pkt_list; /*FFmpeg 的avfifo */
+    int nb_packets; /*包数量*/
+    int size;   //队列所有元素的大小(队列每一个元素size计算方式sizeAVPacket.size + sizeof(MyAVPacketList)) , 不是包数量
+    // size = (sizeAVPacket.size + sizeof(MyAVPacketList)) * nb_packets
+    int64_t duration; /*队列所有元素的数据播放持续时间(队列每一个元素duration的AVPacket.duration) */
+    // duration = AVPacket.duration * nb_packets
+    int abort_request; // 用户退出请求标志
+    int serial; // 播放序列号，和MyAVPacketList的serial作用相同,但改变的时序稍微有点不同
+    SDL_mutex *mutex; // 用于维持PacketQueue的多线程安全(SDL_mutex可以按pthread_mutex_t理解）
+    SDL_cond *cond; // 用于读、写线程相互通知(SDL_cond可以按pthread_cond_t理解)
 } PacketQueue;
 
-#define VIDEO_PICTURE_QUEUE_SIZE 3
-#define SUBPICTURE_QUEUE_SIZE 16
-#define SAMPLE_QUEUE_SIZE 9
+#define VIDEO_PICTURE_QUEUE_SIZE 3 // 图像帧缓存数量
+#define SUBPICTURE_QUEUE_SIZE 16 // 字幕帧缓存数量
+#define SAMPLE_QUEUE_SIZE 9 // 采样帧缓存数量
 #define FRAME_QUEUE_SIZE FFMAX(SAMPLE_QUEUE_SIZE, FFMAX(VIDEO_PICTURE_QUEUE_SIZE, SUBPICTURE_QUEUE_SIZE))
 
 typedef struct AudioParams {
@@ -1558,11 +1560,12 @@ static double compute_target_delay(double delay, VideoState *is)
 
         sync_threshold = FFMAX(AV_SYNC_THRESHOLD_MIN, FFMIN(AV_SYNC_THRESHOLD_MAX, delay));
         if (!isnan(diff) && fabs(diff) < is->max_frame_duration) {
-            if (diff <= -sync_threshold)
+            if (diff <= -sync_threshold) /*视频比音频慢*/
                 delay = FFMAX(0, delay + diff);
-            else if (diff >= sync_threshold && delay > AV_SYNC_FRAMEDUP_THRESHOLD)
+            /*AV_SYNC_FRAMEDUP_THRESHOLD = 0.1*/
+            else if (diff >= sync_threshold && delay > AV_SYNC_FRAMEDUP_THRESHOLD) /*视频比音频快*/
                 delay = delay + diff;
-            else if (diff >= sync_threshold)
+            else if (diff >= sync_threshold) /*视频比音频快*/
                 delay = 2 * delay;
         }
     }
@@ -1636,11 +1639,18 @@ retry:
                 goto display;
 
             /* compute nominal last_duration */
-            last_duration = vp_duration(is, lastvp, vp);/*计算上一帧应显示时间*/
+            // 经过compute_target_delay方法，计算出待显示帧vp需要等待的时间
+            // 如果以video同步，则delay直接等于last_duration。
+            // 如果以audio或外部时钟同步，则需要比对主时钟调整待显示帧vp要等待的时间。
+            last_duration = vp_duration(is, lastvp, vp); /*计算上一帧应显示时间*/
             delay = compute_target_delay(last_duration, is); /*计算上一帧lastvp还要播放的时间*/
 
-            time= av_gettime_relative()/1000000.0;
-            if (time < is->frame_timer + delay) {
+            time= av_gettime_relative() / 1000000.0;
+            // is->frame_timer 实际上就是上一帧lastvp的播放时间,
+            // is->frame_timer + delay 是待显示帧vp该播放的时间
+            if (time < is->frame_timer + delay) {//判断是否继续显示上一帧
+                // 当前系统时刻还未到达上一帧的结束时刻,那么还应该继续显示上一帧。
+                // 计算出最小等待时间
                 *remaining_time = FFMIN(is->frame_timer + delay - time, *remaining_time);
                 goto display;
             }
