@@ -226,7 +226,7 @@ typedef struct VideoState {
     int seek_flags;                 // seek标志,诸如AVSEEK_FLAG_BYTE等
     int64_t seek_pos;               // 请求seek的目标位置(当前位置+增量)
     int64_t seek_rel;               // 本次seek的位置增量
-    int read_pause_return;
+    int read_pause_return;          // 网络流暂停标志
     AVFormatContext *ic;            // iformat的上下文
     int realtime;                   // =1为实时流
 
@@ -253,11 +253,11 @@ typedef struct VideoState {
     double audio_diff_avg_coef;
     double audio_diff_threshold;
     int audio_diff_avg_count;
+    // 以上4个参数 非audio master同步方式使用
     AVStream *audio_st;             // 音频流
     PacketQueue audioq;             // 音频packet队列
     int audio_hw_buf_size;          // SDL音频缓冲区的大小(字节为单位)
-    // 指向待播放的一帧音频数据，指向的数据区将被拷入SDL音频缓冲区。若经过重采样则指向audio_buf1，
-    // 否则指向frame中的音频
+    // 指向待播放的一帧音频数据,指向的数据区将被拷入SDL音频缓冲区,若经过重采样则指向audio_buf1,否则指向frame中的音频
     uint8_t *audio_buf;             // 指向需要重采样的数据
     uint8_t *audio_buf1;            // 指向重采样后的数据
     unsigned int audio_buf_size; /* in bytes */ // 待播放的一帧音频数据(audio_buf指向)的大小
@@ -266,7 +266,7 @@ typedef struct VideoState {
     // 更新拷贝位置 当前音频帧中已拷入SDL音频缓冲区的位置索引(指向第一个待拷贝字节)
     // 当前音频帧中尚未拷入SDL音频缓冲区的数据量:
     // audio_buf_size = audio_buf_index + audio_write_buf_size
-    int audio_write_buf_size;
+    int audio_write_buf_size;       //剩余还没写入SDL_buf的数据大小
     int audio_volume;               // 音量
     int muted;                      // =1静音，=0则正常
     struct AudioParams audio_src;   // 音频frame的参数
@@ -291,7 +291,7 @@ typedef struct VideoState {
     AVTXContext *rdft;                          // 自适应滤波器上下文
     av_tx_fn rdft_fn;
     int rdft_bits;                              // 自使用比特率
-    float *real_data;
+    float *real_data;                           // 实时数据
     AVComplexFloat *rdft_data;                  // 快速傅里叶采样
     int xpos;
     double last_vis_time;
@@ -368,7 +368,7 @@ static enum ShowMode show_mode = SHOW_MODE_NONE;
 static const char *audio_codec_name;
 static const char *subtitle_codec_name;
 static const char *video_codec_name;
-double rdftspeed = 0.02;
+static double rdftspeed = 0.02;
 static int64_t cursor_last_shown;
 static int cursor_hidden = 0;
 static const char **vfilters_list = NULL;
@@ -433,6 +433,7 @@ static int opt_add_vfilter(void *optctx, const char *opt, const char *arg)
     return 0;
 }
 
+/*音频采样格式比较函数*/
 static inline
 int cmp_audio_fmts(enum AVSampleFormat fmt1, int64_t channel_count1,
                    enum AVSampleFormat fmt2, int64_t channel_count2)
@@ -444,29 +445,30 @@ int cmp_audio_fmts(enum AVSampleFormat fmt1, int64_t channel_count1,
         return channel_count1 != channel_count2 || fmt1 != fmt2;
 }
 
+/*入队的实际操作*/
 static int packet_queue_put_private(PacketQueue *q, AVPacket *pkt)
 {
     MyAVPacketList pkt1;
     int ret;
 
-    if (q->abort_request)   //如果已中止，则放入失败
+    if (q->abort_request)  //如果已中止,则放入失败
        return -1;
 
-
-    pkt1.pkt = pkt;             //指针拷贝
+    pkt1.pkt = pkt;             //指针拷贝,老版本是数据拷贝
     pkt1.serial = q->serial;    //用队列序列号标记节点
 
     ret = av_fifo_write(q->pkt_list, &pkt1, 1); //入队操作
     if (ret < 0)
         return ret;
     q->nb_packets++;        //packet数量+1
-    q->size += pkt1.pkt->size + sizeof(pkt1);       //队列元素的大小
-    q->duration += pkt1.pkt->duration;
+    q->size += pkt1.pkt->size + sizeof(pkt1);       //增加一个队列元素大小
+    q->duration += pkt1.pkt->duration;  /*增加一个队列元素的数据播放持续时间*/
     /* XXX: should duplicate packet data in DV case */
-    SDL_CondSignal(q->cond);
+    SDL_CondSignal(q->cond);/*条件变量,通知读线程有数据可读*/
     return 0;
 }
 
+/*入队函数*/
 static int packet_queue_put(PacketQueue *q, AVPacket *pkt)
 {
     AVPacket *pkt1;
@@ -477,7 +479,7 @@ static int packet_queue_put(PacketQueue *q, AVPacket *pkt)
         av_packet_unref(pkt);
         return -1;
     }
-    av_packet_move_ref(pkt1, pkt);
+    av_packet_move_ref(pkt1, pkt); /*转移AVPacket的引用计数*/
 
     SDL_LockMutex(q->mutex);
     ret = packet_queue_put_private(q, pkt1);
@@ -489,6 +491,7 @@ static int packet_queue_put(PacketQueue *q, AVPacket *pkt)
     return ret;
 }
 
+/*packet_queue放入空包*/
 static int packet_queue_put_nullpacket(PacketQueue *q, AVPacket *pkt, int stream_index)
 {
     pkt->stream_index = stream_index;
@@ -496,6 +499,7 @@ static int packet_queue_put_nullpacket(PacketQueue *q, AVPacket *pkt, int stream
 }
 
 /* packet queue handling */
+/*队列初始化*/
 static int packet_queue_init(PacketQueue *q)
 {
     memset(q, 0, sizeof(PacketQueue));
@@ -516,13 +520,14 @@ static int packet_queue_init(PacketQueue *q)
     return 0;
 }
 
+/*清空packet_queue*/
 static void packet_queue_flush(PacketQueue *q)
 {
     MyAVPacketList pkt1;
 
     SDL_LockMutex(q->mutex);
     while (av_fifo_read(q->pkt_list, &pkt1, 1) >= 0)
-        av_packet_free(&pkt1.pkt);
+        av_packet_free(&pkt1.pkt);  //释放队列存的所有元素
     q->nb_packets = 0;
     q->size = 0;
     q->duration = 0;
@@ -530,6 +535,7 @@ static void packet_queue_flush(PacketQueue *q)
     SDL_UnlockMutex(q->mutex);
 }
 
+/*销毁packet_queue*/
 static void packet_queue_destroy(PacketQueue *q)
 {
     packet_queue_flush(q);
@@ -538,6 +544,7 @@ static void packet_queue_destroy(PacketQueue *q)
     SDL_DestroyCond(q->cond);
 }
 
+/*packet_queue请求退出*/
 static void packet_queue_abort(PacketQueue *q)
 {
     SDL_LockMutex(q->mutex);
@@ -549,6 +556,7 @@ static void packet_queue_abort(PacketQueue *q)
     SDL_UnlockMutex(q->mutex);
 }
 
+/*packet_queue启动*/
 static void packet_queue_start(PacketQueue *q)
 {
     SDL_LockMutex(q->mutex);
@@ -558,6 +566,7 @@ static void packet_queue_start(PacketQueue *q)
 }
 
 /* return < 0 if aborted, 0 if no packet and > 0 if packet.  */
+/*packet_queue读取函数*/
 static int packet_queue_get(PacketQueue *q, AVPacket *pkt, int block, int *serial)
 {
     MyAVPacketList pkt1;
@@ -575,13 +584,13 @@ static int packet_queue_get(PacketQueue *q, AVPacket *pkt, int block, int *seria
             q->nb_packets--;
             q->size -= pkt1.pkt->size + sizeof(pkt1);
             q->duration -= pkt1.pkt->duration;
-            av_packet_move_ref(pkt, pkt1.pkt);
+            av_packet_move_ref(pkt, pkt1.pkt); /*转移AVPacket的引用计数*/
             if (serial)
                 *serial = pkt1.serial;
-            av_packet_free(&pkt1.pkt);
+            av_packet_free(&pkt1.pkt); /*由于pkt1.pkt已经被转移,这里的释放不会导致出队的数据被销毁*/
             ret = 1;
             break;
-        } else if (!block) {
+        } else if (!block) { //block为非0值 , 走else分支,进入阻塞等待
             ret = 0;
             break;
         } else {
@@ -592,97 +601,118 @@ static int packet_queue_get(PacketQueue *q, AVPacket *pkt, int block, int *seria
     return ret;
 }
 
+/*解码器初始化*/
 static int decoder_init(Decoder *d, AVCodecContext *avctx, PacketQueue *queue, SDL_cond *empty_queue_cond) {
     memset(d, 0, sizeof(Decoder));
     d->pkt = av_packet_alloc();
     if (!d->pkt)
         return AVERROR(ENOMEM);
-    d->avctx = avctx;
-    d->queue = queue;
-    d->empty_queue_cond = empty_queue_cond;
-    d->start_pts = AV_NOPTS_VALUE;
-    d->pkt_serial = -1;
+    d->avctx = avctx; //解码器上下文
+    d->queue = queue; //绑定对应的packet queue
+    d->empty_queue_cond = empty_queue_cond; // 绑定read_thread线程的continue_read_thread
+    d->start_pts = AV_NOPTS_VALUE;  // 起始设置为无效
+    d->pkt_serial = -1; // 起始设置为-1
     return 0;
 }
 
+/*解码*/
 static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
     int ret = AVERROR(EAGAIN);
 
     for (;;) {
-        if (d->queue->serial == d->pkt_serial) {
+        if (d->queue->serial == d->pkt_serial) {    //判断是否为同一播放序列
             do {
-                if (d->queue->abort_request)
+                if (d->queue->abort_request)    //是否请求退出
                     return -1;
 
-                switch (d->avctx->codec_type) {
-                    case AVMEDIA_TYPE_VIDEO:
-                        ret = avcodec_receive_frame(d->avctx, frame);
-                        if (ret >= 0) {
-                            if (decoder_reorder_pts == -1) {
-                                frame->pts = frame->best_effort_timestamp;
+                switch (d->avctx->codec_type) { //选择视频还是音频
+                    case AVMEDIA_TYPE_VIDEO:    //视频
+                        ret = avcodec_receive_frame(d->avctx, frame);//第一次读取ret一定是AVERROR(EAGAIN) = -11
+                        if (ret >= 0) { /*成功读取到数据*/
+                            if (decoder_reorder_pts == -1) {    //让解码器重新排序pts 0=关闭 1=开启 -1=自动
+                                frame->pts = frame->best_effort_timestamp; //默认采用启发法的结果作为pts,详情查看源码
                             } else if (!decoder_reorder_pts) {
-                                frame->pts = frame->pkt_dts;
+                                frame->pts = frame->pkt_dts;    /*采用dts作为pts*/
                             }
                         }
                         break;
-                    case AVMEDIA_TYPE_AUDIO:
-                        ret = avcodec_receive_frame(d->avctx, frame);
-                        if (ret >= 0) {
+                    case AVMEDIA_TYPE_AUDIO:    //音频
+                        ret = avcodec_receive_frame(d->avctx, frame); //第一次读取结果同上
+                        if (ret >= 0) { /*成功读取到数据*/
+
                             AVRational tb = (AVRational){1, frame->sample_rate};
-                            if (frame->pts != AV_NOPTS_VALUE)
-                                frame->pts = av_rescale_q(frame->pts, d->avctx->pkt_timebase, tb);
-                            else if (d->next_pts != AV_NOPTS_VALUE)
-                                frame->pts = av_rescale_q(d->next_pts, d->next_pts_tb, tb);
+
                             if (frame->pts != AV_NOPTS_VALUE) {
+                                frame->pts = av_rescale_q(frame->pts, d->avctx->pkt_timebase, tb);  //把读取到pts从解码器的时间基准转换到以(1/sample_rate)的时间基准
+                                //d->avctx->pkt_timebase实质是AVStream->timebase
+                            }else if (d->next_pts != AV_NOPTS_VALUE) {
+                                //如果frame->pts不正常则使用上一帧更新的next_pts和next_pts_tb去计算当前的pts
+                                // 转成{1,frame->sample_rate}
+                                frame->pts = av_rescale_q(d->next_pts, d->next_pts_tb, tb);
+                            }
+
+                            if (frame->pts != AV_NOPTS_VALUE) {
+                                // 根据当前帧的pts和nb_samples预估下一帧的pts
                                 d->next_pts = frame->pts + frame->nb_samples;
-                                d->next_pts_tb = tb;
+                                d->next_pts_tb = tb; // 设置timebase
                             }
                         }
                         break;
                 }
-                if (ret == AVERROR_EOF) {
-                    d->finished = d->pkt_serial;
-                    avcodec_flush_buffers(d->avctx);
+
+                if (ret == AVERROR_EOF) { //解码结束
+                    d->finished = d->pkt_serial;    //
+                    avcodec_flush_buffers(d->avctx);    //刷新内部缓冲区
                     return 0;
                 }
-                if (ret >= 0)
+                if (ret >= 0)//正常解码成功
                     return 1;
-            } while (ret != AVERROR(EAGAIN));
+            } while (ret != AVERROR(EAGAIN));//没有帧可读,退出走下面流程送packet,或当前包是字幕包
         }
 
+        //获取一个packet,如果播放序列不一致(数据不连续)则过滤掉"过时"的packet
         do {
-            if (d->queue->nb_packets == 0)
-                SDL_CondSignal(d->empty_queue_cond);
-            if (d->packet_pending) {
+            //如果没有数据可读则唤醒read_thread,实际是continue_read_thread SDL_cond
+            if (d->queue->nb_packets == 0) { // 没有数据可读
+                SDL_CondSignal(d->empty_queue_cond);// 通知read_thread读取packet
+            }
+
+            if (d->packet_pending) {    //如果上一次的packet没有成功送入解码器,再次送入,不读取队列的packet
                 d->packet_pending = 0;
-            } else {
-                int old_serial = d->pkt_serial;
-                if (packet_queue_get(d->queue, d->pkt, 1, &d->pkt_serial) < 0)
+            } else {    //从队列读取packet
+
+                int old_serial = d->pkt_serial; //记录解码器的当前序列
+
+                if (packet_queue_get(d->queue, d->pkt, 1, &d->pkt_serial) < 0) {//采用阻塞式读取,并更新解码器的序列
                     return -1;
-                if (old_serial != d->pkt_serial) {
-                    avcodec_flush_buffers(d->avctx);
+                }
+
+                if (old_serial != d->pkt_serial) {  //序列不一致
+                    avcodec_flush_buffers(d->avctx);//重置编码器
                     d->finished = 0;
-                    d->next_pts = d->start_pts;
-                    d->next_pts_tb = d->start_pts_tb;
+                    d->next_pts = d->start_pts; //重置最近一次的pts
+                    d->next_pts_tb = d->start_pts_tb; //重置next_pts的时间基准
                 }
             }
-            if (d->queue->serial == d->pkt_serial)
+
+            if (d->queue->serial == d->pkt_serial) {    //如果解码器的序列和队列的序列一致,则跳出当前循环,否则丢弃当前包,继续读取
                 break;
+            }
             av_packet_unref(d->pkt);
         } while (1);
 
-        if (d->avctx->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+        if (d->avctx->codec_type == AVMEDIA_TYPE_SUBTITLE) { //字幕类型
             int got_frame = 0;
-            ret = avcodec_decode_subtitle2(d->avctx, sub, &got_frame, d->pkt);
-            if (ret < 0) {
+            ret = avcodec_decode_subtitle2(d->avctx, sub, &got_frame, d->pkt);//解码字幕包
+            if (ret < 0) { //字幕解码失败
                 ret = AVERROR(EAGAIN);
-            } else {
-                if (got_frame && !d->pkt->data) {
+            } else {//字幕解码成功
+                if (got_frame && !d->pkt->data) { //got_frame非0值是成功,
                     d->packet_pending = 1;
                 }
                 ret = got_frame ? 0 : (d->pkt->data ? AVERROR(EAGAIN) : AVERROR_EOF);
             }
-            av_packet_unref(d->pkt);
+            av_packet_unref(d->pkt);//无论字幕是否解码成功,都把字幕包释放
         } else {
             if (d->pkt->buf && !d->pkt->opaque_ref) {
                 FrameData *fd;
@@ -1097,8 +1127,7 @@ static void video_audio_display(VideoState *s)
     int64_t time_diff;
     int rdft_bits, nb_freq;
 
-    for (rdft_bits = 1; (1 << rdft_bits) < 2 * s->height; rdft_bits++)
-        ;
+    for (rdft_bits = 1; (1 << rdft_bits) < 2 * s->height; rdft_bits++);
     nb_freq = 1 << (rdft_bits - 1);
 
     /* compute display index : center on currently output samples */
