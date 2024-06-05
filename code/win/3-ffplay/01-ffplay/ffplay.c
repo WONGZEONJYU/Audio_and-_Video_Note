@@ -549,7 +549,7 @@ static void packet_queue_abort(PacketQueue *q)
 {
     SDL_LockMutex(q->mutex);
 
-    q->abort_request = 1;
+    q->abort_request = 1;//请求退出
 
     SDL_CondSignal(q->cond);
 
@@ -617,6 +617,7 @@ static int decoder_init(Decoder *d, AVCodecContext *avctx, PacketQueue *queue, S
 
 /*解码*/
 static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
+
     int ret = AVERROR(EAGAIN);
 
     for (;;) {
@@ -665,9 +666,11 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
                     avcodec_flush_buffers(d->avctx);    //刷新内部缓冲区
                     return 0;
                 }
-                if (ret >= 0)//正常解码成功
+
+                if (ret >= 0){//正常解码成功
                     return 1;
-            } while (ret != AVERROR(EAGAIN));//没有帧可读,退出走下面流程送packet,或当前包是字幕包
+                }
+            } while (ret != AVERROR(EAGAIN));//没有帧可读,退出走下面流程送packet
         }
 
         //获取一个packet,如果播放序列不一致(数据不连续)则过滤掉"过时"的packet
@@ -677,9 +680,9 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
                 SDL_CondSignal(d->empty_queue_cond);// 通知read_thread读取packet
             }
 
-            if (d->packet_pending) {    //如果上一次的packet没有成功送入解码器,再次送入,不读取队列的packet
+            if (d->packet_pending) { //如果上一次的packet没有成功送入解码器,再次送入,不读取队列的packet
                 d->packet_pending = 0;
-            } else {    //从队列读取packet
+            }else {    //从队列读取packet
 
                 int old_serial = d->pkt_serial; //记录解码器的当前序列
 
@@ -695,7 +698,7 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
                 }
             }
 
-            if (d->queue->serial == d->pkt_serial) {    //如果解码器的序列和队列的序列一致,则跳出当前循环,否则丢弃当前包,继续读取
+            if (d->queue->serial == d->pkt_serial) { //如果解码器的序列和队列的序列一致,则跳出当前循环,否则丢弃当前包,继续读取
                 break;
             }
             av_packet_unref(d->pkt);
@@ -703,14 +706,27 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
 
         if (d->avctx->codec_type == AVMEDIA_TYPE_SUBTITLE) { //字幕类型
             int got_frame = 0;
-            ret = avcodec_decode_subtitle2(d->avctx, sub, &got_frame, d->pkt);//解码字幕包
+            ret = avcodec_decode_subtitle2(d->avctx, sub, &got_frame, d->pkt);  //解码字幕包,got_frame非0值是成功
             if (ret < 0) { //字幕解码失败
-                ret = AVERROR(EAGAIN);
-            } else {//字幕解码成功
-                if (got_frame && !d->pkt->data) { //got_frame非0值是成功,
+                ret = AVERROR(EAGAIN); //ret = AVERROR(EAGAIN),让当前循环再次读取字幕包队列拿一个新数据进行解码
+            } else {    //字幕解码成功
+
+                /*这里比较判断复杂
+                 * 阅读了avcodec_decode_subtitle2源码,avcodec_decode_subtitle2返回值非负值,got_frame绝对不会是0值
+                 * 1.got_frame为非零值,字幕包(pkt)为空,标记d->packet_pending,ret = 0,结束本函数(decoder_decode_frame),
+                 * 返回解码成功,由于标记了d->packet_pending,下次进入本函数就是冲刷字幕解码器
+                 *
+                 *
+                 * 2.got_frame为非零值,字幕包(pkt)数据不为空,ret = 0,结束本函数(decoder_decode_frame),
+                 * 下次进入本函数继续从字幕包队列拿行数据进行解码
+                 *
+                 *
+                 * */
+
+                if (got_frame && !d->pkt->data) {
                     d->packet_pending = 1;
                 }
-                ret = got_frame ? 0 : (d->pkt->data ? AVERROR(EAGAIN) : AVERROR_EOF);
+                ret = got_frame ? 0 : (d->pkt->data ? AVERROR(EAGAIN) : AVERROR_EOF);//第二层判断似乎永远不会进入,不明白作者是什么意图?欢迎大神来回答一下?
             }
             av_packet_unref(d->pkt);//无论字幕是否解码成功,都把字幕包释放
         } else {
