@@ -138,14 +138,15 @@ typedef struct AudioParams {
 
 // 这里讲的系统时钟 是通过av_gettime_relative()获取到的时钟,单位为微妙
 typedef struct Clock {
-    double pts;           /* clock base */ // 时钟基础, 当前帧(待播放)显示时间戳,播放后,当前帧变成上一帧
+    // 时钟基础, 当前帧(待播放)显示时间戳,播放后,当前帧变成上一帧
+    double pts;           /* clock base */
     // 当前pts与当前系统时钟的差值,audio、video对于该值是独立的
     double pts_drift;     /* clock base minus time at which we updated the clock */
     // 当前时钟(如视频时钟)最后一次更新时间,也可称当前时钟时间
     double last_updated; // 最后一次更新的系统时钟
     double speed;   // 时钟速度控制,用于控制播放速度
-    // 播放序列,所谓播放序列就是一段连续的播放动作,一个seek操作会启动一段新的播放序列
-    int serial;           /* clock is based on a packet with this serial */
+    //播放序列,所谓播放序列就是一段连续的播放动作,一个seek操作会启动一段新的播放序列
+    int serial;          /* clock is based on a packet with this serial */
     int paused;         // = 1 说明是暂停状态
     // 指向packet_serial
     int *queue_serial;    /* pointer to the current packet queue serial, used for obsolete clock detection */
@@ -716,10 +717,8 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
                  * 1.got_frame为非零值,字幕包(pkt)为空,标记d->packet_pending,ret = 0,结束本函数(decoder_decode_frame),
                  * 返回解码成功,由于标记了d->packet_pending,下次进入本函数就是冲刷字幕解码器
                  *
-                 *
                  * 2.got_frame为非零值,字幕包(pkt)数据不为空,ret = 0,结束本函数(decoder_decode_frame),
                  * 下次进入本函数继续从字幕包队列拿行数据进行解码
-                 *
                  *
                  * */
 
@@ -731,18 +730,21 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
             av_packet_unref(d->pkt);//无论字幕是否解码成功,都把字幕包释放
         } else {
             if (d->pkt->buf && !d->pkt->opaque_ref) {
+                //搜索整个工程,唯独在此处使用opaque_ref,不明白作者有何意图？
                 FrameData *fd;
 
                 d->pkt->opaque_ref = av_buffer_allocz(sizeof(*fd));
-                if (!d->pkt->opaque_ref)
-                    return AVERROR(ENOMEM);
+
+                if (!d->pkt->opaque_ref) {
+                    return AVERROR(ENOMEM);//-12
+                }
                 fd = (FrameData*)d->pkt->opaque_ref->data;
                 fd->pkt_pos = d->pkt->pos;
             }
 
-            if (avcodec_send_packet(d->avctx, d->pkt) == AVERROR(EAGAIN)) {
+            if (avcodec_send_packet(d->avctx, d->pkt) == AVERROR(EAGAIN)) { //发送packet包进行解码
                 av_log(d->avctx, AV_LOG_ERROR, "Receive_frame and send_packet both returned EAGAIN, which is an API violation.\n");
-                d->packet_pending = 1;
+                d->packet_pending = 1;//如果上一包没有成功送入解码器,标记下次继续送该包
             } else {
                 av_packet_unref(d->pkt);
             }
@@ -750,20 +752,28 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
     }
 }
 
+/*
+ * 解码器销毁
+ */
 static void decoder_destroy(Decoder *d) {
     av_packet_free(&d->pkt);
     avcodec_free_context(&d->avctx);
 }
 
+/*
+ * frame_queue队列item的引用释放
+ */
 static void frame_queue_unref_item(Frame *vp)
 {
     av_frame_unref(vp->frame);
     avsubtitle_free(&vp->sub);
 }
 
+/*
+ * frame_queue初始化,音视频的keep_last设置为1,字幕的keep_last设置为0
+ */
 static int frame_queue_init(FrameQueue *f, PacketQueue *pktq, int max_size, int keep_last)
 {
-    int i;
     memset(f, 0, sizeof(FrameQueue));
     if (!(f->mutex = SDL_CreateMutex())) {
         av_log(NULL, AV_LOG_FATAL, "SDL_CreateMutex(): %s\n", SDL_GetError());
@@ -774,14 +784,22 @@ static int frame_queue_init(FrameQueue *f, PacketQueue *pktq, int max_size, int 
         return AVERROR(ENOMEM);
     }
     f->pktq = pktq;
-    f->max_size = FFMIN(max_size, FRAME_QUEUE_SIZE);
-    f->keep_last = !!keep_last;
-    for (i = 0; i < f->max_size; i++)
-        if (!(f->queue[i].frame = av_frame_alloc()))
+    f->max_size = FFMIN(max_size, FRAME_QUEUE_SIZE);//最大不能超过16个元素 FRAME_QUEUE_SIZE=16
+    f->keep_last = !!keep_last; //用于控制字段rindex_shown的生成,详情阅读frame_queue_next函数
+
+    for (int i = 0; i < f->max_size; i++) {
+        //给每个AVFrame分配空间
+        if (!(f->queue[i].frame = av_frame_alloc())){
             return AVERROR(ENOMEM);
+        }
+    }
+
     return 0;
 }
 
+/*
+ * 销毁frame_queue
+ */
 static void frame_queue_destroy(FrameQueue *f)
 {
     int i;
@@ -794,6 +812,9 @@ static void frame_queue_destroy(FrameQueue *f)
     SDL_DestroyCond(f->cond);
 }
 
+/*
+ * frame_queue条件变量发送函数,用于线程间通讯
+ */
 static void frame_queue_signal(FrameQueue *f)
 {
     SDL_LockMutex(f->mutex);
@@ -801,37 +822,54 @@ static void frame_queue_signal(FrameQueue *f)
     SDL_UnlockMutex(f->mutex);
 }
 
+/*
+ * 窥探位置(f->rindex + f->rindex_shown)的数据
+ * 如果f->rindex_shown为0,frame_queue_peek与frame_queue_peek_last读取的位置一样
+ */
 static Frame *frame_queue_peek(FrameQueue *f)
 {
+    //f->rindex_shown是0还是1,影响着改API是读取当前元素还是下一元素
     return &f->queue[(f->rindex + f->rindex_shown) % f->max_size];
 }
 
+/*
+ * 窥探位置(f->rindex + f->rindex_shown + 1)的数据
+ */
 static Frame *frame_queue_peek_next(FrameQueue *f)
 {
     return &f->queue[(f->rindex + f->rindex_shown + 1) % f->max_size];
 }
 
+/*
+ * 窥探位置f->rindex的数据
+ */
 static Frame *frame_queue_peek_last(FrameQueue *f)
 {
     return &f->queue[f->rindex];
 }
 
+/*
+ * peek 出一个可以写的 Frame,此函数可能会阻塞
+ */
 static Frame *frame_queue_peek_writable(FrameQueue *f)
 {
     /* wait until we have space to put a new frame */
     SDL_LockMutex(f->mutex);
-    while (f->size >= f->max_size &&
-           !f->pktq->abort_request) {
+    while (f->size >= f->max_size && !f->pktq->abort_request) {
         SDL_CondWait(f->cond, f->mutex);
     }
     SDL_UnlockMutex(f->mutex);
 
-    if (f->pktq->abort_request)
+    if (f->pktq->abort_request){
         return NULL;
+    }
 
     return &f->queue[f->windex];
 }
 
+/*
+ * peek 出一个可以准备播放的 Frame,此函数可能会阻塞
+ */
 static Frame *frame_queue_peek_readable(FrameQueue *f)
 {
     /* wait until we have a readable a new frame */
@@ -848,6 +886,9 @@ static Frame *frame_queue_peek_readable(FrameQueue *f)
     return &f->queue[(f->rindex + f->rindex_shown) % f->max_size];
 }
 
+/*
+ * 更新f->windex
+ */
 static void frame_queue_push(FrameQueue *f)
 {
     if (++f->windex == f->max_size)
@@ -858,15 +899,24 @@ static void frame_queue_push(FrameQueue *f)
     SDL_UnlockMutex(f->mutex);
 }
 
+/*
+ * 先释放frame,并更新f->rindex
+ * 首次调用,如果keep_last为1, rindex_show为0时不去更新f->rindex,也不释放当前frame
+ * f->keep_last字段就是用来控制f->rindex_shown是否需要置1
+ */
 static void frame_queue_next(FrameQueue *f)
 {
     if (f->keep_last && !f->rindex_shown) {
-        f->rindex_shown = 1;
+        f->rindex_shown = 1; //f->rindex_shown被置1之后,就一直为1
         return;
     }
-    frame_queue_unref_item(&f->queue[f->rindex]);
-    if (++f->rindex == f->max_size)
+
+    frame_queue_unref_item(&f->queue[f->rindex]);//释放
+
+    if (++f->rindex == f->max_size){
         f->rindex = 0;
+    }
+
     SDL_LockMutex(f->mutex);
     f->size--;
     SDL_CondSignal(f->cond);
@@ -874,30 +924,39 @@ static void frame_queue_next(FrameQueue *f)
 }
 
 /* return the number of undisplayed frames in the queue */
+//返回队列中未显示的帧数
 static int frame_queue_nb_remaining(FrameQueue *f)
 {
-    return f->size - f->rindex_shown;
+    return f->size - f->rindex_shown;//为什么要减去f->rindex_shown,因为他是返回还未显示的帧而不是队列还有多少帧
+    //f->rindex_shown的数量代表已经显示了多少帧
 }
 
 /* return last shown position */
+//返回最后显示的位置
 static int64_t frame_queue_last_pos(FrameQueue *f)
 {
     Frame *fp = &f->queue[f->rindex];
-    if (f->rindex_shown && fp->serial == f->pktq->serial)
+    if (f->rindex_shown && fp->serial == f->pktq->serial) {
         return fp->pos;
-    else
+    }else {
         return -1;
+    }
 }
-
+/*
+ * 解码器请求退出
+ */
 static void decoder_abort(Decoder *d, FrameQueue *fq)
 {
-    packet_queue_abort(d->queue);
-    frame_queue_signal(fq);
-    SDL_WaitThread(d->decoder_tid, NULL);
-    d->decoder_tid = NULL;
-    packet_queue_flush(d->queue);
+    packet_queue_abort(d->queue);// 终止packet队列,packetQueue的abort_request被置为1
+    frame_queue_signal(fq);// 唤醒Frame队列,以便退出
+    SDL_WaitThread(d->decoder_tid, NULL);// 等待解码线程退出
+    d->decoder_tid = NULL;// 线程ID重置
+    packet_queue_flush(d->queue);//清空队列,释放所有数据
 }
 
+/*
+ *绘制矩阵 x,y是起始坐标,w,h是矩阵宽高
+ */
 static inline void fill_rectangle(int x, int y, int w, int h)
 {
     SDL_Rect rect;
@@ -905,10 +964,14 @@ static inline void fill_rectangle(int x, int y, int w, int h)
     rect.y = y;
     rect.w = w;
     rect.h = h;
-    if (w && h)
+    if (w && h) {
         SDL_RenderFillRect(renderer, &rect);
+    }
 }
 
+/*
+ * 分配纹理空间
+ */
 static int realloc_texture(SDL_Texture **texture, Uint32 new_format, int new_width, int new_height, SDL_BlendMode blendmode, int init_texture)
 {
     Uint32 format;
@@ -933,6 +996,18 @@ static int realloc_texture(SDL_Texture **texture, Uint32 new_format, int new_wid
     return 0;
 }
 
+/**
+ * @brief 将帧宽高按照sar最大适配到窗口
+ * @param rect      获取到的显示位置和宽高
+ * @param scr_xleft 窗口显示起始x位置,这里说的是内部显示的坐标, 不是窗口在整个屏幕的起始位置
+ * @param scr_ytop  窗口显示起始y位置
+ * @param scr_width  窗口宽度
+ * @param scr_height 窗口高度
+ * @param pic_width 显示帧宽度
+ * @param pic_height 显示帧高度
+ * @param pic_sar   显示帧宽高比
+ */
+
 static void calculate_display_rect(SDL_Rect *rect,
                                    int scr_xleft, int scr_ytop, int scr_width, int scr_height,
                                    int pic_width, int pic_height, AVRational pic_sar)
@@ -940,16 +1015,17 @@ static void calculate_display_rect(SDL_Rect *rect,
     AVRational aspect_ratio = pic_sar;
     int64_t width, height, x, y;
 
-    if (av_cmp_q(aspect_ratio, av_make_q(0, 1)) <= 0) /*如果frame的比例是0/1或者比0/1更小*/
+    if (av_cmp_q(aspect_ratio, av_make_q(0, 1)) <= 0){ /*如果frame的比例是0/1或者比0/1更小*/
         aspect_ratio = av_make_q(1, 1);/*重置为1/1*/
+    }
 
     /*frame的宽高与比例相乘*/
-    /*aspect_ratio x av_make_q(pic_width, pic_height)*/
+    //aspect_ratio * av_make_q(pic_width, pic_height)
     aspect_ratio = av_mul_q(aspect_ratio, av_make_q(pic_width, pic_height));
 
     /* XXX: we suppose the screen has a 1.0 pixel ratio */
     height = scr_height;
-    /*通过height和比例计算高度*/
+    /*通过height和比例计算宽度*/
     width = av_rescale(height, aspect_ratio.num, aspect_ratio.den) & ~1; /*& ~1作用是把结果变成偶数*/
 
     if (width > scr_width) {
@@ -966,9 +1042,11 @@ static void calculate_display_rect(SDL_Rect *rect,
     rect->h = FFMAX((int)height, 1);
 }
 
+/*
+ *pix格式转换,把ffmpeg的格式转换成sdl支持的
+ */
 static void get_sdl_pix_fmt_and_blendmode(int format, Uint32 *sdl_pix_fmt, SDL_BlendMode *sdl_blendmode)
 {
-    int i;
     *sdl_blendmode = SDL_BLENDMODE_NONE;
     *sdl_pix_fmt = SDL_PIXELFORMAT_UNKNOWN;
     if (format == AV_PIX_FMT_RGB32   ||
@@ -976,7 +1054,8 @@ static void get_sdl_pix_fmt_and_blendmode(int format, Uint32 *sdl_pix_fmt, SDL_B
         format == AV_PIX_FMT_BGR32   ||
         format == AV_PIX_FMT_BGR32_1)
         *sdl_blendmode = SDL_BLENDMODE_BLEND;
-    for (i = 0; i < FF_ARRAY_ELEMS(sdl_texture_format_map) - 1; i++) {
+
+    for (int i = 0; i < FF_ARRAY_ELEMS(sdl_texture_format_map) - 1; i++) {/*把ffmpeg的格式转换成sdl的格式*/
         if (format == sdl_texture_format_map[i].format) {
             *sdl_pix_fmt = sdl_texture_format_map[i].texture_fmt;
             return;
@@ -984,22 +1063,32 @@ static void get_sdl_pix_fmt_and_blendmode(int format, Uint32 *sdl_pix_fmt, SDL_B
     }
 }
 
+/*
+ * 更新纹理
+ */
 static int upload_texture(SDL_Texture **tex, AVFrame *frame)
 {
     int ret = 0;
     Uint32 sdl_pix_fmt;
     SDL_BlendMode sdl_blendmode;
+    // 根据frame中的图像格式(FFmpeg像素格式),获取对应的SDL像素格式和blendmode
     get_sdl_pix_fmt_and_blendmode(frame->format, &sdl_pix_fmt, &sdl_blendmode);
-    if (realloc_texture(tex, sdl_pix_fmt == SDL_PIXELFORMAT_UNKNOWN ? SDL_PIXELFORMAT_ARGB8888 : sdl_pix_fmt, frame->width, frame->height, sdl_blendmode, 0) < 0)
+    // 参数tex实际是&is->vid_texture,此处根据获取到的SDL像素格式填充到&is->vid_texture里
+    if (realloc_texture(tex, sdl_pix_fmt == SDL_PIXELFORMAT_UNKNOWN ? SDL_PIXELFORMAT_ARGB8888 : sdl_pix_fmt,
+                        frame->width, frame->height, sdl_blendmode, 0) < 0){
         return -1;
+    }
+
+    //根据sdl_pix_fmt从AVFrame中取数据填充纹理
     switch (sdl_pix_fmt) {
+        // frame格式对应SDL_PIXELFORMAT_IYUV,不用进行图像格式转换,调用SDL_UpdateYUVTexture()更新SDL texture
         case SDL_PIXELFORMAT_IYUV:
             if (frame->linesize[0] > 0 && frame->linesize[1] > 0 && frame->linesize[2] > 0) {
                 ret = SDL_UpdateYUVTexture(*tex, NULL, frame->data[0], frame->linesize[0],
                                                        frame->data[1], frame->linesize[1],
                                                        frame->data[2], frame->linesize[2]);
             } else if (frame->linesize[0] < 0 && frame->linesize[1] < 0 && frame->linesize[2] < 0) {
-                ret = SDL_UpdateYUVTexture(*tex, NULL, frame->data[0] + frame->linesize[0] * (frame->height                    - 1), -frame->linesize[0],
+                ret = SDL_UpdateYUVTexture(*tex, NULL, frame->data[0] + frame->linesize[0] * (frame->height - 1), -frame->linesize[0],
                                                        frame->data[1] + frame->linesize[1] * (AV_CEIL_RSHIFT(frame->height, 1) - 1), -frame->linesize[1],
                                                        frame->data[2] + frame->linesize[2] * (AV_CEIL_RSHIFT(frame->height, 1) - 1), -frame->linesize[2]);
             } else {
@@ -1007,6 +1096,7 @@ static int upload_texture(SDL_Texture **tex, AVFrame *frame)
                 return -1;
             }
             break;
+          // frame格式对应其他SDL像素格式,不用进行图像格式转换，调用SDL_UpdateTexture()更新SDL texture
         default:
             if (frame->linesize[0] < 0) {
                 ret = SDL_UpdateTexture(*tex, NULL, frame->data[0] + frame->linesize[0] * (frame->height - 1), -frame->linesize[0]);
@@ -1047,6 +1137,8 @@ static void video_image_display(VideoState *is)
     Frame *sp = NULL;
     SDL_Rect rect;
 
+    // keep_last的作用就出来了,我们是有调用frame_queue_next,但最近出队列的帧并没有真正销毁
+    // 所以这里可以读取出来显示
     vp = frame_queue_peek_last(&is->pictq);
     if (vk_renderer) {
         vk_renderer_display(vk_renderer, vp->frame);
@@ -1098,10 +1190,12 @@ static void video_image_display(VideoState *is)
         }
     }
 
+    //将帧宽高按照sar最大适配到窗口,并通过rect返回视频帧在窗口的显示位置和宽高
     calculate_display_rect(&rect, is->xleft, is->ytop, is->width, is->height, vp->width, vp->height, vp->sar);
     set_sdl_yuv_conversion_mode(vp->frame);
 
     if (!vp->uploaded) {
+        // 把yuv数据更新到vid_texture
         if (upload_texture(&is->vid_texture, vp->frame) < 0) {
             set_sdl_yuv_conversion_mode(NULL);
             return;
@@ -1136,6 +1230,9 @@ static inline int compute_mod(int a, int b)
     return a < 0 ? a%b + b : a%b;
 }
 
+/*
+ *用于显示音频波形
+ */
 static void video_audio_display(VideoState *s)
 {
     int i, i_start, x, y1, y, ys, delay, n, nb_display_channels;
@@ -1346,6 +1443,7 @@ static void stream_component_close(VideoState *is, int stream_index)
 
 static void stream_close(VideoState *is)
 {
+    // 动态(线程/callback)的先停止退出
     /* XXX: use a special url_shutdown call to abort parse cleanly */
     is->abort_request = 1;
     SDL_WaitThread(is->read_tid, NULL);
@@ -1412,34 +1510,39 @@ static void sigterm_handler(int sig)
     exit(123);
 }
 
+/*
+ * 设置默认窗口大小
+ */
 static void set_default_window_size(int width, int height, AVRational sar)
 {
     SDL_Rect rect;
-    int max_width  = screen_width  ? screen_width  : INT_MAX;
-    int max_height = screen_height ? screen_height : INT_MAX;
-    if (max_width == INT_MAX && max_height == INT_MAX) /*如果没有指定最大宽高*/
+    int max_width  = screen_width  ? screen_width  : INT_MAX;   // 确定是否指定窗口最大宽度
+    int max_height = screen_height ? screen_height : INT_MAX;   // 确定是否指定窗口最大高度
+    if (max_width == INT_MAX && max_height == INT_MAX){ /*如果没有指定最大宽高*/
         max_height = height;    /*则使用外部传入的高作为最大高度*/
+    }
     calculate_display_rect(&rect, 0, 0, max_width, max_height, width, height, sar);
-    default_width  = rect.w;
+    default_width = rect.w;    // 实际是渲染区域的宽高
     default_height = rect.h;
 }
 
 static int video_open(VideoState *is)
 {
-    int w,h;
+    int w = screen_width ? screen_width : default_width;
+    int h = screen_height ? screen_height : default_height;
 
-    w = screen_width ? screen_width : default_width;
-    h = screen_height ? screen_height : default_height;
-
-    if (!window_title)
+    if (!window_title){
         window_title = input_filename;
-    SDL_SetWindowTitle(window, window_title);
+    }
 
-    SDL_SetWindowSize(window, w, h);
-    SDL_SetWindowPosition(window, screen_left, screen_top);
-    if (is_full_screen)
-        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    SDL_ShowWindow(window);
+    SDL_SetWindowTitle(window, window_title); /*设置窗口标题*/
+
+    SDL_SetWindowSize(window, w, h);/*设置窗口大小*/
+    SDL_SetWindowPosition(window, screen_left, screen_top);/*设置窗口显示位置,一般都是屏幕中间*/
+    if (is_full_screen){
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);//全屏显示
+    }
+    SDL_ShowWindow(window);//窗口显示
 
     is->width  = w;
     is->height = h;
@@ -1450,41 +1553,54 @@ static int video_open(VideoState *is)
 /* display the current picture, if any */
 static void video_display(VideoState *is)
 {
-    if (!is->width)
+    if (!is->width){
+        //如果窗口未显示，则显示窗口
         video_open(is);
+    }
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    if (is->audio_st && is->show_mode != SHOW_MODE_VIDEO)
-        video_audio_display(is);
-    else if (is->video_st)
-        video_image_display(is);
-    SDL_RenderPresent(renderer);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);//渲染成黑色,并且不透明
+    SDL_RenderClear(renderer);//使用绘图颜色清除当前渲染目标。此函数清除整个渲染目标,忽略视口和剪辑矩形。
+
+    if (is->audio_st && is->show_mode != SHOW_MODE_VIDEO){
+        video_audio_display(is);//图形化显示仅有音轨的文件
+    }else if (is->video_st){
+        video_image_display(is);//显示一帧视频画面
+    }
+    SDL_RenderPresent(renderer);//将渲染器上的内容显示在窗口上,并刷新窗口
 }
+
+/**
+ * 获取到的实际上是:最后一帧的pts + 从处理最后一帧开始到现在的时间,具体参考set_clock_at和get_clock的代码
+ * c->pts_drift = 最后一帧的pts - 从处理最后一帧时间
+ * clock=c->pts_drift+现在的时候
+ * get_clock(&is->vidclk) == is->vidclk.pts , av_gettime_relative() / 1000000.0 - is->vidclk.last_updated + is->vidclk.pts
+ */
 
 static double get_clock(Clock *c)
 {
     if (*c->queue_serial != c->serial)
-        return NAN;
+        return NAN;// 不是同一个播放序列,时钟是无效
     if (c->paused) {
-        return c->pts;
+        return c->pts;  // 暂停的时候返回的是pts
     } else {
-        double time = av_gettime_relative() / 1000000.0;
-        return c->pts_drift + time - (time - c->last_updated) * (1.0 - c->speed);
+        double time = (double )av_gettime_relative() / 1000000.0;
+        return c->pts_drift + time - (time - c->last_updated) * (1.0 - c->speed);//c->speed很多时候是1.0 , (time - c->last_updated) * (1.0 - c->speed) = 0
+        //c->pts_drift + time 计算出音视频播放到哪里
     }
+    //pts_drift是消逝时间
 }
 
 static void set_clock_at(Clock *c, double pts, int serial, double time)
 {
-    c->pts = pts;
-    c->last_updated = time;
-    c->pts_drift = c->pts - time;
+    c->pts = pts;                   /* 当前帧的pts */
+    c->last_updated = time;         /* 最后更新的时间,实际上是当前的一个系统时间 */
+    c->pts_drift = c->pts - time;   /* 当前帧pts和系统时间的差值,正常播放情况下两者的差值应该是比较固定的,因为两者都是以时间为基准进行线性增长 */
     c->serial = serial;
 }
 
 static void set_clock(Clock *c, double pts, int serial)
 {
-    double time = av_gettime_relative() / 1000000.0;
+    double time = (double )av_gettime_relative() / 1000000.0;
     set_clock_at(c, pts, serial, time);
 }
 
@@ -1742,7 +1858,7 @@ retry:
                 if(!is->step && (framedrop>0 || (framedrop && get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER)) && time > is->frame_timer + duration) {
                     /*time > is->frame_timer + duration检查是否落后一帧了*/
                     /*如果是,下面的执行就是丢帧的操作*/
-                    is->frame_drops_late++;
+                    is->frame_drops_late++;/*记录丢帧次数*/
                     frame_queue_next(&is->pictq);
                     goto retry;
                 }
