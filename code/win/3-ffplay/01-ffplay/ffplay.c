@@ -1585,7 +1585,7 @@ static double get_clock(Clock *c)
     } else {
         double time = (double )av_gettime_relative() / 1000000.0;
         return c->pts_drift + time - (time - c->last_updated) * (1.0 - c->speed);//c->speed很多时候是1.0 , (time - c->last_updated) * (1.0 - c->speed) = 0
-        //c->pts_drift + time 计算出音视频播放到哪里
+        //c->pts_drift + time 计算出音/视频播放到哪里
     }
     //pts_drift是消逝时间
 }
@@ -1594,7 +1594,7 @@ static void set_clock_at(Clock *c, double pts, int serial, double time)
 {
     c->pts = pts;                   /* 当前帧的pts */
     c->last_updated = time;         /* 最后更新的时间,实际上是当前的一个系统时间 */
-    c->pts_drift = c->pts - time;   /* 当前帧pts和系统时间的差值,正常播放情况下两者的差值应该是比较固定的,因为两者都是以时间为基准进行线性增长 */
+    c->pts_drift = c->pts - time;   /* 当前帧pts和系统时间的差值(消逝时间),正常播放情况下两者的差值应该是比较固定的,因为两者都是以时间为基准进行线性增长 */
     c->serial = serial;
 }
 
@@ -1622,21 +1622,24 @@ static void sync_clock_to_slave(Clock *c, Clock *slave)
 {
     double clock = get_clock(c);
     double slave_clock = get_clock(slave);
-    if (!isnan(slave_clock) && (isnan(clock) || fabs(clock - slave_clock) > AV_NOSYNC_THRESHOLD))
+    if (!isnan(slave_clock) && (isnan(clock) || fabs(clock - slave_clock) > AV_NOSYNC_THRESHOLD)){
         set_clock(c, slave_clock, slave->serial);
+    }
 }
 
 static int get_master_sync_type(VideoState *is) {
     if (is->av_sync_type == AV_SYNC_VIDEO_MASTER) {
-        if (is->video_st)
+        if (is->video_st){
             return AV_SYNC_VIDEO_MASTER;
-        else
-            return AV_SYNC_AUDIO_MASTER;
+        }else{
+            return AV_SYNC_AUDIO_MASTER; /*如果没有视频成分则使用 audio master*/
+        }
     } else if (is->av_sync_type == AV_SYNC_AUDIO_MASTER) {
-        if (is->audio_st)
+        if (is->audio_st){
             return AV_SYNC_AUDIO_MASTER;
-        else
-            return AV_SYNC_EXTERNAL_CLOCK;
+        }else{
+            return AV_SYNC_EXTERNAL_CLOCK; /*没有音频的时候那就用外部时钟*/
+        }
     } else {
         return AV_SYNC_EXTERNAL_CLOCK;
     }
@@ -1676,15 +1679,23 @@ static void check_external_clock_speed(VideoState *is) {
 }
 
 /* seek in the stream */
+/**
+ * @brief seek stream
+ * @param is
+ * @param pos  具体seek到的位置
+ * @param rel  增量情况
+ * @param seek_by_bytes
+ */
 static void stream_seek(VideoState *is, int64_t pos, int64_t rel, int by_bytes)
 {
     if (!is->seek_req) {
-        is->seek_pos = pos;
+        is->seek_pos = pos;// 按时间微秒,按字节 byte
         is->seek_rel = rel;
-        is->seek_flags &= ~AVSEEK_FLAG_BYTE;
-        if (by_bytes)
-            is->seek_flags |= AVSEEK_FLAG_BYTE;
-        is->seek_req = 1;
+        is->seek_flags &= ~AVSEEK_FLAG_BYTE; //不按字节的方式去seek
+        if (by_bytes) {
+            is->seek_flags |= AVSEEK_FLAG_BYTE;// 强制按字节的方式去seek
+        }
+        is->seek_req = 1; // 请求seek,在read_thread线程seek成功才将其置为0
         SDL_CondSignal(is->continue_read_thread);
     }
 }
@@ -1692,26 +1703,33 @@ static void stream_seek(VideoState *is, int64_t pos, int64_t rel, int by_bytes)
 /* pause or resume the video */
 static void stream_toggle_pause(VideoState *is)
 {
-    if (is->paused) {
-        is->frame_timer += av_gettime_relative() / 1000000.0 - is->vidclk.last_updated;
+    // 如果当前是暂停 -> 恢复播放
+    // 正常播放 -> 暂停
+    if (is->paused) {// 当前是暂停，那这个时候进来这个函数就是要恢复播放
+        /* 恢复暂停状态时也需要恢复时钟，需要更新vidclk */
+        // 加上 暂停->恢复 经过的时间
+        is->frame_timer += (double )av_gettime_relative() / 1000000.0 - is->vidclk.last_updated;
         if (is->read_pause_return != AVERROR(ENOSYS)) {
             is->vidclk.paused = 0;
         }
+        // 设置时钟的意义，暂停状态下读取的是单纯pts
+        // 重新矫正video时钟
         set_clock(&is->vidclk, get_clock(&is->vidclk), is->vidclk.serial);
     }
     set_clock(&is->extclk, get_clock(&is->extclk), is->extclk.serial);
+    // 切换 pause/resume 两种状态
     is->paused = is->audclk.paused = is->vidclk.paused = is->extclk.paused = !is->paused;
 }
 
 static void toggle_pause(VideoState *is)
 {
     stream_toggle_pause(is);
-    is->step = 0;
+    is->step = 0;// 逐帧的时候用
 }
 
 static void toggle_mute(VideoState *is)
 {
-    is->muted = !is->muted;
+    is->muted = !is->muted;//静音->取消静音
 }
 
 static void update_volume(VideoState *is, int sign, double step)
@@ -1729,38 +1747,45 @@ static void step_to_next_frame(VideoState *is)
     is->step = 1;
 }
 
+/**
+ * @brief 计算正在显示帧需要持续播放的时间。
+ * @param delay 该参数实际传递的是当前显示帧和待播放帧的间隔。
+ * @param is
+ * @return 返回当前显示帧要持续播放的时间。为什么要调整返回的delay？为什么不支持使用相邻间隔帧时间？
+ */
 static double compute_target_delay(double delay, VideoState *is)
 {
     double sync_threshold, diff = 0;
 
     /* update delay to follow master synchronisation source */
+    /* 如果发现当前主Clock源不是video,则计算当前视频时钟与主时钟的差值 */
     if (get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER) {
         /* if video is slave, we try to correct big delays by
            duplicating or deleting a frame */
+        /*如果视频是从属的,我们会尝试通过复制或删除帧来纠正较大的延迟*/
         diff = get_clock(&is->vidclk) - get_master_clock(is);
 
         /* skip or repeat frame. We take into account the
            delay to compute the threshold. I still don't know
            if it is the best guess */
 
-        /*AV_SYNC_THRESHOLD_MIN = 0.04
-         * AV_SYNC_THRESHOLD_MAX = 0.1*/
-
+        // AV_SYNC_THRESHOLD_MIN = 0.04    AV_SYNC_THRESHOLD_MAX = 0.1  AV_SYNC_FRAMEDUP_THRESHOLD = 0.1
+        // 0.04 ~ 0.1
+        // delay落在0.04 ~ 0.1的区间
         sync_threshold = FFMAX(AV_SYNC_THRESHOLD_MIN, FFMIN(AV_SYNC_THRESHOLD_MAX, delay));
+
         if (!isnan(diff) && fabs(diff) < is->max_frame_duration) {
-            if (diff <= -sync_threshold) /*视频比音频慢*/
-                delay = FFMAX(0, delay + diff);
-            /*AV_SYNC_FRAMEDUP_THRESHOLD = 0.1*/
-            else if (diff >= sync_threshold && delay > AV_SYNC_FRAMEDUP_THRESHOLD) /*视频比音频快*/
-                delay = delay + diff;
-            else if (diff >= sync_threshold) /*视频比音频快*/
+            if (diff <= -sync_threshold){ /*视频比音频慢,视频已经落后了*/
+                delay = FFMAX(0, delay + diff);//一般情况下delay都会被置0
+            }else if (diff >= sync_threshold && delay > AV_SYNC_FRAMEDUP_THRESHOLD) { /*视频比音频快*/
+                delay = delay + diff;//
+            }else if (diff >= sync_threshold){ /*视频比音频快*/
                 delay = 2 * delay;
+            }
         }
     }
 
-    av_log(NULL, AV_LOG_TRACE, "video: delay=%0.3f A-V=%f\n",
-            delay, -diff);
-
+    av_log(NULL, AV_LOG_TRACE, "video: delay=%0.3f A-V=%f\n",delay, -diff);
     return delay;
 }
 
