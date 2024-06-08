@@ -1755,14 +1755,14 @@ static void step_to_next_frame(VideoState *is)
  */
 static double compute_target_delay(double delay, VideoState *is)
 {
-    double sync_threshold, diff = 0;
-
+    double diff = 0.0;
     /* update delay to follow master synchronisation source */
     /* 如果发现当前主Clock源不是video,则计算当前视频时钟与主时钟的差值 */
     if (get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER) {
         /* if video is slave, we try to correct big delays by
            duplicating or deleting a frame */
         /*如果视频是从属的,我们会尝试通过复制或删除帧来纠正较大的延迟*/
+        //简单总结就是通过重复播放或者丢弃帧来等待音频或者追赶音频播放的速度
         diff = get_clock(&is->vidclk) - get_master_clock(is);
 
         /* skip or repeat frame. We take into account the
@@ -1772,14 +1772,23 @@ static double compute_target_delay(double delay, VideoState *is)
         // AV_SYNC_THRESHOLD_MIN = 0.04    AV_SYNC_THRESHOLD_MAX = 0.1  AV_SYNC_FRAMEDUP_THRESHOLD = 0.1
         // 0.04 ~ 0.1
         // delay落在0.04 ~ 0.1的区间
-        sync_threshold = FFMAX(AV_SYNC_THRESHOLD_MIN, FFMIN(AV_SYNC_THRESHOLD_MAX, delay));
+        double sync_threshold = FFMAX(AV_SYNC_THRESHOLD_MIN, FFMIN(AV_SYNC_THRESHOLD_MAX, delay));
+
+        /*
+         * 列出三个可能性,不一定准确:
+         * 假如delay=0.04s,diff = -0.5s,那么sync_threshold = 0.04,delay = 0
+         *
+         * 假如delay=0.04s,diff = 0.5s,那么sync_threshold = 0.04,delay = 2 * delay = 2 * 0.04 = 0.08
+         *
+         * 假如delay=0.2s,diff = 1s,那么sync_threshold = 0.1s,delay = 0.2 + 1 = 1.2
+         */
 
         if (!isnan(diff) && fabs(diff) < is->max_frame_duration) {
             if (diff <= -sync_threshold){ /*视频比音频慢,视频已经落后了*/
-                delay = FFMAX(0, delay + diff);//一般情况下delay都会被置0
-            }else if (diff >= sync_threshold && delay > AV_SYNC_FRAMEDUP_THRESHOLD) { /*视频比音频快*/
+                delay = FFMAX(0, delay + diff);//一般情况下delay都会被置0,几乎不会出现比0还大的情况,我们但他为0就ok
+            }else if (diff >= sync_threshold && delay > AV_SYNC_FRAMEDUP_THRESHOLD) { /*视频比音频快,这样情况用于应对一帧时长比较大的情况*/
                 delay = delay + diff;//
-            }else if (diff >= sync_threshold){ /*视频比音频快*/
+            }else if (diff >= sync_threshold){ /*视频比音频快,这里直接翻两倍*/
                 delay = 2 * delay;
             }
         }
@@ -1789,14 +1798,18 @@ static double compute_target_delay(double delay, VideoState *is)
     return delay;
 }
 
+// 计算上一帧需要持续的duration,这里有校正算法
 static double vp_duration(VideoState *is, Frame *vp, Frame *nextvp) {
-    if (vp->serial == nextvp->serial) {
-        double duration = nextvp->pts - vp->pts;
-        if (isnan(duration) || duration <= 0 || duration > is->max_frame_duration)
-            return vp->duration;
-        else
-            return duration;
-    } else {
+    if (vp->serial == nextvp->serial) { // 同一播放序列,序列连续的情况下
+        double duration_ = nextvp->pts - vp->pts;
+        if (isnan(duration_) || // duration 数值异常
+                duration_ <= 0 || // pts值没有递增时
+                duration_ > is->max_frame_duration) { //超过了最大帧范围
+            return vp->duration; /* 异常时以帧时间为基准(1秒/帧率) */
+        }else{
+            return duration_; //使用两帧pts差值计算duration,一般情况下也是走的这个分支
+        }
+    } else { // 不同播放序列,序列不连续则返回0
         return 0.0;
     }
 }
@@ -1809,6 +1822,7 @@ static void update_video_pts(VideoState *is, double pts, int serial)
 }
 
 /* called to display each frame */
+/* 非暂停或强制刷新的时候,循环调用video_refresh */
 static void video_refresh(void *opaque, double *remaining_time)
 {
     VideoState *is = opaque;
@@ -1816,11 +1830,12 @@ static void video_refresh(void *opaque, double *remaining_time)
 
     Frame *sp, *sp2;
 
-    if (!is->paused && get_master_sync_type(is) == AV_SYNC_EXTERNAL_CLOCK && is->realtime)
+    if (!is->paused && get_master_sync_type(is) == AV_SYNC_EXTERNAL_CLOCK && is->realtime){ //实时流用的
         check_external_clock_speed(is);
+    }
 
-    if (!display_disable && is->show_mode != SHOW_MODE_VIDEO && is->audio_st) {
-        time = av_gettime_relative() / 1000000.0;
+    if (!display_disable && is->show_mode != SHOW_MODE_VIDEO && is->audio_st) { //没有视频只有音频,波形显示
+        time = (double )av_gettime_relative() / 1000000.0;
         if (is->force_refresh || is->last_vis_time + rdftspeed < time) {
             video_display(is);
             is->last_vis_time = time;
@@ -1833,7 +1848,7 @@ retry:
         if (frame_queue_nb_remaining(&is->pictq) == 0) {
             // nothing to do, no picture to display in the queue
         } else {
-            double last_duration, duration, delay;
+            double last_duration, delay;
             Frame *vp, *lastvp;
 
             /* dequeue the picture */
@@ -1845,20 +1860,22 @@ retry:
                 goto retry;
             }
 
-            if (lastvp->serial != vp->serial)
-                is->frame_timer = av_gettime_relative() / 1000000.0;
+            if (lastvp->serial != vp->serial){
+                is->frame_timer = (double )av_gettime_relative() / 1000000.0;
+            }
 
-            if (is->paused)
+            if (is->paused){
                 goto display;
+            }
 
             /* compute nominal last_duration */
-            // 经过compute_target_delay方法，计算出待显示帧vp需要等待的时间
+            // 经过compute_target_delay方法,计算出待显示帧vp需要等待的时间
             // 如果以video同步，则delay直接等于last_duration。
             // 如果以audio或外部时钟同步，则需要比对主时钟调整待显示帧vp要等待的时间。
             last_duration = vp_duration(is, lastvp, vp); /*计算上一帧应显示时间*/
             delay = compute_target_delay(last_duration, is); /*计算上一帧lastvp还要播放的时间*/
 
-            time= av_gettime_relative() / 1000000.0;
+            time = (double )av_gettime_relative() / 1000000.0;
             // is->frame_timer 实际上就是上一帧lastvp的播放时间,
             // is->frame_timer + delay 是待显示帧vp该播放的时间
             if (time < is->frame_timer + delay) {//判断是否继续显示上一帧
@@ -1869,18 +1886,22 @@ retry:
             }
 
             is->frame_timer += delay;
-            if (delay > 0 && time - is->frame_timer > AV_SYNC_THRESHOLD_MAX)
+            if (delay > 0 && time - is->frame_timer > AV_SYNC_THRESHOLD_MAX){
                 is->frame_timer = time;
+            }
 
             SDL_LockMutex(is->pictq.mutex);
-            if (!isnan(vp->pts))
+            if (!isnan(vp->pts)){
                 update_video_pts(is, vp->pts, vp->serial);
+            }
+
             SDL_UnlockMutex(is->pictq.mutex);
 
             if (frame_queue_nb_remaining(&is->pictq) > 1) { /*帧队列最低有两帧才能进行丢弃一帧*/
                 Frame *nextvp = frame_queue_peek_next(&is->pictq);
-                duration = vp_duration(is, vp, nextvp);
-                if(!is->step && (framedrop>0 || (framedrop && get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER)) && time > is->frame_timer + duration) {
+                double _duration = vp_duration(is, vp, nextvp);
+                if(!is->step && (framedrop>0 || (framedrop && get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER)) &&
+                                time > is->frame_timer + _duration) {
                     /*time > is->frame_timer + duration检查是否落后一帧了*/
                     /*如果是,下面的执行就是丢帧的操作*/
                     is->frame_drops_late++;/*记录丢帧次数*/
@@ -1893,24 +1914,25 @@ retry:
                 while (frame_queue_nb_remaining(&is->subpq) > 0) {
                     sp = frame_queue_peek(&is->subpq);
 
-                    if (frame_queue_nb_remaining(&is->subpq) > 1)
+                    if (frame_queue_nb_remaining(&is->subpq) > 1){
                         sp2 = frame_queue_peek_next(&is->subpq);
-                    else
+                    }else {
                         sp2 = NULL;
+                    }
 
                     if (sp->serial != is->subtitleq.serial
                             || (is->vidclk.pts > (sp->pts + ((float) sp->sub.end_display_time / 1000)))
                             || (sp2 && is->vidclk.pts > (sp2->pts + ((float) sp2->sub.start_display_time / 1000))))
                     {
                         if (sp->uploaded) {
-                            int i;
-                            for (i = 0; i < sp->sub.num_rects; i++) {
+
+                            for (int i = 0; i < sp->sub.num_rects; i++) {
                                 AVSubtitleRect *sub_rect = sp->sub.rects[i];
                                 uint8_t *pixels;
-                                int pitch, j;
+                                int pitch;
 
                                 if (!SDL_LockTexture(is->sub_texture, (SDL_Rect *)sub_rect, (void **)&pixels, &pitch)) {
-                                    for (j = 0; j < sub_rect->h; j++, pixels += pitch)
+                                    for (int j = 0; j < sub_rect->h; j++, pixels += pitch)
                                         memset(pixels, 0, sub_rect->w << 2);
                                     SDL_UnlockTexture(is->sub_texture);
                                 }
@@ -1926,13 +1948,15 @@ retry:
             frame_queue_next(&is->pictq);
             is->force_refresh = 1;
 
-            if (is->step && !is->paused)
+            if (is->step && !is->paused){
                 stream_toggle_pause(is);
+            }
         }
 display:
         /* display picture */
-        if (!display_disable && is->force_refresh && is->show_mode == SHOW_MODE_VIDEO && is->pictq.rindex_shown)
+        if (!display_disable && is->force_refresh && is->show_mode == SHOW_MODE_VIDEO && is->pictq.rindex_shown){
             video_display(is);
+        }
     }
     is->force_refresh = 0;
     if (show_status) {
@@ -1947,19 +1971,23 @@ display:
             aqsize = 0;
             vqsize = 0;
             sqsize = 0;
-            if (is->audio_st)
+            if (is->audio_st){
                 aqsize = is->audioq.size;
-            if (is->video_st)
+            }
+            if (is->video_st){
                 vqsize = is->videoq.size;
-            if (is->subtitle_st)
+            }
+            if (is->subtitle_st){
                 sqsize = is->subtitleq.size;
+            }
             av_diff = 0;
-            if (is->audio_st && is->video_st)
+            if (is->audio_st && is->video_st){
                 av_diff = get_clock(&is->audclk) - get_clock(&is->vidclk);
-            else if (is->video_st)
+            }else if (is->video_st){
                 av_diff = get_master_clock(is) - get_clock(&is->vidclk);
-            else if (is->audio_st)
+            }else if (is->audio_st){
                 av_diff = get_master_clock(is) - get_clock(&is->audclk);
+            }
 
             av_bprint_init(&buf, 0, AV_BPRINT_SIZE_AUTOMATIC);
             av_bprintf(&buf,
@@ -1972,14 +2000,13 @@ display:
                       vqsize / 1024,
                       sqsize);
 
-            if (show_status == 1 && AV_LOG_INFO > av_log_get_level())
+            if (show_status == 1 && AV_LOG_INFO > av_log_get_level()){
                 fprintf(stderr, "%s", buf.str);
-            else
+            }else{
                 av_log(NULL, AV_LOG_INFO, "%s", buf.str);
-
+            }
             fflush(stderr);
             av_bprint_finalize(&buf, NULL);
-
             last_time = cur_time;
         }
     }
