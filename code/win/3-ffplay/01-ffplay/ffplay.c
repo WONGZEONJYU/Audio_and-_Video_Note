@@ -1158,8 +1158,9 @@ static void video_image_display(VideoState *is)
                         sp->width = vp->width;
                         sp->height = vp->height;
                     }
-                    if (realloc_texture(&is->sub_texture, SDL_PIXELFORMAT_ARGB8888, sp->width, sp->height, SDL_BLENDMODE_BLEND, 1) < 0)
+                    if (realloc_texture(&is->sub_texture, SDL_PIXELFORMAT_ARGB8888, sp->width, sp->height, SDL_BLENDMODE_BLEND, 1) < 0){
                         return;
+                    }
 
                     for (i = 0; i < sp->sub.num_rects; i++) {
                         AVSubtitleRect *sub_rect = sp->sub.rects[i];
@@ -1383,6 +1384,9 @@ static void video_audio_display(VideoState *s)
     }
 }
 
+/*
+ *关闭流资源
+ */
 static void stream_component_close(VideoState *is, int stream_index)
 {
     AVFormatContext *ic = is->ic;
@@ -1590,6 +1594,13 @@ static double get_clock(Clock *c)
     //pts_drift是消逝时间
 }
 
+/**
+ * 设置时钟的核心实现
+ * @param c
+ * @param pts
+ * @param serial
+ * @param time
+ */
 static void set_clock_at(Clock *c, double pts, int serial, double time)
 {
     c->pts = pts;                   /* 当前帧的pts */
@@ -1598,18 +1609,34 @@ static void set_clock_at(Clock *c, double pts, int serial, double time)
     c->serial = serial;
 }
 
+/**
+ * 设置时钟
+ * @param c
+ * @param pts
+ * @param serial
+ */
 static void set_clock(Clock *c, double pts, int serial)
 {
     double time = (double )av_gettime_relative() / 1000000.0;
     set_clock_at(c, pts, serial, time);
 }
 
+/**
+ * 设置速度
+ * @param c
+ * @param speed
+ */
 static void set_clock_speed(Clock *c, double speed)
 {
     set_clock(c, get_clock(c), c->serial);
     c->speed = speed;
 }
 
+/**
+ * 初始化时钟
+ * @param c
+ * @param queue_serial
+ */
 static void init_clock(Clock *c, int *queue_serial)
 {
     c->speed = 1.0;
@@ -1618,6 +1645,11 @@ static void init_clock(Clock *c, int *queue_serial)
     set_clock(c, NAN, -1);
 }
 
+/**
+ * 外部时钟pts与从属时钟的时间差值超过AV_NOSYNC_THRESHOLD（10秒），则对外部时钟进行更新
+ * @param c
+ * @param slave
+ */
 static void sync_clock_to_slave(Clock *c, Clock *slave)
 {
     double clock = get_clock(c);
@@ -1627,6 +1659,11 @@ static void sync_clock_to_slave(Clock *c, Clock *slave)
     }
 }
 
+/**
+ * 获取当前作为同步的主时钟
+ * @param is
+ * @return
+ */
 static int get_master_sync_type(VideoState *is) {
     if (is->av_sync_type == AV_SYNC_VIDEO_MASTER) {
         if (is->video_st){
@@ -1646,6 +1683,11 @@ static int get_master_sync_type(VideoState *is) {
 }
 
 /* get the current master clock value */
+/**
+ * 获取主时钟的时间值
+ * @param is
+ * @return current master clock value
+ */
 static double get_master_clock(VideoState *is)
 {
     double val;
@@ -1701,6 +1743,10 @@ static void stream_seek(VideoState *is, int64_t pos, int64_t rel, int by_bytes)
 }
 
 /* pause or resume the video */
+/**
+ * 暂停播放具体操作
+ * @param is
+ */
 static void stream_toggle_pause(VideoState *is)
 {
     // 如果当前是暂停 -> 恢复播放
@@ -1721,17 +1767,31 @@ static void stream_toggle_pause(VideoState *is)
     is->paused = is->audclk.paused = is->vidclk.paused = is->extclk.paused = !is->paused;
 }
 
+/**
+ * 暂停播放
+ * @param is
+ */
 static void toggle_pause(VideoState *is)
 {
     stream_toggle_pause(is);
     is->step = 0;// 逐帧的时候用
 }
 
+/**
+ * 静音
+ * @param is
+ */
 static void toggle_mute(VideoState *is)
 {
     is->muted = !is->muted;//静音->取消静音
 }
 
+/**
+ *更新音量
+ * @param is
+ * @param sign
+ * @param step
+ */
 static void update_volume(VideoState *is, int sign, double step)
 {
     double volume_level = is->audio_volume ? (20 * log(is->audio_volume / (double)SDL_MIX_MAXVOLUME) / log(10)) : -1000.0;
@@ -1739,6 +1799,10 @@ static void update_volume(VideoState *is, int sign, double step)
     is->audio_volume = av_clip(is->audio_volume == new_volume ? (is->audio_volume + sign) : new_volume, 0, SDL_MIX_MAXVOLUME);
 }
 
+/**
+ * 快进到下一帧
+ * @param is
+ */
 static void step_to_next_frame(VideoState *is)
 {
     /* if the stream is paused unpause it, then step */
@@ -1798,12 +1862,18 @@ static double compute_target_delay(double delay, VideoState *is)
     return delay;
 }
 
-// 计算上一帧需要持续的duration,这里有校正算法
+/**
+ * 计算上一帧需要持续的duration,这里有校正算法
+ * @param is
+ * @param vp
+ * @param nextvp
+ * @return vp->duration or duration_ or 0.0
+ */
 static double vp_duration(VideoState *is, Frame *vp, Frame *nextvp) {
     if (vp->serial == nextvp->serial) { // 同一播放序列,序列连续的情况下
         double duration_ = nextvp->pts - vp->pts;
         if (isnan(duration_) || // duration 数值异常
-                duration_ <= 0 || // pts值没有递增时
+                duration_ <= 0 || // pts值没有递增时,前一帧与后一帧相差为0
                 duration_ > is->max_frame_duration) { //超过了最大帧范围
             return vp->duration; /* 异常时以帧时间为基准(1秒/帧率) */
         }else{
@@ -1814,6 +1884,12 @@ static double vp_duration(VideoState *is, Frame *vp, Frame *nextvp) {
     }
 }
 
+/**
+ * 更新vidio的pts
+ * @param is
+ * @param pts
+ * @param serial
+ */
 static void update_video_pts(VideoState *is, double pts, int serial)
 {
     /* update current video pts */
@@ -1822,7 +1898,12 @@ static void update_video_pts(VideoState *is, double pts, int serial)
 }
 
 /* called to display each frame */
-/* 非暂停或强制刷新的时候,循环调用video_refresh */
+
+/**
+ * 非暂停或强制刷新的时候,循环调用video_refresh
+ * @param opaque
+ * @param remaining_time
+ */
 static void video_refresh(void *opaque, double *remaining_time)
 {
     VideoState *is = opaque;
@@ -1860,7 +1941,8 @@ retry:
                 goto retry;
             }
 
-            if (lastvp->serial != vp->serial){
+            if (lastvp->serial != vp->serial){ //如果出现不同的序列,用当前时间去更新is->frame_timer
+                // 新的播放序列重置当前时间
                 is->frame_timer = (double )av_gettime_relative() / 1000000.0;
             }
 
@@ -1885,18 +1967,25 @@ retry:
                 goto display;
             }
 
-            is->frame_timer += delay;
+            // 走到这一步,说明已经到了或过了该显示的时间,待显示帧vp的状态变更为当前要显示的帧
+
+            // is->frame_timer初始值为0
+            is->frame_timer += delay; // 更新当前帧播放的时间
+            // AV_SYNC_THRESHOLD_MAX = 0.1
+
             if (delay > 0 && time - is->frame_timer > AV_SYNC_THRESHOLD_MAX){
+                //is->frame_timer更新时间后,如果和系统时间差距太大,就纠正为系统时间
                 is->frame_timer = time;
             }
 
             SDL_LockMutex(is->pictq.mutex);
             if (!isnan(vp->pts)){
+                //更新video时钟
                 update_video_pts(is, vp->pts, vp->serial);
             }
-
             SDL_UnlockMutex(is->pictq.mutex);
 
+            //丢帧逻辑
             if (frame_queue_nb_remaining(&is->pictq) > 1) { /*帧队列最低有两帧才能进行丢弃一帧*/
                 Frame *nextvp = frame_queue_peek_next(&is->pictq);
                 double _duration = vp_duration(is, vp, nextvp);
@@ -1906,7 +1995,8 @@ retry:
                     /*如果是,下面的执行就是丢帧的操作*/
                     is->frame_drops_late++;/*记录丢帧次数*/
                     frame_queue_next(&is->pictq);
-                    goto retry;
+                    goto retry; //回到函数开始位置,继续重试
+                    //这里不能直接while丢帧,因为很可能audio clock重新对时了,这样delay值需要重新计算
                 }
             }
 
@@ -1945,20 +2035,23 @@ retry:
                 }
             }
 
-            frame_queue_next(&is->pictq);
-            is->force_refresh = 1;
+            frame_queue_next(&is->pictq);/*待播放帧变成当前帧,当前vp帧出队列*/
+            is->force_refresh = 1;//强制刷新
 
             if (is->step && !is->paused){
-                stream_toggle_pause(is);
+                stream_toggle_pause(is); //逐帧的时候那继续进入暂停状态
             }
         }
 display:
         /* display picture */
         if (!display_disable && is->force_refresh && is->show_mode == SHOW_MODE_VIDEO && is->pictq.rindex_shown){
-            video_display(is);
+            video_display(is); // 重点是显示
         }
     }
+
     is->force_refresh = 0;
+
+    /*下是打印输出到一些信息*/
     if (show_status) {
         AVBPrint buf;
         static int64_t last_time;
@@ -2012,7 +2105,7 @@ display:
     }
 }
 
-static int queue_picture(VideoState *is, AVFrame *src_frame, double pts, double duration, int64_t pos, int serial)
+static int queue_picture(VideoState *is, AVFrame *src_frame, double pts, double _duration, int64_t pos, int serial)
 {
     Frame *vp;
 
@@ -2021,8 +2114,9 @@ static int queue_picture(VideoState *is, AVFrame *src_frame, double pts, double 
            av_get_picture_type_char(src_frame->pict_type), pts);
 #endif
 
-    if (!(vp = frame_queue_peek_writable(&is->pictq))) /*检查队列是否有空间可写,有空间则返回一个可写的自定义的Frame*/
+    if (!(vp = frame_queue_peek_writable(&is->pictq))) { /*检查队列是否有空间可写,有空间则返回一个可写的自定义的Frame*/
         return -1;
+    }
 
     vp->sar = src_frame->sample_aspect_ratio;
     vp->uploaded = 0;
@@ -2032,14 +2126,14 @@ static int queue_picture(VideoState *is, AVFrame *src_frame, double pts, double 
     vp->format = src_frame->format;
 
     vp->pts = pts;
-    vp->duration = duration;
+    vp->duration = _duration;
     vp->pos = pos;
     vp->serial = serial;
 
     set_default_window_size(vp->width, vp->height, vp->sar);
 
-    av_frame_move_ref(vp->frame, src_frame);
-    frame_queue_push(&is->pictq);
+    av_frame_move_ref(vp->frame, src_frame); //src_frame转移到vp->frame
+    frame_queue_push(&is->pictq); //更新写索引
     return 0;
 }
 
