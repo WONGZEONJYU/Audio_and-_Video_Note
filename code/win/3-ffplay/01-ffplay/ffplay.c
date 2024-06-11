@@ -2137,28 +2137,40 @@ static int queue_picture(VideoState *is, AVFrame *src_frame, double pts, double 
     return 0;
 }
 
+/**
+ * 获取视频帧
+ * @param is
+ * @param frame
+ * @return
+ */
 static int get_video_frame(VideoState *is, AVFrame *frame)
 {
     int got_picture;
 
-    if ((got_picture = decoder_decode_frame(&is->viddec, frame, NULL)) < 0)
+    if ((got_picture = decoder_decode_frame(&is->viddec, frame, NULL)) < 0){
         return -1;
+    }
 
     if (got_picture) {
         double dpts = NAN;
 
-        if (frame->pts != AV_NOPTS_VALUE)
+        if (frame->pts != AV_NOPTS_VALUE){
+            //pts不为无效值,用视频流的时间基准计算pts的时间
             dpts = av_q2d(is->video_st->time_base) * frame->pts;
+            //计算出秒为单位的pts
+        }
 
         frame->sample_aspect_ratio = av_guess_sample_aspect_ratio(is->ic, is->video_st, frame);
+        //猜测缩放比例
 
-        if (framedrop>0 || (framedrop && get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER)) {
-            if (frame->pts != AV_NOPTS_VALUE) {
+        if (framedrop > 0 || (framedrop && get_master_sync_type(is) != AV_SYNC_VIDEO_MASTER)) { // 允许drop帧
+            if (frame->pts != AV_NOPTS_VALUE) { // pts值有效
                 double diff = dpts - get_master_clock(is);
-                if (!isnan(diff) && fabs(diff) < AV_NOSYNC_THRESHOLD &&
-                    diff - is->frame_last_filter_delay < 0 &&
-                    is->viddec.pkt_serial == is->vidclk.serial &&
-                    is->videoq.nb_packets) {
+                if (!isnan(diff) && // 差值有效
+                    fabs(diff) < AV_NOSYNC_THRESHOLD && //差值在可同步范围呢
+                    diff - is->frame_last_filter_delay < 0 && // 和过滤器有关系
+                    is->viddec.pkt_serial == is->vidclk.serial && // 同一序列的包
+                    is->videoq.nb_packets) { // packet队列至少有1帧数据
                     is->frame_drops_early++;
                     av_frame_unref(frame);
                     got_picture = 0;
@@ -2170,6 +2182,14 @@ static int get_video_frame(VideoState *is, AVFrame *frame)
     return got_picture;
 }
 
+/**
+ * 配置滤镜
+ * @param graph
+ * @param filtergraph
+ * @param source_ctx
+ * @param sink_ctx
+ * @return 负数为失败
+ */
 static int configure_filtergraph(AVFilterGraph *graph, const char *filtergraph,
                                  AVFilterContext *source_ctx, AVFilterContext *sink_ctx)
 {
@@ -2178,33 +2198,36 @@ static int configure_filtergraph(AVFilterGraph *graph, const char *filtergraph,
     AVFilterInOut *outputs = NULL, *inputs = NULL;
 
     if (filtergraph) {
-        outputs = avfilter_inout_alloc();
-        inputs  = avfilter_inout_alloc();
+        outputs = avfilter_inout_alloc(); //分配滤镜输出
+        inputs  = avfilter_inout_alloc(); //分配滤镜输入
         if (!outputs || !inputs) {
             ret = AVERROR(ENOMEM);
             goto fail;
         }
 
-        outputs->name       = av_strdup("in");
+        outputs->name       = av_strdup("in"); //buffersrc
         outputs->filter_ctx = source_ctx;
         outputs->pad_idx    = 0;
         outputs->next       = NULL;
 
-        inputs->name        = av_strdup("out");
+        inputs->name        = av_strdup("out"); // buffersink
         inputs->filter_ctx  = sink_ctx;
         inputs->pad_idx     = 0;
         inputs->next        = NULL;
 
-        if ((ret = avfilter_graph_parse_ptr(graph, filtergraph, &inputs, &outputs, NULL)) < 0)
+        if ((ret = avfilter_graph_parse_ptr(graph, filtergraph, &inputs, &outputs, NULL)) < 0){
             goto fail;
+        }
     } else {
-        if ((ret = avfilter_link(source_ctx, 0, sink_ctx, 0)) < 0)
+        if ((ret = avfilter_link(source_ctx, 0, sink_ctx, 0)) < 0){
             goto fail;
+        }
     }
 
     /* Reorder the filters to ensure that inputs of the custom filters are merged first */
-    for (i = 0; i < graph->nb_filters - nb_filters; i++)
+    for (i = 0; i < graph->nb_filters - nb_filters; i++){
         FFSWAP(AVFilterContext*, graph->filters[i], graph->filters[i + nb_filters]);
+    }
 
     ret = avfilter_graph_config(graph, NULL);
 fail:
@@ -2213,75 +2236,99 @@ fail:
     return ret;
 }
 
+/**
+ * 配置视频滤镜
+ * @param graph
+ * @param is
+ * @param vfilters
+ * @param frame
+ * @return 负数为失败
+ */
 static int configure_video_filters(AVFilterGraph *graph, VideoState *is, const char *vfilters, AVFrame *frame)
 {
     enum AVPixelFormat pix_fmts[FF_ARRAY_ELEMS(sdl_texture_format_map)];
-    char sws_flags_str[512] = "";
-    char buffersrc_args[256];
+    char sws_flags_str[512] = ""; //
+    char buffersrc_args[256]; //输入
     int ret;
     AVFilterContext *filt_src = NULL, *filt_out = NULL, *last_filter = NULL;
     AVCodecParameters *codecpar = is->video_st->codecpar;
-    AVRational fr = av_guess_frame_rate(is->ic, is->video_st, NULL);
+    AVRational fr = av_guess_frame_rate(is->ic, is->video_st, NULL);//猜测帧率
     const AVDictionaryEntry *e = NULL;
     int nb_pix_fmts = 0;
-    int i, j;
-    AVBufferSrcParameters *par = av_buffersrc_parameters_alloc();
 
-    if (!par)
+    AVBufferSrcParameters *par = av_buffersrc_parameters_alloc();//分配AVBufferSrcParameters上下文
+
+    if (!par){
         return AVERROR(ENOMEM);
+    }
 
-    for (i = 0; i < renderer_info.num_texture_formats; i++) {
-        for (j = 0; j < FF_ARRAY_ELEMS(sdl_texture_format_map) - 1; j++) {
+    for (int i = 0; i < renderer_info.num_texture_formats; i++) {
+        for (int j = 0; j < FF_ARRAY_ELEMS(sdl_texture_format_map) - 1; j++) {
             if (renderer_info.texture_formats[i] == sdl_texture_format_map[j].texture_fmt) {
                 pix_fmts[nb_pix_fmts++] = sdl_texture_format_map[j].format;
                 break;
             }
         }
     }
+
     pix_fmts[nb_pix_fmts] = AV_PIX_FMT_NONE;
 
     while ((e = av_dict_iterate(sws_dict, e))) {
         if (!strcmp(e->key, "sws_flags")) {
             av_strlcatf(sws_flags_str, sizeof(sws_flags_str), "%s=%s:", "flags", e->value);
-        } else
+        } else{
             av_strlcatf(sws_flags_str, sizeof(sws_flags_str), "%s=%s:", e->key, e->value);
+        }
     }
-    if (strlen(sws_flags_str))
-        sws_flags_str[strlen(sws_flags_str)-1] = '\0';
+
+    size_t len = strlen(sws_flags_str);
+    if (len){
+        sws_flags_str[len - 1] = 0;
+    }
 
     graph->scale_sws_opts = av_strdup(sws_flags_str);
 
-    snprintf(buffersrc_args, sizeof(buffersrc_args),
+    snprintf(buffersrc_args, sizeof(buffersrc_args), //拼接过滤器命令
              "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d:"
              "colorspace=%d:range=%d",
              frame->width, frame->height, frame->format,
              is->video_st->time_base.num, is->video_st->time_base.den,
              codecpar->sample_aspect_ratio.num, FFMAX(codecpar->sample_aspect_ratio.den, 1),
              frame->colorspace, frame->color_range);
-    if (fr.num && fr.den)
+
+    if (fr.num && fr.den){
         av_strlcatf(buffersrc_args, sizeof(buffersrc_args), ":frame_rate=%d/%d", fr.num, fr.den);
+        //buffersrc_args 加入 "frame_rate = fr.num / fr.den"
+    }
 
     if ((ret = avfilter_graph_create_filter(&filt_src,
                                             avfilter_get_by_name("buffer"),
                                             "ffplay_buffer", buffersrc_args, NULL,
-                                            graph)) < 0)
+                                            graph)) < 0) {
         goto fail;
+    }
+
     par->hw_frames_ctx = frame->hw_frames_ctx;
     ret = av_buffersrc_parameters_set(filt_src, par);
-    if (ret < 0)
+    if (ret < 0){
         goto fail;
+    }
 
     ret = avfilter_graph_create_filter(&filt_out,
                                        avfilter_get_by_name("buffersink"),
-                                       "ffplay_buffersink", NULL, NULL, graph);
-    if (ret < 0)
+                                       "ffplay_buffersink", NULL, NULL, graph); //配置并创建输出滤镜
+    if (ret < 0){
         goto fail;
+    }
 
-    if ((ret = av_opt_set_int_list(filt_out, "pix_fmts", pix_fmts,  AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN)) < 0)
+    if ((ret = av_opt_set_int_list(filt_out, "pix_fmts", pix_fmts,  AV_PIX_FMT_NONE, AV_OPT_SEARCH_CHILDREN)) < 0){
         goto fail;
+    }
+
     if (!vk_renderer &&
-        (ret = av_opt_set_int_list(filt_out, "color_spaces", sdl_supported_color_spaces,  AVCOL_SPC_UNSPECIFIED, AV_OPT_SEARCH_CHILDREN)) < 0)
+        (ret = av_opt_set_int_list(filt_out, "color_spaces", sdl_supported_color_spaces,  AVCOL_SPC_UNSPECIFIED, AV_OPT_SEARCH_CHILDREN)) < 0){
         goto fail;
+    }
 
     last_filter = filt_out;
 
@@ -2313,8 +2360,9 @@ static int configure_video_filters(AVFilterGraph *graph, VideoState *is, const c
             const AVPacketSideData *psd = av_packet_side_data_get(is->video_st->codecpar->coded_side_data,
                                                                   is->video_st->codecpar->nb_coded_side_data,
                                                                   AV_PKT_DATA_DISPLAYMATRIX);
-            if (psd)
+            if (psd){
                 displaymatrix = (int32_t *)psd->data;
+            }
         }
         theta = get_rotation(displaymatrix);
 
@@ -2332,8 +2380,9 @@ static int configure_video_filters(AVFilterGraph *graph, VideoState *is, const c
         }
     }
 
-    if ((ret = configure_filtergraph(graph, vfilters, filt_src, last_filter)) < 0)
+    if ((ret = configure_filtergraph(graph, vfilters, filt_src, last_filter)) < 0){
         goto fail;
+    }
 
     is->in_video_filter  = filt_src;
     is->out_video_filter = filt_out;
@@ -2343,6 +2392,13 @@ fail:
     return ret;
 }
 
+/**
+ * 配置音频滤镜
+ * @param is
+ * @param afilters
+ * @param force_output_format
+ * @return 负数为失败
+ */
 static int configure_audio_filters(VideoState *is, const char *afilters, int force_output_format)
 {
     static const enum AVSampleFormat sample_fmts[] = { AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_NONE };
@@ -2354,66 +2410,83 @@ static int configure_audio_filters(VideoState *is, const char *afilters, int for
     char asrc_args[256];
     int ret;
 
-    avfilter_graph_free(&is->agraph);
-    if (!(is->agraph = avfilter_graph_alloc()))
+    avfilter_graph_free(&is->agraph);//先释放滤镜图,因为本函数可能在其他地方调用
+    if (!(is->agraph = avfilter_graph_alloc())){ //分配滤镜图
         return AVERROR(ENOMEM);
+    }
+
     is->agraph->nb_threads = filter_nbthreads;
 
     av_bprint_init(&bp, 0, AV_BPRINT_SIZE_AUTOMATIC);
 
-    while ((e = av_dict_iterate(swr_opts, e)))
+    while ((e = av_dict_iterate(swr_opts, e))){
         av_strlcatf(aresample_swr_opts, sizeof(aresample_swr_opts), "%s=%s:", e->key, e->value);
-    if (strlen(aresample_swr_opts))
-        aresample_swr_opts[strlen(aresample_swr_opts)-1] = '\0';
+    }
+
+    size_t len = strlen(aresample_swr_opts);
+    if (len){
+        aresample_swr_opts[len - 1] = 0;
+    }
+
     av_opt_set(is->agraph, "aresample_swr_opts", aresample_swr_opts, 0);
 
     av_channel_layout_describe_bprint(&is->audio_filter_src.ch_layout, &bp);
 
-    ret = snprintf(asrc_args, sizeof(asrc_args),
+    ret = snprintf(asrc_args, sizeof(asrc_args), //拼接滤镜参数
                    "sample_rate=%d:sample_fmt=%s:time_base=%d/%d:channel_layout=%s",
                    is->audio_filter_src.freq, av_get_sample_fmt_name(is->audio_filter_src.fmt),
                    1, is->audio_filter_src.freq, bp.str);
 
-    ret = avfilter_graph_create_filter(&filt_asrc,
+    ret = avfilter_graph_create_filter(&filt_asrc, //创建"abuffer"输入滤镜
                                        avfilter_get_by_name("abuffer"), "ffplay_abuffer",
                                        asrc_args, NULL, is->agraph);
-    if (ret < 0)
+    if (ret < 0){
         goto end;
+    }
 
-
-    ret = avfilter_graph_create_filter(&filt_asink,
+    ret = avfilter_graph_create_filter(&filt_asink, //创建输出滤镜
                                        avfilter_get_by_name("abuffersink"), "ffplay_abuffersink",
                                        NULL, NULL, is->agraph);
-    if (ret < 0)
+    if (ret < 0){
         goto end;
+    }
 
-    if ((ret = av_opt_set_int_list(filt_asink, "sample_fmts", sample_fmts,  AV_SAMPLE_FMT_NONE, AV_OPT_SEARCH_CHILDREN)) < 0)
+    if ((ret = av_opt_set_int_list(filt_asink, "sample_fmts", sample_fmts,  AV_SAMPLE_FMT_NONE, AV_OPT_SEARCH_CHILDREN)) < 0){
         goto end;
-    if ((ret = av_opt_set_int(filt_asink, "all_channel_counts", 1, AV_OPT_SEARCH_CHILDREN)) < 0)
+    }
+
+    if ((ret = av_opt_set_int(filt_asink, "all_channel_counts", 1, AV_OPT_SEARCH_CHILDREN)) < 0){
         goto end;
+    }
 
     if (force_output_format) {
         av_bprint_clear(&bp);
         av_channel_layout_describe_bprint(&is->audio_tgt.ch_layout, &bp);
-        sample_rates   [0] = is->audio_tgt.freq;
-        if ((ret = av_opt_set_int(filt_asink, "all_channel_counts", 0, AV_OPT_SEARCH_CHILDREN)) < 0)
+        sample_rates[0] = is->audio_tgt.freq;
+        if ((ret = av_opt_set_int(filt_asink, "all_channel_counts", 0, AV_OPT_SEARCH_CHILDREN)) < 0){
             goto end;
-        if ((ret = av_opt_set(filt_asink, "ch_layouts", bp.str, AV_OPT_SEARCH_CHILDREN)) < 0)
+        }
+
+        if ((ret = av_opt_set(filt_asink, "ch_layouts", bp.str, AV_OPT_SEARCH_CHILDREN)) < 0){
             goto end;
-        if ((ret = av_opt_set_int_list(filt_asink, "sample_rates"   , sample_rates   ,  -1, AV_OPT_SEARCH_CHILDREN)) < 0)
+        }
+
+        if ((ret = av_opt_set_int_list(filt_asink, "sample_rates"   , sample_rates   ,  -1, AV_OPT_SEARCH_CHILDREN)) < 0){
             goto end;
+        }
     }
 
-
-    if ((ret = configure_filtergraph(is->agraph, afilters, filt_asrc, filt_asink)) < 0)
+    if ((ret = configure_filtergraph(is->agraph, afilters, filt_asrc, filt_asink)) < 0){
         goto end;
+    }
 
     is->in_audio_filter  = filt_asrc;
     is->out_audio_filter = filt_asink;
 
 end:
-    if (ret < 0)
+    if (ret < 0){
         avfilter_graph_free(&is->agraph);
+    }
     av_bprint_finalize(&bp, NULL);
 
     return ret;
