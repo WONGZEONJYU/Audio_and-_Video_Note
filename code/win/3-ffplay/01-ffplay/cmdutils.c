@@ -540,23 +540,26 @@ static void check_options(const OptionDef *po)
 void parse_loglevel(int argc, char **argv, const OptionDef *options)
 {
     int idx = locate_option(argc, argv, options, "loglevel");
-    char *env;
+
 
     check_options(options);
 
-    if (!idx)
+    if (!idx){
         idx = locate_option(argc, argv, options, "v");
-    if (idx && argv[idx + 1])
+    }
+
+    if (idx && argv[idx + 1]){
         opt_loglevel(NULL, "loglevel", argv[idx + 1]);
+    }
+
     idx = locate_option(argc, argv, options, "report");
-    env = getenv_utf8("FFREPORT");
+    char *env = getenv_utf8("FFREPORT");
     if (env || idx) {
         FILE *report_file = NULL;
         init_report(env, &report_file);
         if (report_file) {
-            int i;
             fprintf(report_file, "Command line:\n");
-            for (i = 0; i < argc; i++) {
+            for (int i = 0; i < argc; i++) {
                 dump_argument(report_file, argv[i]);
                 fputc(i < argc - 1 ? ' ' : '\n', report_file);
             }
@@ -565,8 +568,9 @@ void parse_loglevel(int argc, char **argv, const OptionDef *options)
     }
     freeenv_utf8(env);
     idx = locate_option(argc, argv, options, "hide_banner");
-    if (idx)
+    if (idx){
         hide_banner = 1;
+    }
 }
 
 static const AVOption *opt_find(void *obj, const char *name, const char *unit,
@@ -654,9 +658,7 @@ int opt_default(void *optctx, const char *opt, const char *arg)
 static int match_group_separator(const OptionGroupDef *groups, int nb_groups,
                                  const char *opt)
 {
-    int i;
-
-    for (i = 0; i < nb_groups; i++) {
+    for (int i = 0; i < nb_groups; i++) {
         const OptionGroupDef *p = &groups[i];
         if (p->sep && !strcmp(p->sep, opt))
             return i;
