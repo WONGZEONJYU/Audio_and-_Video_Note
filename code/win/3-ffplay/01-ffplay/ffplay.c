@@ -1896,8 +1896,9 @@ static void update_volume(VideoState *is, int sign, double step)
 static void step_to_next_frame(VideoState *is)
 {
     /* if the stream is paused unpause it, then step */
-    if (is->paused)
+    if (is->paused){
         stream_toggle_pause(is);
+    }
     is->step = 1;
 }
 
@@ -2050,7 +2051,7 @@ retry:
             time = (double )av_gettime_relative() / 1000000.0;
             // is->frame_timer 实际上就是上一帧lastvp的播放时间,
             // is->frame_timer + delay 是待显示帧vp该播放的时间
-            if (time < is->frame_timer + delay) {//判断是否继续显示上一帧
+            if (time < is->frame_timer + delay) { //判断是否继续显示上一帧
                 // 当前系统时刻还未到达上一帧的结束时刻,那么还应该继续显示上一帧。
                 // 计算出最小等待时间
                 *remaining_time = FFMIN(is->frame_timer + delay - time, *remaining_time);
@@ -2430,13 +2431,13 @@ static int configure_video_filters(AVFilterGraph *graph, VideoState *is, const c
     ret = avfilter_graph_create_filter(&filt_ctx,                            \
                                        avfilter_get_by_name(name),           \
                                        "ffplay_" name, arg, NULL, graph);    \
-    if (ret < 0)                                                             \
+    if (ret < 0){                                                            \
         goto fail;                                                           \
-                                                                             \
+    }                                                                        \
     ret = avfilter_link(filt_ctx, 0, last_filter, 0);                        \
-    if (ret < 0)                                                             \
+    if (ret < 0){                                                            \
         goto fail;                                                           \
-                                                                             \
+    }                                                                        \
     last_filter = filt_ctx;                                                  \
 } while (0)
 
@@ -2444,8 +2445,10 @@ static int configure_video_filters(AVFilterGraph *graph, VideoState *is, const c
         double theta = 0.0;
         int32_t *displaymatrix = NULL;
         AVFrameSideData *sd = av_frame_get_side_data(frame, AV_FRAME_DATA_DISPLAYMATRIX);
-        if (sd)
+        if (sd){
             displaymatrix = (int32_t *)sd->data;
+        }
+
         if (!displaymatrix) {
             const AVPacketSideData *psd = av_packet_side_data_get(is->video_st->codecpar->coded_side_data,
                                                                   is->video_st->codecpar->nb_coded_side_data,
@@ -2454,6 +2457,7 @@ static int configure_video_filters(AVFilterGraph *graph, VideoState *is, const c
                 displaymatrix = (int32_t *)psd->data;
             }
         }
+
         theta = get_rotation(displaymatrix);
 
         if (fabs(theta - 90) < 1.0) {
