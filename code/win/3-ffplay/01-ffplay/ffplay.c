@@ -133,7 +133,7 @@ typedef struct AudioParams {
     AVChannelLayout ch_layout; //通道布局
     enum AVSampleFormat fmt;    //采样格式
     int frame_size;             //一个采样单元占用的字节数(比如2通道时,则左右通道各采样一次合成一个采样单元)
-    int bytes_per_sec;          //一秒时间的字节数,比如采样率48Khz,2 channel，16bit,则一秒48000*2*16/8=192000
+    int bytes_per_sec;          //一秒时间的字节数,比如采样率48Khz,2 channel,16bit,则一秒48000*2*16/8=192000
 } AudioParams;//音频硬件参数
 
 // 这里讲的系统时钟 是通过av_gettime_relative()获取到的时钟,单位为微妙
@@ -2657,7 +2657,7 @@ static int audio_thread(void *arg)
 
                 tb = av_buffersink_get_time_base(is->out_audio_filter); //用过滤后的帧的时间基准
 
-                if (!(af = frame_queue_peek_writable(&is->sampq))){ //窥探队列可读帧,返回一个可写帧,可能会阻塞,如果队列满,这里肯定会阻塞,等待队列有空位
+                if (!(af = frame_queue_peek_writable(&is->sampq))) { //窥探队列可读帧,返回一个可写帧,可能会阻塞,如果队列满,这里肯定会阻塞,等待队列有空位
                     goto the_end;
                 }
 
@@ -2673,7 +2673,7 @@ static int audio_thread(void *arg)
                     break;
                 }
             }
-            if (ret == AVERROR_EOF){ //解码结束
+            if (ret == AVERROR_EOF) { //解码结束
                 is->auddec.finished = is->auddec.pkt_serial;
             }
         }
@@ -2773,6 +2773,7 @@ static int video_thread(void *arg)
                 SDL_PushEvent(&event); //插入事件队列
                 goto the_end;
             }
+
             /*******************************更新参数*************************************/
             filt_in  = is->in_video_filter;
             filt_out = is->out_video_filter;
@@ -4108,7 +4109,7 @@ static VideoState *stream_open(const char *filename,
 
     /* start video display */
     //包队列和帧队列初始化
-    //VIDEO_PICTURE_QUEUE_SIZE = 3
+    //VIDEO_PICTURE_QUEUE_SIZE = 3 三帧 I P B帧
     if (frame_queue_init(&is->pictq, &is->videoq, VIDEO_PICTURE_QUEUE_SIZE, 1) < 0){
         goto fail;
     }
