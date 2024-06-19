@@ -3929,6 +3929,7 @@ static int read_thread(void *arg)
 //      of the seek_pos/seek_rel variables
             //修复由于四舍五入,没有再seek_pos/seek_rel变量的正确方向上进行
             ret = avformat_seek_file(is->ic, -1, seek_min, seek_target, seek_max, is->seek_flags);
+            //is->seek_flags决定是按照时间seek还是按字节seek
 
             if (ret < 0) {
                 av_log(NULL, AV_LOG_ERROR,
@@ -3944,6 +3945,7 @@ static int read_thread(void *arg)
                 if (is->video_stream >= 0){
                     packet_queue_flush(&is->videoq);
                 }
+
                 if (is->seek_flags & AVSEEK_FLAG_BYTE) {
                    set_clock(&is->extclk, NAN, 0);
                 } else {
@@ -3953,8 +3955,8 @@ static int read_thread(void *arg)
             is->seek_req = 0;
             is->queue_attachments_req = 1;
             is->eof = 0;
-            if (is->paused) {
-                step_to_next_frame(is); //如果是暂停状态seek,播放最后一帧
+            if (is->paused) { //如果是暂停状态,则seek后马上播放下一帧,不然在暂停状态seek后还会停留在seek之前的画面
+                step_to_next_frame(is); //如果是暂停状态seek,播放下一帧
             }
         }
 
@@ -4345,10 +4347,11 @@ static void refresh_loop_wait_event(VideoState *is, SDL_Event *event) {
 }
 
 /**
- * seek章节
+ * seek节目章节
  * @param is
  * @param incr
  */
+
 static void seek_chapter(VideoState *is, int incr)
 {
     int64_t pos = get_master_clock(is) * AV_TIME_BASE;
@@ -4443,8 +4446,9 @@ static void event_loop(VideoState *cur_stream)
                 break;
             case SDLK_w://切换视频滤镜
                 if (cur_stream->show_mode == SHOW_MODE_VIDEO && cur_stream->vfilter_idx < nb_vfilters - 1) {
-                    if (++cur_stream->vfilter_idx >= nb_vfilters)
+                    if (++cur_stream->vfilter_idx >= nb_vfilters){
                         cur_stream->vfilter_idx = 0;
+                    }
                 } else {
                     cur_stream->vfilter_idx = 0;
                     toggle_audio_display(cur_stream); //
@@ -4476,7 +4480,7 @@ static void event_loop(VideoState *cur_stream)
             case SDLK_DOWN: //方向下,快退60s
                 incr = -60.0;
             do_seek:
-                    if (seek_by_bytes) {
+                    if (seek_by_bytes) { //按字节seek
                         pos = -1;
                         if (pos < 0 && cur_stream->video_stream >= 0){
                             pos = frame_queue_last_pos(&cur_stream->pictq);
@@ -4498,18 +4502,21 @@ static void event_loop(VideoState *cur_stream)
 
                         pos += incr;
                         stream_seek(cur_stream, pos, incr, 1);
-                    } else {
+                    } else { //按时间seek
                         pos = get_master_clock(cur_stream);
+
                         if (isnan(pos)){
                             pos = (double)cur_stream->seek_pos / AV_TIME_BASE;
                         }
 
                         pos += incr; // 现在是秒的单位
-                        if (cur_stream->ic->start_time != AV_NOPTS_VALUE && pos < cur_stream->ic->start_time / (double)AV_TIME_BASE){
+                        if (cur_stream->ic->start_time != AV_NOPTS_VALUE && pos < cur_stream->ic->start_time / (double)AV_TIME_BASE) {
+                            //此处做一个时间校准,pos位置比流的起始时间还小,则用流的起始时间进行校准
                             pos = cur_stream->ic->start_time / (double)AV_TIME_BASE;
                         }
 
                         stream_seek(cur_stream, (int64_t)(pos * AV_TIME_BASE), (int64_t)(incr * AV_TIME_BASE), 0);
+                        //这里会把时间换算成微妙,因为ffmpeg内部接受的是微秒
                     }
                 break;
             default:
@@ -4549,8 +4556,10 @@ static void event_loop(VideoState *cur_stream)
                 x = event.motion.x;
             }
             if (seek_by_bytes || cur_stream->ic->duration <= 0) {
-                uint64_t size =  avio_size(cur_stream->ic->pb); // 整个文件的字节
+                //cur_stream->ic->duration <= 0 小于当前流的总持续时间,从文件
+                uint64_t size = avio_size(cur_stream->ic->pb); //整个文件的字节
                 stream_seek(cur_stream, size*x/cur_stream->width, 0, 1);
+                //用当前整个文件大小和鼠标相对坐标相乘,这个时候就要用字节去seek
             } else {
                 int64_t ts;
                 int ns, hh, mm, ss;
