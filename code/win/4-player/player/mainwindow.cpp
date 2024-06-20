@@ -6,14 +6,11 @@
 
 #include "mainwindow.hpp"
 #include "ui_MainWindow.h"
-#include <exception>
 
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent), ui(new Ui::MainWindow)
 {
         ui->setupUi(this);
-
-
 }
 
 void MainWindow::construct() noexcept(false)
@@ -36,4 +33,9 @@ MainWindow_sp_type MainWindow::create() noexcept(false)
 
 MainWindow::~MainWindow() {
     delete ui;
+}
+
+MainWindow_sp_type new_MainWindow() noexcept(false)
+{
+    return MainWindow::create();
 }

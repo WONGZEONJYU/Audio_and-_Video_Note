@@ -16,15 +16,19 @@ class MainWindow final : public QMainWindow {
 Q_OBJECT
 
     void construct() noexcept(false);
+    static QSharedPointer<MainWindow> create() noexcept(false);
 public:
-    using MainWindow_sp_type = QSharedPointer<MainWindow>;
+
     explicit MainWindow(QWidget *parent = nullptr);
-    static MainWindow_sp_type create() noexcept(false);
+
     ~MainWindow() override;
 private:
     Ui::MainWindow *ui;
+    friend class QSharedPointer<MainWindow> new_MainWindow() noexcept(false);
 };
 
-using MainWindow_sp_type = MainWindow::MainWindow_sp_type;
+using MainWindow_sp_type = QSharedPointer<MainWindow>;
+
+MainWindow_sp_type new_MainWindow() noexcept(false);
 
 #endif //PLAYER_MAINWINDOW_HPP
