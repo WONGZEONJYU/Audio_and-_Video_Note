@@ -24,6 +24,7 @@
 /code/win/2-FFmpeg/16-video-filter_2/cmake-build-debug
 /code/win/2-FFmpeg/18-picture-watermark/cmake-build-debug
 /code/win/3-ffplay/01-ffplay/cmake-build-debug
+/code/win/4-player/player
 /code/mac/1-SDL/01-sdl-basic/bin/
 /code/mac/1-SDL/02-sdl-window/bin/
 /code/mac/1-SDL/03-sdl_event/bin/
