@@ -1,5 +1,5 @@
 //
-// Created by Administrator on 2024/6/20.
+// Created by wong on 2024/6/20.
 //
 
 // You may need to build the project (run Qt uic code generator) to get "ui_MainWindow.h" resolved
@@ -10,18 +10,21 @@
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent), ui(new Ui::MainWindow)
 {
-        ui->setupUi(this);
+    ui->setupUi(this);
 }
 
-void MainWindow::construct() noexcept(false)
-{
+MainWindow::~MainWindow() {
+    delete ui;
+}
+
+void MainWindow::construct() noexcept(false) {
 
 }
 
-MainWindow_sp_type MainWindow::create() noexcept(false)
+MainWindow_ptr_type new_MainWindow() noexcept(false)
 {
     try {
-        auto obj{MainWindow_sp_type(new MainWindow)};
+        MainWindow_ptr_type obj{new MainWindow};
         obj->construct();
         return obj;
     } catch (const std::bad_alloc &e) {
@@ -31,11 +34,3 @@ MainWindow_sp_type MainWindow::create() noexcept(false)
     }
 }
 
-MainWindow::~MainWindow() {
-    delete ui;
-}
-
-MainWindow_sp_type new_MainWindow() noexcept(false)
-{
-    return MainWindow::create();
-}

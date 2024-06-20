@@ -7,9 +7,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
+    set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
-set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.0/macos")
+    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.0/macos")
 endif()
 
 find_package(Qt6 COMPONENTS
@@ -21,7 +21,8 @@ find_package(Qt6 COMPONENTS
 add_executable(player main.cpp
         mainwindow.cpp
         mainwindow.hpp
-        mainwindow.ui)
+        mainwindow.ui
+)
 
 target_link_libraries(player
         Qt::Core
