@@ -33,4 +33,3 @@ MainWindow_ptr_type new_MainWindow() noexcept(false)
         throw e;
     }
 }
-

@@ -12,6 +12,8 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.0/macos")
 endif()
 
+include_directories(${PROJECT_SOURCE_DIR})
+
 find_package(Qt6 COMPONENTS
         Core
         Gui
@@ -22,6 +24,9 @@ add_executable(player main.cpp
         mainwindow.cpp
         mainwindow.hpp
         mainwindow.ui
+        ctrlbar.cpp
+        ctrlbar.hpp
+        ctrlbar.ui
 )
 
 target_link_libraries(player
