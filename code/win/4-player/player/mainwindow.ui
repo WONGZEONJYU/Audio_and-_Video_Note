@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1027</width>
-    <height>772</height>
+    <width>800</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,16 +22,16 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>741</width>
-      <height>463</height>
+      <width>737</width>
+      <height>397</height>
      </rect>
     </property>
     <widget class="CtrlBar" name="CtrlBarWidget" native="true">
      <property name="geometry">
       <rect>
-       <x>9</x>
-       <y>618</y>
-       <width>924</width>
+       <x>0</x>
+       <y>337</y>
+       <width>737</width>
        <height>60</height>
       </rect>
      </property>
@@ -51,10 +51,10 @@
     <widget class="QWidget" name="ShowWidget" native="true">
      <property name="geometry">
       <rect>
-       <x>9</x>
-       <y>9</y>
-       <width>924</width>
-       <height>603</height>
+       <x>0</x>
+       <y>0</y>
+       <width>737</width>
+       <height>337</height>
       </rect>
      </property>
      <property name="minimumSize">
@@ -71,8 +71,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1027</width>
-     <height>22</height>
+     <width>800</width>
+     <height>37</height>
     </rect>
    </property>
   </widget>
@@ -80,8 +80,8 @@
   <widget class="QDockWidget" name="PlaylistWidget">
    <property name="minimumSize">
     <size>
-     <width>58</width>
-     <height>35</height>
+     <width>62</width>
+     <height>38</height>
     </size>
    </property>
    <attribute name="dockWidgetArea">
@@ -92,8 +92,8 @@
   <widget class="QDockWidget" name="TitleWidget_3">
    <property name="minimumSize">
     <size>
-     <width>58</width>
-     <height>35</height>
+     <width>62</width>
+     <height>38</height>
     </size>
    </property>
    <property name="floating">

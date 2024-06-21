@@ -5,8 +5,7 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_CtrlBar.h" resolved
 
 #include "ctrlbar.hpp"
-#include "ui_CtrlBar.h"
-
+#include "ui_ctrlbar.h"
 
 CtrlBar::CtrlBar(QWidget *parent) :
         QWidget(parent), ui(new Ui::CtrlBar) {
