@@ -27,6 +27,9 @@ add_executable(player main.cpp
         ctrlbar.cpp
         ctrlbar.hpp
         ctrlbar.ui
+        titlebar.cpp
+        titlebar.hpp
+        titlebar.ui
 )
 
 target_link_libraries(player
