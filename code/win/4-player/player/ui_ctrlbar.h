@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'ctrlbar.ui'
 **
-** Created by: Qt User Interface Compiler version 6.4.2
+** Created by: Qt User Interface Compiler version 6.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -50,32 +50,35 @@ public:
     {
         if (CtrlBar->objectName().isEmpty())
             CtrlBar->setObjectName("CtrlBar");
-        CtrlBar->resize(482, 57);
+        CtrlBar->resize(1080, 60);
         gridLayout_3 = new QGridLayout(CtrlBar);
         gridLayout_3->setSpacing(0);
         gridLayout_3->setObjectName("gridLayout_3");
         gridLayout_3->setContentsMargins(0, 0, 0, 0);
         PlaySliderBgWidget = new QWidget(CtrlBar);
         PlaySliderBgWidget->setObjectName("PlaySliderBgWidget");
+        PlaySliderBgWidget->setMinimumSize(QSize(0, 0));
         PlaySliderBgWidget->setMaximumSize(QSize(16777215, 25));
         horizontalLayout = new QHBoxLayout(PlaySliderBgWidget);
-        horizontalLayout->setSpacing(0);
+        horizontalLayout->setSpacing(10);
         horizontalLayout->setObjectName("horizontalLayout");
-        horizontalLayout->setContentsMargins(3, 0, 0, 0);
+        horizontalLayout->setContentsMargins(0, 0, 0, 0);
         PlaySlider = new QSlider(PlaySliderBgWidget);
         PlaySlider->setObjectName("PlaySlider");
         PlaySlider->setMaximum(65536);
-        PlaySlider->setOrientation(Qt::Horizontal);
+        PlaySlider->setOrientation(Qt::Orientation::Horizontal);
 
         horizontalLayout->addWidget(PlaySlider);
 
         VolumeBgWidget = new QWidget(PlaySliderBgWidget);
         VolumeBgWidget->setObjectName("VolumeBgWidget");
         VolumeBgWidget->setEnabled(true);
+        VolumeBgWidget->setMinimumSize(QSize(0, 0));
         VolumeBgWidget->setMaximumSize(QSize(108, 25));
         gridLayout_2 = new QGridLayout(VolumeBgWidget);
-        gridLayout_2->setSpacing(0);
         gridLayout_2->setObjectName("gridLayout_2");
+        gridLayout_2->setHorizontalSpacing(5);
+        gridLayout_2->setVerticalSpacing(0);
         gridLayout_2->setContentsMargins(0, 0, 0, 0);
         VolumeBtn = new QPushButton(VolumeBgWidget);
         VolumeBtn->setObjectName("VolumeBtn");
@@ -87,8 +90,8 @@ public:
         VolumeSlider = new QSlider(VolumeBgWidget);
         VolumeSlider->setObjectName("VolumeSlider");
         VolumeSlider->setMinimumSize(QSize(80, 25));
-        VolumeSlider->setMaximumSize(QSize(80, 25));
-        VolumeSlider->setOrientation(Qt::Horizontal);
+        VolumeSlider->setMaximumSize(QSize(16777215, 16777215));
+        VolumeSlider->setOrientation(Qt::Orientation::Horizontal);
 
         gridLayout_2->addWidget(VolumeSlider, 0, 1, 1, 1);
 
@@ -101,6 +104,7 @@ public:
         gridLayout = new QGridLayout();
         gridLayout->setSpacing(0);
         gridLayout->setObjectName("gridLayout");
+        gridLayout->setContentsMargins(-1, -1, 5, -1);
         ForwardBtn = new QPushButton(CtrlBar);
         ForwardBtn->setObjectName("ForwardBtn");
         ForwardBtn->setMinimumSize(QSize(30, 30));
@@ -132,7 +136,7 @@ public:
         SpeedBtn = new QPushButton(CtrlBar);
         SpeedBtn->setObjectName("SpeedBtn");
         SpeedBtn->setMinimumSize(QSize(30, 30));
-        SpeedBtn->setMaximumSize(QSize(100, 100));
+        SpeedBtn->setMaximumSize(QSize(100, 30));
 
         gridLayout->addWidget(SpeedBtn, 0, 6, 1, 1);
 
@@ -146,20 +150,20 @@ public:
         VideoTotalTimeTimeEdit = new QTimeEdit(CtrlBar);
         VideoTotalTimeTimeEdit->setObjectName("VideoTotalTimeTimeEdit");
         VideoTotalTimeTimeEdit->setMaximumSize(QSize(70, 16777215));
-        VideoTotalTimeTimeEdit->setInputMethodHints(Qt::ImhPreferNumbers);
-        VideoTotalTimeTimeEdit->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        VideoTotalTimeTimeEdit->setInputMethodHints(Qt::InputMethodHint::ImhPreferNumbers);
+        VideoTotalTimeTimeEdit->setAlignment(Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter);
         VideoTotalTimeTimeEdit->setReadOnly(true);
-        VideoTotalTimeTimeEdit->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        VideoTotalTimeTimeEdit->setButtonSymbols(QAbstractSpinBox::ButtonSymbols::NoButtons);
 
         gridLayout->addWidget(VideoTotalTimeTimeEdit, 0, 9, 1, 1);
 
         VideoPlayTimeTimeEdit = new QTimeEdit(CtrlBar);
         VideoPlayTimeTimeEdit->setObjectName("VideoPlayTimeTimeEdit");
         VideoPlayTimeTimeEdit->setMaximumSize(QSize(70, 16777215));
-        VideoPlayTimeTimeEdit->setInputMethodHints(Qt::ImhPreferNumbers);
-        VideoPlayTimeTimeEdit->setAlignment(Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter);
+        VideoPlayTimeTimeEdit->setInputMethodHints(Qt::InputMethodHint::ImhPreferNumbers);
+        VideoPlayTimeTimeEdit->setAlignment(Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter);
         VideoPlayTimeTimeEdit->setReadOnly(true);
-        VideoPlayTimeTimeEdit->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        VideoPlayTimeTimeEdit->setButtonSymbols(QAbstractSpinBox::ButtonSymbols::NoButtons);
 
         gridLayout->addWidget(VideoPlayTimeTimeEdit, 0, 7, 1, 1);
 
@@ -175,7 +179,7 @@ public:
 
         gridLayout->addWidget(PlayOrPauseBtn, 0, 0, 1, 1);
 
-        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
 
         gridLayout->addItem(horizontalSpacer, 0, 11, 1, 1);
 
@@ -198,8 +202,8 @@ public:
         BackwardBtn->setText(QString());
         SpeedBtn->setText(QCoreApplication::translate("CtrlBar", "\345\200\215\346\225\2601.0", nullptr));
         PlaylistCtrlBtn->setText(QString());
-        VideoTotalTimeTimeEdit->setDisplayFormat(QCoreApplication::translate("CtrlBar", "H:mm:ss", nullptr));
-        VideoPlayTimeTimeEdit->setDisplayFormat(QCoreApplication::translate("CtrlBar", "H:mm:ss", nullptr));
+        VideoTotalTimeTimeEdit->setDisplayFormat(QCoreApplication::translate("CtrlBar", "HH:mm:ss", nullptr));
+        VideoPlayTimeTimeEdit->setDisplayFormat(QCoreApplication::translate("CtrlBar", "HH:mm:ss", nullptr));
         TimeSplitLabel->setText(QCoreApplication::translate("CtrlBar", "/", nullptr));
         PlayOrPauseBtn->setText(QString());
     } // retranslateUi
