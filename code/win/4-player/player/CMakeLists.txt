@@ -30,6 +30,12 @@ add_executable(player main.cpp
         titlebar.cpp
         titlebar.hpp
         titlebar.ui
+        playlistbox.cpp
+        playlistbox.hpp
+        playlistbox.ui
+        displaybox.cpp
+        displaybox.hpp
+        displaybox.ui
 )
 
 target_link_libraries(player
