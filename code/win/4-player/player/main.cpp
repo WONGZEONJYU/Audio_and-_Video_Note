@@ -1,3 +1,8 @@
+
+#define TEST 0
+
+#if !TEST
+
 #include <QApplication>
 #include "mainwindow.hpp"
 
@@ -15,3 +20,97 @@ int main(int argc, char *argv[]) {
 
     return QApplication::exec();
 }
+
+#else
+
+#include <iostream>
+#include <type_traits>
+
+class Base {
+
+public:
+
+    int m_1{};
+
+    Base(const Base& other) {
+        std::cerr << "Base(const Base& other)\n";
+        m_1 = other.m_1;
+    }
+
+    Base(Base&& other) noexcept {
+        std::cerr << "Base(Base&& other) noexcept\n";
+        m_1 = other.m_1;
+        other.m_1 = 0;
+    }
+
+    Base() = default;
+
+    Base& operator=(const Base& other) {
+        std::cerr << "Base& operator=(const Base& other)\n";
+        if (this != &other){
+            m_1 = other.m_1;
+        }
+        return *this;
+    }
+
+    Base& operator=(Base&& other) noexcept {
+
+        std::cerr << "Base& operator=(Base&& other) noexcept\n";
+        if (this != &other){
+            m_1 = other.m_1;
+            other.m_1 = 0;
+        }
+
+        return *this;
+    }
+
+    virtual ~Base() = default;
+
+};
+
+class Derived : public Base {
+public:
+    explicit Derived() = default;
+//    Derived(const Derived& other) : Base(other) {
+//        // 拷贝构造函数实现
+//    }
+
+    Derived(const Derived& other) = default;
+
+//    Derived(Derived&& other) noexcept : Base(std::move(other)) {
+//        // 移动构造函数实现
+//    }
+    Derived(Derived&& other) noexcept = default;
+    Derived& operator=(const Derived& other) {
+        if (this != &other) {
+            Base::operator=(other);
+            // 拷贝赋值运算符实现
+        }
+        return *this;
+    }
+
+    Derived& operator=(Derived&& other) noexcept {
+        if (this != &other) {
+            Base::operator=(std::move(other));
+            // 移动赋值运算符实现
+        }
+        return *this;
+    }
+
+    ~Derived() override = default;
+};
+
+int main(int argc,char *argv[])
+{
+    Derived s;
+    s.m_1 = 100;
+    Derived s1(std::move(s));
+    //s1 = std::move(s);
+
+    std::cerr << s1.m_1 << "\n";
+
+    return 0;
+}
+
+#endif
+
