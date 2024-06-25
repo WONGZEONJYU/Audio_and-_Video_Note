@@ -36,8 +36,8 @@ add_executable(player main.cpp
         displaybox.cpp
         displaybox.hpp
         displaybox.ui
-        FFmsg_Queue.cpp
-        FFmsg_Queue.hpp
+        MessageQueue.cpp
+        MessageQueue.hpp
 )
 
 target_link_libraries(player
