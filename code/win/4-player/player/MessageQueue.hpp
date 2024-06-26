@@ -6,11 +6,19 @@
 #define PLAYER_MESSAGEQUEUE_HPP
 
 #include <atomic>
-#include <mutex>
+#include <shared_mutex>
 #include <queue>
 #include <condition_variable>
+#include <iostream>
 
 struct AVMessage{
+
+    enum{
+
+
+
+    };
+
 
     explicit AVMessage() = default;
 
@@ -42,11 +50,12 @@ struct AVMessage{
     }
 
     int m_what{};
+
 };
 
 using AVMessage_Sptr = std::shared_ptr<AVMessage>;
 
-class MessageQueue final{
+class MessageQueue final {
 
     int put_helper(AVMessage &&s) noexcept(true);
 
@@ -56,19 +65,25 @@ public:
     MessageQueue& operator=(const MessageQueue&) = delete;
     MessageQueue& operator=(MessageQueue&&) = delete;
 
-    explicit MessageQueue() noexcept(true);
-    ~MessageQueue();
+    explicit MessageQueue() noexcept(true) = default;
+    ~MessageQueue() = default;
+
     void flush() noexcept(true);
     void abort() noexcept(true);
     void start() noexcept(true);
     int msg_put(AVMessage &&) noexcept(true);
-    int msg_get(AVMessage_Sptr&,const bool &) noexcept(true);
+    int msg_put(const AVMessage &) noexcept(true);
+    int msg_put(const int &) noexcept(true);
+    int msg_get(AVMessage_Sptr&,const bool & = false) noexcept(true);
+    void remove(const int &) noexcept(true);
 
 private:
-    std::atomic_bool m_abort_request;
+    std::atomic_bool m_abort_request{true};
     std::mutex m_mux;
-    std::condition_variable m_cv;
+    std::condition_variable_any m_cv;
     std::deque<AVMessage_Sptr> m_msg_q;
+
 };
+
 
 #endif

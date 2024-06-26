@@ -1,4 +1,3 @@
-
 #define TEST 0
 
 #if !TEST
@@ -25,6 +24,13 @@ int main(int argc, char *argv[]) {
 
 #include <iostream>
 #include <type_traits>
+#include <thread>
+
+#include "MessageQueue.hpp"
+
+using namespace std;
+using namespace chrono;
+using namespace this_thread;
 
 class Base {
 
@@ -102,13 +108,68 @@ public:
 
 int main(int argc,char *argv[])
 {
-    Derived s;
-    s.m_1 = 100;
-    Derived s1(std::move(s));
+//    Derived s;
+//    s.m_1 = 100;
+//    Derived s1(std::move(s));
     //s1 = std::move(s);
 
-    std::cerr << s1.m_1 << "\n";
+   // std::cerr << s1.m_1 << "\n";
 
+    MessageQueue q;
+    q.start();
+
+    std::thread t1([&q]{
+
+        int i{};
+        for (;;) {
+            //AVMessage s(i++);
+            if (q.msg_put(i++) < 0){
+                break;
+            }
+            sleep_for(100ms);
+        }
+        cerr << "t1 complete\n";
+    });
+
+    std::thread t2([&q]{
+        for(;;){
+            AVMessage_Sptr s;
+            if (q.msg_get(s, true) < 0){
+                break;
+            }
+            cerr << "t2: " << s->m_what << "\n";
+            sleep_for(500ms);
+        }
+        cerr << "t2 complete\n";
+    });
+
+    std::thread t3([&q]{
+        for(;;){
+            AVMessage_Sptr s;
+            if (q.msg_get(s, true) < 0){
+                break;
+            }
+            cerr << "t3: " << s->m_what << "\n";
+            sleep_for(500ms);
+        }
+        cerr << "t3 complete\n";
+    });
+
+    for(;;){
+        cerr << "input: \n";
+        int val{};
+        cin >> val;
+        if (val){
+            q.abort();
+            break;
+        }
+    }
+
+    t1.join();
+    t2.join();
+    t3.join();
+
+    std::cerr << "\n";
     return 0;
 }
 

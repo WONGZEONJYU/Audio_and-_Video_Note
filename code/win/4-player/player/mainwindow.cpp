@@ -21,10 +21,10 @@ void MainWindow::construct() noexcept(false) {
 
 }
 
-MainWindow_ptr_type new_MainWindow() noexcept(false)
+MainWindow_sptr new_MainWindow() noexcept(false)
 {
     try {
-        MainWindow_ptr_type obj{new MainWindow};
+        MainWindow_sptr obj{new MainWindow};
         obj->construct();
         return obj;
     } catch (const std::bad_alloc &e) {

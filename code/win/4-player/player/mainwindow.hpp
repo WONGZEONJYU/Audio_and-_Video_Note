@@ -24,7 +24,7 @@ public:
 private:
     Ui::MainWindow *ui;
 };
-using MainWindow_ptr_type = QPointer<MainWindow>;
-MainWindow_ptr_type new_MainWindow() noexcept(false);
+using MainWindow_sptr = QPointer<MainWindow>;
+MainWindow_sptr new_MainWindow() noexcept(false);
 
 #endif //PLAYER_MAINWINDOW_HPP

@@ -4,17 +4,18 @@
 
 #include "MessageQueue.hpp"
 
-MessageQueue::MessageQueue() noexcept(true):m_abort_request(true)  {
-
-}
+//MessageQueue::MessageQueue() noexcept(true){
+//
+//}
 
 void MessageQueue::flush() noexcept(true) {
+    std::unique_lock<std::mutex> lock(m_mux);
     m_msg_q.clear();
 }
 
-MessageQueue::~MessageQueue() {
-    flush();
-}
+//MessageQueue::~MessageQueue() {
+//
+//}
 
 void MessageQueue::abort() noexcept(true) {
     m_abort_request = true;
@@ -31,8 +32,7 @@ int MessageQueue::put_helper(AVMessage &&msg) noexcept(true) {
         return -1;
     }
 
-    auto av_msg{std::make_shared<AVMessage>(std::move(msg))};
-    m_msg_q.push_back(std::move(av_msg));
+    m_msg_q.emplace_back(std::make_shared<AVMessage>(std::move(msg)));
     m_cv.notify_all();
     return 0;
 }
@@ -42,12 +42,25 @@ int MessageQueue::msg_put(AVMessage &&msg) noexcept(true) {
     return put_helper(std::move(msg));
 }
 
+int MessageQueue::msg_put(const AVMessage &msg) noexcept(true)
+{
+    AVMessage msg1(msg);
+    return msg_put(std::move(msg1));
+}
+
+int MessageQueue::msg_put(const int &msg) noexcept(true)
+{
+    AVMessage msg1(msg);
+    return msg_put(std::move(msg1));
+}
+
 int MessageQueue::msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(true) {
 
     auto ret_val{1};
     std::unique_lock<std::mutex> lock(m_mux);
 
     for (;;){
+
         if (m_abort_request){
             ret_val = -1;
             break;
@@ -68,5 +81,12 @@ int MessageQueue::msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(tr
     return ret_val;
 }
 
+void MessageQueue::remove(const int &what) noexcept(true) {
 
-
+    if (!m_abort_request && !m_msg_q.empty()) {
+        std::unique_lock<std::mutex> lock(m_mux);
+        std::erase_if(m_msg_q,[&what](const auto &item){
+            return what == item->m_what;
+        });
+    }
+}
