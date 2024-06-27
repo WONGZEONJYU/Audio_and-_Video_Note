@@ -27,4 +27,4 @@ private:
 using MainWindow_sptr = QPointer<MainWindow>;
 MainWindow_sptr new_MainWindow() noexcept(false);
 
-#endif //PLAYER_MAINWINDOW_HPP
+#endif

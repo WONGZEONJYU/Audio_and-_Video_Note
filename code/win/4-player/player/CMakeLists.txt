@@ -38,6 +38,8 @@ add_executable(player main.cpp
         displaybox.ui
         MessageQueue.cpp
         MessageQueue.hpp
+        IjkMediaPlayer.cpp
+        IjkMediaPlayer.hpp
 )
 
 target_link_libraries(player
