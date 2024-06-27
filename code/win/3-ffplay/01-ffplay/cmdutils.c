@@ -50,7 +50,7 @@
 #include "opt_common.h"
 #ifdef _WIN32
 #include <windows.h>
-#include "compat/w32dlfcn.h"
+#include "w32dlfcn.h"
 #endif
 
 AVDictionary *sws_dict;
