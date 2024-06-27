@@ -22,6 +22,7 @@
 #ifndef FFTOOLS_CMDUTILS_H
 #define FFTOOLS_CMDUTILS_H
 
+
 #include <stdint.h>
 
 #include "config.h"
@@ -482,5 +483,6 @@ double get_rotation(const int32_t *displaymatrix);
 
 /* read file contents into a string */
 char *file_read(const char *filename);
+
 
 #endif /* FFTOOLS_CMDUTILS_H */
