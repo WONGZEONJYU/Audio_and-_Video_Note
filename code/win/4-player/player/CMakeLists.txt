@@ -40,6 +40,9 @@ add_executable(player main.cpp
         MessageQueue.hpp
         IjkMediaPlayer.cpp
         IjkMediaPlayer.hpp
+        MessageAbstract.hpp
+        FFPlay.cpp
+        FFPlay.hpp
 )
 
 target_link_libraries(player

@@ -83,8 +83,10 @@ int MessageQueue::msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(tr
 
 void MessageQueue::remove(const int &what) noexcept(true) {
 
+    std::unique_lock<std::mutex> lock(m_mux);
+
     if (!m_abort_request && !m_msg_q.empty()) {
-        std::unique_lock<std::mutex> lock(m_mux);
+
         std::erase_if(m_msg_q,[&what](const auto &item){
             return what == item->m_what;
         });

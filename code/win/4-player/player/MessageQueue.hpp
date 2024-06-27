@@ -15,10 +15,7 @@ struct AVMessage{
 
     enum{
 
-
-
     };
-
 
     explicit AVMessage() = default;
 

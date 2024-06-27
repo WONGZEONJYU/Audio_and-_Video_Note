@@ -10,26 +10,28 @@
 #include <atomic>
 #include <string>
 #include <thread>
+#include <vector>
+#include "MessageAbstract.hpp"
 
 class IjkMediaPlayer final {
 
 public:
-    explicit IjkMediaPlayer() = default;
+    explicit IjkMediaPlayer(const MessageAbstract &);
     ~IjkMediaPlayer();
 
-
-
+    void start();
+    void stop();
 
 private:
-    std::atomic_int m_ref_count{};
-    int m_mp_state{};
+    const MessageAbstract &m_msg_loop;
+    std::thread m_msg_thread;
+    std::mutex m_mux;
     std::string m_data_source;
-    std::thread m_msg_loop_thread{};
+    int m_mp_state{};
 
 public:
     IjkMediaPlayer(const IjkMediaPlayer&) = delete;
     IjkMediaPlayer& operator=(const IjkMediaPlayer&) = delete;
 };
-
 
 #endif //PLAYER_IJKMEDIAPLAYER_HPP
