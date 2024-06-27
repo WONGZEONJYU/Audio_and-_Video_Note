@@ -38,7 +38,7 @@ endif ()
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)
 
-set(SRC_FILE ${FFPLAY_SRC}
+set(SRC_FILE
         cmdutils.c
         config.h
         cmdutils.h
