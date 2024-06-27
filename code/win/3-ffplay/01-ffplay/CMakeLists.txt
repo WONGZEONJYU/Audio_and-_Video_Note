@@ -3,7 +3,7 @@ project(01_ffplay C)
 
 set(CMAKE_C_STANDARD 23)
 
-#add_definitions(-D__STDC_CONSTANT_MACROS)
+include_directories(${PROJECT_SOURCE_DIR})
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Windows操作系统下的特定配置
@@ -40,15 +40,10 @@ set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample sw
 
 set(SRC_FILE
         cmdutils.c
-        config.h
-        cmdutils.h
-        config_components.h
-        fopen_utf8.h
-        opt_common.h
         opt_common.c
         ffplay.c
         ffplay_renderer.c
-        ffplay_renderer.h)
+)
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 
