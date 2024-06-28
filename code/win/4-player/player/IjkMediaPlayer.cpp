@@ -32,7 +32,7 @@ void IjkMediaPlayer::prepare_async()
     try {
         m_mp_state = MP_STATE_ASYNC_PREPARING;
 
-        m_ff.start();
+        m_ff.start(); //队列启动
 
         m_msg_thread = std::thread([this]() {
             m_msg_loop.msg_loop(this);
