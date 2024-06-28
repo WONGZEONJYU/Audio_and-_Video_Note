@@ -18,9 +18,9 @@ Q_OBJECT
     void construct() noexcept(false);
     explicit MainWindow(QWidget *parent = nullptr);
     friend class QPointer<MainWindow> new_MainWindow() noexcept(false);
+    void OnPlayOrPause();
 public:
     ~MainWindow() override;
-
 private:
     Ui::MainWindow *ui;
 };

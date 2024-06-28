@@ -12,21 +12,26 @@
 #include <thread>
 #include <vector>
 #include "MessageAbstract.hpp"
+#include "FFPlay.hpp"
+#include "IjkMediaPlayer_State.h"
 
 class IjkMediaPlayer final {
 
 public:
-    explicit IjkMediaPlayer(const MessageAbstract &);
+    explicit IjkMediaPlayer(MessageAbstract<IjkMediaPlayer*> &);
     ~IjkMediaPlayer();
 
     void start();
     void stop();
+    void set_data_source(std::string &&) noexcept(false);
+    void prepare_async();
 
 private:
-    const MessageAbstract &m_msg_loop;
+    MessageAbstract<IjkMediaPlayer*> &m_msg_loop;
     std::thread m_msg_thread;
     std::mutex m_mux;
     std::string m_data_source;
+    FFPlay m_ff;
     int m_mp_state{};
 
 public:
@@ -34,4 +39,4 @@ public:
     IjkMediaPlayer& operator=(const IjkMediaPlayer&) = delete;
 };
 
-#endif //PLAYER_IJKMEDIAPLAYER_HPP
+#endif

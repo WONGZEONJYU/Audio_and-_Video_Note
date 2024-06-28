@@ -3,6 +3,7 @@
 //
 
 #include "MessageQueue.hpp"
+#include "ff_ffmsg.h"
 
 //MessageQueue::MessageQueue() noexcept(true){
 //
@@ -23,6 +24,8 @@ void MessageQueue::abort() noexcept(true) {
 }
 
 void MessageQueue::start() noexcept(true) {
+    std::unique_lock<std::mutex> lock(m_mux);
+    put_helper(AVMessage{FFP_MSG_FLUSH});
     m_abort_request = false;
 }
 

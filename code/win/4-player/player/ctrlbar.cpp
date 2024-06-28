@@ -11,6 +11,9 @@ CtrlBar::CtrlBar(QWidget *parent) :
         QWidget(parent), ui(new Ui::CtrlBar) {
     ui->setupUi(this);
 
+    connect(ui->PlayOrPauseBtn,&QPushButton::clicked, [this](bool ){
+        emit SigPlayOrPause();
+    });
 }
 
 CtrlBar::~CtrlBar() {

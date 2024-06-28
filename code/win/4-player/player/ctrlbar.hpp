@@ -20,6 +20,10 @@ public:
 
 private:
     Ui::CtrlBar *ui;
+
+signals:
+    void SigPlayOrPause();
+
 };
 
 #endif //PLAYER_CTRLBAR_HPP

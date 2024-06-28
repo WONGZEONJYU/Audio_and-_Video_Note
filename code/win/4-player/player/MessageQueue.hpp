@@ -12,11 +12,6 @@
 #include <iostream>
 
 struct AVMessage{
-
-    enum{
-
-    };
-
     explicit AVMessage() = default;
 
     explicit AVMessage(const int& what):m_what{what}{
@@ -52,18 +47,13 @@ struct AVMessage{
 
 using AVMessage_Sptr = std::shared_ptr<AVMessage>;
 
-class MessageQueue final {
+class MessageQueue {
 
-    int put_helper(AVMessage &&s) noexcept(true);
+    int put_helper(AVMessage &&) noexcept(true);
 
 public:
-    MessageQueue(const MessageQueue&) = delete;
-    MessageQueue(MessageQueue&&) = delete;
-    MessageQueue& operator=(const MessageQueue&) = delete;
-    MessageQueue& operator=(MessageQueue&&) = delete;
-
     explicit MessageQueue() noexcept(true) = default;
-    ~MessageQueue() = default;
+    virtual ~MessageQueue() = default;
 
     void flush() noexcept(true);
     void abort() noexcept(true);
@@ -80,7 +70,11 @@ private:
     std::condition_variable_any m_cv;
     std::deque<AVMessage_Sptr> m_msg_q;
 
+public:
+    MessageQueue(const MessageQueue&) = delete;
+    MessageQueue(MessageQueue&&) = delete;
+    MessageQueue& operator=(const MessageQueue&) = delete;
+    MessageQueue& operator=(MessageQueue&&) = delete;
 };
-
 
 #endif

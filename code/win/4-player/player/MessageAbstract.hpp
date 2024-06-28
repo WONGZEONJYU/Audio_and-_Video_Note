@@ -5,10 +5,11 @@
 #ifndef PLAYER_MESSAGEABSTRACT_HPP
 #define PLAYER_MESSAGEABSTRACT_HPP
 
+template<typename ...Args>
 class MessageAbstract{
 
 public:
-    virtual void msg_loop() = 0;
+    virtual void msg_loop(Args&&...args) = 0;
 };
 
-#endif //PLAYER_MESSAGEABSTRACT_HPP
+#endif

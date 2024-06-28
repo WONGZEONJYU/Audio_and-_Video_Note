@@ -43,6 +43,8 @@ add_executable(player main.cpp
         MessageAbstract.hpp
         FFPlay.cpp
         FFPlay.hpp
+        ff_ffmsg.h
+        IjkMediaPlayer_State.h
 )
 
 target_link_libraries(player

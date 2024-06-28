@@ -3,3 +3,13 @@
 //
 
 #include "FFPlay.hpp"
+
+FFPlay::FFPlay() {
+
+}
+
+void FFPlay::prepare_async(const std::string &) {
+    
+}
+
+

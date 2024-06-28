@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'ctrlbar.ui'
 **
-** Created by: Qt User Interface Compiler version 6.7.0
+** Created by: Qt User Interface Compiler version 6.4.2
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -66,7 +66,6 @@ public:
         PlaySlider = new QSlider(PlaySliderBgWidget);
         PlaySlider->setObjectName("PlaySlider");
         PlaySlider->setMaximum(65536);
-        PlaySlider->setOrientation(Qt::Orientation::Horizontal);
 
         horizontalLayout->addWidget(PlaySlider);
 
@@ -91,7 +90,6 @@ public:
         VolumeSlider->setObjectName("VolumeSlider");
         VolumeSlider->setMinimumSize(QSize(80, 25));
         VolumeSlider->setMaximumSize(QSize(16777215, 16777215));
-        VolumeSlider->setOrientation(Qt::Orientation::Horizontal);
 
         gridLayout_2->addWidget(VolumeSlider, 0, 1, 1, 1);
 
@@ -150,20 +148,18 @@ public:
         VideoTotalTimeTimeEdit = new QTimeEdit(CtrlBar);
         VideoTotalTimeTimeEdit->setObjectName("VideoTotalTimeTimeEdit");
         VideoTotalTimeTimeEdit->setMaximumSize(QSize(70, 16777215));
-        VideoTotalTimeTimeEdit->setInputMethodHints(Qt::InputMethodHint::ImhPreferNumbers);
-        VideoTotalTimeTimeEdit->setAlignment(Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter);
+        VideoTotalTimeTimeEdit->setInputMethodHints(Qt::ImhNone);
         VideoTotalTimeTimeEdit->setReadOnly(true);
-        VideoTotalTimeTimeEdit->setButtonSymbols(QAbstractSpinBox::ButtonSymbols::NoButtons);
+        VideoTotalTimeTimeEdit->setButtonSymbols(QAbstractSpinBox::UpDownArrows);
 
         gridLayout->addWidget(VideoTotalTimeTimeEdit, 0, 9, 1, 1);
 
         VideoPlayTimeTimeEdit = new QTimeEdit(CtrlBar);
         VideoPlayTimeTimeEdit->setObjectName("VideoPlayTimeTimeEdit");
         VideoPlayTimeTimeEdit->setMaximumSize(QSize(70, 16777215));
-        VideoPlayTimeTimeEdit->setInputMethodHints(Qt::InputMethodHint::ImhPreferNumbers);
-        VideoPlayTimeTimeEdit->setAlignment(Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter);
+        VideoPlayTimeTimeEdit->setInputMethodHints(Qt::ImhNone);
         VideoPlayTimeTimeEdit->setReadOnly(true);
-        VideoPlayTimeTimeEdit->setButtonSymbols(QAbstractSpinBox::ButtonSymbols::NoButtons);
+        VideoPlayTimeTimeEdit->setButtonSymbols(QAbstractSpinBox::UpDownArrows);
 
         gridLayout->addWidget(VideoPlayTimeTimeEdit, 0, 7, 1, 1);
 
@@ -179,7 +175,7 @@ public:
 
         gridLayout->addWidget(PlayOrPauseBtn, 0, 0, 1, 1);
 
-        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         gridLayout->addItem(horizontalSpacer, 0, 11, 1, 1);
 
@@ -205,7 +201,7 @@ public:
         VideoTotalTimeTimeEdit->setDisplayFormat(QCoreApplication::translate("CtrlBar", "HH:mm:ss", nullptr));
         VideoPlayTimeTimeEdit->setDisplayFormat(QCoreApplication::translate("CtrlBar", "HH:mm:ss", nullptr));
         TimeSplitLabel->setText(QCoreApplication::translate("CtrlBar", "/", nullptr));
-        PlayOrPauseBtn->setText(QString());
+        PlayOrPauseBtn->setText(QCoreApplication::translate("CtrlBar", "Play", nullptr));
     } // retranslateUi
 
 };

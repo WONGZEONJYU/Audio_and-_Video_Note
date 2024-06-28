@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    connect(ui->CtrlBarWidget,&CtrlBar::SigPlayOrPause,this,&MainWindow::OnPlayOrPause);
 }
 
 MainWindow::~MainWindow() {
@@ -32,4 +33,8 @@ MainWindow_sptr new_MainWindow() noexcept(false)
     } catch (const std::runtime_error &e) {
         throw e;
     }
+}
+
+void MainWindow::OnPlayOrPause() {
+    qDebug() << __FUNCTION__ ;
 }
