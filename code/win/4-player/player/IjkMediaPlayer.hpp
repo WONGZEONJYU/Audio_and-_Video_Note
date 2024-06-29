@@ -24,7 +24,7 @@ public:
     void start();
     void stop();
     void set_data_source(std::string &&) noexcept(false);
-    void prepare_async();
+    void prepare_async() noexcept(false);
 
 private:
     MessageAbstract<IjkMediaPlayer*> &m_msg_loop;

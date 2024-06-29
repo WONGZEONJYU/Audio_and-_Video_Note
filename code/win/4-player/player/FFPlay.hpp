@@ -23,6 +23,4 @@ public:
     FFPlay& operator=(const FFPlay&) = delete;
 };
 
-
-
 #endif

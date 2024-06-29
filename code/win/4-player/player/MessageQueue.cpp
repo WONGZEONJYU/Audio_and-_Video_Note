@@ -4,6 +4,7 @@
 
 #include "MessageQueue.hpp"
 #include "ff_ffmsg.h"
+#include <algorithm>
 
 //MessageQueue::MessageQueue() noexcept(true){
 //
@@ -47,13 +48,22 @@ int MessageQueue::msg_put(AVMessage &&msg) noexcept(true) {
 
 int MessageQueue::msg_put(const AVMessage &msg) noexcept(true)
 {
-    AVMessage msg1(msg);
+    AVMessage msg1(msg.m_what,msg.m_arg1,msg.m_arg2,msg.m_obj);
     return msg_put(std::move(msg1));
 }
 
-int MessageQueue::msg_put(const int &msg) noexcept(true)
+int MessageQueue::msg_put(const int &msg,
+                          const int &arg1,
+                          const int &arg2,
+                          const char *obj,
+                          const size_t &obj_len) noexcept(false)
 {
-    AVMessage msg1(msg);
+    auto obj1{const_cast<char *>(obj)};
+    if (obj && obj_len){
+        obj1 = new char[obj_len]{};
+        std::copy_n(obj,obj_len,obj1);
+    }
+    AVMessage msg1(msg,arg1,arg2,obj1);
     return msg_put(std::move(msg1));
 }
 
@@ -64,7 +74,7 @@ int MessageQueue::msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(tr
 
     for (;;){
 
-        if (m_abort_request){
+        if (m_abort_request) {
             ret_val = -1;
             break;
         }
@@ -94,4 +104,35 @@ void MessageQueue::remove(const int &what) noexcept(true) {
             return what == item->m_what;
         });
     }
+}
+
+AVMessage::AVMessage(const int &what,const int &arg1 ,const int &arg2
+        ,const char * const obj):
+        m_what{what},m_arg1{arg1},m_arg2{arg2},m_obj{obj}{
+}
+
+AVMessage::AVMessage(AVMessage&& obj) noexcept {
+    move_(std::move(obj));
+}
+
+AVMessage& AVMessage::operator=(AVMessage&& obj) noexcept
+{
+    if (this != &obj){
+        move_(std::move(obj));
+    }
+    return *this;
+}
+
+void AVMessage::move_(AVMessage &&obj) {
+    m_what = obj.m_what;
+    m_arg1 = obj.m_arg1;
+    m_arg2 = obj.m_arg2;
+    m_obj = obj.m_obj;
+
+    obj.m_obj = nullptr;
+    obj.m_arg2 = obj.m_arg1 = obj.m_what = 0;
+}
+
+AVMessage::~AVMessage(){
+    delete[] m_obj;
 }

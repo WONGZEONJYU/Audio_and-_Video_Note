@@ -26,7 +26,7 @@ void IjkMediaPlayer::set_data_source(std::string &&url) noexcept(false) {
     m_data_source = std::move(url);
 }
 
-void IjkMediaPlayer::prepare_async()
+void IjkMediaPlayer::prepare_async() noexcept(false)
 {
     std::unique_lock<std::mutex> lock(m_mux);
     try {
@@ -39,6 +39,7 @@ void IjkMediaPlayer::prepare_async()
         });
 
         m_ff.prepare_async(m_data_source);
+
     } catch (const std::runtime_error &e) {
         m_mp_state = MP_STATE_ERROR;
         lock.unlock();
