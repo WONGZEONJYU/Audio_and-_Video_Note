@@ -13,12 +13,11 @@ int main(int argc, char *argv[]) {
     try {
         auto win{new_MainWindow()};
         win->show();
+        return QApplication::exec();
     } catch (const std::exception &e) {
         qDebug() << e.what();
         return -1;
     }
-
-    return QApplication::exec();
 }
 
 #else

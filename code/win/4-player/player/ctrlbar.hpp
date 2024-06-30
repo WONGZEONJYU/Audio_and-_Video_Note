@@ -23,6 +23,7 @@ private:
 
 signals:
     void SigPlayOrPause();
+    void SigStop();
 
 };
 

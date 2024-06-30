@@ -5,11 +5,14 @@
 #ifndef PLAYER_MESSAGEABSTRACT_HPP
 #define PLAYER_MESSAGEABSTRACT_HPP
 
+#include <tuple>
+
 template<typename ...Args>
 class MessageAbstract{
 
 public:
-    virtual void msg_loop(Args&&...args) = 0;
+    using Args_type = std::tuple<Args...>;
+    virtual void msg_loop(Args_type &&) = 0;
 };
 
 #endif

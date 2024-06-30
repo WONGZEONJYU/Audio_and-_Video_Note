@@ -13,30 +13,35 @@
 #include <vector>
 #include "MessageAbstract.hpp"
 #include "FFPlay.hpp"
-#include "IjkMediaPlayer_State.h"
 
 class IjkMediaPlayer final {
 
-public:
     explicit IjkMediaPlayer(MessageAbstract<IjkMediaPlayer*> &);
-    ~IjkMediaPlayer();
+    void construct() noexcept(false);
+public:
+    using IjkMediaPlayer_sptr = std::shared_ptr<IjkMediaPlayer>;
 
+    ~IjkMediaPlayer();
     void start();
     void stop();
     void set_data_source(std::string &&) noexcept(false);
     void prepare_async() noexcept(false);
-
+    int get_msg(AVMessage_Sptr &,const bool & = true);
 private:
     MessageAbstract<IjkMediaPlayer*> &m_msg_loop;
     std::thread m_msg_thread;
     std::mutex m_mux;
     std::string m_data_source;
-    FFPlay m_ff;
+    FFPlay_sptr m_ff;
     int m_mp_state{};
 
 public:
     IjkMediaPlayer(const IjkMediaPlayer&) = delete;
     IjkMediaPlayer& operator=(const IjkMediaPlayer&) = delete;
+    friend class std::shared_ptr<IjkMediaPlayer> new_IjkMediaPlayer(MessageAbstract<IjkMediaPlayer*> &);
 };
+
+using IjkMediaPlayer_sptr = std::shared_ptr<IjkMediaPlayer>;
+IjkMediaPlayer_sptr new_IjkMediaPlayer(MessageAbstract<IjkMediaPlayer*> &) noexcept(false);
 
 #endif

@@ -6,31 +6,23 @@
 #include "ff_ffmsg.h"
 #include <algorithm>
 
-//MessageQueue::MessageQueue() noexcept(true){
-//
-//}
-
-void MessageQueue::flush() noexcept(true) {
+void MessageQueue::mq_flush() noexcept(true) {
     std::unique_lock<std::mutex> lock(m_mux);
     m_msg_q.clear();
 }
 
-//MessageQueue::~MessageQueue() {
-//
-//}
-
-void MessageQueue::abort() noexcept(true) {
+void MessageQueue::mq_abort() noexcept(true) {
     m_abort_request = true;
     m_cv.notify_all();
 }
 
-void MessageQueue::start() noexcept(true) {
+void MessageQueue::mq_start() noexcept(true) {
     std::unique_lock<std::mutex> lock(m_mux);
-    put_helper(AVMessage{FFP_MSG_FLUSH});
+    mq_put_helper(AVMessage{FFP_MSG_FLUSH});
     m_abort_request = false;
 }
 
-int MessageQueue::put_helper(AVMessage &&msg) noexcept(true) {
+int MessageQueue::mq_put_helper(AVMessage &&msg) noexcept(true) {
 
     if (m_abort_request){
         return -1;
@@ -41,18 +33,18 @@ int MessageQueue::put_helper(AVMessage &&msg) noexcept(true) {
     return 0;
 }
 
-int MessageQueue::msg_put(AVMessage &&msg) noexcept(true) {
+int MessageQueue::mq_msg_put(AVMessage &&msg) noexcept(true) {
     std::unique_lock<std::mutex> lock(m_mux);
-    return put_helper(std::move(msg));
+    return mq_put_helper(std::move(msg));
 }
 
-int MessageQueue::msg_put(const AVMessage &msg) noexcept(true)
+int MessageQueue::mq_msg_put(const AVMessage &msg) noexcept(true)
 {
     AVMessage msg1(msg.m_what,msg.m_arg1,msg.m_arg2,msg.m_obj);
-    return msg_put(std::move(msg1));
+    return mq_msg_put(std::move(msg1));
 }
 
-int MessageQueue::msg_put(const int &msg,
+int MessageQueue::mq_msg_put(const int &msg,
                           const int &arg1,
                           const int &arg2,
                           const char *obj,
@@ -64,15 +56,15 @@ int MessageQueue::msg_put(const int &msg,
         std::copy_n(obj,obj_len,obj1);
     }
     AVMessage msg1(msg,arg1,arg2,obj1);
-    return msg_put(std::move(msg1));
+    return mq_msg_put(std::move(msg1));
 }
 
-int MessageQueue::msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(true) {
+int MessageQueue::mq_msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(true) {
 
     auto ret_val{1};
     std::unique_lock<std::mutex> lock(m_mux);
 
-    for (;;){
+    while (true){
 
         if (m_abort_request) {
             ret_val = -1;
@@ -94,7 +86,7 @@ int MessageQueue::msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(tr
     return ret_val;
 }
 
-void MessageQueue::remove(const int &what) noexcept(true) {
+void MessageQueue::mq_remove(const int &what) noexcept(true) {
 
     std::unique_lock<std::mutex> lock(m_mux);
 
