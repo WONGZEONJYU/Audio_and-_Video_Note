@@ -31,22 +31,33 @@ extern "C"{
 #include <SDL.h>
 #include <SDL_thread.h>
 
+#define AV_NOSYNC_THRESHOLD 10.0
+
+/**
+ *音视频同步方式，缺省以音频为基准
+ */
+enum {
+    AV_SYNC_AUDIO_MASTER, /* default choice */ // 以音频为基准
+    AV_SYNC_VIDEO_MASTER,   // 以视频为基准
+    AV_SYNC_EXTERNAL_CLOCK, // 以外部时钟为基准,synchronize to an external clock
+};
+
 struct MyAVPacketList { /*PacketQueue队列存放的元素模型*/
-    AVPacket *pkt;  /*解封装后的packet*/
-    int serial;     /*播放序列,用于快进快退*/
+    AVPacket *pkt{};  /*解封装后的packet*/
+    int serial{};     /*播放序列,用于快进快退*/
 };
 
 struct PacketQueue { /*包队列*/
-    AVFifo *pkt_list; /*FFmpeg 的avfifo */
-    int nb_packets; /*包数量*/
-    int size;   //队列所有元素的大小(队列每一个元素size计算方式sizeAVPacket.size + sizeof(MyAVPacketList)) , 不是包数量
+    AVFifo *pkt_list{}; /*FFmpeg 的avfifo */
+    int nb_packets{}; /*包数量*/
+    int size{};   //队列所有元素的大小(队列每一个元素size计算方式sizeAVPacket.size + sizeof(MyAVPacketList)) , 不是包数量
     // size = (sizeAVPacket.size + sizeof(MyAVPacketList)) * nb_packets
-    int64_t duration; /*队列所有元素的数据播放持续时间(队列每一个元素duration的AVPacket.duration) */
+    int64_t duration{}; /*队列所有元素的数据播放持续时间(队列每一个元素duration的AVPacket.duration) */
     // duration = AVPacket.duration * nb_packets
-    int abort_request; // 用户退出请求标志
-    int serial; // 播放序列号，和MyAVPacketList的serial作用相同,但改变的时序稍微有点不同
-    SDL_mutex *mutex; // 用于维持PacketQueue的多线程安全(SDL_mutex可以按pthread_mutex_t理解）
-    SDL_cond *cond; // 用于读、写线程相互通知(SDL_cond可以按pthread_cond_t理解)
+    int abort_request{}; // 用户退出请求标志
+    int serial{}; // 播放序列号，和MyAVPacketList的serial作用相同,但改变的时序稍微有点不同
+    SDL_mutex *mutex{}; // 用于维持PacketQueue的多线程安全(SDL_mutex可以按pthread_mutex_t理解）
+    SDL_cond *cond{}; // 用于读、写线程相互通知(SDL_cond可以按pthread_cond_t理解)
 };
 
 #define VIDEO_PICTURE_QUEUE_SIZE 3 // 图像帧缓存数量
@@ -54,59 +65,59 @@ struct PacketQueue { /*包队列*/
 #define SAMPLE_QUEUE_SIZE 9 // 采样帧缓存数量
 #define FRAME_QUEUE_SIZE FFMAX(SAMPLE_QUEUE_SIZE, FFMAX(VIDEO_PICTURE_QUEUE_SIZE, SUBPICTURE_QUEUE_SIZE))
 
-typedef struct AudioParams {
-    int freq;                   //采样率
-    AVChannelLayout ch_layout; //通道布局
-    enum AVSampleFormat fmt;    //采样格式
-    int frame_size;             //一个采样单元占用的字节数(比如2通道时,则左右通道各采样一次合成一个采样单元)
-    int bytes_per_sec;          //一秒时间的字节数,比如采样率48Khz,2 channel,16bit,则一秒48000*2*16/8=192000
-} AudioParams;//音频硬件参数
+struct AudioParams {
+    int freq{};                   //采样率
+    AVChannelLayout ch_layout{}; //通道布局
+    enum AVSampleFormat fmt{};    //采样格式
+    int frame_size{};             //一个采样单元占用的字节数(比如2通道时,则左右通道各采样一次合成一个采样单元)
+    int bytes_per_sec{};          //一秒时间的字节数,比如采样率48Khz,2 channel,16bit,则一秒48000*2*16/8=192000
+};//音频硬件参数
 
 // 这里讲的系统时钟 是通过av_gettime_relative()获取到的时钟,单位为微妙
 struct Clock {
     // 时钟基础, 当前帧(待播放)显示时间戳,播放后,当前帧变成上一帧
-    double pts;           /* clock base */
+    double pts{};           /* clock base */
     // 当前pts与当前系统时钟的差值,audio、video对于该值是独立的
-    double pts_drift;     /* clock base minus time at which we updated the clock */
+    double pts_drift{};     /* clock base minus time at which we updated the clock */
     // 当前时钟(如视频时钟)最后一次更新时间,也可称当前时钟时间
-    double last_updated; // 最后一次更新的系统时钟
-    double speed;   // 时钟速度控制,用于控制播放速度
+    double last_updated{}; // 最后一次更新的系统时钟
+    double speed{};   // 时钟速度控制,用于控制播放速度
     //播放序列,所谓播放序列就是一段连续的播放动作,一个seek操作会启动一段新的播放序列
-    int serial;          /* clock is based on a packet with this serial */
-    int paused;         // = 1 说明是暂停状态
+    int serial{};          /* clock is based on a packet with this serial */
+    int paused{};         // = 1 说明是暂停状态
     // 指向packet_serial
-    int *queue_serial;    /* pointer to the current packet queue serial, used for obsolete clock detection */
+    int *queue_serial{};    /* pointer to the current packet queue serial, used for obsolete clock detection */
 };
 
 // 用于缓存解码后的数据
-typedef struct Frame {
-    AVFrame *frame;     // 指向数据帧
-    AVSubtitle sub;     // 用于字幕
-    int serial;         // 帧序列，在seek的操作时serial会变化
-    double pts;           /* presentation timestamp for the frame */ // 时间戳,单位为秒
-    double duration;      /* estimated duration of the frame */     // 该帧持续时间,单位为秒
-    int64_t pos;          /* byte position of the frame in the input file */    // 该帧在输入文件中的字节位置
-    int width;      // 图像宽度
-    int height;     // 图像高读
-    int format;     // 对于图像为(enum AVPixelFormat)
+struct Frame {
+    AVFrame *frame{};     // 指向数据帧
+    AVSubtitle sub{};     // 用于字幕
+    int serial{};         // 帧序列，在seek的操作时serial会变化
+    double pts{};           /* presentation timestamp for the frame */ // 时间戳,单位为秒
+    double duration{};      /* estimated duration of the frame */     // 该帧持续时间,单位为秒
+    int64_t pos{};          /* byte position of the frame in the input file */    // 该帧在输入文件中的字节位置
+    int width{};      // 图像宽度
+    int height{};     // 图像高读
+    int format{};     // 对于图像为(enum AVPixelFormat)
     // 对于声音则为(enum AVSampleFormat)
-    AVRational sar;     // 图像的宽高比（16:9，4:3...）,如果未知或未指定则为0/1
-    int uploaded;       // 用来记录该帧是否已经显示过？
-    int flip_v;         // =1则垂直翻转, 0则正常播放
-} Frame;
+    AVRational sar{};     // 图像的宽高比（16:9，4:3...）,如果未知或未指定则为0/1
+    int uploaded{};       // 用来记录该帧是否已经显示过？
+    int flip_v{};         // =1则垂直翻转, 0则正常播放
+};
 
 /* 这是一个循环队列,windex是指其中的首元素,rindex是指其中的尾部元素. */
 struct FrameQueue {
-    Frame queue[FRAME_QUEUE_SIZE];// FRAME_QUEUE_SIZE  最大size, 数字太大时会占用大量的内存，需要注意该值的设置
-    int rindex;                 // 读索引。待播放时读取此帧进行播放，播放后此帧成为上一帧
-    int windex;                 //写索引
-    int size;                   // 当前总帧数
-    int max_size;               // 可存储最大帧数
-    int keep_last;              // = 1说明要在队列里面保持最后一帧的数据不释放,只在销毁队列的时候才将其真正释放
-    int rindex_shown;           // 初始化为0,配合keep_last=1使用
-    SDL_mutex *mutex;           // 互斥量
-    SDL_cond *cond;             // 条件变量
-    PacketQueue *pktq;          // 数据包缓冲队列
+    Frame queue[FRAME_QUEUE_SIZE]{};// FRAME_QUEUE_SIZE  最大size, 数字太大时会占用大量的内存，需要注意该值的设置
+    int rindex{};                 // 读索引。待播放时读取此帧进行播放，播放后此帧成为上一帧
+    int windex{};                 //写索引
+    int size{};                   // 当前总帧数
+    int max_size{};               // 可存储最大帧数
+    int keep_last{};              // = 1说明要在队列里面保持最后一帧的数据不释放,只在销毁队列的时候才将其真正释放
+    int rindex_shown{};           // 初始化为0,配合keep_last=1使用
+    SDL_mutex *mutex{};           // 互斥量
+    SDL_cond *cond{};             // 条件变量
+    PacketQueue *pktq{};          // 数据包缓冲队列
 };
 
 /* packet queue handling */
@@ -135,16 +146,16 @@ int packet_queue_put_nullpacket(PacketQueue *q, AVPacket *pkt, int stream_index)
 /*入队函数*/
 int packet_queue_put(PacketQueue *q, AVPacket *pkt);
 
-
-
 /*
  * frame_queue初始化,音视频的keep_last设置为1,字幕的keep_last设置为0
  */
 int frame_queue_init(FrameQueue *f, PacketQueue *pktq, int max_size, int keep_last);
+
 /*
  * 销毁frame_queue
  */
 void frame_queue_destroy(FrameQueue *f);
+
 /*
  * 窥探位置(f->rindex + f->rindex_shown)的数据
  * 如果f->rindex_shown为0,frame_queue_peek与frame_queue_peek_last读取的位置一样
@@ -190,5 +201,53 @@ int frame_queue_nb_remaining(FrameQueue *f);
 /* return last shown position */
 //返回最后显示的位置
 int64_t frame_queue_last_pos(FrameQueue *f);
+
+/**
+ * 获取到的实际上是:最后一帧的pts + 从处理最后一帧开始到现在的时间,具体参考set_clock_at和get_clock的代码
+ * c->pts_drift = 最后一帧的pts - 从处理最后一帧时间
+ * clock=c->pts_drift+现在的时候
+ * get_clock(&is->vidclk) == is->vidclk.pts , av_gettime_relative() / 1000000.0 - is->vidclk.last_updated + is->vidclk.pts
+ */
+double get_clock(Clock *c);
+
+/**
+ * 设置时钟的核心实现
+ * @param c
+ * @param pts
+ * @param serial
+ * @param time
+ */
+void set_clock_at(Clock *c, double pts, int serial, double time);
+
+/**
+ * 设置时钟
+ * @param c
+ * @param pts
+ * @param serial
+ */
+void set_clock(Clock *c, double pts, int serial);
+
+/**
+ * 设置速度
+ * @param c
+ * @param speed
+ */
+void set_clock_speed(Clock *c, double speed);
+
+/**
+ * 初始化时钟
+ * @param c
+ * @param queue_serial
+ */
+void init_clock(Clock *c, int *queue_serial);
+
+/**
+ * 外部时钟pts与从属时钟的时间差值超过AV_NOSYNC_THRESHOLD(10秒),则对外部时钟进行更新
+ * @param c
+ * @param slave
+ */
+void sync_clock_to_slave(Clock *c, Clock *slave);
+
+
 
 #endif //PLAYER_FF_FFPLAY_DEF_HPP

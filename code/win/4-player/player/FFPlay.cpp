@@ -37,11 +37,32 @@ void FFPlay::stream_open() noexcept(false){
     }
 
     //初始化Frame队列
-    frame_queue_init(&pictq,&videoq,VIDEO_PICTURE_QUEUE_SIZE,1);
+    if (frame_queue_init(&m_pictq,&m_videoq,VIDEO_PICTURE_QUEUE_SIZE,1) < 0){
+        cerr << "video frame queue init failed\n";
+        throw std::runtime_error("video frame queue init failed");
+    }
+
+    if (frame_queue_init(&m_sampq, &m_audioq, SAMPLE_QUEUE_SIZE, 1) < 0){
+        cerr << "audio frame queue init failed\n";
+        throw std::runtime_error("audio frame queue init failed");
+    }
 
     //初始化packet队列
+    if (packet_queue_init(&m_videoq) < 0){
+        cerr << "packet_queue_init(&videoq)\n";
+        throw std::runtime_error("packet_queue_init(&videoq)");
+    }
+
+    if (packet_queue_init(&m_audioq) < 0){
+        cerr << "packet_queue_init(&audioq)\n";
+        throw std::runtime_error("packet_queue_init(&audioq)");
+    }
 
     //初始化时钟
+    init_clock(&m_vidclk, &m_videoq.serial);
+    init_clock(&m_audclk, &m_audioq.serial);
+    init_clock(&m_extclk, &m_extclk.serial);
+
     //初始化音量
     //创建解复用器读线程
 
@@ -54,7 +75,7 @@ void FFPlay::stream_open() noexcept(false){
 
 void FFPlay::stream_close()
 {
-    abort_request = true;
+    m_abort_request = true;
 
     //关闭解复用器avformat_close_input(...)
     //释放packet队列
@@ -75,7 +96,7 @@ void FFPlay::f_start() {
 
 void FFPlay::f_stop(){
     cerr << __FUNCTION__ << "\t";
-    abort_request = true;
+    m_abort_request = true;
     mq_abort();
 }
 
@@ -94,14 +115,17 @@ FFPlay::~FFPlay(){
     if (m_audio_th.joinable()){
         m_audio_th.join();
     }
+
+    frame_queue_destroy(&m_pictq);
+    frame_queue_destroy(&m_sampq);
+    packet_queue_destroy(&m_videoq);
+    packet_queue_destroy(&m_audioq);
 }
 
 void FFPlay::read_thread() {
 
     cerr << __FUNCTION__ << "\tbegin\n";
-
     sleep_for(10ms);
-
     mq_msg_put(FFP_MSG_OPEN_INPUT);
     std::cerr << __FUNCTION__ << "\tFFP_MSG_OPEN_INPUT\n";
     mq_msg_put(FFP_MSG_FIND_STREAM_INFO);
@@ -110,10 +134,9 @@ void FFPlay::read_thread() {
     std::cerr << __FUNCTION__ << "\tFFP_MSG_COMPONENT_OPEN\n";
     mq_msg_put(FFP_MSG_PREPARED);
     std::cerr << __FUNCTION__ << "\tFFP_MSG_PREPARED\n";
-
     while (true){
 
-        if (abort_request){
+        if (m_abort_request){
             break;
         }
 

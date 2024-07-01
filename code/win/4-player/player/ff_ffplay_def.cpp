@@ -3,8 +3,7 @@
 //
 
 #include "ff_ffplay_def.hpp"
-#include <type_traits>
-#include <memory>
+#include <algorithm>
 
 #define PacketQueue_
 #define FrameQueue_
@@ -367,3 +366,102 @@ int64_t frame_queue_last_pos(FrameQueue *f)
 }
 
 #endif
+
+/**
+ * 获取到的实际上是:最后一帧的pts + 从处理最后一帧开始到现在的时间,具体参考set_clock_at和get_clock的代码
+ * c->pts_drift = 最后一帧的pts - 从处理最后一帧时间
+ * clock=c->pts_drift+现在的时候
+ * get_clock(&is->vidclk) == is->vidclk.pts , av_gettime_relative() / 1000000.0 - is->vidclk.last_updated + is->vidclk.pts
+ */
+double get_clock(Clock *c)
+{
+    if (*c->queue_serial != c->serial)
+        return NAN;// 不是同一个播放序列,时钟是无效
+    if (c->paused) {
+        return c->pts;  // 暂停的时候返回的是pts
+    } else {
+        double time = (double )av_gettime_relative() / 1000000.0;
+        return c->pts_drift + time - (time - c->last_updated) * (1.0 - c->speed);//c->speed很多时候是1.0 , (time - c->last_updated) * (1.0 - c->speed) = 0
+        //c->pts_drift + time 计算出音/视频播放到哪里
+    }
+    //pts_drift是消逝时间
+}
+
+/**
+ * 设置时钟的核心实现
+ * @param c
+ * @param pts
+ * @param serial
+ * @param time
+ */
+void set_clock_at(Clock *c, double pts, int serial, double time)
+{
+    c->pts = pts;                   /* 当前帧的pts */
+    c->last_updated = time;         /* 最后更新的时间,实际上是当前的一个系统时间 */
+    c->pts_drift = c->pts - time;   /* 当前帧pts和系统时间的差值(消逝时间),正常播放情况下两者的差值应该是比较固定的,因为两者都是以时间为基准进行线性增长 */
+    c->serial = serial;
+}
+
+/**
+ * 设置时钟
+ * @param c
+ * @param pts
+ * @param serial
+ */
+void set_clock(Clock *c, double pts, int serial)
+{
+    double time = (double )av_gettime_relative() / 1000000.0;
+    set_clock_at(c, pts, serial, time);
+}
+
+/**
+ * 设置速度
+ * @param c
+ * @param speed
+ */
+void set_clock_speed(Clock *c, double speed)
+{
+    set_clock(c, get_clock(c), c->serial);
+    c->speed = speed;
+}
+
+/**
+ * 初始化时钟
+ * @param c
+ * @param queue_serial
+ */
+void init_clock(Clock *c, int *queue_serial)
+{
+    c->speed = 1.0;
+    c->paused = 0;
+    c->queue_serial = queue_serial;
+    set_clock(c, NAN, -1);
+}
+
+/**
+ * 外部时钟pts与从属时钟的时间差值超过AV_NOSYNC_THRESHOLD(10秒),则对外部时钟进行更新
+ * @param c
+ * @param slave
+ */
+void sync_clock_to_slave(Clock *c, Clock *slave)
+{
+    double clock = get_clock(c);
+    double slave_clock = get_clock(slave);
+    if (!isnan(slave_clock) && (isnan(clock) || fabs(clock - slave_clock) > AV_NOSYNC_THRESHOLD)){
+        set_clock(c, slave_clock, slave->serial);
+    }
+}
+
+/**
+ * 获取当前作为同步的主时钟
+ * @param is
+ * @return
+ */
+
+/**
+ * 获取主时钟的时间值
+ * @param is
+ * @return current master clock value
+ */
+
+

@@ -5,7 +5,7 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_PlayListBox.h" resolved
 
 #include "playlistbox.hpp"
-#include "ui_PlayListBox.h"
+#include "ui_playlistbox.h"
 
 
 PlayListBox::PlayListBox(QWidget *parent) :

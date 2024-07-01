@@ -32,14 +32,27 @@ private:
     std::thread m_read_th;
     std::thread m_video_refresh_th;
     std::thread m_audio_th;
-    std::atomic_bool abort_request{};
-    int audio_stream {-1},video_stream{-1};
+    std::atomic_bool m_abort_request{};
+    std::atomic_bool m_eof{};
+    int m_audio_stream {-1},m_video_stream{-1};
+    int m_av_sync_type{};
 
-    FrameQueue pictq{};               // 视频Frame队列
-    FrameQueue sampq{};               // 采样Frame队列
-    PacketQueue videoq{};                         // 视频队列
-    PacketQueue subtitleq{};                      // 字幕packet队列
-    PacketQueue audioq{};             // 音频packet队列
+    Clock m_audclk{};                   // 音频时钟
+    Clock m_vidclk{};                   // 视频时钟
+    Clock m_extclk{};                   // 外部时钟
+
+    FrameQueue m_pictq{};               // 视频Frame队列
+    //FrameQueue m_subpq;                 // 字幕Frame队列
+    FrameQueue m_sampq{};               // 采样Frame队列
+    PacketQueue m_videoq{};             // 视频队列
+    //PacketQueue m_subtitleq{};          // 字幕packet队列
+    PacketQueue m_audioq{};             // 音频packet队列
+
+    AVStream *m_video_st{};             // 视频流
+    //AVStream *m_subtitle_st{};          // 字幕流
+    AVStream *m_audio_st{};             // 音频流
+
+    AVFormatContext *m_ic{};
 
 public:
     FFPlay(const FFPlay&) = delete;
