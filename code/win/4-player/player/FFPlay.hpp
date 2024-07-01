@@ -9,20 +9,21 @@
 #include <thread>
 #include <atomic>
 #include "MessageQueue.hpp"
+#include "ff_ffplay_def.hpp"
 
 class FFPlay final : public MessageQueue {
 
     explicit FFPlay() = default;
     void read_thread();
     void video_refresh_thread();
-    void stream_open();
+    void stream_open() noexcept(false);
     void stream_component_open(const int&);
     void stream_component_close(const int&);
 
     friend class std::shared_ptr<FFPlay> new_FFPlay() noexcept(false);
 public:
     ~FFPlay() override ;
-    void prepare_async(const std::string &);
+    void prepare_async(const std::string &) noexcept(false);
     void stream_close();
     void f_start();
     void f_stop();
@@ -33,6 +34,12 @@ private:
     std::thread m_audio_th;
     std::atomic_bool abort_request{};
     int audio_stream {-1},video_stream{-1};
+
+    FrameQueue pictq{};               // 视频Frame队列
+    FrameQueue sampq{};               // 采样Frame队列
+    PacketQueue videoq{};                         // 视频队列
+    PacketQueue subtitleq{};                      // 字幕packet队列
+    PacketQueue audioq{};             // 音频packet队列
 
 public:
     FFPlay(const FFPlay&) = delete;

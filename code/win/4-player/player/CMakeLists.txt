@@ -7,12 +7,26 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    add_definitions(-DWINDOWS)
     set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
+    include_directories(c:/ffmepg-7.1/include)
+    include_directories(c:/SDL2-2.28.5-VC/include)
+
+    link_directories(c:/ffmepg-7.1/bin)
+    link_directories(c:/SDL2-2.28.5-VC/lib/x64)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
+    add_definitions(-DMACOS)
     set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.0/macos")
+    include_directories(/usr/local/ffmpeg/include)
+    include_directories(/opt/homebrew/Cellar/sdl2/2.30.1/include/SDL2)
+
+    link_directories(/usr/local/ffmpeg/lib)
+    link_directories(/opt/homebrew/Cellar/sdl2/2.30.1/lib)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
+
+
 
 find_package(Qt6 COMPONENTS
         Core
@@ -45,12 +59,17 @@ add_executable(player main.cpp
         FFPlay.hpp
         ff_ffmsg.h
         IjkMediaPlayer_State.h
+        ff_ffplay_def.hpp
+        ff_ffplay_def.cpp
 )
+
+set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)
 
 target_link_libraries(player
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        ${FFMPEG_LIBS}
 )
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)

@@ -6,11 +6,17 @@
 #include "ff_ffmsg.h"
 #include <iostream>
 
+extern "C"{
+#include <libavutil/log.h>
+}
+
+#include <SDL.h>
+
 using namespace std;
 using namespace chrono;
 using namespace this_thread;
 
-void FFPlay::prepare_async(const std::string &url) {
+void FFPlay::prepare_async(const std::string &url) noexcept(false){
     if (url.empty()){
         throw std::runtime_error("FFPlay::prepare_async url empty\n");
     }
@@ -19,10 +25,22 @@ void FFPlay::prepare_async(const std::string &url) {
     stream_open();
 }
 
-void FFPlay::stream_open() {
+void FFPlay::stream_open() noexcept(false){
+
     //初始化SDL
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) < 0) {
+        const auto errmsg{"Could not initialize SDL - " + string (SDL_GetError())};
+        const string errmsg1{"(Did you set the DISPLAY variable?)"};
+        av_log(nullptr,AV_LOG_FATAL,"%s",errmsg.c_str());
+        av_log(nullptr,AV_LOG_FATAL,"%s",errmsg1.c_str());
+        throw std::runtime_error(errmsg + errmsg1 + "\n");
+    }
+
     //初始化Frame队列
+    frame_queue_init(&pictq,&videoq,VIDEO_PICTURE_QUEUE_SIZE,1);
+
     //初始化packet队列
+
     //初始化时钟
     //初始化音量
     //创建解复用器读线程
@@ -107,7 +125,6 @@ void FFPlay::read_thread() {
 void FFPlay::video_refresh_thread() {
 
 }
-
 
 FFPlay_sptr new_FFPlay() noexcept(false) {
     FFPlay_sptr obj;
