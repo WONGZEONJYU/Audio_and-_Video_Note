@@ -15,9 +15,9 @@ struct ShareAVFrame final {
     ShareAVFrame(const ShareAVFrame&) = delete;
     ShareAVFrame& operator=(const ShareAVFrame&) = delete;
     ~ShareAVFrame() noexcept(true);
-    explicit operator AVFrame* () {return m_frame;}
-    AVFrame* operator->(){return m_frame;}
-    AVFrame operator*() {return *m_frame;}
+    explicit operator AVFrame* () const {return m_frame;}
+    AVFrame* operator->() const {return m_frame;}
+    AVFrame operator*() const {return *m_frame;}
 private:
     explicit ShareAVFrame() noexcept(true);
     void Construct() const noexcept(false);

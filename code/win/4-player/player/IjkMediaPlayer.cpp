@@ -59,7 +59,6 @@ void IjkMediaPlayer::start() {
 }
 
 void IjkMediaPlayer::stop() {
-
     std::unique_lock<std::mutex> lock(m_mux);
     m_ff->f_stop();
 }

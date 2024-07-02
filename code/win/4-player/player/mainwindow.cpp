@@ -50,7 +50,7 @@ void MainWindow::OnPlayOrPause() {
     } else{ //m_IjkMediaPlayer还没创建,则创建
         try {
             m_IjkMediaPlayer = new_IjkMediaPlayer(*this);
-            m_IjkMediaPlayer->set_data_source("xxx.mp4");
+            m_IjkMediaPlayer->set_data_source("2_audio_track_5s.mp4");
             m_IjkMediaPlayer->prepare_async();
         } catch (const std::exception &e) {
             qDebug() << e.what();

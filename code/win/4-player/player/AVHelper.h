@@ -52,7 +52,7 @@ namespace AVHelper {
                 throw std::runtime_error(name + " alloc av_frame error: " + e.what() + "\n");
             }
 
-            ret = avcodec_receive_frame(codec_ctx, frame->m_frame);
+            ret = avcodec_receive_frame(codec_ctx, frame->operator AVFrame *());
 
             if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret) {
                 frame.reset();
@@ -95,7 +95,7 @@ namespace AVHelper {
                 throw std::runtime_error(name + " alloc AVPacket error: " + e.what() + "\n");
             }
 
-            ret = avcodec_receive_packet(codec_ctx,packet->m_packet);
+            ret = avcodec_receive_packet(codec_ctx,packet->operator AVPacket *());
 
             if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret){
                 packet.reset();

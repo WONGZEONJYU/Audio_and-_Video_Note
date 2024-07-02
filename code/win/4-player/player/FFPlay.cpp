@@ -19,7 +19,7 @@ int FFPlay::decode_interrupt_cb(void *_this)
     static int64_t s_pre_time {};
     const auto cur_time  {av_gettime_relative() / 1000};
     //fprintf(stderr,"decode_interrupt_cb interval: %lldms",cur_time-s_pre_time);
-    cerr << "decode_interrupt_cb interval:\t" << (cur_time - s_pre_time) << "\n";
+    //cerr << "decode_interrupt_cb interval:\t" << (cur_time - s_pre_time) << "\n";
     s_pre_time = cur_time;
     auto this_{static_cast<FFPlay*>(_this)};
     return this_->m_abort_request;
@@ -97,12 +97,12 @@ void FFPlay::stream_close() noexcept(true)
 {
     m_abort_request = true;
 
-    if (m_read_th.joinable()){ //等待读线程退出
-        m_read_th.join();
-    }
-
     if (m_video_refresh_th.joinable()){ //等待视频刷新线程退出
         m_video_refresh_th.join();
+    }
+
+    if (m_read_th.joinable()){ //等待读线程退出
+        m_read_th.join();
     }
 
 //    if (m_decode_audio_th.joinable()){
@@ -128,17 +128,131 @@ void FFPlay::stream_close() noexcept(true)
     packet_queue_destroy(&m_audioq);
 }
 
-void FFPlay::stream_component_open(const int &index) noexcept(false) {
+void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
 
-    AVCodecContext *avctx{};
+    cerr << "begin\t" <<__FUNCTION__ << "\tstream_index:\t" << stream_index << "\n";
+
+    AVCodecContext *av_codec_ctx{};
     const AVCodec *codec{};
     int sample_rate{},nb_channels{};
     AVChannelLayout channel_layout{};
+    int err{};
 
+    try {
+
+        if (stream_index < 0 || stream_index >= m_ic->nb_streams){
+            cerr << __FUNCTION__ << "\twaring stream_index error\n";
+            return;
+        }
+
+        if (!(av_codec_ctx = avcodec_alloc_context3(nullptr))){
+            //分配解码器上下文
+            throw std::runtime_error("avcodec_alloc_context3 failed");
+        }
+
+        if ((err = avcodec_parameters_to_context(av_codec_ctx,m_ic->streams[stream_index]->codecpar)) < 0){
+            //拷贝流的编解码器器信息参数到解码器里
+            throw std::runtime_error("avcodec_parameters_to_context failed:\t" +
+                                    string(AVHelper::av_get_err(err)));
+        }
+
+        //设置解码器时间基准
+        av_codec_ctx->time_base = m_ic->streams[stream_index]->time_base;
+
+        if(!(codec = avcodec_find_decoder(av_codec_ctx->codec_id))){
+            //通过id查找解码器
+            throw std::runtime_error("no decoder could be found for codec:\t" +
+                                    string(avcodec_get_name(av_codec_ctx->codec_id)));
+        }
+
+        if ((err = avcodec_open2(av_codec_ctx,codec, nullptr)) < 0){
+            throw std::runtime_error("open codec failed:\t" + string(AVHelper::av_get_err(err)));
+        }
+
+        switch (av_codec_ctx->codec_type){
+            case AVMEDIA_TYPE_AUDIO:
+                //从解码器上下文中获取音频格式参数
+                sample_rate = av_codec_ctx->sample_rate;
+                nb_channels = av_codec_ctx->ch_layout.nb_channels;
+                channel_layout = av_codec_ctx->ch_layout;
+
+                //prepare audio output 准备音频输出
+
+                m_audio_stream = stream_index; //获取音频索引
+                m_audio_st = m_ic->streams[stream_index]; //获取音频的stream指针
+
+                //初始化ffplay封装的音频解码器,并将解码器上下文与Decodec绑定
+                //decoder_init(...)
+                //启动音频解码线程
+                //decoder_start(...)
+                //允许音频输出
+
+                break;
+
+            case AVMEDIA_TYPE_VIDEO:
+                m_video_stream = stream_index;
+                m_video_st = m_ic->streams[stream_index];
+                //初始化ffplay封装的视频解码器
+                //decode_init(...)
+                //启动视频解码线程
+                //decoder_start(...)
+                break;
+            default:
+                break;
+        }
+    } catch (const std::exception &e) {
+        cerr << __FUNCTION__ << "\t" << e.what() << "\n";
+        avcodec_free_context(&av_codec_ctx);
+        throw e;
+    }
+    //临时释放avcodec_free_context(&av_codec_ctx),此处用于测试,后续会交给封装的解码器销毁的时候释放
+    avcodec_free_context(&av_codec_ctx);
+
+    cerr << "end\t" <<__FUNCTION__ << "\tstream_index:\t" << stream_index << "\n";
 }
 
-void FFPlay::stream_component_close(const int &index){
+void FFPlay::stream_component_close(const int &stream_index){
 
+    cerr << "begin\t" <<__FUNCTION__ << "\tstream_index:\t" << stream_index << "\n";
+
+    if (stream_index < 0 || stream_index >= m_ic->nb_streams){
+        return;
+    }
+
+    const auto codec_par{m_ic->streams[stream_index]->codecpar};
+    switch (codec_par->codec_type) {
+        case AVMEDIA_TYPE_AUDIO:
+            cerr << __FUNCTION__ << "\tAVMEDIA_TYPE_AUDIO\n";
+            //请求终止解码器线程
+            //关闭音频设备
+            //销毁解码器
+            //释放从采样器
+            //释放audio buf
+            //decoder_abort(...)
+            //SDL_CloseAudioDevice(...)
+            //decoder_destroy(...)
+            //swr_free(...)
+            //av_freep(...)
+            //audio_buf1_size = 0
+            //audio_buf = nullptr
+            m_audio_stream = -1;
+            m_audio_st = {};
+
+            break;
+        case AVMEDIA_TYPE_VIDEO:
+            cerr << __FUNCTION__ << "\tAVMEDIA_TYPE_VIDEO\n";
+            //decoder_abort(...)
+            //decoder_destroy(...)
+            //
+            m_video_stream = -1;
+            m_video_st = {};
+            break;
+        default:
+            break;
+    }
+
+   // m_ic->streams[stream_index]->discard = AVDISCARD_ALL;
+    cerr << "end\t" <<__FUNCTION__ << "\tstream_index:\t" << stream_index << "\n";
 }
 
 void FFPlay::f_start() {
@@ -162,7 +276,7 @@ void FFPlay::read_thread() {
 
     ShareAVPacket_sp_type pkt;
     int err{},st_index[AVMEDIA_TYPE_NB]{};
-    std::fill_n(st_index, sizeof(st_index),-1);
+    std::fill_n(st_index,std::size(st_index),-1);
 
     try {
         pkt = new_ShareAVPacket(); //分配AVPacket
@@ -179,7 +293,7 @@ void FFPlay::read_thread() {
             throw std::runtime_error(errmsg);
         }
 
-        mq_msg_put(FFP_MSG_OPEN_INPUT); //发送媒体文件打开消息
+        //mq_msg_put(FFP_MSG_OPEN_INPUT); //发送媒体文件打开消息
         std::cerr << __FUNCTION__ << "\tFFP_MSG_OPEN_INPUT\n";
 
         if ((err = avformat_find_stream_info(m_ic, nullptr)) < 0) { //有些流无法在avformat_open_input直接被识别,通过avformat_find_stream_info函数进行读包识别
@@ -187,7 +301,7 @@ void FFPlay::read_thread() {
             throw std::runtime_error(errmsg);
         }
 
-        mq_msg_put(FFP_MSG_FIND_STREAM_INFO); //发送寻媒体流消息
+        //mq_msg_put(FFP_MSG_FIND_STREAM_INFO); //发送寻媒体流消息
         std::cerr << __FUNCTION__ << "\tFFP_MSG_COMPONENT_OPEN\n";
 
         st_index[AVMEDIA_TYPE_AUDIO] = av_find_best_stream(m_ic, AVMEDIA_TYPE_AUDIO,
@@ -206,14 +320,14 @@ void FFPlay::read_thread() {
             stream_component_open(st_index[AVMEDIA_TYPE_AUDIO]);
         }
 
-        mq_msg_put(FFP_MSG_COMPONENT_OPEN); //发送打开媒体流消息
+        //mq_msg_put(FFP_MSG_COMPONENT_OPEN); //发送打开媒体流消息
 
         if (m_video_stream < 0 && m_audio_stream < 0){ //音视频流都打开失败
             throw std::runtime_error("Failed to open file\n");
         }
 
-//        mq_msg_put(FFP_MSG_PREPARED);
-//        std::cerr << __FUNCTION__ << "\tFFP_MSG_PREPARED\n";
+        //mq_msg_put(FFP_MSG_PREPARED);
+        std::cerr << __FUNCTION__ << "\tFFP_MSG_PREPARED\n";
 
         while (!m_abort_request){
             sleep_for(100ms);
@@ -221,12 +335,12 @@ void FFPlay::read_thread() {
 
     } catch (const std::exception &e) {
         pkt.reset();
-        //avformat_close_input(&m_ic);
+        avformat_close_input(&m_ic);
         mq_msg_put(FFP_MSG_ERROR); //线程内出错,通知UI和IJKMediaPlay处理事件
         cerr << e.what() << "\n";
     }
 
-    cerr << __FUNCTION__  << "\tend\n" <<flush;
+    cerr << __FUNCTION__  << "\tend\n";
 }
 
 void FFPlay::video_refresh_thread() {

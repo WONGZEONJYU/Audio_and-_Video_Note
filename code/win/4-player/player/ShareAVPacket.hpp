@@ -15,12 +15,12 @@ struct ShareAVPacket final {
     ShareAVPacket& operator=(const ShareAVPacket&) = delete;
     static ShareAVPacket_sp_type create() noexcept(false);
     ~ShareAVPacket();
-    explicit operator AVPacket* (){return m_packet;}
-    AVPacket *operator->() {return m_packet;}
-    AVPacket operator*() {return *m_packet;}
+    explicit operator AVPacket* () const {return m_packet;}
+    AVPacket *operator->() const {return m_packet;}
+    AVPacket operator*() const {return *m_packet;}
 private:
     AVPacket *m_packet{};
-    explicit ShareAVPacket() noexcept(true);
+    ShareAVPacket() noexcept(true);
     void Construct() const noexcept(false);
     void DeConstruct() noexcept(true);
 };
