@@ -11,31 +11,38 @@
 #include "MessageQueue.hpp"
 #include "ff_ffplay_def.hpp"
 
-class FFPlay final : public MessageQueue {
+class FFPlay final : protected MessageQueue {
 
     explicit FFPlay() = default;
+    void construct() noexcept(false);
     void read_thread();
     void video_refresh_thread();
     void stream_open() noexcept(false);
-    void stream_component_open(const int&);
+    void stream_close() noexcept(true);
+    void stream_component_open(const int&) noexcept(false);
     void stream_component_close(const int&);
-
+    static int decode_interrupt_cb(void *);
     friend class std::shared_ptr<FFPlay> new_FFPlay() noexcept(false);
 public:
+    using MessageQueue::mq_start;
+    using MessageQueue::mq_msg_put;
+    using MessageQueue::mq_msg_get;
     ~FFPlay() override ;
     void prepare_async(const std::string &) noexcept(false);
-    void stream_close();
+
     void f_start();
     void f_stop();
+
 private:
     std::string m_url;
-    std::thread m_read_th;
-    std::thread m_video_refresh_th;
-    std::thread m_audio_th;
-    std::atomic_bool m_abort_request{};
-    std::atomic_bool m_eof{};
-    int m_audio_stream {-1},m_video_stream{-1};
-    int m_av_sync_type{};
+    std::thread m_read_th,m_video_refresh_th;
+//    std::thread m_decode_audio_th;
+    std::atomic_bool m_abort_request{},m_eof{},m_muted{};
+
+    int m_audio_stream {-1},m_video_stream{-1},
+    m_av_sync_type{AV_SYNC_AUDIO_MASTER},
+    m_startup_volume{100},
+    m_audio_volume{};
 
     Clock m_audclk{};                   // 音频时钟
     Clock m_vidclk{};                   // 视频时钟

@@ -38,25 +38,22 @@ int MessageQueue::mq_msg_put(AVMessage &&msg) noexcept(true) {
     return mq_put_helper(std::move(msg));
 }
 
-int MessageQueue::mq_msg_put(const AVMessage &msg) noexcept(true)
-{
-    AVMessage msg1(msg.m_what,msg.m_arg1,msg.m_arg2,msg.m_obj);
-    return mq_msg_put(std::move(msg1));
+int MessageQueue::mq_msg_put(const AVMessage &msg) noexcept(true) {
+    return mq_msg_put(AVMessage{msg.m_what,msg.m_arg1,msg.m_arg2,msg.m_obj});
 }
 
 int MessageQueue::mq_msg_put(const int &msg,
                           const int &arg1,
                           const int &arg2,
                           const char *obj,
-                          const size_t &obj_len) noexcept(false)
-{
+                          const size_t &obj_len) noexcept(false) {
     auto obj1{const_cast<char *>(obj)};
     if (obj && obj_len){
         obj1 = new char[obj_len]{};
         std::copy_n(obj,obj_len,obj1);
     }
-    AVMessage msg1(msg,arg1,arg2,obj1);
-    return mq_msg_put(std::move(msg1));
+
+    return mq_msg_put(AVMessage(msg,arg1,arg2,obj1));
 }
 
 int MessageQueue::mq_msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(true) {
@@ -107,8 +104,7 @@ AVMessage::AVMessage(AVMessage&& obj) noexcept {
     move_(std::move(obj));
 }
 
-AVMessage& AVMessage::operator=(AVMessage&& obj) noexcept
-{
+AVMessage& AVMessage::operator=(AVMessage&& obj) noexcept {
     if (this != &obj){
         move_(std::move(obj));
     }

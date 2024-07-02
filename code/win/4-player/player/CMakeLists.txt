@@ -61,6 +61,12 @@ add_executable(player main.cpp
         IjkMediaPlayer_State.h
         ff_ffplay_def.hpp
         ff_ffplay_def.cpp
+        ShareAVPacket.cpp
+        ShareAVPacket.hpp
+        ShareAVFrame.cpp
+        ShareAVFrame.hpp
+        AVHelper.h
+        AVHelper.cpp
 )
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)
