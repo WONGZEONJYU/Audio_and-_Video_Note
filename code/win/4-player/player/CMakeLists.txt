@@ -67,6 +67,8 @@ add_executable(player main.cpp
         ShareAVFrame.hpp
         AVHelper.h
         AVHelper.cpp
+        DecoderAbstract.cpp
+        DecoderAbstract.hpp
 )
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)

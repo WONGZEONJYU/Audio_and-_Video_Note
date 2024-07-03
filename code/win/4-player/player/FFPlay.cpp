@@ -18,7 +18,6 @@ int FFPlay::decode_interrupt_cb(void *_this)
 {
     static int64_t s_pre_time {};
     const auto cur_time  {av_gettime_relative() / 1000};
-    //fprintf(stderr,"decode_interrupt_cb interval: %lldms",cur_time-s_pre_time);
     //cerr << "decode_interrupt_cb interval:\t" << (cur_time - s_pre_time) << "\n";
     s_pre_time = cur_time;
     auto this_{static_cast<FFPlay*>(_this)};
@@ -105,10 +104,6 @@ void FFPlay::stream_close() noexcept(true)
         m_read_th.join();
     }
 
-//    if (m_decode_audio_th.joinable()){
-//        m_decode_audio_th.join();
-//    }
-
     if (m_video_stream >= 0){ //关闭视频流
         stream_component_close(m_video_stream);
     }
@@ -175,6 +170,8 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
                 sample_rate = av_codec_ctx->sample_rate;
                 nb_channels = av_codec_ctx->ch_layout.nb_channels;
                 channel_layout = av_codec_ctx->ch_layout;
+
+
 
                 //prepare audio output 准备音频输出
 
@@ -293,7 +290,7 @@ void FFPlay::read_thread() {
             throw std::runtime_error(errmsg);
         }
 
-        //mq_msg_put(FFP_MSG_OPEN_INPUT); //发送媒体文件打开消息
+        mq_msg_put(FFP_MSG_OPEN_INPUT); //发送媒体文件打开消息
         std::cerr << __FUNCTION__ << "\tFFP_MSG_OPEN_INPUT\n";
 
         if ((err = avformat_find_stream_info(m_ic, nullptr)) < 0) { //有些流无法在avformat_open_input直接被识别,通过avformat_find_stream_info函数进行读包识别
@@ -301,7 +298,7 @@ void FFPlay::read_thread() {
             throw std::runtime_error(errmsg);
         }
 
-        //mq_msg_put(FFP_MSG_FIND_STREAM_INFO); //发送寻媒体流消息
+        mq_msg_put(FFP_MSG_FIND_STREAM_INFO); //发送寻媒体流消息
         std::cerr << __FUNCTION__ << "\tFFP_MSG_COMPONENT_OPEN\n";
 
         st_index[AVMEDIA_TYPE_AUDIO] = av_find_best_stream(m_ic, AVMEDIA_TYPE_AUDIO,
@@ -320,13 +317,13 @@ void FFPlay::read_thread() {
             stream_component_open(st_index[AVMEDIA_TYPE_AUDIO]);
         }
 
-        //mq_msg_put(FFP_MSG_COMPONENT_OPEN); //发送打开媒体流消息
+        mq_msg_put(FFP_MSG_COMPONENT_OPEN); //发送打开媒体流消息
 
         if (m_video_stream < 0 && m_audio_stream < 0){ //音视频流都打开失败
             throw std::runtime_error("Failed to open file\n");
         }
 
-        //mq_msg_put(FFP_MSG_PREPARED);
+        mq_msg_put(FFP_MSG_PREPARED);
         std::cerr << __FUNCTION__ << "\tFFP_MSG_PREPARED\n";
 
         while (!m_abort_request){

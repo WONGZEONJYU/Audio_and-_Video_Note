@@ -23,6 +23,7 @@ class FFPlay final : protected MessageQueue {
     void stream_component_close(const int&);
     static int decode_interrupt_cb(void *);
     friend class std::shared_ptr<FFPlay> new_FFPlay() noexcept(false);
+
 public:
     using MessageQueue::mq_start;
     using MessageQueue::mq_msg_put;
@@ -60,6 +61,8 @@ private:
     AVStream *m_audio_st{};             // 音频流
 
     AVFormatContext *m_ic{};
+
+    AudioParams m_audio_src{},audio_filter_src{},audio_tgt{};
 
 public:
     FFPlay(const FFPlay&) = delete;

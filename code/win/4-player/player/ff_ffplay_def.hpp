@@ -120,6 +120,24 @@ struct FrameQueue {
     PacketQueue *pktq{};          // 数据包缓冲队列
 };
 
+/**
+ * 解码器封装
+ */
+struct Decoder {
+    AVPacket *pkt;
+    PacketQueue *queue;          // 数据包队列
+    AVCodecContext *avctx;       // 解码器上下文
+    int pkt_serial;             // 包序列
+    int finished;               // =0,解码器处于工作状态; =!0,解码器处于空闲状态
+    int packet_pending;         // =0,解码器处于异常状态,需要考虑重置解码器; =1,解码器处于正常状态
+    SDL_cond *empty_queue_cond; // 检查到packet队列空时发送 signal缓存read_thread读取数据
+    int64_t start_pts;          // 初始化时是stream的start time
+    AVRational start_pts_tb;    // 初始化时是stream的time_base
+    int64_t next_pts;           // 记录最近一次解码后的frame的pts,当解出来的部分帧没有有效的pts时则使用next_pts进行推算
+    AVRational next_pts_tb;     // next_pts的单位
+    SDL_Thread *decoder_tid;    // 线程句柄
+};
+
 /* packet queue handling */
 /*队列初始化*/
 int packet_queue_init(PacketQueue *q);
@@ -247,7 +265,5 @@ void init_clock(Clock *c, int *queue_serial);
  * @param slave
  */
 void sync_clock_to_slave(Clock *c, Clock *slave);
-
-
 
 #endif //PLAYER_FF_FFPLAY_DEF_HPP

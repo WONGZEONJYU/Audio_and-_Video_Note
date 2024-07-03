@@ -722,7 +722,7 @@ static int decoder_decode_frame(Decoder *d, AVFrame *frame, AVSubtitle *sub) {
             }
 
             av_packet_unref(d->pkt);
-        } while (1);
+        } while (true);
 
         if (d->avctx->codec_type == AVMEDIA_TYPE_SUBTITLE) { //字幕类型
             int got_frame = 0;
