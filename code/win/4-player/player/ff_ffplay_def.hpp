@@ -220,6 +220,10 @@ int frame_queue_nb_remaining(FrameQueue *f);
 //返回最后显示的位置
 int64_t frame_queue_last_pos(FrameQueue *f);
 
+/*
+ * frame_queue条件变量发送函数,用于线程间通讯
+ */
+void frame_queue_signal(FrameQueue *);
 /**
  * 获取到的实际上是:最后一帧的pts + 从处理最后一帧开始到现在的时间,具体参考set_clock_at和get_clock的代码
  * c->pts_drift = 最后一帧的pts - 从处理最后一帧时间

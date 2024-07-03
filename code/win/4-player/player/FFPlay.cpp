@@ -171,8 +171,6 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
                 nb_channels = av_codec_ctx->ch_layout.nb_channels;
                 channel_layout = av_codec_ctx->ch_layout;
 
-
-
                 //prepare audio output 准备音频输出
 
                 m_audio_stream = stream_index; //获取音频索引
@@ -185,7 +183,6 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
                 //允许音频输出
 
                 break;
-
             case AVMEDIA_TYPE_VIDEO:
                 m_video_stream = stream_index;
                 m_video_st = m_ic->streams[stream_index];
@@ -202,9 +199,8 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
         avcodec_free_context(&av_codec_ctx);
         throw e;
     }
-    //临时释放avcodec_free_context(&av_codec_ctx),此处用于测试,后续会交给封装的解码器销毁的时候释放
-    avcodec_free_context(&av_codec_ctx);
-
+    //临时释放avcodec_free_context(&av_codec_ctx),此处用于测试,后续会交给封装的解码器销毁的时候销毁
+    //avcodec_free_context(&av_codec_ctx);
     cerr << "end\t" <<__FUNCTION__ << "\tstream_index:\t" << stream_index << "\n";
 }
 

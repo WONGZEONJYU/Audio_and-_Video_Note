@@ -233,7 +233,7 @@ void frame_queue_destroy(FrameQueue *f)
 /*
  * frame_queue条件变量发送函数,用于线程间通讯
  */
-static void frame_queue_signal(FrameQueue *f)
+void frame_queue_signal(FrameQueue *f)
 {
     SDL_LockMutex(f->mutex);
     SDL_CondSignal(f->cond);

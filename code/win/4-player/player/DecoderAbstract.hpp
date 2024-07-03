@@ -13,28 +13,46 @@ class DecoderAbstract {
 
 public:
     using Cv_Any_Type = std::condition_variable_any;
-    DecoderAbstract(const DecoderAbstract&) = delete;
-    DecoderAbstract &operator=(const DecoderAbstract&) = delete;
-    DecoderAbstract(DecoderAbstract&&) = delete;
-    DecoderAbstract &operator=(DecoderAbstract&&) = delete;
+
+    void av_decoder_abort(FrameQueue &) noexcept(true);
+    void av_decoder_start(void *) noexcept(true);
 
 protected:
-    explicit DecoderAbstract(Cv_Any_Type &,PacketQueue &);
-    virtual void av_decode_thread(void *) = 0;
+    explicit DecoderAbstract(Cv_Any_Type &,PacketQueue &,AVCodecContext &);
+    virtual ~DecoderAbstract();
+    virtual void av_decoder_thread(void *) = 0;
     void Notify_All() noexcept(true);
     void Set_Pkt_Serial(const int &n){
         m_pkt_serial = n;
     };
 
-    [[nodiscard]] auto Pkt_Serial() const {return m_pkt_serial;}
+    [[nodiscard]] auto Pkt_Serial() const {
+        return m_pkt_serial;
+    }
+
+    void Set_Finished(const bool &b){
+        m_finished_ = b;
+    }
+    auto Finished() const {return m_finished_.load();}
+
+    auto AVCodecCtx() const {return m_avcodec_ctx;}
+
+    auto AV_Packet() const {return &m_pkt;}
 
 private:
     Cv_Any_Type& m_cv;
     PacketQueue &m_queue;
+    AVCodecContext *m_avcodec_ctx{};
     std::thread m_av_decode_thread;
     int m_pkt_serial{};
     std::atomic_bool m_finished_{};
+    AVPacket m_pkt{};
+
+public:
+    DecoderAbstract(const DecoderAbstract&) = delete;
+    DecoderAbstract &operator=(const DecoderAbstract&) = delete;
+    DecoderAbstract(DecoderAbstract&&) = delete;
+    DecoderAbstract &operator=(DecoderAbstract&&) = delete;
 };
 
-
-#endif //PLAYER_DECODERABSTRACT_HPP
+#endif
