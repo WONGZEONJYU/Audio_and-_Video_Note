@@ -11,6 +11,14 @@
 #include "IjkMediaPlayer.hpp"
 #include "ff_ffmsg.h"
 
+
+class FFMSG : public QEvent{
+    int m_msg{};
+public:
+    explicit FFMSG(const int&msg):QEvent{QEvent::User},m_msg{msg}{}
+    [[nodiscard]] auto msg() const {return m_msg;}
+};
+
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -86,6 +94,10 @@ void MainWindow::msg_loop(Args_type &&obj) {
                 m_IjkMediaPlayer->start();
                 qDebug() << __FUNCTION__ << "\tFFP_MSG_PREPARED";
                 break;
+            case FFP_MSG_ERROR:
+                qDebug() << __FUNCTION__ << "\tFFP_MSG_ERROR";
+                qApp->postEvent(this,new FFMSG(FFP_MSG_ERROR));
+                break;
             default:
                 qDebug() << __FUNCTION__ << "\tother_msg:\t" << what;
                 break;
@@ -96,4 +108,16 @@ void MainWindow::msg_loop(Args_type &&obj) {
 void MainWindow::closeEvent(QCloseEvent *event) {
     QWidget::closeEvent(event);
     OnStop();
+}
+
+bool MainWindow::event(QEvent *e) {
+
+    if (e->type() == QEvent::User){
+        auto msg{dynamic_cast<FFMSG*>(e)};
+        if (msg->msg() == FFP_MSG_ERROR) {
+            OnStop();
+        }
+    }
+
+    return QMainWindow::event( e);
 }

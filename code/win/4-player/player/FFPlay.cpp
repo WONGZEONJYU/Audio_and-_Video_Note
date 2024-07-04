@@ -151,7 +151,7 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
                                     string(AVHelper::av_get_err(err)));
         }
 
-        //设置解码器时间基准
+        //设置解码器时间基准,用流的基准作为时间基准
         av_codec_ctx->time_base = m_ic->streams[stream_index]->time_base;
 
         if(!(codec = avcodec_find_decoder(av_codec_ctx->codec_id))){

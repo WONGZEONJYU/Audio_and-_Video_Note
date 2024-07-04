@@ -27,7 +27,7 @@ Q_OBJECT
 
     void msg_loop(Args_type &&) override;
     void closeEvent(QCloseEvent *event) override;
-
+    bool event(QEvent *) override;
 public:
     ~MainWindow() override;
 private:
