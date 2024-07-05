@@ -4,6 +4,7 @@
 
 #include <QApplication>
 #include "mainwindow.hpp"
+#include "AVHelper.h"
 
 #undef main
 

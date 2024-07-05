@@ -39,18 +39,6 @@ protected:
         return m_finished_.load();
     }
 
-    [[nodiscard]] auto AVCodecCtx() const{
-        return m_avcodec_ctx;
-    }
-
-    [[nodiscard]] auto AV_Packet() const{
-        return &m_pkt;
-    }
-
-    [[nodiscard]] auto PktQueue() const{
-        return &m_queue;
-    }
-
 private:
     Cv_Any_Type& m_cv;
     PacketQueue &m_queue;

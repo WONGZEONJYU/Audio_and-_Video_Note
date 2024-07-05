@@ -88,5 +88,4 @@ int DecoderAbstract::decode_frame(AVFrame *frame) {
         }
         av_packet_unref(&m_pkt);
     }
-
 }

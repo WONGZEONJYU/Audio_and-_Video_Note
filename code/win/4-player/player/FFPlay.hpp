@@ -10,6 +10,8 @@
 #include <atomic>
 #include "MessageQueue.hpp"
 #include "ff_ffplay_def.hpp"
+#include "VideoDecoder.hpp"
+#include "AudioDecoder.hpp"
 
 class FFPlay final : protected MessageQueue {
 
@@ -33,10 +35,15 @@ public:
 
     void f_start();
     void f_stop();
-
+    [[nodiscard]] auto f_video_st() const{return m_video_st;}
+    [[nodiscard]] auto f_audio_st() const{return m_audio_st;}
+    [[nodiscard]] auto f_format_ctx() const {return m_ic;}
+    [[nodiscard]] auto f_pic_frame_q(){return &m_pictq;}
+    [[]] auto f_audio_frame_q() {return &m_sampq;}
 private:
     std::string m_url;
     std::thread m_read_th,m_video_refresh_th;
+    std::condition_variable_any m_cv;
 //    std::thread m_decode_audio_th;
     std::atomic_bool m_abort_request{},m_eof{},m_muted{};
 
@@ -52,6 +59,8 @@ private:
     FrameQueue m_pictq{};               // 视频Frame队列
     //FrameQueue m_subpq;                 // 字幕Frame队列
     FrameQueue m_sampq{};               // 采样Frame队列
+
+
     PacketQueue m_videoq{};             // 视频队列
     //PacketQueue m_subtitleq{};          // 字幕packet队列
     PacketQueue m_audioq{};             // 音频packet队列
@@ -63,6 +72,9 @@ private:
     AVFormatContext *m_ic{};
 
     AudioParams m_audio_src{},audio_filter_src{},audio_tgt{};
+
+    VideoDecoder_sptr m_v_decoder;
+    AudioDecoder_sptr m_a_decoder;
 
 public:
     FFPlay(const FFPlay&) = delete;

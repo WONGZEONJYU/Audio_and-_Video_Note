@@ -17,12 +17,13 @@ class VideoDecoder:public DecoderAbstract{
                       const double &,
                       const int64_t &,
                       const int &);
-public:
     explicit VideoDecoder(Cv_Any_Type &,PacketQueue &,AVCodecContext &);
-
+    friend class std::shared_ptr<VideoDecoder> new_VideoDecoder(std::condition_variable_any &,
+            PacketQueue &,
+            AVCodecContext &) noexcept(false);
 };
 
+using VideoDecoder_sptr = std::shared_ptr<VideoDecoder>;
+VideoDecoder_sptr new_VideoDecoder(std::condition_variable_any &,PacketQueue &,AVCodecContext &) noexcept(false);
 
-
-
-#endif //PLAYER_VIDEODECODER_HPP
+#endif

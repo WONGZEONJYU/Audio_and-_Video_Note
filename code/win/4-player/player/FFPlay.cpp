@@ -178,8 +178,11 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
 
                 //初始化ffplay封装的音频解码器,并将解码器上下文与Decodec绑定
                 //decoder_init(...)
+                m_a_decoder = new_AudioDecoder(m_cv,m_audioq,*av_codec_ctx);
                 //启动音频解码线程
                 //decoder_start(...)
+                m_a_decoder->av_decoder_start(this);
+
                 //允许音频输出
 
                 break;
@@ -188,8 +191,11 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
                 m_video_st = m_ic->streams[stream_index];
                 //初始化ffplay封装的视频解码器
                 //decode_init(...)
+                m_v_decoder = new_VideoDecoder(m_cv,m_videoq,*av_codec_ctx);
+
                 //启动视频解码线程
                 //decoder_start(...)
+                m_v_decoder->av_decoder_start(this);
                 break;
             default:
                 break;
@@ -217,6 +223,7 @@ void FFPlay::stream_component_close(const int &stream_index){
         case AVMEDIA_TYPE_AUDIO:
             cerr << __FUNCTION__ << "\tAVMEDIA_TYPE_AUDIO\n";
             //请求终止解码器线程
+            m_a_decoder->av_decoder_abort(m_sampq);
             //关闭音频设备
             //销毁解码器
             //释放从采样器
@@ -235,6 +242,7 @@ void FFPlay::stream_component_close(const int &stream_index){
         case AVMEDIA_TYPE_VIDEO:
             cerr << __FUNCTION__ << "\tAVMEDIA_TYPE_VIDEO\n";
             //decoder_abort(...)
+            m_v_decoder->av_decoder_abort(m_pictq);
             //decoder_destroy(...)
             //
             m_video_stream = -1;

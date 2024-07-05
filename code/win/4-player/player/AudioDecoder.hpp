@@ -20,5 +20,4 @@ using AudioDecoder_sptr = std::shared_ptr<AudioDecoder>;
 AudioDecoder_sptr new_AudioDecoder(std::condition_variable_any &,
                                    PacketQueue &,
                                    AVCodecContext &) noexcept(false);
-
 #endif

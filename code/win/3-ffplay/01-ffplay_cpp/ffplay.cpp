@@ -2719,13 +2719,13 @@ static int video_thread(void *arg)
     //double duration;
     int ret;
     AVRational tb = is->video_st->time_base; /*流的time_base*/
-    AVRational frame_rate = av_guess_frame_rate(is->ic, is->video_st, NULL); //猜测视频帧率
+    AVRational frame_rate = av_guess_frame_rate(is->ic, is->video_st, nullptr); //猜测视频帧率
 
-    AVFilterGraph *graph = NULL;
-    AVFilterContext *filt_out = NULL, *filt_in = NULL;
+    AVFilterGraph *graph{};
+    AVFilterContext *filt_out{},*filt_in {};
     int last_w = 0;
     int last_h = 0;
-    enum AVPixelFormat last_format = static_cast<AVPixelFormat>(-2);
+    auto last_format {static_cast<AVPixelFormat>(-2)};
     int last_serial = -1;
     int last_vfilter_idx = 0;
 
@@ -2820,7 +2820,7 @@ static int video_thread(void *arg)
 
             double _duration = (frame_rate.num && frame_rate.den ? av_q2d((AVRational){frame_rate.den, frame_rate.num}) : 0); /*计算帧间隔,如果分子或分母为0,先用0代替,播放的时候还会再算一次*/
 
-            pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : (double )frame->pts * av_q2d(tb); /*转成单位秒*/
+            pts = (frame->pts == AV_NOPTS_VALUE) ? NAN : static_cast<double >(frame->pts ) * av_q2d(tb); /*转成单位秒*/
             ret = queue_picture(is, frame, pts, _duration, fd ? fd->pkt_pos : -1, is->viddec.pkt_serial); //写入video_frame_queue
             av_frame_unref(frame); /*queue_picture 已经把frame mov_ref了*/
             if (is->videoq.serial != is->viddec.pkt_serial){
