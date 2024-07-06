@@ -3816,7 +3816,7 @@ static int read_thread(void *arg)
     for (i = 0; i < ic->nb_streams; i++) {
         AVStream *st = ic->streams[i];
         enum AVMediaType type = st->codecpar->codec_type;
-        st->discard = AVDISCARD_ALL;
+        st->discard = AVDISCARD_ALL; //在stream_component_open中会设置为 默认值= AVDISCARD_DEFAULT
         if (type >= 0 && wanted_stream_spec[type] && st_index[type] == -1){
             if (avformat_match_stream_specifier(ic, st, wanted_stream_spec[type]) > 0){
                 st_index[type] = i;
@@ -3826,7 +3826,7 @@ static int read_thread(void *arg)
 
     for (i = 0; i < AVMEDIA_TYPE_NB; i++) {
         if (wanted_stream_spec[i] && st_index[i] == -1) {
-            av_log(NULL, AV_LOG_ERROR, "Stream specifier %s does not match any %s stream\n", wanted_stream_spec[i], av_get_media_type_string(static_cast<AVMediaType>(i)));
+            av_log(nullptr, AV_LOG_ERROR, "Stream specifier %s does not match any %s stream\n", wanted_stream_spec[i], av_get_media_type_string(static_cast<AVMediaType>(i)));
             st_index[i] = INT_MAX;
         }
     }
