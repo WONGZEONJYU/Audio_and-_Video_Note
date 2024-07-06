@@ -8,19 +8,21 @@
 #include "AVHelper.h"
 
 AudioDecoder::AudioDecoder(DecoderAbstract::Cv_Any_Type &cv,
-                           PacketQueue &q,
+                           PacketQueue &pkt_q,
+                           FrameQueue &frame_q,
                            AVCodecContext &av_codec_ctx) :
-DecoderAbstract(cv,q,av_codec_ctx) {
+DecoderAbstract(cv,pkt_q,frame_q,av_codec_ctx) {
 
 }
 
 AudioDecoder_sptr new_AudioDecoder(std::condition_variable_any &cv,
-                                   PacketQueue &q,
+                                   PacketQueue &pkt_q,
+                                   FrameQueue &frame_q,
                                    AVCodecContext &av_codec_ctx) noexcept(false)
 {
     AudioDecoder_sptr obj;
     try {
-        obj.reset(new AudioDecoder(cv,q,av_codec_ctx));
+        obj.reset(new AudioDecoder(cv,pkt_q,frame_q,av_codec_ctx));
         return obj;
     } catch (const std::runtime_error &e) {
         obj.reset();
@@ -40,6 +42,7 @@ void AudioDecoder::av_decoder_thread(void *o) {
 
     try {
         frame = new_ShareAVFrame();
+        auto fq{frame_queue()};
         int ret{};
         Frame *af{};
         do {
@@ -48,7 +51,7 @@ void AudioDecoder::av_decoder_thread(void *o) {
                 throw std::runtime_error(std::string(__FUNCTION__ ) + " " + std::to_string(__LINE__) + " " + AVHelper::av_get_err(got_frame) + "\n");
             }
 
-            if (!(af = frame_queue_peek_writable(obj->f_audio_frame_q()))){
+            if (!(af = frame_queue_peek_writable(fq))){
                 throw std::runtime_error(std::string(__FUNCTION__ ) + " " + std::to_string(__LINE__) + " " + AVHelper::av_get_err(got_frame) + "\n");
             }
 
@@ -58,7 +61,7 @@ void AudioDecoder::av_decoder_thread(void *o) {
             af->duration = av_q2d({(*frame)->nb_samples, (*frame)->sample_rate});
 
             av_frame_move_ref(af->frame,*frame);
-            frame_queue_push(obj->f_audio_frame_q());
+            frame_queue_push(fq);
 
         } while (ret >= 0 || ret == AVERROR(EAGAIN) || ret == AVERROR_EOF);
 

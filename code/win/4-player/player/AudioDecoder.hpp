@@ -9,15 +9,17 @@
 
 class AudioDecoder : public DecoderAbstract {
 
-    explicit AudioDecoder(Cv_Any_Type &,PacketQueue &,AVCodecContext &);
+    explicit AudioDecoder(Cv_Any_Type &,PacketQueue &,FrameQueue &,AVCodecContext &);
     void av_decoder_thread(void *) override;
     friend class std::shared_ptr<AudioDecoder> new_AudioDecoder(std::condition_variable_any &
             ,PacketQueue &,
+            FrameQueue &,
             AVCodecContext &) noexcept(false);
 };
 
 using AudioDecoder_sptr = std::shared_ptr<AudioDecoder>;
 AudioDecoder_sptr new_AudioDecoder(std::condition_variable_any &,
                                    PacketQueue &,
+                                   FrameQueue &,
                                    AVCodecContext &) noexcept(false);
 #endif

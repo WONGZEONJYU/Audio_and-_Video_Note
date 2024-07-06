@@ -14,11 +14,11 @@ class DecoderAbstract {
 public:
     using Cv_Any_Type = std::condition_variable_any;
 
-    void av_decoder_abort(FrameQueue &) noexcept(true);
+    void av_decoder_abort() noexcept(true);
     void av_decoder_start(void *) noexcept(true);
 
 protected:
-    explicit DecoderAbstract(Cv_Any_Type &,PacketQueue &,AVCodecContext &);
+    explicit DecoderAbstract(Cv_Any_Type &,PacketQueue &,FrameQueue &,AVCodecContext &);
     virtual ~DecoderAbstract();
     virtual void av_decoder_thread(void *) = 0;
     void Notify_All() noexcept(true);
@@ -39,9 +39,14 @@ protected:
         return m_finished_.load();
     }
 
+    [[nodiscard]] auto frame_queue(){
+        return &m_frame_queue;
+    }
+
 private:
     Cv_Any_Type& m_cv;
-    PacketQueue &m_queue;
+    PacketQueue &m_pkt_queue;
+    FrameQueue &m_frame_queue;
     AVCodecContext *m_avcodec_ctx{};
     std::thread m_av_decode_thread;
     int m_pkt_serial{};

@@ -38,13 +38,11 @@ public:
     [[nodiscard]] auto f_video_st() const{return m_video_st;}
     [[nodiscard]] auto f_audio_st() const{return m_audio_st;}
     [[nodiscard]] auto f_format_ctx() const {return m_ic;}
-    [[nodiscard]] auto f_pic_frame_q(){return &m_pictq;}
-    [[]] auto f_audio_frame_q() {return &m_sampq;}
+
 private:
     std::string m_url;
     std::thread m_read_th,m_video_refresh_th;
     std::condition_variable_any m_cv;
-//    std::thread m_decode_audio_th;
     std::atomic_bool m_abort_request{},m_eof{},m_muted{};
 
     int m_audio_stream {-1},m_video_stream{-1},

@@ -7,9 +7,11 @@
 #include "ShareAVFrame.hpp"
 #include "AVHelper.h"
 
-VideoDecoder::VideoDecoder(DecoderAbstract::Cv_Any_Type &cv, PacketQueue &q, AVCodecContext &av_codec_ctx) :
-                            DecoderAbstract(cv,q,av_codec_ctx){
-
+VideoDecoder::VideoDecoder(DecoderAbstract::Cv_Any_Type &cv,
+                           PacketQueue &pkt_q,
+                           FrameQueue &frame_q,
+                           AVCodecContext &av_codec_ctx) :
+                            DecoderAbstract(cv,pkt_q,frame_q,av_codec_ctx){
 }
 
 int VideoDecoder::get_video_frame(AVFrame *frame) {
@@ -51,10 +53,14 @@ int VideoDecoder::get_video_frame(AVFrame *frame) {
     return got_picture;
 }
 
-int VideoDecoder::queue_picture(FrameQueue *fq, AVFrame *src_frame,const double &pts,const double &_duration,const int64_t &pos,const int &serial) {
+int VideoDecoder::queue_picture(AVFrame *src_frame,
+                                const double &pts,
+                                const double &_duration,
+                                const int64_t &pos,
+                                const int &serial) {
 
     Frame *vp{};
-
+    auto fq{frame_queue()};
     if (!(vp = frame_queue_peek_writable(fq))) { /*检查队列是否有空间可写,有空间则返回一个可写的自定义的Frame*/
         return -1;
     }
@@ -108,7 +114,7 @@ void VideoDecoder::av_decoder_thread(void *o) {
 
             const auto pts{AV_NOPTS_VALUE == pts_? NAN : pts_ * av_q2d(tb)};
 
-            ret = queue_picture(obj->f_pic_frame_q(),*frame,pts,duration_,pos,serial);
+            ret = queue_picture(*frame,pts,duration_,pos,serial);
             if (ret < 0){
                 throw std::runtime_error(std::string(__FUNCTION__ ) + " " + std::to_string(__LINE__) + " " + AVHelper::av_get_err(ret) + "\n");
             }
@@ -122,11 +128,14 @@ void VideoDecoder::av_decoder_thread(void *o) {
     std::cerr << __FUNCTION__ << "end\n";
 }
 
-VideoDecoder_sptr new_VideoDecoder(std::condition_variable_any &cv,PacketQueue &q,AVCodecContext &av_codec_ctx) noexcept(false)
+VideoDecoder_sptr new_VideoDecoder(std::condition_variable_any &cv,
+                                   PacketQueue &pkt_q,
+                                   FrameQueue &frame_q,
+                                   AVCodecContext &av_codec_ctx) noexcept(false)
 {
     VideoDecoder_sptr obj;
     try {
-        obj.reset(new VideoDecoder(cv,q,av_codec_ctx));
+        obj.reset(new VideoDecoder(cv,pkt_q,frame_q,av_codec_ctx));
         return obj;
     } catch (const std::runtime_error &e) {
         obj.reset();

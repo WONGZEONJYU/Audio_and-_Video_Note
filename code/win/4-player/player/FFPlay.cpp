@@ -178,7 +178,7 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
 
                 //初始化ffplay封装的音频解码器,并将解码器上下文与Decodec绑定
                 //decoder_init(...)
-                m_a_decoder = new_AudioDecoder(m_cv,m_audioq,*av_codec_ctx);
+                m_a_decoder = new_AudioDecoder(m_cv,m_audioq,m_sampq,*av_codec_ctx);
                 //启动音频解码线程
                 //decoder_start(...)
                 m_a_decoder->av_decoder_start(this);
@@ -191,7 +191,7 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
                 m_video_st = m_ic->streams[stream_index];
                 //初始化ffplay封装的视频解码器
                 //decode_init(...)
-                m_v_decoder = new_VideoDecoder(m_cv,m_videoq,*av_codec_ctx);
+                m_v_decoder = new_VideoDecoder(m_cv,m_videoq,m_pictq,*av_codec_ctx);
 
                 //启动视频解码线程
                 //decoder_start(...)

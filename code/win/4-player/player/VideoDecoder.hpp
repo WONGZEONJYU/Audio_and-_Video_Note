@@ -11,19 +11,19 @@ class VideoDecoder:public DecoderAbstract{
 
     void av_decoder_thread(void *) override;
     int get_video_frame(AVFrame *);
-    static int queue_picture(FrameQueue *,
-                      AVFrame*,
+    int queue_picture(AVFrame*,
                       const double &,
                       const double &,
                       const int64_t &,
                       const int &);
-    explicit VideoDecoder(Cv_Any_Type &,PacketQueue &,AVCodecContext &);
+    explicit VideoDecoder(Cv_Any_Type &,PacketQueue &,FrameQueue &,AVCodecContext &);
     friend class std::shared_ptr<VideoDecoder> new_VideoDecoder(std::condition_variable_any &,
             PacketQueue &,
+             FrameQueue &,
             AVCodecContext &) noexcept(false);
 };
 
 using VideoDecoder_sptr = std::shared_ptr<VideoDecoder>;
-VideoDecoder_sptr new_VideoDecoder(std::condition_variable_any &,PacketQueue &,AVCodecContext &) noexcept(false);
+VideoDecoder_sptr new_VideoDecoder(std::condition_variable_any &,PacketQueue &,FrameQueue &,AVCodecContext &) noexcept(false);
 
 #endif
