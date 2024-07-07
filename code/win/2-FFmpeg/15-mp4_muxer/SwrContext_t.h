@@ -45,8 +45,6 @@ public:
                                   const int &log_offset = 0,
                                   void *log_ctx  = nullptr) noexcept(false);
 
-    SwrContext_t(const SwrContext_t&) = delete;
-    SwrContext_t& operator=(const SwrContext_t&) = delete;
     ~SwrContext_t();
     void init() const noexcept(false);
 
@@ -67,6 +65,10 @@ public:
 
 private:
     SwrContext* m_swr_ctx{};
+
+public:
+    SwrContext_t(const SwrContext_t&) = delete;
+    SwrContext_t& operator=(const SwrContext_t&) = delete;
 };
 
 using SwrContext_sp_type = typename SwrContext_t::SwrContext_sp_t;

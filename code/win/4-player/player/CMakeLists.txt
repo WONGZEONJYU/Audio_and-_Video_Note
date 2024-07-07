@@ -25,8 +25,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
-
-
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 find_package(Qt6 COMPONENTS
         Core
@@ -50,29 +49,31 @@ add_executable(player main.cpp
         displaybox.cpp
         displaybox.hpp
         displaybox.ui
-        MessageQueue.cpp
-        MessageQueue.hpp
-        IjkMediaPlayer.cpp
-        IjkMediaPlayer.hpp
-        MessageAbstract.hpp
-        FFPlay.cpp
-        FFPlay.hpp
-        ff_ffmsg.h
-        IjkMediaPlayer_State.h
-        ff_ffplay_def.hpp
-        ff_ffplay_def.cpp
-        ShareAVPacket.cpp
-        ShareAVPacket.hpp
-        ShareAVFrame.cpp
-        ShareAVFrame.hpp
-        AVHelper.h
-        AVHelper.cpp
-        DecoderAbstract.cpp
-        DecoderAbstract.hpp
-        VideoDecoder.cpp
-        VideoDecoder.hpp
-        AudioDecoder.cpp
-        AudioDecoder.hpp
+        src/MessageQueue.cpp
+        src/MessageQueue.hpp
+        src/IjkMediaPlayer.cpp
+        src/IjkMediaPlayer.hpp
+        src/MessageAbstract.hpp
+        src/FFPlay.cpp
+        src/FFPlay.hpp
+        src/ff_ffmsg.h
+        src/IjkMediaPlayer_State.h
+        src/ff_ffplay_def.hpp
+        src/ff_ffplay_def.cpp
+        src/ShareAVPacket.cpp
+        src/ShareAVPacket.hpp
+        src/ShareAVFrame.cpp
+        src/ShareAVFrame.hpp
+        src/AVHelper.h
+        src/AVHelper.cpp
+        src/DecoderAbstract.cpp
+        src/DecoderAbstract.hpp
+        src/VideoDecoder.cpp
+        src/VideoDecoder.hpp
+        src/AudioDecoder.cpp
+        src/AudioDecoder.hpp
+        src/SwrContext_t.cpp
+        src/SwrContext_t.hpp
 )
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)

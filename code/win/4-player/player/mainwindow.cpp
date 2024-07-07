@@ -9,7 +9,7 @@
 #include <memory>
 #include "ui_MainWindow.h"
 #include "IjkMediaPlayer.hpp"
-#include "ff_ffmsg.h"
+#include "src/ff_ffmsg.h"
 
 
 class FFMSG : public QEvent{
@@ -58,7 +58,7 @@ void MainWindow::OnPlayOrPause() {
     } else{ //m_IjkMediaPlayer还没创建,则创建
         try {
             m_IjkMediaPlayer = new_IjkMediaPlayer(*this);
-            m_IjkMediaPlayer->set_data_source("2_audio_track_5s.mp4");
+            m_IjkMediaPlayer->set_data_source("2_audio.mp4");
             m_IjkMediaPlayer->prepare_async();
         } catch (const std::exception &e) {
             qDebug() << e.what();

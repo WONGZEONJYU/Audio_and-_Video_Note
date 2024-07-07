@@ -3172,7 +3172,7 @@ static void sdl_audio_callback(void *opaque, Uint8 *stream, int len)
                is->audio_buf_size = SDL_AUDIO_MIN_BUFFER_SIZE / is->audio_tgt.frame_size * is->audio_tgt.frame_size;
            } else {
                if (is->show_mode != VideoState ::SHOW_MODE_VIDEO)
-                   update_sample_display(is, (int16_t *)is->audio_buf, audio_size);
+                   update_sample_display(is, reinterpret_cast<int16_t *>(is->audio_buf), audio_size);
                is->audio_buf_size = audio_size; /*读到多少字节数据*/
            }
            is->audio_buf_index = 0;
@@ -3185,13 +3185,13 @@ static void sdl_audio_callback(void *opaque, Uint8 *stream, int len)
         //根据audio_volume决定如何输出audio_buf
         /* 判断是否为静音,以及当前音量的大小,如果音量为最大则直接拷贝数据 */
         if (!is->muted && is->audio_buf && is->audio_volume == SDL_MIX_MAXVOLUME){
-            memcpy(stream, (uint8_t *)is->audio_buf + is->audio_buf_index, len1);
+            memcpy(stream, static_cast<uint8_t *>(is->audio_buf) + is->audio_buf_index, len1);
         }else {
             memset(stream, 0, len1);
             // 3.调整音量
             /* 如果处于mute状态则直接使用stream填0数据, 暂停时is->audio_buf = NULL */
             if (!is->muted && is->audio_buf){
-                SDL_MixAudioFormat(stream, (uint8_t *)is->audio_buf + is->audio_buf_index, AUDIO_S16SYS, len1, is->audio_volume);
+                SDL_MixAudioFormat(stream, static_cast<uint8_t *>(is->audio_buf) + is->audio_buf_index, AUDIO_S16SYS, len1, is->audio_volume);
             }
         }
         len -= len1;
@@ -3288,10 +3288,10 @@ static int audio_open(void *opaque, AVChannelLayout *wanted_channel_layout, int 
     // 2) 音频设备打开后播放静音,不启动回调,调用SDL_PauseAudio(0)后启动回调,开始正常播放音频
     // SDL_OpenAudioDevice()第一个参数为NULL时,等价于SDL_OpenAudio()
 
-    while (!(audio_dev = SDL_OpenAudioDevice(NULL, 0, &wanted_spec,
+    while (!(audio_dev = SDL_OpenAudioDevice(nullptr, 0, &wanted_spec,
                                              &spec, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE))) {
         //打开设备出错,不是马上退出,而是更换参数继续测试,不过一般不会进入到这个循环体
-        av_log(NULL, AV_LOG_WARNING, "SDL_OpenAudio (%d channels, %d Hz): %s\n",
+        av_log(nullptr, AV_LOG_WARNING, "SDL_OpenAudio (%d channels, %d Hz): %s\n",
                wanted_spec.channels, wanted_spec.freq, SDL_GetError());
 
         wanted_spec.channels = next_nb_channels[FFMIN(7, wanted_spec.channels)];
@@ -3302,7 +3302,7 @@ static int audio_open(void *opaque, AVChannelLayout *wanted_channel_layout, int 
             wanted_spec.channels = wanted_nb_channels;
 
             if (!wanted_spec.freq) {
-                av_log(NULL, AV_LOG_ERROR,
+                av_log(nullptr, AV_LOG_ERROR,
                        "No more combinations to try, audio open failed\n");
                 return -1;
             }
@@ -3311,7 +3311,7 @@ static int audio_open(void *opaque, AVChannelLayout *wanted_channel_layout, int 
     }
 
     if (spec.format != AUDIO_S16SYS) {
-        av_log(NULL, AV_LOG_ERROR,
+        av_log(nullptr, AV_LOG_ERROR,
                "SDL advised audio format %d is not supported!\n", spec.format);
         return -1;
     }
@@ -3320,7 +3320,7 @@ static int audio_open(void *opaque, AVChannelLayout *wanted_channel_layout, int 
         av_channel_layout_uninit(wanted_channel_layout);
         av_channel_layout_default(wanted_channel_layout, spec.channels);
         if (wanted_channel_layout->order != AV_CHANNEL_ORDER_NATIVE) {
-            av_log(NULL, AV_LOG_ERROR,
+            av_log(nullptr, AV_LOG_ERROR,
                    "SDL advised channel count %d is not supported!\n", spec.channels);
             return -1;
         }
@@ -3333,12 +3333,12 @@ static int audio_open(void *opaque, AVChannelLayout *wanted_channel_layout, int 
         return -1;
     }
     /*计算一个采样点占用多少个字节*/
-    audio_hw_params->frame_size = av_samples_get_buffer_size(NULL, audio_hw_params->ch_layout.nb_channels, 1, audio_hw_params->fmt, 1);
+    audio_hw_params->frame_size = av_samples_get_buffer_size(nullptr, audio_hw_params->ch_layout.nb_channels, 1, audio_hw_params->fmt, 1);
     /*通过采样法计算每一秒需要多少个字节去填充*/
-    audio_hw_params->bytes_per_sec = av_samples_get_buffer_size(NULL, audio_hw_params->ch_layout.nb_channels, audio_hw_params->freq, audio_hw_params->fmt, 1);
+    audio_hw_params->bytes_per_sec = av_samples_get_buffer_size(nullptr, audio_hw_params->ch_layout.nb_channels, audio_hw_params->freq, audio_hw_params->fmt, 1);
 
     if (audio_hw_params->bytes_per_sec <= 0 || audio_hw_params->frame_size <= 0) {
-        av_log(NULL, AV_LOG_ERROR, "av_samples_get_buffer_size failed\n");
+        av_log(nullptr, AV_LOG_ERROR, "av_samples_get_buffer_size failed\n");
         return -1;
     }
 
@@ -3351,28 +3351,33 @@ static int create_hwaccel(AVBufferRef **device_ctx)
     int ret;
     AVBufferRef *vk_dev;
 
-    *device_ctx = NULL;
+    *device_ctx = nullptr;
 
-    if (!hwaccel)
+    if (!hwaccel){
         return 0;
+    }
 
     type = av_hwdevice_find_type_by_name(hwaccel);
-    if (type == AV_HWDEVICE_TYPE_NONE)
+    if (type == AV_HWDEVICE_TYPE_NONE){
         return AVERROR(ENOTSUP);
+    }
 
     ret = vk_renderer_get_hw_dev(vk_renderer, &vk_dev);
-    if (ret < 0)
+    if (ret < 0){
         return ret;
+    }
 
     ret = av_hwdevice_ctx_create_derived(device_ctx, type, vk_dev, 0);
-    if (!ret)
+    if (!ret){
         return 0;
+    }
 
-    if (ret != AVERROR(ENOSYS))
+    if (ret != AVERROR(ENOSYS)){
         return ret;
+    }
 
-    av_log(NULL, AV_LOG_WARNING, "Derive %s from vulkan not supported.\n", hwaccel);
-    ret = av_hwdevice_ctx_create(device_ctx, type, NULL, NULL, 0);
+    av_log(nullptr, AV_LOG_WARNING, "Derive %s from vulkan not supported.\n", hwaccel);
+    ret = av_hwdevice_ctx_create(device_ctx, type, nullptr, nullptr, 0);
     return ret;
 }
 

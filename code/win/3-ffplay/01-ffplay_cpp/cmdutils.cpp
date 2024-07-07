@@ -278,13 +278,14 @@ static int write_option(void *optctx, const OptionDef *po, const char *opt,
     }
 
     if (po->flags & OPT_FLAG_SPEC) {
-        char *p = strchr(opt, ':');
-        char *str;
+        const char *p = strchr(opt, ':');
+        char *str{};
 
         sol = static_cast<decltype(sol)>(dst);
         ret = GROW_ARRAY(sol->opt, sol->nb_opt);
-        if (ret < 0)
+        if (ret < 0){
             goto finish;
+        }
 
         str = av_strdup(p ? p + 1 : "");
         if (!str) {
