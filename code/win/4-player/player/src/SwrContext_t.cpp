@@ -95,7 +95,7 @@ void SwrContext_t::init() const noexcept(false){
 }
 
 int SwrContext_t::convert(uint8_t **out,const int &out_count,
-    const uint8_t **in, const int &in_count) const noexcept(false) {
+    const uint8_t * const *in, const int &in_count) const noexcept(false) {
 
     auto ret {swr_convert(m_swr_ctx,out,out_count,in,in_count)};
     if (ret < 0){
@@ -177,6 +177,14 @@ int64_t SwrContext_t::get_delay(const int64_t& base) const noexcept(true)
     return swr_get_delay(m_swr_ctx,base);
 }
 
+int SwrContext_t::set_compensation(const int &sample_delta,const int &compensation_distance) const noexcept(false){
+    const auto ret {swr_set_compensation(m_swr_ctx,sample_delta,compensation_distance)};
+    if (ret < 0){
+        throw std::runtime_error( FUNCTION_NAME  + "\t" + AVHelper::av_get_err(ret) + "\n");
+    }
+    return ret;
+}
+
 void SwrContext_t::DeConstruct() noexcept(true)
 {
     swr_free(&m_swr_ctx);
@@ -185,7 +193,6 @@ void SwrContext_t::DeConstruct() noexcept(true)
 SwrContext_t::~SwrContext_t(){
     DeConstruct();
 }
-
 
 SwrContext_sp_type new_SwrContext_t() noexcept(false){
     return SwrContext_t::create();

@@ -3021,7 +3021,7 @@ static int audio_decode_frame(VideoState *is)
     } while (af->serial != is->audioq.serial);
 
     //根据frame中指定的音频参数获取缓冲区的大小 af->frame->channels * af->frame->nb_samples * frame->format_size
-    int data_size = av_samples_get_buffer_size(NULL, af->frame->ch_layout.nb_channels,
+    int data_size = av_samples_get_buffer_size(nullptr, af->frame->ch_layout.nb_channels,
                                            af->frame->nb_samples,
                                            static_cast<AVSampleFormat>(af->frame->format), 1);
 
@@ -3049,11 +3049,11 @@ static int audio_decode_frame(VideoState *is)
                             &af->frame->ch_layout,
                             static_cast<AVSampleFormat>(af->frame->format),
                             af->frame->sample_rate,
-                            0, NULL); //分配新重采样器
+                            0, nullptr); //分配新重采样器
 
         if (ret < 0 || swr_init(is->swr_ctx) < 0) {
 
-            av_log(NULL, AV_LOG_ERROR,
+            av_log(nullptr, AV_LOG_ERROR,
                    "Cannot create sample rate converter for conversion of %d Hz %s %d channels to %d Hz %s %d channels!\n",
                     af->frame->sample_rate, av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->frame->format)), af->frame->ch_layout.nb_channels,
                     is->audio_tgt.freq, av_get_sample_fmt_name(is->audio_tgt.fmt), is->audio_tgt.ch_layout.nb_channels);
@@ -3073,21 +3073,26 @@ static int audio_decode_frame(VideoState *is)
     }
 
     if (is->swr_ctx) {
-        const uint8_t **in = (const uint8_t **)af->frame->extended_data;
-        uint8_t **out = &is->audio_buf1;
+        //const uint8_t **in = (const uint8_t **)af->frame->extended_data;
+        auto in {af->frame->extended_data};
+        auto out { &is->audio_buf1};
         int out_count = (int64_t)wanted_nb_samples * is->audio_tgt.freq / af->frame->sample_rate + 256; /*计算输出的sample个数*/
-        int out_size  = av_samples_get_buffer_size(NULL, is->audio_tgt.ch_layout.nb_channels, out_count, is->audio_tgt.fmt, 0);
+        int out_size  = av_samples_get_buffer_size(nullptr,
+                                                   is->audio_tgt.ch_layout.nb_channels,
+                                                   out_count,
+                                                   is->audio_tgt.fmt, 0);
 
         if (out_size < 0) {
-            av_log(NULL, AV_LOG_ERROR, "av_samples_get_buffer_size() failed\n");
+            av_log(nullptr, AV_LOG_ERROR, "av_samples_get_buffer_size() failed\n");
             return -1;
         }
 
         if (wanted_nb_samples != af->frame->nb_samples) {
-            if (swr_set_compensation(is->swr_ctx, (wanted_nb_samples - af->frame->nb_samples) * is->audio_tgt.freq / af->frame->sample_rate,
-                                        wanted_nb_samples * is->audio_tgt.freq / af->frame->sample_rate) < 0) { //延时补偿
+            if (swr_set_compensation(is->swr_ctx,
+                            (wanted_nb_samples - af->frame->nb_samples) * is->audio_tgt.freq / af->frame->sample_rate,
+                    wanted_nb_samples * is->audio_tgt.freq / af->frame->sample_rate) < 0) { //延时补偿
 
-                av_log(NULL, AV_LOG_ERROR, "swr_set_compensation() failed\n");
+                av_log(nullptr, AV_LOG_ERROR, "swr_set_compensation() failed\n");
                 return -1;
             }
         }
@@ -3101,12 +3106,12 @@ static int audio_decode_frame(VideoState *is)
         int len2 = swr_convert(is->swr_ctx, out, out_count, in, af->frame->nb_samples);
 
         if (len2 < 0) {
-            av_log(NULL, AV_LOG_ERROR, "swr_convert() failed\n");
+            av_log(nullptr, AV_LOG_ERROR, "swr_convert() failed\n");
             return -1;
         }
 
         if (len2 == out_count) {
-            av_log(NULL, AV_LOG_WARNING, "audio buffer is probably too small\n");
+            av_log(nullptr, AV_LOG_WARNING, "audio buffer is probably too small\n");
             if (swr_init(is->swr_ctx) < 0) {
                 swr_free(&is->swr_ctx);
             }
@@ -3114,6 +3119,7 @@ static int audio_decode_frame(VideoState *is)
 
         is->audio_buf = is->audio_buf1;//is->audio_buf指向重采样后的数据
         resampled_data_size = len2 * is->audio_tgt.ch_layout.nb_channels * av_get_bytes_per_sample(is->audio_tgt.fmt);
+        //auto test_size {av_samples_get_buffer_size(nullptr,is->audio_tgt.ch_layout.nb_channels,len2,is->audio_tgt.fmt,1)};
 /******************************************************************重采样有关****************************************************************************************/
     } else { //此处是不需重采样的处理
         is->audio_buf = af->frame->data[0];

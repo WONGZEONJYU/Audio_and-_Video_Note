@@ -29,7 +29,7 @@ class FFPlay final : protected MessageQueue {
     void stream_component_close(const int&);
     uint32_t audio_open(AVChannelLayout ,int ,int ,AudioParams*) noexcept(false);
     //void audio_close();
-    int audio_decode_frame();
+    int audio_decode_frame() noexcept(true);
 
 public:
     using MessageQueue::mq_start;
@@ -84,7 +84,7 @@ private:
     int m_audio_hw_size{}, //SDL音频缓冲区的大小(字节为单位)
         m_audio_buf_index{}; //用于更新SDL回调函数拷贝位置,当前音频帧中已拷入SDL音频缓冲区
     uint8_t *m_audio_buf{}, //指向待重采样待数据
-            m_audio_buf1{}; //指向重采样后的数据
+            *m_audio_buf1{}; //指向重采样后的数据
     uint32_t m_audio_buf_size{}, //m_audio_buf指向的内存大小(待播放待一帧音频数据的大小)
             m_audio_buf_size1{}; //m_audio_buf1指向的内存大小(申请到的音频缓冲区)
 

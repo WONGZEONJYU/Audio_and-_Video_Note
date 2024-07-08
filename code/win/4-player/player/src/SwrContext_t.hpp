@@ -50,7 +50,7 @@ public:
 
     int convert (uint8_t **out,
                     const int &out_count,
-                    const uint8_t **in,
+                    const uint8_t * const *in,
                     const int &in_count ) const noexcept(false);
 
     void set_input_ch_layout(const AVChannelLayout *) const noexcept(false);
@@ -62,6 +62,8 @@ public:
     void set_output_sample_rate(const int64_t &) const noexcept(false);
 
     [[nodiscard]] int64_t get_delay(const int64_t& ) const noexcept(true);
+    [[nodiscard]] int set_compensation(const int &sample_delta,
+                                       const int &compensation_distance) const noexcept(false);
 
 private:
     SwrContext* m_swr_ctx{};
