@@ -62,8 +62,8 @@ public:
     void set_output_sample_rate(const int64_t &) const noexcept(false);
 
     [[nodiscard]] int64_t get_delay(const int64_t& ) const noexcept(true);
-    [[nodiscard]] int set_compensation(const int &sample_delta,
-                                       const int &compensation_distance) const noexcept(false);
+    void set_compensation(const int &sample_delta,
+                           const int &compensation_distance) const noexcept(false);
 
 private:
     SwrContext* m_swr_ctx{};

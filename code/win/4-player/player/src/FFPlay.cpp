@@ -166,13 +166,12 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
     cerr << "begin\t" <<__FUNCTION__ << "\tstream_index:\t" << stream_index << "\n";
 
     AVCodecContext *av_codec_ctx{};
-    const AVCodec *codec{};
-    int sample_rate{},nb_channels{};
-    AVChannelLayout channel_layout{};
-    int err{};
+    const AVCodec *codec;
+    int sample_rate,nb_channels;
+    AVChannelLayout channel_layout;
+    int err;
 
     try {
-
         if (stream_index < 0 || stream_index >= m_ic->nb_streams){
             cerr << __FUNCTION__ << "\twaring stream_index error\n";
             return;
@@ -361,6 +360,7 @@ int FFPlay::audio_decode_frame() noexcept(true) {
                                                     static_cast<AVSampleFormat>(af->frame->format), 1)};
 
     const auto wanted_nb_samples{af->frame->nb_samples};
+    //这里其实应该是一个视频作为主时钟同步音频的,不过大多数情况都是音频作为主时钟去同步视频
 
     //通道布局 采样格式 采样率不同 则进行重采样
     //为什么是与m_audio_src而不是与m_audio_tgt比较,原因如下
@@ -401,7 +401,8 @@ int FFPlay::audio_decode_frame() noexcept(true) {
         }
     }
 
-    int resampled_data_size{};
+    int resampled_data_size;
+
     if (m_swr_ctx) {
 
         const auto *const *in{af->frame->extended_data};
@@ -410,15 +411,27 @@ int FFPlay::audio_decode_frame() noexcept(true) {
         // in_count / in_sample_rate = out_count / out_sample_rate;
         //out_count是样本数量,并非是一帧的大小
         // + 256的目的是重采样内部是有一定的缓存,就存在上一次的重采样缓存数据和这一次重采样一起输出的情况,多出来的目的是为了分配大点的输出buffer
-        const auto out_count{wanted_nb_samples * m_audio_tgt.freq / af->frame->sample_rate + 256};
-        const auto out_size{av_samples_get_buffer_size(nullptr,
-                                                       m_audio_tgt.ch_layout.nb_channels,
-                                                       out_count,
-                                                       m_audio_tgt.fmt,
-                                                       1)};
+        const auto out_count_ {wanted_nb_samples * m_audio_tgt.freq / af->frame->sample_rate},
+                    out_count{out_count_ + 256},
+                    out_size{av_samples_get_buffer_size(nullptr,
+                                       m_audio_tgt.ch_layout.nb_channels,
+                                       out_count,
+                                       m_audio_tgt.fmt,1)};
+
         if (out_size < 0) {
             std::cerr << "av_samples_get_buffer_size() failed\n";
             return -1;
+        }
+
+        if (wanted_nb_samples != af->frame->nb_samples){ //音频被同步后样本数可能会发生变化,通过swr_set_compensation进行调整
+            //本函数没有实现和调用调整音频采样个数的函数,此处判断一般不生效
+            try {
+                m_swr_ctx->set_compensation((wanted_nb_samples - af->frame->nb_samples) * m_audio_tgt.freq / af->frame->sample_rate,
+                                            out_count_);
+            } catch (const exception &e) {
+                cerr << __FUNCTION__ << " " << __LINE__ << ": " << e.what() << "\n";
+                return -1;
+            }
         }
 
         av_fast_mallocz(&m_audio_buf1, &m_audio_buf_size1, out_size);
@@ -428,21 +441,31 @@ int FFPlay::audio_decode_frame() noexcept(true) {
             return AVERROR(ENOMEM);
         }
 
+        int len2;
         try {
-            const auto len2 = m_swr_ctx->convert(out, out_count, in, af->frame->nb_samples);
-
-            m_audio_buf = m_audio_buf1;
-            resampled_data_size = av_samples_get_buffer_size(nullptr,
-                                                             m_audio_tgt.ch_layout.nb_channels,
-                                                             len2,
-                                                             m_audio_tgt.fmt,
-                                                             1);
-            //resampled_data_size = len2 * m_audio_tgt.ch_layout.nb_channels * av_get_bytes_per_sample(m_audio_tgt.fmt);
-
+            len2 = m_swr_ctx->convert(out, out_count, in, af->frame->nb_samples);
         } catch (const exception &e) {
             cerr << e.what() << "\n";
             return -1;
         }
+
+        if (out_count == len2){
+            cerr << "audio buffer is probably too small\n";
+            try {
+                m_swr_ctx->init();
+            } catch (const exception &e) {
+                cerr << __FUNCTION__ << " " << __LINE__ << ": " << e.what() << "\n";
+                m_swr_ctx.reset();
+            }
+        }
+
+        m_audio_buf = m_audio_buf1;
+        resampled_data_size = av_samples_get_buffer_size(nullptr,
+                                                         m_audio_tgt.ch_layout.nb_channels,
+                                                         len2,
+                                                         m_audio_tgt.fmt,
+                                                         1);
+        //resampled_data_size = len2 * m_audio_tgt.ch_layout.nb_channels * av_get_bytes_per_sample(m_audio_tgt.fmt);
 
     } else { //此处是不需重采样的处理
         m_audio_buf = af->frame->data[0];
@@ -528,9 +551,9 @@ void FFPlay::read_thread() {
         mq_msg_put(FFP_MSG_PREPARED);
         std::cerr << __FUNCTION__ << "\tFFP_MSG_PREPARED\n";
 
-        int ret{};
+        //int ret;
         while (!m_abort_request){
-            ret = av_read_frame(m_ic,*pkt); //不会释放pkt的数据,需要我们自己释放packet的数据
+            auto ret{av_read_frame(m_ic, *pkt)}; //不会释放pkt的数据,需要我们自己释放packet的数据
             if (ret < 0){ //出错或者读取完毕
                 if (AVERROR_EOF == ret || avio_feof(m_ic->pb) && !m_eof){
                     m_eof = true;
@@ -549,7 +572,6 @@ void FFPlay::read_thread() {
             } else{
                 av_packet_unref(*pkt); //不入队则直接释放数据
             }
-
         }
 
     } catch (const std::exception &e) {

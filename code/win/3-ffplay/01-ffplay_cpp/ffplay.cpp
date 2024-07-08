@@ -3090,7 +3090,7 @@ static int audio_decode_frame(VideoState *is)
         if (wanted_nb_samples != af->frame->nb_samples) {
             if (swr_set_compensation(is->swr_ctx,
                             (wanted_nb_samples - af->frame->nb_samples) * is->audio_tgt.freq / af->frame->sample_rate,
-                    wanted_nb_samples * is->audio_tgt.freq / af->frame->sample_rate) < 0) { //延时补偿
+                    wanted_nb_samples * is->audio_tgt.freq / af->frame->sample_rate) < 0) { //音视频同步后样本数可能会发生变化,通过swr_set_compensation进行调整
 
                 av_log(nullptr, AV_LOG_ERROR, "swr_set_compensation() failed\n");
                 return -1;
