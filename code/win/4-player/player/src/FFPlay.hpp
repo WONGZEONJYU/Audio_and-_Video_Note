@@ -86,7 +86,7 @@ private:
     uint8_t *m_audio_buf{}, //指向待重采样待数据
             *m_audio_buf1{}; //指向重采样后的数据
     uint32_t m_audio_buf_size{}, //m_audio_buf指向的内存大小(待播放待一帧音频数据的大小)
-            m_audio_buf_size1{}; //m_audio_buf1指向的内存大小(申请到的音频缓冲区)
+            m_audio_buf1_size{}; //m_audio_buf1指向的内存大小(申请到的音频缓冲区)
 
 public:
     FFPlay(const FFPlay&) = delete;

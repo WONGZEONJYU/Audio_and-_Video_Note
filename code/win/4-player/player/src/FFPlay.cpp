@@ -274,11 +274,12 @@ void FFPlay::stream_component_close(const int &stream_index){
             //decoder_destroy(...)
             //swr_free(...)
             //av_freep(...)
-            av_freep(m_audio_buf1);
+            av_freep(&m_audio_buf1);
             //audio_buf1_size = 0
+            //m_audio_buf1_size = 0;
             //audio_buf = nullptr
-            m_audio_stream = -1;
-            m_audio_st = {};
+            //m_audio_stream = -1;
+            //m_audio_st = {};
 
             break;
         case AVMEDIA_TYPE_VIDEO:
@@ -287,8 +288,8 @@ void FFPlay::stream_component_close(const int &stream_index){
             m_v_decoder->av_decoder_abort();
             //decoder_destroy(...)
             //
-            m_video_stream = -1;
-            m_video_st = {};
+            //m_video_stream = -1;
+            //m_video_st = {};
             break;
         default:
             break;
@@ -434,7 +435,7 @@ int FFPlay::audio_decode_frame() noexcept(true) {
             }
         }
 
-        av_fast_mallocz(&m_audio_buf1, &m_audio_buf_size1, out_size);
+        av_fast_mallocz(&m_audio_buf1, &m_audio_buf1_size, out_size);
 
         if (!m_audio_buf1) {
             cerr << "av_fast_mallocz failed: " << AVHelper::av_get_err(AVERROR(ENOMEM)) << "\n";
