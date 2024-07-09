@@ -44,14 +44,16 @@ void AudioDecoder::av_decoder_thread(void *o) {
         frame = new_ShareAVFrame();
         auto fq{frame_queue()};
         int ret{};
-        Frame *af{};
+        //Frame *af{};
+
         do {
             auto got_frame {decode_frame(*frame)};
             if (got_frame < 0){
                 throw std::runtime_error(std::string(__FUNCTION__ ) + " " + std::to_string(__LINE__) + " " + AVHelper::av_get_err(got_frame) + "\n");
             }
 
-            if (!(af = frame_queue_peek_writable(fq))){
+            auto af {frame_queue_peek_writable(fq)};
+            if (!af){
                 throw std::runtime_error(std::string(__FUNCTION__ ) + " " + std::to_string(__LINE__) + " " + AVHelper::av_get_err(got_frame) + "\n");
             }
 
@@ -59,8 +61,8 @@ void AudioDecoder::av_decoder_thread(void *o) {
             const auto pts {(*frame)->pts};
             af->pts = (AV_NOPTS_VALUE == pts) ? NAN : static_cast<double>(pts) * av_q2d(tb); //通过采样率转换成秒
             af->duration = av_q2d({(*frame)->nb_samples, (*frame)->sample_rate});
-
             av_frame_move_ref(af->frame,*frame);
+
             frame_queue_push(fq);
 
         } while (ret >= 0 || ret == AVERROR(EAGAIN) || ret == AVERROR_EOF);
