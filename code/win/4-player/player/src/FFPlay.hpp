@@ -27,8 +27,7 @@ class FFPlay final : protected MessageQueue {
     void stream_close() noexcept(true);
     void stream_component_open(const int&) noexcept(false);
     void stream_component_close(const int&);
-    uint32_t audio_open(AVChannelLayout ,int ,int ,AudioParams*) noexcept(false);
-    //void audio_close();
+    uint32_t audio_open(const AVChannelLayout &,const int &,const int &,AudioParams &) noexcept(false);
     int audio_decode_frame() noexcept(true);
 
 public:

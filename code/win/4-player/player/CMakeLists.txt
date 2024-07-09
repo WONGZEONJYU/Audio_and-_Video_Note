@@ -74,6 +74,8 @@ add_executable(player main.cpp
         src/AudioDecoder.hpp
         src/SwrContext_t.cpp
         src/SwrContext_t.hpp
+        src/FFPlay_th.cpp
+        src/FFPlay_cb.cpp
 )
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)

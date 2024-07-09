@@ -3,7 +3,7 @@
 //
 
 #include "FFPlay.hpp"
-#include "ff_ffmsg.h"
+//#include "ff_ffmsg.h"
 #include <iostream>
 #include <algorithm>
 
@@ -14,51 +14,6 @@
 using namespace std;
 using namespace chrono;
 using namespace this_thread;
-
-int FFPlay::decode_interrupt_cb(void *_this)
-{
-    static int64_t s_pre_time {};
-    const auto cur_time  {av_gettime_relative() / 1000};
-    //cerr << "decode_interrupt_cb interval:\t" << (cur_time - s_pre_time) << "\n";
-    s_pre_time = cur_time;
-    auto this_{static_cast<FFPlay*>(_this)};
-    return this_->m_abort_request;
-}
-
-void FFPlay::sdl_audio_callback(void *opaque, Uint8 *stream, int len)
-{
-    auto this_{static_cast<FFPlay*>(opaque)};
-
-    while (len > 0){
-        if (this_->m_audio_buf_index >= this_->m_audio_buf_size) { //此处代表上一次剩余数据已经被拷贝完毕,需重获取新数据
-            const auto audio_size {this_->audio_decode_frame()};
-            if (audio_size < 0){
-                this_->m_audio_buf = nullptr;
-                this_->m_audio_buf_size = SDL_AUDIO_MIN_BUFFER_SIZE / this_->m_audio_tgt.frame_size * this_->m_audio_tgt.frame_size;
-
-            } else{
-                this_->m_audio_buf_size = audio_size; /*读到多少字节数据*/
-            }
-
-            this_->m_audio_buf_index = 0;
-        }
-
-        auto len1{this_->m_audio_buf_size - this_->m_audio_buf_index};
-
-        if (len1 > len){ //超出缓冲区给的长度,先拷贝缓冲区给出的长度
-            len1 = len;
-        }
-
-        if (this_->m_audio_buf){
-            std::copy_n(this_->m_audio_buf + this_->m_audio_buf_index,len1,stream);
-        }
-
-        len -= static_cast<int>(len1); //读取了多少数据,len要减去相应的长度
-        stream += len1; //stream也需偏移
-        /* 更新m_audio_buf_index,指向audio_buf中未被拷贝到stream的数据(剩余数据)的起始位置 */
-        this_->m_audio_buf_index += static_cast<int>(len1);
-    }
-}
 
 void FFPlay::prepare_async(const std::string &url) noexcept(false){
     if (url.empty()){
@@ -148,8 +103,6 @@ void FFPlay::stream_close() noexcept(true)
         stream_component_close(m_audio_stream);
     }
 
-    SDL_CloseAudio();
-
     //关闭解复用器avformat_close_input(...)
     avformat_close_input(&m_ic);
 
@@ -166,10 +119,6 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
     cerr << "begin\t" <<__FUNCTION__ << "\tstream_index:\t" << stream_index << "\n";
 
     AVCodecContext *av_codec_ctx{};
-    const AVCodec *codec;
-    int sample_rate,nb_channels;
-    AVChannelLayout channel_layout;
-    int err;
 
     try {
         if (stream_index < 0 || stream_index >= m_ic->nb_streams){
@@ -181,8 +130,8 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
             //分配解码器上下文
             throw std::runtime_error("avcodec_alloc_context3 failed");
         }
-
-        if ((err = avcodec_parameters_to_context(av_codec_ctx,m_ic->streams[stream_index]->codecpar)) < 0){
+        auto err{avcodec_parameters_to_context(av_codec_ctx,m_ic->streams[stream_index]->codecpar)};
+        if (err < 0){
             //拷贝流的编解码器器信息参数到解码器里
             throw std::runtime_error("avcodec_parameters_to_context failed:\t" +
                                     string(AVHelper::av_get_err(err)));
@@ -191,7 +140,9 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
         //设置解码器时间基准,用流的基准作为时间基准
         av_codec_ctx->time_base = m_ic->streams[stream_index]->time_base;
 
-        if(!(codec = avcodec_find_decoder(av_codec_ctx->codec_id))){
+        auto codec{avcodec_find_decoder(av_codec_ctx->codec_id)};
+
+        if(!codec){
             //通过id查找解码器
             throw std::runtime_error("no decoder could be found for codec:\t" +
                                     string(avcodec_get_name(av_codec_ctx->codec_id)));
@@ -202,15 +153,19 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
         }
 
         switch (av_codec_ctx->codec_type){
-            case AVMEDIA_TYPE_AUDIO:
+            case AVMEDIA_TYPE_AUDIO:{
                 //从解码器上下文中获取音频格式参数
-                sample_rate = av_codec_ctx->sample_rate;
-                nb_channels = av_codec_ctx->ch_layout.nb_channels;
-                channel_layout = av_codec_ctx->ch_layout;
+
+                const auto sample_rate{av_codec_ctx->sample_rate};
+                const auto nb_channels{av_codec_ctx->ch_layout.nb_channels};
+                const auto channel_layout{av_codec_ctx->ch_layout};
 
                 //prepare audio output 准备音频输出
                 //调用audio_open打开sdl音频输出,实际打开的设备参数保存在audio_tgt,返回值表示输出设备的缓冲区大小
-                m_audio_hw_size = static_cast<int>(audio_open(channel_layout,nb_channels,sample_rate,&m_audio_tgt));
+                m_audio_hw_size = static_cast<int>(audio_open(channel_layout,
+                                                              nb_channels,
+                                                              sample_rate,
+                                                              m_audio_tgt));
                 //暂且将数据源参数等同于目标输出参数
                 m_audio_src = m_audio_tgt;
 
@@ -227,17 +182,19 @@ void FFPlay::stream_component_open(const int &stream_index) noexcept(false) {
                 //允许音频输出
                 SDL_PauseAudio(0);
                 break;
-            case AVMEDIA_TYPE_VIDEO:
+            }
+            case AVMEDIA_TYPE_VIDEO: {
                 m_video_stream = stream_index;
                 m_video_st = m_ic->streams[stream_index];
                 //初始化ffplay封装的视频解码器
                 //decode_init(...)
-                m_v_decoder = new_VideoDecoder(m_cv,m_videoq,m_pictq,*av_codec_ctx);
+                m_v_decoder = new_VideoDecoder(m_cv, m_videoq, m_pictq, *av_codec_ctx);
 
                 //启动视频解码线程
                 //decoder_start(...)
                 m_v_decoder->av_decoder_start(this);
                 break;
+            }
             default:
                 break;
         }
@@ -266,6 +223,7 @@ void FFPlay::stream_component_close(const int &stream_index){
             //请求终止解码器线程
             m_a_decoder->av_decoder_abort();
             //关闭音频设备
+            SDL_CloseAudio();
             //销毁解码器
             //释放从采样器
             //释放audio buf
@@ -299,10 +257,10 @@ void FFPlay::stream_component_close(const int &stream_index){
     cerr << "end\t" <<__FUNCTION__ << "\tstream_index:\t" << stream_index << "\n";
 }
 
-uint32_t FFPlay::audio_open(AVChannelLayout wanted_ch_layout,
-                        int wanted_nb_channels,
-                        int wanted_sample_rate,
-                        AudioParams *audio_hw_params) noexcept(false) {
+uint32_t FFPlay::audio_open(const AVChannelLayout &wanted_ch_layout,
+                            const int &wanted_nb_channels,
+                            const int &wanted_sample_rate,
+                            AudioParams &audio_hw_params) noexcept(false) {
 
     SDL_AudioSpec wanted_spec{
         .freq = wanted_sample_rate,
@@ -320,34 +278,30 @@ uint32_t FFPlay::audio_open(AVChannelLayout wanted_ch_layout,
         throw std::runtime_error(errmsg);
     }
 
-    audio_hw_params->fmt  = AV_SAMPLE_FMT_S16;
-    audio_hw_params->freq = wanted_sample_rate;
-    audio_hw_params->ch_layout = wanted_ch_layout;
-    audio_hw_params->channels = wanted_ch_layout.nb_channels;
+    audio_hw_params.fmt  = AV_SAMPLE_FMT_S16;
+    audio_hw_params.freq = wanted_sample_rate;
+    audio_hw_params.ch_layout = wanted_ch_layout;
+    audio_hw_params.channels = wanted_ch_layout.nb_channels;
     /*计算一个采样点占用多少个字节*/
-    audio_hw_params->frame_size = av_samples_get_buffer_size(nullptr,
-                                                             audio_hw_params->channels,
+    audio_hw_params.frame_size = av_samples_get_buffer_size(nullptr,
+                                                             audio_hw_params.channels,
                                                              1,
-                                                             audio_hw_params->fmt,
+                                                             audio_hw_params.fmt,
                                                              1);
     /*通过采样法计算每一秒需要多少个字节去填充*/
-    audio_hw_params->bytes_per_sec = av_samples_get_buffer_size(nullptr,
-                                                                audio_hw_params->channels,
-                                                                audio_hw_params->freq,
-                                                                audio_hw_params->fmt,
+    audio_hw_params.bytes_per_sec = av_samples_get_buffer_size(nullptr,
+                                                                audio_hw_params.channels,
+                                                                audio_hw_params.freq,
+                                                                audio_hw_params.fmt,
                                                                 1);
 
-    if (audio_hw_params->frame_size <= 0 || audio_hw_params->bytes_per_sec <= 0){
+    if (audio_hw_params.frame_size <= 0 || audio_hw_params.bytes_per_sec <= 0){
         const auto errmsg(string("av_samples_get_buffer_size failed"));
         throw std::runtime_error(errmsg);
     }
 
     return wanted_spec.size;
 }
-
-//void FFPlay::audio_close() {
-//    SDL_CloseAudio();
-//}
 
 int FFPlay::audio_decode_frame() noexcept(true) {
 
@@ -442,15 +396,15 @@ int FFPlay::audio_decode_frame() noexcept(true) {
             return AVERROR(ENOMEM);
         }
 
-        int len2;
+        int real_nb_samples;
         try {
-            len2 = m_swr_ctx->convert(out, out_count, in, af->frame->nb_samples);
+            real_nb_samples = m_swr_ctx->convert(out, out_count, in, af->frame->nb_samples);
         } catch (const exception &e) {
             cerr << e.what() << "\n";
             return -1;
         }
 
-        if (out_count == len2){
+        if (out_count == real_nb_samples){ //这里的意思是我已经多分配了buffer,实际输出的样本数不应该超过我多分配的数量
             cerr << "audio buffer is probably too small\n";
             try {
                 m_swr_ctx->init();
@@ -463,10 +417,10 @@ int FFPlay::audio_decode_frame() noexcept(true) {
         m_audio_buf = m_audio_buf1;
         resampled_data_size = av_samples_get_buffer_size(nullptr,
                                                          m_audio_tgt.ch_layout.nb_channels,
-                                                         len2,
+                                                         real_nb_samples,
                                                          m_audio_tgt.fmt,
                                                          1);
-        //resampled_data_size = len2 * m_audio_tgt.ch_layout.nb_channels * av_get_bytes_per_sample(m_audio_tgt.fmt);
+        //resampled_data_size = real_nb_samples * m_audio_tgt.ch_layout.nb_channels * av_get_bytes_per_sample(m_audio_tgt.fmt);
 
     } else { //此处是不需重采样的处理
         m_audio_buf = af->frame->data[0];
@@ -489,114 +443,14 @@ void FFPlay::f_stop(){
 }
 
 FFPlay::~FFPlay(){
-    cerr << __FUNCTION__ << "\n";
     stream_close();
-}
-
-void FFPlay::read_thread() {
-
-    cerr << __FUNCTION__ << "\tbegin\n";
-
-    ShareAVPacket_sp_type pkt;
-    int err,st_index[AVMEDIA_TYPE_NB]{};
-    std::fill_n(st_index,std::size(st_index),-1);
-
-    try {
-        pkt = new_ShareAVPacket(); //分配AVPacket
-
-        if (!(m_ic = avformat_alloc_context())){ //创建avformat上下文
-            throw std::runtime_error(string(__FUNCTION__) + "\tCould not allocate context.\n");
-        }
-
-        m_ic->interrupt_callback.callback = decode_interrupt_cb; //用于在读取媒体文件阻塞的时候,退出阻塞
-        m_ic->interrupt_callback.opaque = this;
-
-        if ((err = avformat_open_input(&m_ic,m_url.c_str(), nullptr, nullptr)) < 0){ //打开avformat
-            const auto errmsg(string (__FUNCTION__)+ "\t" + AVHelper::av_get_err(err));
-            throw std::runtime_error(errmsg);
-        }
-
-        mq_msg_put(FFP_MSG_OPEN_INPUT); //发送媒体文件打开消息
-        std::cerr << __FUNCTION__ << "\tFFP_MSG_OPEN_INPUT\n";
-
-        if ((err = avformat_find_stream_info(m_ic, nullptr)) < 0) { //有些流无法在avformat_open_input直接被识别,通过avformat_find_stream_info函数进行读包识别
-            const auto errmsg(string(__FUNCTION__ ) + "\t" + AVHelper::av_get_err(err));
-            throw std::runtime_error(errmsg);
-        }
-
-        mq_msg_put(FFP_MSG_FIND_STREAM_INFO); //发送寻媒体流消息
-        std::cerr << __FUNCTION__ << "\tFFP_MSG_COMPONENT_OPEN\n";
-
-        st_index[AVMEDIA_TYPE_AUDIO] = av_find_best_stream(m_ic, AVMEDIA_TYPE_AUDIO,
-                                                           st_index[AVMEDIA_TYPE_AUDIO],-1,nullptr,0);
-        //读取音频流index
-
-        st_index[AVMEDIA_TYPE_VIDEO] = av_find_best_stream(m_ic, AVMEDIA_TYPE_VIDEO,
-                                                           st_index[AVMEDIA_TYPE_VIDEO],-1,nullptr,0);
-        //读取视频流index
-
-        if (st_index[AVMEDIA_TYPE_VIDEO] >= 0){ //打开视频流
-            stream_component_open(st_index[AVMEDIA_TYPE_VIDEO]);
-        }
-
-        if (st_index[AVMEDIA_TYPE_AUDIO] >= 0){ //打开音频流
-            stream_component_open(st_index[AVMEDIA_TYPE_AUDIO]);
-        }
-
-        mq_msg_put(FFP_MSG_COMPONENT_OPEN); //发送打开媒体流消息
-
-        if (m_video_stream < 0 && m_audio_stream < 0){ //音视频流都打开失败
-            throw std::runtime_error("Failed to open file\n");
-        }
-
-        mq_msg_put(FFP_MSG_PREPARED);
-        std::cerr << __FUNCTION__ << "\tFFP_MSG_PREPARED\n";
-
-        //int ret;
-        while (!m_abort_request){
-            auto ret{av_read_frame(m_ic, *pkt)}; //不会释放pkt的数据,需要我们自己释放packet的数据
-            if (ret < 0){ //出错或者读取完毕
-                if (AVERROR_EOF == ret || avio_feof(m_ic->pb) && !m_eof){
-                    m_eof = true;
-                }
-                if (m_ic->pb && m_ic->pb->error){ //io异常
-                    break;
-                }
-                sleep_for(10ms); //休眠以下,主要
-                continue;
-            } else{
-                m_eof = false;
-            }
-
-            if (m_audio_stream == (*pkt)->stream_index) {
-                packet_queue_put(&m_audioq,*pkt); //音频插入队列
-            } else{
-                av_packet_unref(*pkt); //不入队则直接释放数据
-            }
-        }
-
-    } catch (const std::exception &e) {
-        pkt.reset();
-        avformat_close_input(&m_ic);
-        mq_msg_put(FFP_MSG_ERROR); //线程内出错,通知UI和IJKMediaPlay处理事件
-        cerr << e.what() << "\n";
-    }
-
-    cerr << __FUNCTION__  << "\tend\n";
-}
-
-void FFPlay::video_refresh_thread() {
-    cerr << __FUNCTION__ << "\tbegin\n";
-    while (!m_abort_request){
-        sleep_for(10ms);
-    }
-    cerr << __FUNCTION__  << "\tend\n" <<flush;
 }
 
 FFPlay_sptr new_FFPlay() noexcept(false) {
     FFPlay_sptr obj;
     try {
         obj.reset(new FFPlay());
+        obj->construct();
         return obj;
     } catch (const std::runtime_error &e ) {
         obj.reset();

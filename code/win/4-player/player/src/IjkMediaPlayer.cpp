@@ -43,11 +43,8 @@ void IjkMediaPlayer::prepare_async() noexcept(false)
 
         m_ff->prepare_async(m_data_source);
 
-    } catch (const std::runtime_error &e) {
-        m_mp_state = MP_STATE_ERROR;
-        lock.unlock();
-        throw e;
     } catch (const std::exception &e) {
+        m_mp_state = MP_STATE_ERROR;
         lock.unlock();
         throw e;
     }
