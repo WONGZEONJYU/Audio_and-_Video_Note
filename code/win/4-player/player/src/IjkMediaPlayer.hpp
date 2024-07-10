@@ -15,11 +15,10 @@
 #include "FFPlay.hpp"
 
 class IjkMediaPlayer final {
-
+    friend class std::shared_ptr<IjkMediaPlayer> new_IjkMediaPlayer(MessageAbstract<IjkMediaPlayer*> &);
     explicit IjkMediaPlayer(MessageAbstract<IjkMediaPlayer*> &);
     void construct() noexcept(false);
 public:
-    using IjkMediaPlayer_sptr = std::shared_ptr<IjkMediaPlayer>;
 
     ~IjkMediaPlayer();
     void start();
@@ -27,6 +26,8 @@ public:
     void set_data_source(std::string &&) noexcept(false);
     void prepare_async() noexcept(false);
     int get_msg(AVMessage_Sptr &,const bool & = true);
+    void Add_VideoRefreshCallback(std::function<int(const Frame &)> &&) noexcept(true);
+
 private:
     MessageAbstract<IjkMediaPlayer*> &m_msg_loop;
     std::thread m_msg_thread;
@@ -38,7 +39,7 @@ private:
 public:
     IjkMediaPlayer(const IjkMediaPlayer&) = delete;
     IjkMediaPlayer& operator=(const IjkMediaPlayer&) = delete;
-    friend class std::shared_ptr<IjkMediaPlayer> new_IjkMediaPlayer(MessageAbstract<IjkMediaPlayer*> &);
+
 };
 
 using IjkMediaPlayer_sptr = std::shared_ptr<IjkMediaPlayer>;

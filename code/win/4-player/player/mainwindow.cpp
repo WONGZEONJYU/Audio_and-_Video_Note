@@ -5,12 +5,10 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_MainWindow.h" resolved
 
 #include "mainwindow.hpp"
-
 #include <memory>
 #include "ui_MainWindow.h"
 #include "IjkMediaPlayer.hpp"
 #include "src/ff_ffmsg.h"
-
 
 class FFMSG : public QEvent{
     int m_msg{};
@@ -58,8 +56,13 @@ void MainWindow::OnPlayOrPause() {
     } else{ //m_IjkMediaPlayer还没创建,则创建
         try {
             m_IjkMediaPlayer = new_IjkMediaPlayer(*this);
+            m_IjkMediaPlayer->Add_VideoRefreshCallback(
+                    [this](auto && vp) {
+                        return OutputVideo(std::forward<decltype(vp)>(vp));
+                    });
             m_IjkMediaPlayer->set_data_source("2_audio.mp4");
             m_IjkMediaPlayer->prepare_async();
+
         } catch (const std::exception &e) {
             qDebug() << e.what();
             m_IjkMediaPlayer.reset();
@@ -103,6 +106,11 @@ void MainWindow::msg_loop(Args_type &&obj) {
                 break;
         }
     }
+}
+
+int MainWindow::OutputVideo(const Frame &vp)
+{
+
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {

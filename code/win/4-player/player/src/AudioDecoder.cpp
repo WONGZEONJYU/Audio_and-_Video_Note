@@ -44,7 +44,6 @@ void AudioDecoder::av_decoder_thread(void *o) {
         frame = new_ShareAVFrame();
         auto fq{frame_queue()};
         int ret{};
-        //Frame *af{};
 
         do {
             auto got_frame {decode_frame(*frame)};
@@ -52,7 +51,7 @@ void AudioDecoder::av_decoder_thread(void *o) {
                 throw std::runtime_error(std::string(__FUNCTION__ ) + " " + std::to_string(__LINE__) + " " + AVHelper::av_get_err(got_frame) + "\n");
             }
 
-            auto af {frame_queue_peek_writable(fq)};
+            auto af{frame_queue_peek_writable(fq)};
             if (!af){
                 throw std::runtime_error(std::string(__FUNCTION__ ) + " " + std::to_string(__LINE__) + " " + AVHelper::av_get_err(got_frame) + "\n");
             }

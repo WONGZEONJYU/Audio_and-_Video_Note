@@ -3,10 +3,7 @@
 //
 
 #include "FFPlay.hpp"
-//#include "ff_ffmsg.h"
 #include <iostream>
-#include <algorithm>
-
 #include <SDL.h>
 #include "ShareAVPacket.hpp"
 #include "AVHelper.h"
@@ -27,6 +24,10 @@ void FFPlay::prepare_async(const std::string &url) noexcept(false){
 void FFPlay::construct() noexcept(false)
 {
 
+}
+
+void FFPlay::Add_VideoRefreshCallback(std::function<int(const Frame &)> && f) noexcept(true){
+    m_video_refresh_callback = std::move(f);
 }
 
 void FFPlay::stream_open() noexcept(false){
@@ -430,6 +431,22 @@ int FFPlay::audio_decode_frame() noexcept(true) {
     frame_queue_next(&m_sampq);
 
     return resampled_data_size;
+}
+
+void FFPlay::video_refresh(double &remaining_time) {
+
+    if (m_video_st){
+        if (!frame_queue_nb_remaining(&m_pictq)){
+            return;
+        }
+        auto vp{frame_queue_peek(&m_pictq)};
+
+        if (m_video_refresh_callback){
+            m_video_refresh_callback(*vp);
+        }
+
+        frame_queue_next(&m_pictq);
+    }
 }
 
 void FFPlay::f_start() {

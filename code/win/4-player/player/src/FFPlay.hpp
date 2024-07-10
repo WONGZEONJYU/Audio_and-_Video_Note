@@ -8,6 +8,7 @@
 #include <string>
 #include <thread>
 #include <atomic>
+#include <functional>
 #include "MessageQueue.hpp"
 #include "ff_ffplay_def.hpp"
 #include "VideoDecoder.hpp"
@@ -29,7 +30,7 @@ class FFPlay final : protected MessageQueue {
     void stream_component_close(const int&);
     uint32_t audio_open(const AVChannelLayout &,const int &,const int &,AudioParams &) noexcept(false);
     int audio_decode_frame() noexcept(true);
-
+    void video_refresh(double &);
 public:
     using MessageQueue::mq_start;
     using MessageQueue::mq_msg_put;
@@ -42,6 +43,8 @@ public:
     [[nodiscard]] auto f_video_st() const{return m_video_st;}
     [[nodiscard]] auto f_audio_st() const{return m_audio_st;}
     [[nodiscard]] auto f_format_ctx() const {return m_ic;}
+
+    void Add_VideoRefreshCallback(std::function<int(const Frame &)> &&)  noexcept(true);
 
 private:
     std::string m_url;
@@ -86,6 +89,8 @@ private:
             *m_audio_buf1{}; //指向重采样后的数据
     uint32_t m_audio_buf_size{}, //m_audio_buf指向的内存大小(待播放待一帧音频数据的大小)
             m_audio_buf1_size{}; //m_audio_buf1指向的内存大小(申请到的音频缓冲区)
+
+   std::function<int(const Frame &)> m_video_refresh_callback;
 
 public:
     FFPlay(const FFPlay&) = delete;

@@ -33,7 +33,7 @@ extern "C"{
 
 #define AV_NOSYNC_THRESHOLD 10.0
 #define SDL_AUDIO_MIN_BUFFER_SIZE 512
-
+#define REFRESH_RATE 0.01
 /**
  *音视频同步方式，缺省以音频为基准
  */
