@@ -7,7 +7,7 @@
 #include <algorithm>
 
 void MessageQueue::mq_flush() noexcept(true) {
-    std::unique_lock<std::mutex> lock(m_mux);
+    std::unique_lock lock(m_mux);
     m_msg_q.clear();
 }
 
@@ -17,7 +17,7 @@ void MessageQueue::mq_abort() noexcept(true) {
 }
 
 void MessageQueue::mq_start() noexcept(true) {
-    std::unique_lock<std::mutex> lock(m_mux);
+    std::unique_lock lock(m_mux);
     mq_put_helper(AVMessage{FFP_MSG_FLUSH});
     m_abort_request = false;
 }
@@ -34,7 +34,7 @@ int MessageQueue::mq_put_helper(AVMessage &&msg) noexcept(true) {
 }
 
 int MessageQueue::mq_msg_put(AVMessage &&msg) noexcept(true) {
-    std::unique_lock<std::mutex> lock(m_mux);
+    std::unique_lock lock(m_mux);
     return mq_put_helper(std::move(msg));
 }
 
@@ -59,7 +59,7 @@ int MessageQueue::mq_msg_put(const int &msg,
 int MessageQueue::mq_msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept(true) {
 
     auto ret_val{1};
-    std::unique_lock<std::mutex> lock(m_mux);
+    std::unique_lock lock(m_mux);
 
     while (true){
 
@@ -85,7 +85,7 @@ int MessageQueue::mq_msg_get(AVMessage_Sptr& msg, const bool &is_block) noexcept
 
 void MessageQueue::mq_remove(const int &what) noexcept(true) {
 
-    std::unique_lock<std::mutex> lock(m_mux);
+    std::unique_lock lock(m_mux);
 
     if (!m_abort_request && !m_msg_q.empty()) {
 

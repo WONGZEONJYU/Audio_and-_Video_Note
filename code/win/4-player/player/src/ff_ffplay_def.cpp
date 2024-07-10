@@ -464,7 +464,3 @@ void sync_clock_to_slave(Clock *c, Clock *slave)
  * @return current master clock value
  */
 
-
-
-
-
