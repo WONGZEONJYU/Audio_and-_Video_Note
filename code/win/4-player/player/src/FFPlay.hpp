@@ -14,6 +14,8 @@
 #include "VideoDecoder.hpp"
 #include "AudioDecoder.hpp"
 #include "SwrContext_t.hpp"
+#include <Sws_Context.hpp>
+#include <QImage>
 
 class FFPlay final : protected MessageQueue {
 
@@ -44,7 +46,9 @@ public:
     [[nodiscard]] auto f_audio_st() const{return m_audio_st;}
     [[nodiscard]] auto f_format_ctx() const {return m_ic;}
 
-    void Add_VideoRefreshCallback(std::function<int(const Frame &)> &&)  noexcept(true);
+    void Add_VideoRefreshCallback(auto && f)  noexcept(true){
+        m_video_refresh_callback = std::forward<decltype(f)>(f);
+    }
 
 private:
     std::string m_url;
@@ -83,6 +87,7 @@ private:
     AudioParams m_audio_src{}, //音频解码后到frame参数
                 m_audio_tgt{}; //SDL支持到音频参数,重采样转换,m_audio_src->m_audio_tgt
     SwrContext_sp_type m_swr_ctx{}; //重采样器
+    Sws_Context_sptr m_sws_ctx{};
     int m_audio_hw_size{}, //SDL音频缓冲区的大小(字节为单位)
         m_audio_buf_index{}; //用于更新SDL回调函数拷贝位置,当前音频帧中已拷入SDL音频缓冲区
     uint8_t *m_audio_buf{}, //指向待重采样待数据
@@ -90,7 +95,10 @@ private:
     uint32_t m_audio_buf_size{}, //m_audio_buf指向的内存大小(待播放待一帧音频数据的大小)
             m_audio_buf1_size{}; //m_audio_buf1指向的内存大小(申请到的音频缓冲区)
 
-   std::function<int(const Frame &)> m_video_refresh_callback;
+   std::function<int(QImage&&)> m_video_refresh_callback;
+
+   uint8_t *m_video_dst_buf[4]{};
+   uint32_t m_video_dst_size{};
 
 public:
     FFPlay(const FFPlay&) = delete;

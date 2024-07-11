@@ -59,9 +59,9 @@ int VideoDecoder::queue_picture(AVFrame *src_frame,
                                 const int64_t &pos,
                                 const int &serial) {
 
-    Frame *vp{};
     auto fq{frame_queue()};
-    if (!(vp = frame_queue_peek_writable(fq))) { /*检查队列是否有空间可写,有空间则返回一个可写的自定义的Frame*/
+    auto vp{frame_queue_peek_writable(fq)};
+    if (!vp) { /*检查队列是否有空间可写,有空间则返回一个可写的自定义的Frame*/
         return -1;
     }
 
@@ -105,7 +105,6 @@ void VideoDecoder::av_decoder_thread(void *o) {
             } else if (!ret){
                 continue;
             }
-
 
             //frame_rate是视频帧率,分子比分母大,比如 (num = 24)/(den = 1),注意这里是分子分母需反过来计算才是真正的一帧的播放时间
             //此处可能容易理解错误

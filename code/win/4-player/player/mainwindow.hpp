@@ -17,7 +17,7 @@ QT_END_NAMESPACE
 class IjkMediaPlayer;
 
 class MainWindow final: public QMainWindow,
-        public MessageAbstract<IjkMediaPlayer*>{
+        public MessageAbstract<IjkMediaPlayer*> {
 Q_OBJECT
 
     void construct() noexcept(false);
@@ -29,12 +29,16 @@ Q_OBJECT
     void msg_loop(Args_type &&) override;
     void closeEvent(QCloseEvent *event) override;
     bool event(QEvent *) override;
-    int OutputVideo(const Frame &);
+    int OutputVideo(QImage &&);
+
 public:
     ~MainWindow() override;
 private:
     Ui::MainWindow *ui;
     std::shared_ptr<IjkMediaPlayer> m_IjkMediaPlayer;
+
+signals:
+    void sendFrame(QImage &);
 };
 
 using MainWindow_sptr = QSharedPointer<MainWindow>;

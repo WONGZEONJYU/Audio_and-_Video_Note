@@ -76,6 +76,8 @@ add_executable(player main.cpp
         src/SwrContext_t.hpp
         src/FFPlay_th.cpp
         src/FFPlay_cb.cpp
+        src/Sws_Context.cpp
+        src/Sws_Context.hpp
 )
 
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)

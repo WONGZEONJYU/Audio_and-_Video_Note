@@ -23,11 +23,6 @@ void FFPlay::prepare_async(const std::string &url) noexcept(false){
 
 void FFPlay::construct() noexcept(false)
 {
-
-}
-
-void FFPlay::Add_VideoRefreshCallback(std::function<int(const Frame &)> && f) noexcept(true){
-    m_video_refresh_callback = std::move(f);
 }
 
 void FFPlay::stream_open() noexcept(false){
@@ -249,6 +244,7 @@ void FFPlay::stream_component_close(const int &stream_index){
             //
             //m_video_stream = -1;
             //m_video_st = {};
+            av_freep(&m_video_dst_buf);
             break;
         default:
             break;
@@ -441,8 +437,33 @@ void FFPlay::video_refresh(double &remaining_time) {
         }
         auto vp{frame_queue_peek(&m_pictq)};
 
-        if (m_video_refresh_callback){
-            m_video_refresh_callback(*vp);
+        if (m_video_refresh_callback) {
+
+            if (!m_sws_ctx) {
+                m_sws_ctx = newSws_Context(vp->frame->width,vp->frame->height,static_cast<AVPixelFormat>(vp->format),
+                                           vp->frame->width,vp->frame->height,AV_PIX_FMT_RGB32);
+            }
+
+            int dst_line_size[4]{};
+            int ret;
+            if (!(*m_video_dst_buf)){
+
+                ret = av_image_alloc(m_video_dst_buf,dst_line_size,vp->frame->width,vp->frame->height,AV_PIX_FMT_RGB32,1);
+
+                if (ret < 0) {
+                    throw std::runtime_error(string ("av_image_alloc failed: ") + AVHelper::av_get_err(ret));
+                }
+                m_video_dst_size = ret;
+            }
+
+            ret = m_sws_ctx->scale(vp->frame->data,vp->frame->linesize,
+                             0,vp->frame->height,
+                             m_video_dst_buf, dst_line_size);
+
+            QImage img(m_video_dst_buf[0],vp->frame->width,vp->frame->height,QImage::Format::Format_RGB32);
+            auto image{img.copy()};
+
+            m_video_refresh_callback(std::move(image));
         }
 
         frame_queue_next(&m_pictq);

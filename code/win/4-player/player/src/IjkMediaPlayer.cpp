@@ -89,10 +89,6 @@ int IjkMediaPlayer::get_msg(AVMessage_Sptr &msg,const bool &block)
     }
 }
 
-void IjkMediaPlayer::Add_VideoRefreshCallback(std::function<int(const Frame &)> &&f) noexcept(true) {
-    m_ff->Add_VideoRefreshCallback(std::move(f));
-}
-
 IjkMediaPlayer_sptr new_IjkMediaPlayer(MessageAbstract<IjkMediaPlayer*> &msg_loop) noexcept(false)
 {
     IjkMediaPlayer_sptr obj;

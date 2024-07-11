@@ -104,16 +104,25 @@ void FFPlay::read_thread() {
 
 void FFPlay::video_refresh_thread() {
     cerr << __FUNCTION__ << "\tbegin\n";
-    double remaining_time {};
-    while (!m_abort_request){
 
-        if (remaining_time > 0.0){ //sleep控制画面输出的时机
-            //av_usleep((int64_t)(remaining_time * 1000000.0)); // remaining_time <= REFRESH_RATE
-            sleep_for(microseconds(static_cast<int64_t>(remaining_time * 1000000.0)));
+    try {
+
+        double remaining_time {};
+        while (!m_abort_request) {
+
+            if (remaining_time > 0.0){ //sleep控制画面输出的时机
+                //av_usleep((int64_t)(remaining_time * 1000000.0)); // remaining_time <= REFRESH_RATE
+                sleep_for(microseconds(static_cast<int64_t>(remaining_time * 1000000.0)));
+            }
+
+            remaining_time = REFRESH_RATE;
+            video_refresh(remaining_time);
         }
 
-        remaining_time = REFRESH_RATE;
-        video_refresh(remaining_time);
+    } catch (const std::exception &e) {
+        cerr << e.what() << "\n";
+        mq_msg_put(FFP_MSG_ERROR); //线程内出错,通知UI和IJKMediaPlay处理事件
     }
+
     cerr << __FUNCTION__  << "\tend\n" <<flush;
 }

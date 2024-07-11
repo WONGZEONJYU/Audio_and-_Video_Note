@@ -23,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     connect(ui->CtrlBarWidget,&CtrlBar::SigPlayOrPause,this,&MainWindow::OnPlayOrPause);
     connect(ui->CtrlBarWidget,&CtrlBar::SigStop,this,&MainWindow::OnStop);
+    connect(this,&MainWindow::sendFrame,ui->ShowWidget,&DisplayBox::slot_get_one_frame);
 }
 
 MainWindow::~MainWindow() {
@@ -108,9 +109,10 @@ void MainWindow::msg_loop(Args_type &&obj) {
     }
 }
 
-int MainWindow::OutputVideo(const Frame &vp)
+int MainWindow::OutputVideo(QImage &&vp)
 {
-
+    qDebug() << vp;
+    return {};
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {

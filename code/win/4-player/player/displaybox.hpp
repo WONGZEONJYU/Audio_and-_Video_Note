@@ -17,12 +17,14 @@ class DisplayBox : public QWidget {
 
 public:
     explicit DisplayBox(QWidget *parent = nullptr);
-
+    void paintEvent(QPaintEvent *event) override;
     ~DisplayBox() override;
 
+public slots:
+    void slot_get_one_frame(QImage &);
 private:
     Ui::DisplayBox *ui;
+    QImage m_frame;
 };
 
-
-#endif //PLAYER_DISPLAYBOX_HPP
+#endif
