@@ -111,7 +111,6 @@ void FFPlay::video_refresh_thread() {
         while (!m_abort_request) {
 
             if (remaining_time > 0.0){ //sleep控制画面输出的时机
-                //av_usleep((int64_t)(remaining_time * 1000000.0)); // remaining_time <= REFRESH_RATE
                 sleep_for(microseconds(static_cast<int64_t>(remaining_time * 1000000.0)));
             }
 

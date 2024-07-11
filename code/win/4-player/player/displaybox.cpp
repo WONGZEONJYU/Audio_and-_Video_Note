@@ -11,6 +11,7 @@
 DisplayBox::DisplayBox(QWidget *parent) :
         QWidget(parent), ui(new Ui::DisplayBox) {
     ui->setupUi(this);
+    ui->label->hide();
 }
 
 DisplayBox::~DisplayBox() {

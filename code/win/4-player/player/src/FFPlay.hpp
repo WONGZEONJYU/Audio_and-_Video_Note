@@ -46,7 +46,7 @@ public:
     [[nodiscard]] auto f_audio_st() const{return m_audio_st;}
     [[nodiscard]] auto f_format_ctx() const {return m_ic;}
 
-    void Add_VideoRefreshCallback(auto && f)  noexcept(true){
+    void Add_VideoRefreshCallback(auto &&f)  noexcept(true){
         m_video_refresh_callback = std::forward<decltype(f)>(f);
     }
 
@@ -97,8 +97,8 @@ private:
 
    std::function<int(QImage&&)> m_video_refresh_callback;
 
-   uint8_t *m_video_dst_buf[4]{};
-   uint32_t m_video_dst_size{};
+   //uint8_t *m_video_dst_buf[4]{};
+   //uint32_t m_video_dst_size{};
 
 public:
     FFPlay(const FFPlay&) = delete;
