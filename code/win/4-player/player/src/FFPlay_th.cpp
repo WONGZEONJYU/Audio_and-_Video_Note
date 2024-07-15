@@ -72,6 +72,7 @@ void FFPlay::read_thread() {
             auto ret{av_read_frame(m_ic, *pkt)}; //不会释放pkt的数据,需要我们自己释放packet的数据
             if (ret < 0){ //出错或者读取完毕
                 if (AVERROR_EOF == ret || avio_feof(m_ic->pb) && !m_eof){
+
                     m_eof = true;
                 }
                 if (m_ic->pb && m_ic->pb->error){ //io异常
@@ -103,14 +104,14 @@ void FFPlay::read_thread() {
 }
 
 void FFPlay::video_refresh_thread() {
+
     cerr << __FUNCTION__ << "\tbegin\n";
 
     try {
-
         double remaining_time {};
         while (!m_abort_request) {
 
-            if (remaining_time > 0.0){ //sleep控制画面输出的时机
+            if (remaining_time > 0.0) { //sleep控制画面输出的时机
                 sleep_for(microseconds(static_cast<int64_t>(remaining_time * 1000000.0)));
             }
 

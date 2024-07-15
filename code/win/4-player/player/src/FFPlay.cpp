@@ -424,9 +424,20 @@ int FFPlay::audio_decode_frame() noexcept(true) {
         resampled_data_size = data_size;
     }
 
+    if (!isnan(af->pts)){
+        m_audio_clock = af->pts;
+    }else{
+        m_audio_clock = NAN;
+    }
+
     frame_queue_next(&m_sampq);
 
     return resampled_data_size;
+}
+
+double FFPlay::get_master_clock()
+{
+    return get_clock(&m_audclk);
 }
 
 void FFPlay::video_refresh(double &remaining_time) {
@@ -435,7 +446,14 @@ void FFPlay::video_refresh(double &remaining_time) {
         if (!frame_queue_nb_remaining(&m_pictq)){
             return;
         }
+
         auto vp{frame_queue_peek(&m_pictq)};
+        auto diff {vp->pts - get_master_clock()};
+
+        if (diff > 0) {
+            remaining_time = FFMIN(remaining_time, diff);
+            return;
+        }
 
         if (m_video_refresh_callback) {
 
@@ -447,7 +465,12 @@ void FFPlay::video_refresh(double &remaining_time) {
             int dst_line_size[4]{};
             uint8_t *video_dst_buf[4]{};
 
-            auto ret {av_image_alloc(video_dst_buf, dst_line_size, vp->frame->width, vp->frame->height, AV_PIX_FMT_RGB32,1)};
+            const auto ret {av_image_alloc(video_dst_buf,
+                                     dst_line_size,
+                                     vp->frame->width,
+                                     vp->frame->height,
+                                     AV_PIX_FMT_RGB32,
+                                     1)};
 
             if (ret < 0) {
                 throw std::runtime_error(string ("av_image_alloc failed: ") + AVHelper::av_get_err(ret));
@@ -459,17 +482,19 @@ void FFPlay::video_refresh(double &remaining_time) {
                              0,vp->frame->height,
                                    video_dst_buf, dst_line_size);
 
-            QImage img(video_dst_buf[0],vp->frame->width,vp->frame->height,QImage::Format::Format_RGB32,[](void *p){
-                cerr << __FUNCTION__ << " : "<< p << "\n";
+            QImage img(video_dst_buf[0],
+                       vp->frame->width,
+                       vp->frame->height,
+                       QImage::Format::Format_RGB32,
+                       [](void *p){
+                //cerr << __FUNCTION__ << " : "<< p << "\n";
                 av_freep(&p);
             },*video_dst_buf);
 
-            cerr << __FUNCTION__ << " : " << static_cast<void *>(*video_dst_buf) << "\n";
+            //cerr << __FUNCTION__ << " : " << static_cast<void *>(*video_dst_buf) << "\n";
 
             m_video_refresh_callback(std::move(img));
-            //av_freep(video_dst_buf);
         }
-
         frame_queue_next(&m_pictq);
     }
 }
@@ -478,7 +503,7 @@ void FFPlay::f_start() {
     cerr << __FUNCTION__ << "\n";
 }
 
-void FFPlay::f_stop(){
+void FFPlay::f_stop() {
     cerr << __FUNCTION__ << "\t";
     m_abort_request = true;
     mq_abort();
@@ -502,4 +527,3 @@ FFPlay_sptr new_FFPlay() noexcept(false) {
         throw std::runtime_error("new FFPlay error");
     }
 }
-

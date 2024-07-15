@@ -79,6 +79,21 @@ void MainWindow::OnStop() {
         m_IjkMediaPlayer->stop();
         m_IjkMediaPlayer.reset();
     }
+    const auto height_{ui->PlaylistWidget->height()};
+    const auto width_ {ui->PlaylistWidget->width() };
+    QImage img(width_,height_,QImage::Format_RGB888);
+    auto pic{img.bits()};
+
+    for (int h{};h < height_;++h) {
+        const auto b{h * width_ * 3};
+        for (int i{};i < (width_ * 3) ; i+=3){
+            pic[b + i] = 0; //b
+            pic[b + i + 1] = 0; //g
+            pic[b + i + 2] = 0; //r
+        }
+    }
+
+    emit sendFrame(img);
 }
 
 void MainWindow::msg_loop(Args_type &&obj) {

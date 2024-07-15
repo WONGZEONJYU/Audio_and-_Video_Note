@@ -250,7 +250,7 @@ void set_clock_at(Clock *c, double pts, int serial, double time);
  * @param pts
  * @param serial
  */
-void set_clock(Clock *c, double pts, int serial);
+void set_clock(Clock *c, double pts, int serial = 0);
 
 /**
  * 设置速度

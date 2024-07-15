@@ -1,6 +1,7 @@
 #include "FFPlay.hpp"
 #include <algorithm>
 
+
 int FFPlay::decode_interrupt_cb(void *_this)
 {
     static int64_t s_pre_time {};
@@ -44,4 +45,9 @@ void FFPlay::sdl_audio_callback(void *_this, Uint8 *stream, int len)
         /* 更新m_audio_buf_index,指向audio_buf中未被拷贝到stream的数据(剩余数据)的起始位置 */
         this_->m_audio_buf_index += static_cast<int>(len1);
     }
+
+    if (!isnan(this_->m_audio_clock)){
+        set_clock(&(this_->m_audclk),this_->m_audio_clock);
+    }
+
 }

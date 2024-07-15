@@ -33,6 +33,7 @@ class FFPlay final : protected MessageQueue {
     uint32_t audio_open(const AVChannelLayout &,const int &,const int &,AudioParams &) noexcept(false);
     int audio_decode_frame() noexcept(true);
     void video_refresh(double &);
+    double get_master_clock();
 public:
     using MessageQueue::mq_start;
     using MessageQueue::mq_msg_put;
@@ -47,7 +48,9 @@ public:
     [[nodiscard]] auto f_format_ctx() const {return m_ic;}
 
     void Add_VideoRefreshCallback(auto &&f)  noexcept(true){
-        m_video_refresh_callback = std::forward<decltype(f)>(f);
+        if (!m_video_refresh_callback){
+            m_video_refresh_callback = std::forward<decltype(f)>(f);
+        }
     }
 
 private:
@@ -62,6 +65,8 @@ private:
     m_av_sync_type{AV_SYNC_AUDIO_MASTER},
     m_startup_volume{100},
     m_audio_volume{};
+
+    double m_audio_clock{};             // 当前音频帧的PTS+当前帧Duration
 
     Clock m_audclk{};                   // 音频时钟
     Clock m_vidclk{};                   // 视频时钟

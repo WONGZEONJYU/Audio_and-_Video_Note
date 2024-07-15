@@ -26,7 +26,7 @@ public:
     void set_data_source(std::string &&) noexcept(false);
     void prepare_async() noexcept(false);
     int get_msg(AVMessage_Sptr &,const bool & = true);
-    void Add_VideoRefreshCallback(auto && f) noexcept(true){
+    void Add_VideoRefreshCallback(auto &&f) noexcept(true){
         m_ff->Add_VideoRefreshCallback(std::forward<decltype(f)>(f));
     }
 

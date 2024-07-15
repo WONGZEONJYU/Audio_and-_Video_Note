@@ -375,8 +375,8 @@ int64_t frame_queue_last_pos(FrameQueue *f)
  */
 double get_clock(Clock *c)
 {
-    if (*c->queue_serial != c->serial)
-        return NAN;// 不是同一个播放序列,时钟是无效
+//    if (*c->queue_serial != c->serial)
+//        return NAN;// 不是同一个播放序列,时钟是无效
     if (c->paused) {
         return c->pts;  // 暂停的时候返回的是pts
     } else {
@@ -410,7 +410,7 @@ void set_clock_at(Clock *c, double pts, int serial, double time)
  */
 void set_clock(Clock *c, double pts, int serial)
 {
-    double time = (double )av_gettime_relative() / 1000000.0;
+    double time {(double )av_gettime_relative() / 1000000.0};
     set_clock_at(c, pts, serial, time);
 }
 
