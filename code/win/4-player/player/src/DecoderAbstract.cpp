@@ -84,8 +84,7 @@ int DecoderAbstract::decode_frame(AVFrame *frame) {
         if (avcodec_send_packet(m_avcodec_ctx,&m_pkt) == AVERROR(EAGAIN)){
 
         } else{
-            //av_packet_unref(&m_pkt);
+            av_packet_unref(&m_pkt);
         }
-        av_packet_unref(&m_pkt);
     }
 }
