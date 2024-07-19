@@ -16,7 +16,7 @@ Sws_Context::Sws_Context(const int &srcW,
                          const double * param) noexcept(true):
                          m_src_filter{srcFilter},
                          m_dst_filter{dstFilter},
-                         m_sws{sws_getContext(srcW,srcH,srcFormat,
+                         m_sws{sws_getCachedContext(nullptr,srcW,srcH,srcFormat,
                                                     dstW,dstH,dstFormat,flags,
                                                     srcFilter,dstFilter,param)} {
 

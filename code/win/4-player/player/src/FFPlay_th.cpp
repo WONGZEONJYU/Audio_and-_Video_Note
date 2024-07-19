@@ -92,7 +92,6 @@ void FFPlay::read_thread() {
                 av_packet_unref(*pkt); //不入队则直接释放数据
             }
         }
-
     } catch (const std::exception &e) {
         pkt.reset();
         avformat_close_input(&m_ic);

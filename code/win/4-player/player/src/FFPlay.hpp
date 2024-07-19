@@ -102,9 +102,9 @@ private:
 
    std::function<int(QImage&&)> m_video_refresh_callback;
 
-   //uint8_t *m_video_dst_buf[4]{};
-   //uint32_t m_video_dst_size{};
-
+   uint8_t *m_video_dst_buf[4]{};
+   int m_dst_line_size[4]{};
+   uint32_t m_video_dst_size{};
 public:
     FFPlay(const FFPlay&) = delete;
     FFPlay(FFPlay&&) = delete;

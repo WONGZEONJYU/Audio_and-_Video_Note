@@ -244,7 +244,7 @@ void FFPlay::stream_component_close(const int &stream_index){
             //
             //m_video_stream = -1;
             //m_video_st = {};
-
+            av_freep(m_video_dst_buf);
             break;
         default:
             break;
@@ -457,43 +457,44 @@ void FFPlay::video_refresh(double &remaining_time) {
 
         if (m_video_refresh_callback) {
 
-            if (!m_sws_ctx) {
-                m_sws_ctx = newSws_Context(vp->frame->width,vp->frame->height,static_cast<AVPixelFormat>(vp->format),
+            if (m_sws_ctx) {
+                m_sws_ctx->reinit(vp->frame->width,vp->frame->height,static_cast<AVPixelFormat>(vp->frame->format),
+                                  vp->frame->width,vp->frame->height,AV_PIX_FMT_RGB32);
+            } else{
+                m_sws_ctx = newSws_Context(vp->frame->width,vp->frame->height,static_cast<AVPixelFormat>(vp->frame->format),
                                            vp->frame->width,vp->frame->height,AV_PIX_FMT_RGB32);
             }
 
-            int dst_line_size[4]{};
-            uint8_t *video_dst_buf[4]{};
-
-            const auto ret {av_image_alloc(video_dst_buf,
-                                     dst_line_size,
-                                     vp->frame->width,
-                                     vp->frame->height,
-                                     AV_PIX_FMT_RGB32,
-                                     1)};
-
-            if (ret < 0) {
-                throw std::runtime_error(string ("av_image_alloc failed: ") + AVHelper::av_get_err(ret));
+            auto ret {av_image_get_buffer_size(AV_PIX_FMT_RGB32, vp->frame->width, vp->frame->height, 1)};
+            if (ret < 0){
+                throw std::runtime_error("av_image_get_buffer_size failed :" + AVHelper::av_get_err(ret));
             }
 
-            auto video_dst_buf_size{ret};
+            if (ret != m_video_dst_size){
+
+                ret = {av_image_alloc(m_video_dst_buf,
+                                      m_dst_line_size,
+                                               vp->frame->width,
+                                               vp->frame->height,
+                                               AV_PIX_FMT_RGB32,
+                                               1)};
+                if (ret < 0) {
+                    throw std::runtime_error(string ("av_image_alloc failed: ") + AVHelper::av_get_err(ret));
+                }
+                std::cerr << "av_image_alloc\n";
+                m_video_dst_size = ret;
+            }
 
             m_sws_ctx->scale(vp->frame->data,vp->frame->linesize,
                              0,vp->frame->height,
-                                   video_dst_buf, dst_line_size);
+                             m_video_dst_buf, m_dst_line_size);
 
-            QImage img(video_dst_buf[0],
+            QImage image(m_video_dst_buf[0],
                        vp->frame->width,
                        vp->frame->height,
-                       QImage::Format::Format_RGB32,
-                       [](void *p){
-                //cerr << __FUNCTION__ << " : "<< p << "\n";
-                av_freep(&p);
-            },*video_dst_buf);
+                       QImage::Format::Format_RGB32);
 
-            //cerr << __FUNCTION__ << " : " << static_cast<void *>(*video_dst_buf) << "\n";
-
-            m_video_refresh_callback(std::move(img));
+            m_video_refresh_callback(std::move(image));
         }
         frame_queue_next(&m_pictq);
     }

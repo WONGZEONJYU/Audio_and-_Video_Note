@@ -48,7 +48,7 @@ public:
                 const int &dstW,
                 const int &dstH,
                 const AVPixelFormat &dstFormat,
-                const int &flags = SWS_BICUBIC,
+                const int &flags = SWS_BILINEAR,
                 SwsFilter * srcFilter = nullptr,
                 SwsFilter * dstFilter = nullptr,
                 const double *param = nullptr) noexcept(false);
@@ -70,7 +70,7 @@ Sws_Context_sptr newSws_Context(const int &srcW,
                                 const int &dstW,
                                 const int &dstH,
                                 const AVPixelFormat &dstFormat,
-                                const int &flags = SWS_BICUBIC,
+                                const int &flags = SWS_BILINEAR,
                                 SwsFilter *srcFilter = nullptr,
                                 SwsFilter *dstFilter = nullptr,
                                 const double *param = nullptr) noexcept(false);
