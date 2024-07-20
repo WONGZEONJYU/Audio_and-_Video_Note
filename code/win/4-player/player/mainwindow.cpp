@@ -125,9 +125,10 @@ void MainWindow::msg_loop(Args_type &&obj) {
     }
 }
 
-int MainWindow::OutputVideo(QImage &&vp)
+int MainWindow::OutputVideo(VImage &&vp)
 {
-    emit sendFrame(vp);
+    QImage img{vp.data(),vp.width(),vp.height(),QImage::Format_RGB32};
+    emit sendFrame(img);
     return {};
 }
 
@@ -144,6 +145,5 @@ bool MainWindow::event(QEvent *e) {
             OnStop();
         }
     }
-
     return QMainWindow::event( e);
 }

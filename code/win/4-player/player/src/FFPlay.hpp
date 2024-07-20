@@ -15,7 +15,7 @@
 #include "AudioDecoder.hpp"
 #include "SwrContext_t.hpp"
 #include <Sws_Context.hpp>
-#include <QImage>
+#include "VImage.hpp"
 
 class FFPlay final : protected MessageQueue {
 
@@ -100,7 +100,7 @@ private:
     uint32_t m_audio_buf_size{}, //m_audio_buf指向的内存大小(待播放待一帧音频数据的大小)
             m_audio_buf1_size{}; //m_audio_buf1指向的内存大小(申请到的音频缓冲区)
 
-   std::function<int(QImage&&)> m_video_refresh_callback;
+   std::function<int(VImage&&)> m_video_refresh_callback;
 
    uint8_t *m_video_dst_buf[4]{};
    int m_dst_line_size[4]{};

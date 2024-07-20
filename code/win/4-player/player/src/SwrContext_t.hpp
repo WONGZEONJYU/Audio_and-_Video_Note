@@ -8,6 +8,9 @@ extern "C"{
 
 #include <memory>
 
+class SwrContext_t ;
+using SwrContext_sp_type = std::shared_ptr<SwrContext_t>;
+
 class SwrContext_t final{
 
     static SwrContext_t* new_SwrContext_t() noexcept(false);
@@ -72,8 +75,6 @@ public:
     SwrContext_t(const SwrContext_t&) = delete;
     SwrContext_t& operator=(const SwrContext_t&) = delete;
 };
-
-using SwrContext_sp_type = typename SwrContext_t::SwrContext_sp_t;
 
 SwrContext_sp_type new_SwrContext_t() noexcept(false);
 SwrContext_sp_type new_SwrContext_t(const AVChannelLayout *out_ch_layout,

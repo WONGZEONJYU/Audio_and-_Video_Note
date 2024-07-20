@@ -9,6 +9,7 @@
 #include <QPointer>
 #include "MessageAbstract.hpp"
 #include "ff_ffplay_def.hpp"
+#include "VImage.hpp"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -29,7 +30,7 @@ Q_OBJECT
     void msg_loop(Args_type &&) override;
     void closeEvent(QCloseEvent *event) override;
     bool event(QEvent *) override;
-    int OutputVideo(QImage &&);
+    int OutputVideo(VImage &&);
 
 public:
     ~MainWindow() override;

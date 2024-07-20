@@ -22,7 +22,6 @@ void FFPlay::sdl_audio_callback(void *_this, Uint8 *stream, int len)
             if (audio_size < 0){
                 this_->m_audio_buf = nullptr;
                 this_->m_audio_buf_size = SDL_AUDIO_MIN_BUFFER_SIZE / this_->m_audio_tgt.frame_size * this_->m_audio_tgt.frame_size;
-
             } else{
                 this_->m_audio_buf_size = audio_size; /*读到多少字节数据*/
             }
@@ -49,5 +48,6 @@ void FFPlay::sdl_audio_callback(void *_this, Uint8 *stream, int len)
     if (!isnan(this_->m_audio_clock)){
         set_clock(&(this_->m_audclk),this_->m_audio_clock);
     }
+
 
 }

@@ -466,35 +466,34 @@ void FFPlay::video_refresh(double &remaining_time) {
             }
 
             auto ret {av_image_get_buffer_size(AV_PIX_FMT_RGB32, vp->frame->width, vp->frame->height, 1)};
+
             if (ret < 0){
                 throw std::runtime_error("av_image_get_buffer_size failed :" + AVHelper::av_get_err(ret));
-            }
-
-            if (ret != m_video_dst_size){
-
-                ret = {av_image_alloc(m_video_dst_buf,
+            }else if (ret != m_video_dst_size){
+                av_freep(m_video_dst_buf);
+                ret = av_image_alloc(m_video_dst_buf,
                                       m_dst_line_size,
-                                               vp->frame->width,
-                                               vp->frame->height,
-                                               AV_PIX_FMT_RGB32,
-                                               1)};
+                                      vp->frame->width,
+                                      vp->frame->height,
+                                      AV_PIX_FMT_RGB32,
+                                      1);
                 if (ret < 0) {
                     throw std::runtime_error(string ("av_image_alloc failed: ") + AVHelper::av_get_err(ret));
                 }
-                std::cerr << "av_image_alloc\n";
                 m_video_dst_size = ret;
-            }
+            }else{}
 
             m_sws_ctx->scale(vp->frame->data,vp->frame->linesize,
                              0,vp->frame->height,
                              m_video_dst_buf, m_dst_line_size);
 
-            QImage image(m_video_dst_buf[0],
-                       vp->frame->width,
-                       vp->frame->height,
-                       QImage::Format::Format_RGB32);
+//            QImage image(m_video_dst_buf[0],
+//                       vp->frame->width,
+//                       vp->frame->height,
+//                       QImage::Format::Format_RGB32);
 
-            m_video_refresh_callback(std::move(image));
+
+            m_video_refresh_callback({vp->frame->width,vp->frame->height,m_video_dst_buf[0]});
         }
         frame_queue_next(&m_pictq);
     }
