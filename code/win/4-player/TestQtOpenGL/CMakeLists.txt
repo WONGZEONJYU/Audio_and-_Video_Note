@@ -27,6 +27,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
 
     link_directories(/usr/local/ffmpeg/lib)
     link_directories(/opt/homebrew/Cellar/sdl2/2.30.1/lib)
+
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR})

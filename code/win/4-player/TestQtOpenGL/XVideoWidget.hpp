@@ -5,8 +5,12 @@
 #ifndef XPLAY2_XVIDEOWIDGET_HPP
 #define XPLAY2_XVIDEOWIDGET_HPP
 
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
 #include <QtOpenGLWidgets/QtOpenGLWidgets>
 #include <QOpenGLShaderProgram>
+//#include <QOpenGLWidget>
+//#include <QOpenGLFunctions>
 
 class XVideoWidget : public QOpenGLWidget,
         protected QOpenGLFunctions
