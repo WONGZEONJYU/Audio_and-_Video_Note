@@ -28,6 +28,10 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     link_directories(/usr/local/ffmpeg/lib)
     link_directories(/opt/homebrew/Cellar/sdl2/2.30.1/lib)
 
+    set(Vulkan_INCLUDE_DIR "/Users/wong/VulkanSDK/1.3.283.0/macOS/include")
+    set(Vulkan_LIBRARY "/Users/wong/VulkanSDK/1.3.283.0/macOS/lib/libvulkan.dylib")
+    find_package(Vulkan REQUIRED)
+    include_directories(${Vulkan_INCLUDE_DIR})
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR})

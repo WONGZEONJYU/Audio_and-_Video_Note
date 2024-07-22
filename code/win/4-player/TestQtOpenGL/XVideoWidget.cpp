@@ -13,7 +13,7 @@ static inline constexpr auto T_VER{4};
 //顶点shader
 static inline constexpr auto vString{
 R"glsl(
-        #version 400 core
+        #version 410 core
         in vec4 vertexIn;
         in vec2 textureIn;
         out vec2 textureOut;
@@ -27,7 +27,7 @@ R"glsl(
 //片元shader
 static inline constexpr auto tString{
 R"glsl(
-    #version 400 core
+    #version 410 core
     out vec2 textureOut;
     uniform sampler2D tex_y;
     uniform sampler2D tex_u;
@@ -238,6 +238,7 @@ void XVideoWidget::paintGL() {
     /****************************************y****************************************/
     glActiveTexture(GL_TEXTURE0);//激活了0层材质
     glBindTexture(GL_TEXTURE_2D,m_texs[0]); //0层绑定到Y材质
+    m_program.setUniformValue(GET_STR(tex_y),0);
     //修改材质内容(复印内存中内容)
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w,m_h,GL_RED,GL_UNSIGNED_BYTE,m_datas[0]);
     //与shader uni变量关联
@@ -247,6 +248,7 @@ void XVideoWidget::paintGL() {
     /****************************************u****************************************/
     glActiveTexture(GL_TEXTURE0 + 1);//激活了1层材质
     glBindTexture(GL_TEXTURE_2D,m_texs[1]); //1层绑定到U材质
+    m_program.setUniformValue(GET_STR(tex_u),1);
     //修改材质内容(复印内存中内容)
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w / 2,m_h / 2,GL_RED,GL_UNSIGNED_BYTE,m_datas[1]);
     //与shader uni变量关联
@@ -256,6 +258,7 @@ void XVideoWidget::paintGL() {
     /****************************************v****************************************/
     glActiveTexture(GL_TEXTURE0 + 2);//激活了2层材质
     glBindTexture(GL_TEXTURE_2D,m_texs[2]); //2层绑定到V材质
+    m_program.setUniformValue(GET_STR(tex_v),2);
     //修改材质内容(复印内存中内容)
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w / 2,m_h / 2,GL_RED,GL_UNSIGNED_BYTE,m_datas[2]);
     //与shader uni变量关联
