@@ -5,8 +5,10 @@
 #ifndef XPLAY2_XVIDEOWIDGET_HPP
 #define XPLAY2_XVIDEOWIDGET_HPP
 
+#if defined(__APPLE__) && defined(__MACH__)
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#endif
 #include <QtOpenGLWidgets/QtOpenGLWidgets>
 #include <QOpenGLShaderProgram>
 //#include <QOpenGLWidget>
