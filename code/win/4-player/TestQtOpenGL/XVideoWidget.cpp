@@ -8,39 +8,48 @@
 #define GET_STR(args) #args
 static inline constexpr auto A_VER{3};
 static inline constexpr auto T_VER{4};
-FILE *fp {};
+
 //顶点shader
+
+//顶点坐标,attribute可以用in代替
+//材质坐标
+//片元和顶点共享坐标
 static inline constexpr auto vString{
-GET_STR(
-    attribute vec4 vertexIn; //顶点坐标,attribute可以用in代替
-    attribute vec2 textureIn; //材质坐标
-    varying vec2 textureOut; //片元和顶点共享坐标
-    void main(void){
-        gl_Position = vertexIn;
-        textureOut = textureIn;
-    }
-)};
+R"glsl(
+        #version 410 core
+        in vec4 vertexIn;
+        in vec2 textureIn;
+        out vec2 textureOut;
+        void main(){
+            gl_Position = vertexIn;
+            textureOut = textureIn;
+        }
+)glsl"
+};
 
 //片元shader
 static inline constexpr auto tString{
-GET_STR(
-    varying vec2 textureOut;
+R"glsl(
+    #version 410 core
+    out vec2 textureOut;
     uniform sampler2D tex_y;
     uniform sampler2D tex_u;
     uniform sampler2D tex_v;
-    void main(void){
+    out vec4 FragColor;
+    void main(){
         vec3 yuv;
         vec3 rgb;
-        yuv.x = texture2D(tex_y,textureOut).r;
-        yuv.y = texture2D(tex_u,textureOut).r - 0.5;
-        yuv.z = texture2D(tex_v,textureOut).r - 0.5;
-        rgb = mat3(1.0,1.0,1.0,
-                   0.0,-0.39465,2.03211,
-                   1.13983,-0.58060,0.0) * yuv;
-        gl_FragColor = vec4(rgb,1.0);
+        yuv.x = texture(tex_y, textureOut).r;
+        yuv.y = texture(tex_u, textureOut).r - 0.5;
+        yuv.z = texture(tex_v, textureOut).r - 0.5;
+        rgb = mat3(1.0, 1.0, 1.0,
+                   0.0, -0.39465, 2.03211,
+                   1.13983, -0.58060, 0.0) * yuv;
+        FragColor = vec4(rgb, 1.0);
     }
-)};
-
+)glsl"
+};
+//gl_FragColor = vec4(rgb, 1.0);
 XVideoWidget::XVideoWidget(QWidget *parent):
     QOpenGLWidget(parent){
 }
@@ -60,6 +69,7 @@ void XVideoWidget::initializeGL() {
     //初始化opengl
     initializeOpenGLFunctions();
 
+    qDebug() << "OpenGL version: " << glGetString(GL_VERSION);
     //program加载shader(顶点和片元)脚本
     //片元(像素)
     qDebug() << m_program.addShaderFromSourceCode(QOpenGLShader::Fragment,tString);
@@ -166,7 +176,7 @@ void XVideoWidget::initializeGL() {
 //        throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
 //    }
 
-//    QOpenGLWidget::initializeGL();
+    QOpenGLWidget::initializeGL();
 }
 
 void XVideoWidget::paintGL() {
@@ -215,7 +225,7 @@ void XVideoWidget::paintGL() {
     /****************************************v****************************************/
 
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
-//    QOpenGLWidget::paintGL();
+
     qDebug() << __FUNCTION__;
 }
 

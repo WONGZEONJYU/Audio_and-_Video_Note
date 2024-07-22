@@ -15,9 +15,10 @@
 #include <QFile>
 //#include <QOpenGLWidget>
 //#include <QOpenGLFunctions>
+#include <QOpenGLFunctions_4_1_Core>
 
 class XVideoWidget : public QOpenGLWidget,
-        protected QOpenGLFunctions
+        protected QOpenGLFunctions_4_1_Core
 {
 Q_OBJECT
     void initializeGL() override;

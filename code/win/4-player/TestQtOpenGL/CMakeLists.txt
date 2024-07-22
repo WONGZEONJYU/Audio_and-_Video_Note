@@ -37,7 +37,6 @@ find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
-        Multimedia
         OpenGL
         OpenGLWidgets
         REQUIRED)
@@ -55,7 +54,6 @@ target_link_libraries(${PROJECT_NAME}
         Qt::Core
         Qt::Gui
         Qt::Widgets
-        Qt6::Multimedia
         Qt6::OpenGL
         Qt6::OpenGLWidgets
         ${Vulkan_LIBRARY}
