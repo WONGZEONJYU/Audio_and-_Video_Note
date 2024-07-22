@@ -3,11 +3,12 @@
 //
 
 #include "XVideoWidget.hpp"
+
 //自动加双引号
 #define GET_STR(args) #args
 static inline constexpr auto A_VER{3};
 static inline constexpr auto T_VER{4};
-
+FILE *fp {};
 //顶点shader
 static inline constexpr auto vString{
 GET_STR(
@@ -33,8 +34,9 @@ GET_STR(
         yuv.x = texture2D(tex_y,textureOut).r;
         yuv.y = texture2D(tex_u,textureOut).r - 0.5;
         yuv.z = texture2D(tex_v,textureOut).r - 0.5;
-        rgb = mat3(1.0,1.0,1.0,0.0,
-                   -0.39465,2.03211,1.13983,-0.58060,0.0) * yuv;
+        rgb = mat3(1.0,1.0,1.0,
+                   0.0,-0.39465,2.03211,
+                   1.13983,-0.58060,0.0) * yuv;
         gl_FragColor = vec4(rgb,1.0);
     }
 )};
@@ -79,7 +81,7 @@ void XVideoWidget::initializeGL() {
     //顶点坐标
     static constexpr GLfloat ver[]{
 //逆时针,
-        -1.0f,-1.0,
+        -1.0f,-1.0f,
         1.0f,-1.0f,
         -1.0f,1.0f,
         1.0f,1.0f
@@ -95,7 +97,7 @@ void XVideoWidget::initializeGL() {
             0.0f, 1.0f,
             1.0f, 1.0f,
             0.0f, 0.0f,
-            1.0f, 0.0f,
+            1.0f, 0.0f
 //顺时针
 //            1.0f,0.0f,
 //            0.0f,0.0f,
@@ -154,16 +156,70 @@ void XVideoWidget::initializeGL() {
     m_datas[1] = new uint8_t[m_w * m_h / 4]{}; //U
     m_datas[2] = new uint8_t[m_w * m_h / 4]{}; //V
 
-    //QOpenGLWidget::initializeGL();
+//    m_file.setFileName(GET_STR(out240x128.yuv));
+//    if (!m_file.open(QFile::ReadOnly)){
+//        throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
+//    }
+    fp = fopen(GET_STR(out240x128.yuv),GET_STR(rb));
+    if (!fp){
+        throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
+    }
+
+
+//    QOpenGLWidget::initializeGL();
+}
+
+void XVideoWidget::paintGL() {
+
+//    if (m_file.atEnd()){
+//        m_file.seek(0);
+//    }
+//
+//    m_file.read(reinterpret_cast<char *>(m_datas[0]),m_w * m_h);
+//    m_file.read(reinterpret_cast<char *>(m_datas[1]),m_w * m_h / 4);
+//    m_file.read(reinterpret_cast<char *>(m_datas[2]),m_w * m_h / 4);
+
+    if (feof(fp))
+    {
+        fseek(fp, 0, SEEK_SET);
+    }
+    fread(m_datas[0], 1, m_w*m_h, fp);
+    fread(m_datas[1], 1, m_w*m_h/4, fp);
+    fread(m_datas[2], 1, m_w*m_h/4, fp);
+
+    /****************************************y****************************************/
+    glActiveTexture(GL_TEXTURE0);//激活了0层材质
+    glBindTexture(GL_TEXTURE_2D,m_texs[0]); //0层绑定到Y材质
+    //修改材质内容(复印内存中内容)
+    glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w,m_h,GL_RED,GL_UNSIGNED_BYTE,m_datas[0]);
+    //与shader uni变量关联
+    glUniform1i(m_unis[0], 0);
+    /****************************************y****************************************/
+
+    /****************************************u****************************************/
+    glActiveTexture(GL_TEXTURE0 + 1);//激活了1层材质
+    glBindTexture(GL_TEXTURE_2D,m_texs[1]); //1层绑定到U材质
+    //修改材质内容(复印内存中内容)
+    glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w / 2,m_h / 2,GL_RED,GL_UNSIGNED_BYTE,m_datas[1]);
+    //与shader uni变量关联
+    glUniform1i(m_unis[1], 1);
+    /****************************************u****************************************/
+
+    /****************************************v****************************************/
+    glActiveTexture(GL_TEXTURE0 + 2);//激活了2层材质
+    glBindTexture(GL_TEXTURE_2D,m_texs[2]); //2层绑定到V材质
+    //修改材质内容(复印内存中内容)
+    glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w / 2,m_h / 2,GL_RED,GL_UNSIGNED_BYTE,m_datas[2]);
+    //与shader uni变量关联
+    glUniform1i(m_unis[2], 2);
+    /****************************************v****************************************/
+
+    glDrawArrays(GL_TRIANGLE_STRIP,0,4);
+//    QOpenGLWidget::paintGL();
+    qDebug() << __FUNCTION__;
 }
 
 void XVideoWidget::resizeGL(int w, int h) {
     qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
     //QOpenGLWidget::resizeGL(w, h);
-}
-
-void XVideoWidget::paintGL() {
-    qDebug() << __FUNCTION__;
-    //QOpenGLWidget::paintGL();
-
 }

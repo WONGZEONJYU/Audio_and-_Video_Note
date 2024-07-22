@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'widget.ui'
 **
-** Created by: Qt User Interface Compiler version 6.4.2
+** Created by: Qt User Interface Compiler version 6.7.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -11,7 +11,6 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QWidget>
 #include <XVideoWidget.hpp>
 
@@ -20,7 +19,6 @@ QT_BEGIN_NAMESPACE
 class Ui_Widget
 {
 public:
-    QGridLayout *gridLayout;
     XVideoWidget *openGLWidget;
 
     void setupUi(QWidget *Widget)
@@ -28,15 +26,9 @@ public:
         if (Widget->objectName().isEmpty())
             Widget->setObjectName("Widget");
         Widget->resize(798, 769);
-        gridLayout = new QGridLayout(Widget);
-        gridLayout->setSpacing(0);
-        gridLayout->setObjectName("gridLayout");
-        gridLayout->setContentsMargins(0, 0, 0, 0);
         openGLWidget = new XVideoWidget(Widget);
         openGLWidget->setObjectName("openGLWidget");
-
-        gridLayout->addWidget(openGLWidget, 0, 0, 1, 1);
-
+        openGLWidget->setGeometry(QRect(50, 30, 691, 651));
 
         retranslateUi(Widget);
 
