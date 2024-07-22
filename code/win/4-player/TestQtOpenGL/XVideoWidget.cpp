@@ -156,36 +156,36 @@ void XVideoWidget::initializeGL() {
     m_datas[1] = new uint8_t[m_w * m_h / 4]{}; //U
     m_datas[2] = new uint8_t[m_w * m_h / 4]{}; //V
 
-//    m_file.setFileName(GET_STR(out240x128.yuv));
-//    if (!m_file.open(QFile::ReadOnly)){
-//        throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
-//    }
-    fp = fopen(GET_STR(out240x128.yuv),GET_STR(rb));
-    if (!fp){
+    m_file.setFileName(GET_STR(out240x128.yuv));
+    if (!m_file.open(QFile::ReadOnly)){
         throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
     }
 
+//    fp = fopen(GET_STR(out240x128.yuv),GET_STR(rb));
+//    if (!fp){
+//        throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
+//    }
 
 //    QOpenGLWidget::initializeGL();
 }
 
 void XVideoWidget::paintGL() {
 
-//    if (m_file.atEnd()){
-//        m_file.seek(0);
-//    }
-//
-//    m_file.read(reinterpret_cast<char *>(m_datas[0]),m_w * m_h);
-//    m_file.read(reinterpret_cast<char *>(m_datas[1]),m_w * m_h / 4);
-//    m_file.read(reinterpret_cast<char *>(m_datas[2]),m_w * m_h / 4);
-
-    if (feof(fp))
-    {
-        fseek(fp, 0, SEEK_SET);
+    if (m_file.atEnd()){
+        m_file.seek(0);
     }
-    fread(m_datas[0], 1, m_w*m_h, fp);
-    fread(m_datas[1], 1, m_w*m_h/4, fp);
-    fread(m_datas[2], 1, m_w*m_h/4, fp);
+
+    m_file.read(reinterpret_cast<char *>(m_datas[0]),m_w * m_h);
+    m_file.read(reinterpret_cast<char *>(m_datas[1]),m_w * m_h / 4);
+    m_file.read(reinterpret_cast<char *>(m_datas[2]),m_w * m_h / 4);
+
+//    if (feof(fp))
+//    {
+//        fseek(fp, 0, SEEK_SET);
+//    }
+//    fread(m_datas[0], 1, m_w*m_h, fp);
+//    fread(m_datas[1], 1, m_w*m_h/4, fp);
+//    fread(m_datas[2], 1, m_w*m_h/4, fp);
 
     /****************************************y****************************************/
     glActiveTexture(GL_TEXTURE0);//激活了0层材质

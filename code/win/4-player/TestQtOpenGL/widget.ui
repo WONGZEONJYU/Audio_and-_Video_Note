@@ -13,16 +13,26 @@
   <property name="windowTitle">
    <string>Widget</string>
   </property>
-  <widget class="XVideoWidget" name="openGLWidget">
-   <property name="geometry">
-    <rect>
-     <x>50</x>
-     <y>30</y>
-     <width>691</width>
-     <height>651</height>
-    </rect>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>0</number>
    </property>
-  </widget>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="XVideoWidget" name="openGLWidget"/>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
   <customwidget>
