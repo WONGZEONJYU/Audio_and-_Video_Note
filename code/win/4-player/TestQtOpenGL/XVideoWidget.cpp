@@ -13,6 +13,7 @@ static inline constexpr auto T_VER{4};
 //顶点shader
 static inline constexpr auto vString{
 R"glsl(
+        #version 400 core
         in vec4 vertexIn;
         in vec2 textureIn;
         out vec2 textureOut;
@@ -26,6 +27,7 @@ R"glsl(
 //片元shader
 static inline constexpr auto tString{
 R"glsl(
+    #version 400 core
     out vec2 textureOut;
     uniform sampler2D tex_y;
     uniform sampler2D tex_u;
@@ -105,10 +107,12 @@ void XVideoWidget::initializeGL() {
 
     qDebug() << "OpenGL version: " << glGetString(GL_VERSION);
     //program加载shader(顶点和片元)脚本
-    //片元(像素)
-    qDebug() << m_program.addShaderFromSourceCode(QOpenGLShader::Fragment,tString);
+
     //顶点shader
     qDebug() << m_program.addShaderFromSourceCode(QOpenGLShader::Vertex,vString);
+
+    //片元(像素)
+    qDebug() << m_program.addShaderFromSourceCode(QOpenGLShader::Fragment,tString);
 
     //设置顶点坐标的变量
     m_program.bindAttributeLocation(GET_STR(vertexIn),A_VER);

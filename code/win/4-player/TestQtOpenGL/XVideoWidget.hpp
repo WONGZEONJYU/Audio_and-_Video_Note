@@ -16,14 +16,14 @@
 //#include <QOpenGLWidget>
 
 #if defined(__APPLE__) && defined(__MACH__)
-#include <QOpenGLFunctions_4_1_Core>
+#include <QOpenGLFunctions_4_0_Core>
 #else
 #include <QOpenGLFunctions>
 #endif
 
 #if defined(__APPLE__) && defined(__MACH__)
 class XVideoWidget : public QOpenGLWidget,
-        protected QOpenGLFunctions_4_1_Core
+        protected QOpenGLFunctions_4_0_Core
 #else
 class XVideoWidget : public QOpenGLWidget,
         protected QOpenGLFunctions
