@@ -14,11 +14,20 @@
 #include <QOpenGLShaderProgram>
 #include <QFile>
 //#include <QOpenGLWidget>
-//#include <QOpenGLFunctions>
-#include <QOpenGLFunctions_4_1_Core>
 
+#if defined(__APPLE__) && defined(__MACH__)
+#include <QOpenGLFunctions_4_1_Core>
+#else
+#include <QOpenGLFunctions>
+#endif
+
+#if defined(__APPLE__) && defined(__MACH__)
 class XVideoWidget : public QOpenGLWidget,
         protected QOpenGLFunctions_4_1_Core
+#else
+class XVideoWidget : public QOpenGLWidget,
+        protected QOpenGLFunctions
+#endif
 {
 Q_OBJECT
     void initializeGL() override;

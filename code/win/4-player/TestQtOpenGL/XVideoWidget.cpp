@@ -9,14 +9,10 @@
 static inline constexpr auto A_VER{3};
 static inline constexpr auto T_VER{4};
 
+#if defined(__APPLE__) && defined(__MACH__)
 //顶点shader
-
-//顶点坐标,attribute可以用in代替
-//材质坐标
-//片元和顶点共享坐标
 static inline constexpr auto vString{
 R"glsl(
-        #version 410 core
         in vec4 vertexIn;
         in vec2 textureIn;
         out vec2 textureOut;
@@ -30,7 +26,6 @@ R"glsl(
 //片元shader
 static inline constexpr auto tString{
 R"glsl(
-    #version 410 core
     out vec2 textureOut;
     uniform sampler2D tex_y;
     uniform sampler2D tex_u;
@@ -49,6 +44,45 @@ R"glsl(
     }
 )glsl"
 };
+#else
+
+//顶点shader
+
+//顶点坐标,attribute可以用in代替
+//材质坐标
+//片元和顶点共享坐标
+static inline constexpr auto vString{
+GET_STR(
+    attribute vec4 vertexIn;
+    attribute vec2 textureIn;
+    varying vec2 textureOut;
+    void main(void){
+        gl_Position = vertexIn;
+        textureOut = textureIn;
+    }
+)};
+
+static inline constexpr auto tString{
+GET_STR(
+    varying vec2 textureOut;
+    uniform sampler2D tex_y;
+    uniform sampler2D tex_u;
+    uniform sampler2D tex_v;
+    void main(void){
+        vec3 yuv;
+        vec3 rgb;
+        yuv.x = texture2D(tex_y, textureOut).r;
+        yuv.y = texture2D(tex_u, textureOut).r - 0.5;
+        yuv.z = texture2D(tex_v, textureOut).r - 0.5;
+        rgb = mat3(1.0, 1.0, 1.0,
+                   0.0, -0.39465, 2.03211,
+                   1.13983, -0.58060, 0.0) * yuv;
+        gl_FragColor = vec4(rgb, 1.0);
+    }
+)};
+
+#endif
+
 //gl_FragColor = vec4(rgb, 1.0);
 XVideoWidget::XVideoWidget(QWidget *parent):
     QOpenGLWidget(parent){
