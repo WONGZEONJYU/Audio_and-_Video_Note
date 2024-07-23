@@ -6,33 +6,33 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>798</width>
-    <height>769</height>
+    <width>1288</width>
+    <height>841</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Widget</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
-   <property name="spacing">
-    <number>0</number>
-   </property>
    <item row="0" column="0">
     <widget class="XVideoWidget" name="openGLWidget"/>
    </item>
+   <item row="1" column="0">
+    <widget class="QSlider" name="horizontalSlider">
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="tracking">
+      <bool>true</bool>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
   </layout>
+  <zorder>openGLWidget</zorder>
+  <zorder>horizontalSlider</zorder>
  </widget>
  <customwidgets>
   <customwidget>

@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QSlider>
 #include <QtWidgets/QWidget>
 #include <XVideoWidget.hpp>
 
@@ -22,21 +23,30 @@ class Ui_Widget
 public:
     QGridLayout *gridLayout;
     XVideoWidget *openGLWidget;
+    QSlider *horizontalSlider;
 
     void setupUi(QWidget *Widget)
     {
         if (Widget->objectName().isEmpty())
             Widget->setObjectName("Widget");
-        Widget->resize(798, 769);
+        Widget->resize(1288, 841);
         gridLayout = new QGridLayout(Widget);
-        gridLayout->setSpacing(0);
         gridLayout->setObjectName("gridLayout");
-        gridLayout->setContentsMargins(0, 0, 0, 0);
         openGLWidget = new XVideoWidget(Widget);
         openGLWidget->setObjectName("openGLWidget");
 
         gridLayout->addWidget(openGLWidget, 0, 0, 1, 1);
 
+        horizontalSlider = new QSlider(Widget);
+        horizontalSlider->setObjectName("horizontalSlider");
+        horizontalSlider->setAutoFillBackground(false);
+        horizontalSlider->setTracking(true);
+        horizontalSlider->setOrientation(Qt::Horizontal);
+
+        gridLayout->addWidget(horizontalSlider, 1, 0, 1, 1);
+
+        openGLWidget->raise();
+        horizontalSlider->raise();
 
         retranslateUi(Widget);
 

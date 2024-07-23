@@ -47,17 +47,12 @@ R"glsl(
 )glsl"
 };
 #else
-
 //顶点shader
-
-//顶点坐标,attribute可以用in代替
-//材质坐标
-//片元和顶点共享坐标
 static inline constexpr auto vString{
 GET_STR(
-    attribute vec4 vertexIn;
-    attribute vec2 textureIn;
-    varying vec2 textureOut;
+    attribute vec4 vertexIn; //顶点坐标,attribute可以用in代替
+    attribute vec2 textureIn; //材质坐标
+    varying vec2 textureOut; //片元和顶点共享坐标
     void main(void){
         gl_Position = vertexIn;
         textureOut = textureIn;
@@ -82,7 +77,6 @@ GET_STR(
         gl_FragColor = vec4(rgb, 1.0);
     }
 )};
-
 #endif
 
 //gl_FragColor = vec4(rgb, 1.0);
@@ -171,7 +165,7 @@ void XVideoWidget::initializeGL() {
 
     /*************************************Y********************************************/
     glBindTexture(GL_TEXTURE_2D,m_texs[0]);
-    //放大过滤,线性插值
+    //放大过滤,线性插值,GL_NEAREST(效率高,但马赛克严重)
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     //创建材质显卡空间
@@ -209,12 +203,12 @@ void XVideoWidget::initializeGL() {
         throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
     }
 
-//    fp = fopen(GET_STR(out240x128.yuv),GET_STR(rb));
-//    if (!fp){
-//        throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
-//    }
+    void (XVideoWidget::*f)(){&XVideoWidget::update};
+    connect(&timer,&QTimer::timeout,this,f);
 
-    QOpenGLWidget::initializeGL();
+    timer.start(40);
+
+    //QOpenGLWidget::initializeGL();
 }
 
 void XVideoWidget::paintGL() {
@@ -226,14 +220,6 @@ void XVideoWidget::paintGL() {
     m_file.read(reinterpret_cast<char *>(m_datas[0]),m_w * m_h);
     m_file.read(reinterpret_cast<char *>(m_datas[1]),m_w * m_h / 4);
     m_file.read(reinterpret_cast<char *>(m_datas[2]),m_w * m_h / 4);
-
-//    if (feof(fp))
-//    {
-//        fseek(fp, 0, SEEK_SET);
-//    }
-//    fread(m_datas[0], 1, m_w*m_h, fp);
-//    fread(m_datas[1], 1, m_w*m_h/4, fp);
-//    fread(m_datas[2], 1, m_w*m_h/4, fp);
 
     /****************************************y****************************************/
     glActiveTexture(GL_TEXTURE0);//激活了0层材质

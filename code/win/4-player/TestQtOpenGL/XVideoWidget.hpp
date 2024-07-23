@@ -13,7 +13,6 @@
 #include <QtOpenGLWidgets/QtOpenGLWidgets>
 #include <QOpenGLShaderProgram>
 #include <QFile>
-//#include <QOpenGLWidget>
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <QOpenGLFunctions_4_1_Core>
@@ -51,6 +50,8 @@ private:
     int m_w{240},m_h{128};
 
     QFile m_file;
+
+    QTimer timer;
 };
 
 #endif
