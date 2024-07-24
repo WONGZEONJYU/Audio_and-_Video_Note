@@ -9,44 +9,6 @@
 static inline constexpr int A_VER{3};
 static inline constexpr int T_VER{4};
 
-#if defined(__APPLE__) && defined(__MACH__)
-//顶点shader
-static inline constexpr auto vString{
-R"glsl(
-        #version 410 core
-        layout(location = 5) in vec4 vertexIn;
-        layout(location = 6) in vec2 textureIn;
-        out vec2 textureOut;
-        void main(){
-            gl_Position = vertexIn;
-            textureOut = textureIn;
-        }
-)glsl"
-};
-
-//片元shader
-static inline constexpr auto tString{
-R"glsl(
-    #version 410 core
-    in vec2 textureOut;
-    uniform sampler2D tex_y;
-    uniform sampler2D tex_u;
-    uniform sampler2D tex_v;
-    out vec4 FragColor;
-    void main(){
-        vec3 yuv;
-        vec3 rgb;
-        yuv.x = texture(tex_y, textureOut).r;
-        yuv.y = texture(tex_u, textureOut).r - 0.5;
-        yuv.z = texture(tex_v, textureOut).r - 0.5;
-        rgb = mat3(1.0, 1.0, 1.0,
-                   0.0, -0.39465, 2.03211,
-                   1.13983, -0.58060, 0.0) * yuv;
-        FragColor = vec4(rgb, 1.0);
-    }
-)glsl"
-};
-#else
 //顶点shader
 static inline constexpr auto vString{
 GET_STR(
@@ -77,11 +39,16 @@ GET_STR(
         gl_FragColor = vec4(rgb, 1.0);
     }
 )};
-#endif
 
-//gl_FragColor = vec4(rgb, 1.0);
-XVideoWidget::XVideoWidget(QWidget *parent):
-    QOpenGLWidget(parent){
+XVideoWidget::XVideoWidget(QWidget *parent):QOpenGLWidget(parent){
+#if defined(__APPLE__) && defined(__MACH__)
+    QSurfaceFormat format;
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setVersion(4, 1); // 使用 OpenGL 4.1 核心配置
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+#endif
 }
 
 XVideoWidget::~XVideoWidget() {
@@ -98,7 +65,9 @@ void XVideoWidget::initializeGL() {
     //初始化opengl
     initializeOpenGLFunctions();
 
-    //qDebug() << "OpenGL version: " << glGetString(GL_VERSION);
+    qDebug() << "OpenGL version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    qDebug() << "OpenGL GLSL version: " <<  reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+
     //program加载shader(顶点和片元)脚本
 
     //顶点shader
@@ -111,8 +80,8 @@ void XVideoWidget::initializeGL() {
 
     //设置顶点坐标的变量
     m_program.bindAttributeLocation(GET_STR(vertexIn),A_VER);
-
-    //设置材质坐标
+//
+//    //设置材质坐标
     m_program.bindAttributeLocation(GET_STR(textureIn),T_VER);
 
     //编译shader
@@ -149,19 +118,20 @@ void XVideoWidget::initializeGL() {
 //            0.0f,1.0f,
     };
 
-    const auto vertexIn_num = m_program.attributeLocation(GET_STR(vertexIn));
+    const auto vertexIn_num {m_program.attributeLocation(GET_STR(vertexIn))};
     qDebug() << "vertexIn_num = " << vertexIn_num;
     //顶点
     //glVertexAttribPointer(A_VER, 3, GL_FLOAT, 0, 0, ver);
 
     glVertexAttribPointer(vertexIn_num, 3, GL_FLOAT, GL_FALSE, 0, ver);
-    qDebug()  << glGetError();
     glEnableVertexAttribArray(vertexIn_num);
-    qDebug() << glGetError();
+
+    const auto textureIn_num {m_program.attributeLocation(GET_STR(textureIn))};
+    qDebug() << "textureIn_num = " << textureIn_num;
 
     //材质
-    glVertexAttribPointer(T_VER, 2, GL_FLOAT, GL_FALSE, 0, tex);
-    glEnableVertexAttribArray(T_VER);
+    glVertexAttribPointer(textureIn_num, 2, GL_FLOAT, GL_FALSE, 0, tex);
+    glEnableVertexAttribArray(textureIn_num);
 
     //从shader获取材质
     m_unis[0] = m_program.uniformLocation(GET_STR(tex_y));
@@ -214,13 +184,15 @@ void XVideoWidget::initializeGL() {
     void (XVideoWidget::*f)(){&XVideoWidget::update};
     connect(&timer,&QTimer::timeout,this,f);
 
-    //timer.start(40);
+    timer.start(40);
 
     //QOpenGLWidget::initializeGL();
     qDebug() << "end " << __FUNCTION__ ;
 }
 
 void XVideoWidget::paintGL() {
+
+    qDebug() << "begin: " << __FUNCTION__;
 
     if (m_file.atEnd()){
         m_file.seek(0);
@@ -238,6 +210,7 @@ void XVideoWidget::paintGL() {
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w,m_h,GL_RED,GL_UNSIGNED_BYTE,m_datas[0]);
     //与shader uni变量关联
     glUniform1i(m_unis[0], 0);
+
     /****************************************y****************************************/
 
     /****************************************u****************************************/
@@ -262,12 +235,10 @@ void XVideoWidget::paintGL() {
 
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 
-    //qDebug()  << glGetError();
-
-    //qDebug() << __FUNCTION__;
+    qDebug() << "end: " << __FUNCTION__;
 }
 
 void XVideoWidget::resizeGL(int w, int h) {
-    qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
+    //qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
     //QOpenGLWidget::resizeGL(w, h);
 }
