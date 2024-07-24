@@ -16,13 +16,40 @@
 #include <QTimer>
 #include <QOpenGLFunctions>
 
-class XVideoWidget : public QOpenGLWidget,
-        protected QOpenGLFunctions
+class XVideoWidget : public QOpenGLWidget,protected QOpenGLFunctions
 {
+    //顶点坐标
+    static constexpr GLfloat ver[]{
+//逆时针,
+            -1.0f,-1.0f,0.0f,
+            1.0f,-1.0f,0.0f,
+            -1.0f,1.0f,0.0f,
+            1.0f,1.0f,0.0f,
+//顺时针
+//        1.0f,-1.0f,0.0f,
+//        -1.0f,-1.0,0.0f,
+//        1.0f,1.0f,0.0f,
+//        -1.0f,1.0f,0.0f
+    };
+
+    static constexpr GLfloat tex[]{
+//逆时针
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f
+//顺时针
+//            1.0f,0.0f,
+//            0.0f,0.0f,
+//            1.0f,1.0f,
+//            0.0f,1.0f
+    };
+
 Q_OBJECT
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int , int ) override;
+
 public:
     explicit XVideoWidget(QWidget*  = nullptr);
     ~XVideoWidget() override;
