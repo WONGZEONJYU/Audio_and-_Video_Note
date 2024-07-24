@@ -29,7 +29,7 @@ public:
     {
         if (Widget->objectName().isEmpty())
             Widget->setObjectName("Widget");
-        Widget->resize(1288, 841);
+        Widget->resize(561, 486);
         gridLayout = new QGridLayout(Widget);
         gridLayout->setObjectName("gridLayout");
         openGLWidget = new XVideoWidget(Widget);
@@ -45,8 +45,6 @@ public:
 
         gridLayout->addWidget(horizontalSlider, 1, 0, 1, 1);
 
-        openGLWidget->raise();
-        horizontalSlider->raise();
 
         retranslateUi(Widget);
 
