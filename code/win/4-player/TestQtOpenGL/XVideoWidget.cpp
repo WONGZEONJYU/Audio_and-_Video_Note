@@ -150,7 +150,7 @@ void XVideoWidget::initializeGL() {
     };
 
     const auto vertexIn_num = m_program.attributeLocation(GET_STR(vertexIn));
-    qDebug() << vertexIn_num;
+    qDebug() << "vertexIn_num = " << vertexIn_num;
     //顶点
     //glVertexAttribPointer(A_VER, 3, GL_FLOAT, 0, 0, ver);
 
@@ -160,7 +160,7 @@ void XVideoWidget::initializeGL() {
     qDebug() << glGetError();
 
     //材质
-    glVertexAttribPointer(T_VER, 2, GL_FLOAT, 0, 0, tex);
+    glVertexAttribPointer(T_VER, 2, GL_FLOAT, GL_FALSE, 0, tex);
     glEnableVertexAttribArray(T_VER);
 
     //从shader获取材质
