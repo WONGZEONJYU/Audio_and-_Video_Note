@@ -123,10 +123,10 @@ void XVideoWidget::initializeGL() {
     //顶点坐标
     static constexpr GLfloat ver[]{
 //逆时针,
-        -1.0f,-1.0f,
-        1.0f,-1.0f,
-        -1.0f,1.0f,
-        1.0f,1.0f
+        -1.0f,-1.0f,0.0f,
+        1.0f,-1.0f,0.0f,
+        -1.0f,1.0f,0.0f,
+        1.0f,1.0f,0.0f
 //顺时针
 //        1.0f,-1.0f,
 //        -1.0f,-1.0,
@@ -148,7 +148,7 @@ void XVideoWidget::initializeGL() {
     };
 
     //顶点
-    glVertexAttribPointer(A_VER, 2, GL_FLOAT, 0, 0, ver);
+    glVertexAttribPointer(A_VER, 3, GL_FLOAT, 0, 0, ver);
     glEnableVertexAttribArray(A_VER);
 
     //材质
