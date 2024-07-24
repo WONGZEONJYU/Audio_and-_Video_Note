@@ -6,16 +6,16 @@
 
 //自动加双引号
 #define GET_STR(args) #args
-static inline constexpr auto A_VER{3};
-static inline constexpr auto T_VER{4};
+static inline constexpr int A_VER{3};
+static inline constexpr int T_VER{4};
 
 #if defined(__APPLE__) && defined(__MACH__)
 //顶点shader
 static inline constexpr auto vString{
 R"glsl(
         #version 410 core
-        in vec4 vertexIn;
-        in vec2 textureIn;
+        layout(location = 5) in vec4 vertexIn;
+        layout(location = 6) in vec2 textureIn;
         out vec2 textureOut;
         void main(){
             gl_Position = vertexIn;
@@ -28,7 +28,7 @@ R"glsl(
 static inline constexpr auto tString{
 R"glsl(
     #version 410 core
-    out vec2 textureOut;
+    in vec2 textureOut;
     uniform sampler2D tex_y;
     uniform sampler2D tex_u;
     uniform sampler2D tex_v;
@@ -50,7 +50,7 @@ R"glsl(
 //顶点shader
 static inline constexpr auto vString{
 GET_STR(
-    attribute vec4 vertexIn; //顶点坐标,attribute可以用in代替
+    attribute vec4 vertexIn; //顶点坐标
     attribute vec2 textureIn; //材质坐标
     varying vec2 textureOut; //片元和顶点共享坐标
     void main(void){
@@ -94,8 +94,7 @@ XVideoWidget::~XVideoWidget() {
 
 //初始化opengl
 void XVideoWidget::initializeGL() {
-
-    qDebug() << __FUNCTION__;
+    qDebug() << "begin " << __FUNCTION__ ;
     //初始化opengl
     initializeOpenGLFunctions();
 
@@ -104,9 +103,11 @@ void XVideoWidget::initializeGL() {
 
     //顶点shader
     qDebug() << m_program.addShaderFromSourceCode(QOpenGLShader::Vertex,vString);
+    qDebug() << m_program.log();
 
     //片元(像素)
     qDebug() << m_program.addShaderFromSourceCode(QOpenGLShader::Fragment,tString);
+    qDebug() << m_program.log();
 
     //设置顶点坐标的变量
     m_program.bindAttributeLocation(GET_STR(vertexIn),A_VER);
@@ -116,9 +117,10 @@ void XVideoWidget::initializeGL() {
 
     //编译shader
     qDebug() << "program.link() = " << m_program.link();
+    qDebug() << m_program.log();
     //绑定
     qDebug() << "program.bind() = " << m_program.bind();
-
+    qDebug() << m_program.log();
     //传递顶点和材质坐标
     //顶点坐标
     static constexpr GLfloat ver[]{
@@ -147,9 +149,15 @@ void XVideoWidget::initializeGL() {
 //            0.0f,1.0f,
     };
 
+    const auto vertexIn_num = m_program.attributeLocation(GET_STR(vertexIn));
+    qDebug() << vertexIn_num;
     //顶点
-    glVertexAttribPointer(A_VER, 3, GL_FLOAT, 0, 0, ver);
-    glEnableVertexAttribArray(A_VER);
+    //glVertexAttribPointer(A_VER, 3, GL_FLOAT, 0, 0, ver);
+
+    glVertexAttribPointer(vertexIn_num, 3, GL_FLOAT, GL_FALSE, 0, ver);
+    qDebug()  << glGetError();
+    glEnableVertexAttribArray(vertexIn_num);
+    qDebug() << glGetError();
 
     //材质
     glVertexAttribPointer(T_VER, 2, GL_FLOAT, 0, 0, tex);
@@ -206,9 +214,10 @@ void XVideoWidget::initializeGL() {
     void (XVideoWidget::*f)(){&XVideoWidget::update};
     connect(&timer,&QTimer::timeout,this,f);
 
-    timer.start(40);
+    //timer.start(40);
 
     //QOpenGLWidget::initializeGL();
+    qDebug() << "end " << __FUNCTION__ ;
 }
 
 void XVideoWidget::paintGL() {
@@ -253,9 +262,9 @@ void XVideoWidget::paintGL() {
 
     glDrawArrays(GL_TRIANGLE_STRIP,0,4);
 
-    qDebug()  << glGetError();
+    //qDebug()  << glGetError();
 
-    qDebug() << __FUNCTION__;
+    //qDebug() << __FUNCTION__;
 }
 
 void XVideoWidget::resizeGL(int w, int h) {

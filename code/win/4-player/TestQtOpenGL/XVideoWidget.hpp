@@ -10,9 +10,10 @@
 #include <OpenGL/glu.h>
 #endif
 
-#include <QtOpenGLWidgets/QtOpenGLWidgets>
 #include <QOpenGLShaderProgram>
 #include <QFile>
+#include <QOpenGLWidget>
+#include <QTimer>
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <QOpenGLFunctions_4_1_Core>
