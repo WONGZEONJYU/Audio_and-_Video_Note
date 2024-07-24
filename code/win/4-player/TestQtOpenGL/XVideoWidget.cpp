@@ -42,12 +42,12 @@ GET_STR(
 
 XVideoWidget::XVideoWidget(QWidget *parent):QOpenGLWidget(parent){
 #if defined(__APPLE__) && defined(__MACH__)
-    QSurfaceFormat format;
-    format.setDepthBufferSize(24);
-    format.setStencilBufferSize(8);
-    format.setVersion(4, 1); // 使用 OpenGL 4.1 核心配置
-    format.setProfile(QSurfaceFormat::CoreProfile);
-    QSurfaceFormat::setDefaultFormat(format);
+//    QSurfaceFormat format;
+//    format.setDepthBufferSize(24);
+//    format.setStencilBufferSize(8);
+//    format.setVersion(1, 2);
+//    format.setProfile(QSurfaceFormat::CoreProfile);
+//    QSurfaceFormat::setDefaultFormat(format);
 #endif
 }
 
@@ -214,7 +214,7 @@ void XVideoWidget::paintGL() {
     /****************************************y****************************************/
 
     /****************************************u****************************************/
-    glActiveTexture(GL_TEXTURE1);//激活了1层材质
+    glActiveTexture(GL_TEXTURE0 + 1);//激活了1层材质
     glBindTexture(GL_TEXTURE_2D,m_texs[1]); //1层绑定到U材质
     //m_program.setUniformValue(GET_STR(tex_u),1);
     //修改材质内容(复印内存中内容)
@@ -224,7 +224,7 @@ void XVideoWidget::paintGL() {
     /****************************************u****************************************/
 
     /****************************************v****************************************/
-    glActiveTexture(GL_TEXTURE2);//激活了2层材质
+    glActiveTexture(GL_TEXTURE0 + 2);//激活了2层材质
     glBindTexture(GL_TEXTURE_2D,m_texs[2]); //2层绑定到V材质
     //m_program.setUniformValue(GET_STR(tex_v),2);
     //修改材质内容(复印内存中内容)
