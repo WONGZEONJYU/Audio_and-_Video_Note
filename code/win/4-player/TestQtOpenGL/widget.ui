@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1288</width>
-    <height>841</height>
+    <width>561</width>
+    <height>486</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,8 +31,6 @@
     </widget>
    </item>
   </layout>
-  <zorder>openGLWidget</zorder>
-  <zorder>horizontalSlider</zorder>
  </widget>
  <customwidgets>
   <customwidget>
