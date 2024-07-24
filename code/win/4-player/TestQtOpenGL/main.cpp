@@ -2,6 +2,7 @@
 #include "widget.hpp"
 #include <QSurfaceFormat>
 
+#if 1
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 #if defined(__APPLE__) && defined(__MACH__)
@@ -21,3 +22,29 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 }
+#else
+#include <OpenGL/gl3.h>
+#include <GLUT/glut.h>
+
+void display()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBegin(GL_TRIANGLES);
+    glVertex2f(-0.5f, -0.5f);
+    glVertex2f( 0.5f, -0.5f);
+    glVertex2f( 0.0f,  0.5f);
+    glEnd();
+    glFlush();
+}
+
+int main(int argc, char** argv)
+{
+    glutInit(&argc, argv);
+    glutCreateWindow("OpenGL Test");
+    glutDisplayFunc(display);
+    glutMainLoop();
+    return 0;
+}
+
+#endif
+

@@ -39,6 +39,7 @@ public:
 private:
     //shader程序
     QOpenGLShaderProgram m_program;
+
     //shader中yuv变量地址
     GLint m_unis[3]{};
     //opengl的texture地址
