@@ -123,10 +123,10 @@ void XVideoWidget::initializeGL() {
     //顶点坐标
     static constexpr GLfloat ver[]{
 //逆时针,
-        -1.0f,-1.0f,0.0f,0.0f,
-        1.0f,-1.0f,0.0f,0.0f,
-        -1.0f,1.0f,0.0f,0.0f,
-        1.0f,1.0f,0.0f,0.0f
+        -1.0f,-1.0f,0.0f,
+        1.0f,-1.0f,0.0f,
+        -1.0f,1.0f,0.0f,
+        1.0f,1.0f,0.0f,
 //顺时针
 //        1.0f,-1.0f,
 //        -1.0f,-1.0,
@@ -136,10 +136,10 @@ void XVideoWidget::initializeGL() {
 
     static constexpr GLfloat tex[]{
 //逆时针
-            0.0f, 1.0f,0.0f,0.1f,
-            1.0f, 1.0f,0.0f,0.1f,
-            0.0f, 0.0f,0.0f,0.1f,
-            1.0f, 0.0f,0.0f,0.1f
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f
 //顺时针
 //            1.0f,0.0f,
 //            0.0f,0.0f,
@@ -148,11 +148,11 @@ void XVideoWidget::initializeGL() {
     };
 
     //顶点
-    glVertexAttribPointer(A_VER, 4, GL_FLOAT, 0, 0, ver);
+    glVertexAttribPointer(A_VER, 3, GL_FLOAT, 0, 0, ver);
     glEnableVertexAttribArray(A_VER);
 
     //材质
-    glVertexAttribPointer(T_VER, 4, GL_FLOAT, 0, 0, tex);
+    glVertexAttribPointer(T_VER, 2, GL_FLOAT, 0, 0, tex);
     glEnableVertexAttribArray(T_VER);
 
     //从shader获取材质
