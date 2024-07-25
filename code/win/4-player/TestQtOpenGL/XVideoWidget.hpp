@@ -16,7 +16,7 @@
 #include <QTimer>
 #include <QOpenGLFunctions>
 
-class XVideoWidget : public QOpenGLWidget,protected QOpenGLFunctions
+class XVideoWidget final : public QOpenGLWidget,protected QOpenGLFunctions
 {
     //顶点坐标
     static constexpr GLfloat ver[]{
@@ -49,7 +49,7 @@ Q_OBJECT
     void initializeGL() override;
     void paintGL() override;
     void resizeGL(int , int ) override;
-
+    void checkOpenGLError(const char* , const char* ,const int &);
 public:
     explicit XVideoWidget(QWidget*  = nullptr);
     ~XVideoWidget() override;

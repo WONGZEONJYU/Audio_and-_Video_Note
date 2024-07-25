@@ -4,13 +4,6 @@
 
 #include "XVideoWidget.hpp"
 
-static void checkOpenGLError(const char* stmt, const char* fname, int line) {
-    const auto err{glGetError()};
-    if(GL_NO_ERROR != err) {
-        qDebug() << "OpenGL error " << err << " at " << fname << ":" << line << " - for " << stmt;
-    }
-}
-
 #define GL_CHECK(stmt) do { \
         stmt; \
         checkOpenGLError(#stmt, __FILE__, __LINE__); \
@@ -222,4 +215,11 @@ void XVideoWidget::paintGL() {
 
 void XVideoWidget::resizeGL(int w, int h) {
     //qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
+}
+
+void XVideoWidget::checkOpenGLError(const char* stmt, const char* fname,const int &line) {
+    const auto err{this->glGetError()};
+    if(GL_NO_ERROR != err) {
+        qDebug() << "OpenGL error " << err << " at " << fname << ":" << line << " - for " << stmt;
+    }
 }
