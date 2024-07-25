@@ -19,6 +19,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(Vulkan_LIBRARY "C:/VulkanSDK/1.3.290.0/Lib/vulkan-1.lib")
     find_package(Vulkan REQUIRED)
     include_directories(${Vulkan_INCLUDE_DIR})
+
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
     set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.4.2/macos")
@@ -33,11 +34,12 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     find_package(Vulkan REQUIRED)
     include_directories(${Vulkan_INCLUDE_DIR})
 
-    find_package(OpenGL REQUIRED)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src)
+
+find_package(OpenGL REQUIRED)
 
 find_package(Qt6 COMPONENTS
         Core
@@ -62,6 +64,7 @@ target_link_libraries(${PROJECT_NAME}
         Qt::Widgets
         Qt6::OpenGL
         Qt6::OpenGLWidgets
+        OpenGL::GL
         ${Vulkan_LIBRARY}
 )
 
