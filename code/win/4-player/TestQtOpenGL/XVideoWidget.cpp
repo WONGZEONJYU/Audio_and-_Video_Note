@@ -156,7 +156,7 @@ void XVideoWidget::initializeGL() {
     void (XVideoWidget::*f)(){&XVideoWidget::update};
     connect(&timer,&QTimer::timeout,this,f);
 
-    //timer.start(40);
+    timer.start(40);
 
     qDebug() << "end " << __FUNCTION__ ;
 }
