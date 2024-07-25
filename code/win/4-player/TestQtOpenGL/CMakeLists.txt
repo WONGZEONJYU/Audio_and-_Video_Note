@@ -68,6 +68,12 @@ target_link_libraries(${PROJECT_NAME}
         ${Vulkan_LIBRARY}
 )
 
+if(APPLE)
+    find_library(METAL_FRAMEWORK Metal)
+    find_library(METALKIT_FRAMEWORK MetalKit)
+    target_link_libraries(${PROJECT_NAME} ${METAL_FRAMEWORK} ${METALKIT_FRAMEWORK})
+endif()
+
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")

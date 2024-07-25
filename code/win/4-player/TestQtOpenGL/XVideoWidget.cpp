@@ -11,49 +11,51 @@
 
 //自动加双引号
 #define GET_STR(args) #args
-static inline constexpr int A_VER{3};
-static inline constexpr int T_VER{4};
+static inline constexpr int A_VER{0};
+static inline constexpr int T_VER{1};
+
+//attribute
+//varying
 
 //顶点shader
 static inline constexpr auto vString{
-GET_STR(
-    attribute vec4 vertexIn; //顶点坐标
-    attribute vec2 textureIn; //材质坐标
-    varying vec2 textureOut; //片元和顶点共享坐标
+R"glsl(
+    #version 410 core
+    in vec4 vertexIn;
+    in vec2 textureIn;
+    out vec2 textureOut;
     void main(void){
         gl_Position = vertexIn;
         textureOut = textureIn;
     }
-)};
+)glsl"
+};
 
+//gl_FragColor
 static inline constexpr auto tString{
-GET_STR(
-    varying vec2 textureOut;
+R"glsl(
+    #version 410 core
+    in vec2 textureOut;
     uniform sampler2D tex_y;
     uniform sampler2D tex_u;
     uniform sampler2D tex_v;
+    out vec4 FragColor;
     void main(void){
         vec3 yuv;
         vec3 rgb;
-        yuv.x = texture2D(tex_y, textureOut).r;
-        yuv.y = texture2D(tex_u, textureOut).r - 0.5;
-        yuv.z = texture2D(tex_v, textureOut).r - 0.5;
+        yuv.x = texture(tex_y, textureOut).r;
+        yuv.y = texture(tex_u, textureOut).r - 0.5;
+        yuv.z = texture(tex_v, textureOut).r - 0.5;
         rgb = mat3(1.0, 1.0, 1.0,
                    0.0, -0.39465, 2.03211,
                    1.13983, -0.58060, 0.0) * yuv;
-        gl_FragColor = vec4(rgb, 1.0);
+        FragColor = vec4(rgb, 1.0);
     }
-)};
+)glsl"
+};
 
 XVideoWidget::XVideoWidget(QWidget *parent):QOpenGLWidget(parent){
-#if defined(__APPLE__) && defined(__MACH__)
-//    QSurfaceFormat format;
-//    format.setDepthBufferSize(24);
-//    format.setStencilBufferSize(8);
-//    format.setVersion(2, 1);
-//    format.setProfile(QSurfaceFormat::CoreProfile);
-//    QSurfaceFormat::setDefaultFormat(format);
-#endif
+
 }
 
 XVideoWidget::~XVideoWidget() {
@@ -96,18 +98,18 @@ void XVideoWidget::initializeGL() {
     qDebug() << "program.bind() = " << m_program.bind();
     qDebug() << m_program.log();
 
-    glUseProgram(m_program.programId());
+    GL_CHECK(glUseProgram(m_program.programId()));
     //传递顶点和材质坐标
     const auto vertexIn_num {m_program.attributeLocation(GET_STR(vertexIn))};
     qDebug() << "vertexIn_num = " << vertexIn_num;
     //顶点
-    GL_CHECK(glVertexAttribPointer(vertexIn_num, 2, GL_FLOAT, GL_FALSE, 0, ver));
+    GL_CHECK(glVertexAttribPointer(vertexIn_num, 2, GL_INT, GL_FALSE, 0, ver));
     GL_CHECK(glEnableVertexAttribArray(vertexIn_num));
 
     const auto textureIn_num {m_program.attributeLocation(GET_STR(textureIn))};
     qDebug() << "textureIn_num = " << textureIn_num;
     //材质
-    GL_CHECK(glVertexAttribPointer(textureIn_num, 2, GL_FLOAT, GL_FALSE, 0, tex));
+    GL_CHECK(glVertexAttribPointer(textureIn_num, 2, GL_INT, GL_FALSE, 0, tex));
     GL_CHECK(glEnableVertexAttribArray(textureIn_num));
 
     //从shader获取材质
@@ -161,7 +163,7 @@ void XVideoWidget::initializeGL() {
     void (XVideoWidget::*f)(){&XVideoWidget::update};
     connect(&timer,&QTimer::timeout,this,f);
 
-    timer.start(40);
+    //timer.start(40);
 
     qDebug() << "end " << __FUNCTION__ ;
 }
@@ -215,6 +217,7 @@ void XVideoWidget::paintGL() {
 
 void XVideoWidget::resizeGL(int w, int h) {
     //qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
+    glViewport(0, 0, w, h);
 }
 
 void XVideoWidget::checkOpenGLError(const char* stmt, const char* fname,const int &line) {

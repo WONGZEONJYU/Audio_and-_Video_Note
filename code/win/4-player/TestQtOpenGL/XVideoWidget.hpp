@@ -19,12 +19,12 @@
 class XVideoWidget final : public QOpenGLWidget,protected QOpenGLFunctions
 {
     //顶点坐标
-    static constexpr GLfloat ver[]{
+    static inline constexpr int ver[] {
 //逆时针,
-            -1.0f,-1.0f,
-            1.0f,-1.0f,
-            -1.0f,1.0f,
-            1.0f,1.0f,
+            -1,-1,
+            1,-1,
+            -1,1,
+            1,1,
 //顺时针
 //        1.0f,-1.0f,0.0f,
 //        -1.0f,-1.0,0.0f,
@@ -32,12 +32,12 @@ class XVideoWidget final : public QOpenGLWidget,protected QOpenGLFunctions
 //        -1.0f,1.0f,0.0f
     };
 
-    static constexpr GLfloat tex[]{
+    static inline constexpr int tex[] {
 //逆时针
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            0.0f, 0.0f,
-            1.0f, 0.0f
+            0, 1,
+            1, 1,
+            0, 0,
+            1, 0,
 //顺时针
 //            1.0f,0.0f,
 //            0.0f,0.0f,
