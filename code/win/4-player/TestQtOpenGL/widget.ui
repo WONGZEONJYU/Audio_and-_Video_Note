@@ -36,7 +36,7 @@
   <customwidget>
    <class>XVideoWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header location="global">XVideoWidget.hpp</header>
+   <header>XVideoWidget.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -12,8 +12,8 @@ static inline constexpr int T_VER{4};
 //顶点shader
 static inline constexpr auto vString{
 GET_STR(
-    in vec4 vertexIn; //顶点坐标
-    in vec2 textureIn; //材质坐标
+    attribute vec4 vertexIn; //顶点坐标
+    attribute vec2 textureIn; //材质坐标
     varying vec2 textureOut; //片元和顶点共享坐标
     void main(void){
         gl_Position = vertexIn;
@@ -45,7 +45,7 @@ XVideoWidget::XVideoWidget(QWidget *parent):QOpenGLWidget(parent){
 //    QSurfaceFormat format;
 //    format.setDepthBufferSize(24);
 //    format.setStencilBufferSize(8);
-//    format.setVersion(1, 2);
+//    format.setVersion(2, 1);
 //    format.setProfile(QSurfaceFormat::CoreProfile);
 //    QSurfaceFormat::setDefaultFormat(format);
 #endif
@@ -91,11 +91,12 @@ void XVideoWidget::initializeGL() {
     qDebug() << "program.bind() = " << m_program.bind();
     qDebug() << m_program.log();
 
+    glUseProgram(m_program.programId());
     //传递顶点和材质坐标
     const auto vertexIn_num {m_program.attributeLocation(GET_STR(vertexIn))};
     qDebug() << "vertexIn_num = " << vertexIn_num;
     //顶点
-    glVertexAttribPointer(vertexIn_num, 3, GL_FLOAT, GL_FALSE, 0, ver);
+    glVertexAttribPointer(vertexIn_num, 2, GL_FLOAT, GL_FALSE, 0, ver);
     glEnableVertexAttribArray(vertexIn_num);
 
     const auto textureIn_num {m_program.attributeLocation(GET_STR(textureIn))};
@@ -155,7 +156,7 @@ void XVideoWidget::initializeGL() {
     void (XVideoWidget::*f)(){&XVideoWidget::update};
     connect(&timer,&QTimer::timeout,this,f);
 
-    timer.start(40);
+    //timer.start(40);
 
     qDebug() << "end " << __FUNCTION__ ;
 }
@@ -174,12 +175,16 @@ void XVideoWidget::paintGL() {
 
     /****************************************y****************************************/
     glActiveTexture(GL_TEXTURE0);//激活了0层材质
+    qDebug() << glGetError();
     glBindTexture(GL_TEXTURE_2D,m_texs[0]); //0层绑定到Y材质
+    qDebug() << glGetError();
     //修改材质内容(复印内存中内容)
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w,m_h,
                     GL_RED,GL_UNSIGNED_BYTE,m_datas[0]);
+    qDebug() << glGetError();
     //与shader uni变量关联
     glUniform1i(m_unis[0], 0);
+    qDebug() << glGetError();
     /****************************************y****************************************/
 
     /****************************************u****************************************/

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.28.1)
 project(TestQtOpenGL)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -21,7 +21,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     include_directories(${Vulkan_INCLUDE_DIR})
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
-    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.0/macos")
+    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.4.2/macos")
     include_directories(/usr/local/ffmpeg/include)
     include_directories(/opt/homebrew/Cellar/sdl2/2.30.1/include/SDL2)
 
@@ -32,6 +32,8 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     set(Vulkan_LIBRARY "/Users/wong/VulkanSDK/1.3.283.0/macOS/lib/libvulkan.dylib")
     find_package(Vulkan REQUIRED)
     include_directories(${Vulkan_INCLUDE_DIR})
+
+    find_package(OpenGL REQUIRED)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR})
@@ -60,6 +62,7 @@ target_link_libraries(${PROJECT_NAME}
         Qt::Widgets
         Qt6::OpenGL
         Qt6::OpenGLWidgets
+        OpenGL::GL
         ${Vulkan_LIBRARY}
 )
 
