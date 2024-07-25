@@ -14,7 +14,7 @@
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QWidget>
-#include <XVideoWidget.hpp>
+#include "XVideoWidget.hpp"
 
 QT_BEGIN_NAMESPACE
 
