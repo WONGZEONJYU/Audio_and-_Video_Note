@@ -4,9 +4,8 @@
 
 #include "XVideoWidget.hpp"
 
-
-void checkOpenGLError(const char* stmt, const char* fname, int line) {
-    const auto err = glGetError();
+static void checkOpenGLError(const char* stmt, const char* fname, int line) {
+    const auto err{glGetError()};
     if(GL_NO_ERROR != err) {
         qDebug() << "OpenGL error " << err << " at " << fname << ":" << line << " - for " << stmt;
     }
