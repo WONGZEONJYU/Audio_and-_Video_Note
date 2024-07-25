@@ -7,10 +7,9 @@ int main(int argc, char *argv[]) {
 
 #if defined(__APPLE__) && defined(__MACH__)
     QSurfaceFormat format;
-    format.setVersion(4, 1); // 或 3, 2，取决于你的 OpenGL 版本要求
+    format.setVersion(4, 1);
     format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
-
 #endif
 
     QApplication a(argc, argv);
@@ -24,5 +23,3 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 }
-
-

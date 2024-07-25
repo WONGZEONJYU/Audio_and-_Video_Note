@@ -20,7 +20,7 @@ static inline constexpr int T_VER{1};
 //顶点shader
 static inline constexpr auto vString{
 R"glsl(
-    #version 410 core
+    #version 410
     in vec4 vertexIn;
     in vec2 textureIn;
     out vec2 textureOut;
@@ -34,7 +34,7 @@ R"glsl(
 //gl_FragColor
 static inline constexpr auto tString{
 R"glsl(
-    #version 410 core
+    #version 410
     in vec2 textureOut;
     uniform sampler2D tex_y;
     uniform sampler2D tex_u;
@@ -103,13 +103,13 @@ void XVideoWidget::initializeGL() {
     const auto vertexIn_num {m_program.attributeLocation(GET_STR(vertexIn))};
     qDebug() << "vertexIn_num = " << vertexIn_num;
     //顶点
-    GL_CHECK(glVertexAttribPointer(vertexIn_num, 2, GL_INT, GL_FALSE, 0, ver));
+    GL_CHECK(glVertexAttribPointer(vertexIn_num, 2, GL_FLOAT, GL_FALSE, 0, ver));
     GL_CHECK(glEnableVertexAttribArray(vertexIn_num));
 
     const auto textureIn_num {m_program.attributeLocation(GET_STR(textureIn))};
     qDebug() << "textureIn_num = " << textureIn_num;
     //材质
-    GL_CHECK(glVertexAttribPointer(textureIn_num, 2, GL_INT, GL_FALSE, 0, tex));
+    GL_CHECK(glVertexAttribPointer(textureIn_num, 2, GL_FLOAT, GL_FALSE, 0, tex));
     GL_CHECK(glEnableVertexAttribArray(textureIn_num));
 
     //从shader获取材质
@@ -163,7 +163,7 @@ void XVideoWidget::initializeGL() {
     void (XVideoWidget::*f)(){&XVideoWidget::update};
     connect(&timer,&QTimer::timeout,this,f);
 
-    //timer.start(40);
+    timer.start(40);
 
     qDebug() << "end " << __FUNCTION__ ;
 }
