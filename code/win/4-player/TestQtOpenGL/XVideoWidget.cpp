@@ -4,6 +4,18 @@
 
 #include "XVideoWidget.hpp"
 
+void checkOpenGLError(const char* stmt, const char* fname, int line) {
+    const auto err{glGetError()};
+    if(GL_NO_ERROR != err) {
+        qDebug() << "OpenGL error " << err << " at " << fname << ":" << line << " - for " << stmt;
+    }
+}
+
+#define GL_CHECK(stmt) do { \
+        stmt; \
+        checkOpenGLError(#stmt, __FILE__, __LINE__); \
+    } while (0)
+
 //自动加双引号
 #define GET_STR(args) #args
 static inline constexpr int A_VER{3};
@@ -96,14 +108,14 @@ void XVideoWidget::initializeGL() {
     const auto vertexIn_num {m_program.attributeLocation(GET_STR(vertexIn))};
     qDebug() << "vertexIn_num = " << vertexIn_num;
     //顶点
-    glVertexAttribPointer(vertexIn_num, 2, GL_FLOAT, GL_FALSE, 0, ver);
-    glEnableVertexAttribArray(vertexIn_num);
+    GL_CHECK(glVertexAttribPointer(vertexIn_num, 2, GL_FLOAT, GL_FALSE, 0, ver));
+    GL_CHECK(glEnableVertexAttribArray(vertexIn_num));
 
     const auto textureIn_num {m_program.attributeLocation(GET_STR(textureIn))};
     qDebug() << "textureIn_num = " << textureIn_num;
     //材质
-    glVertexAttribPointer(textureIn_num, 2, GL_FLOAT, GL_FALSE, 0, tex);
-    glEnableVertexAttribArray(textureIn_num);
+    GL_CHECK(glVertexAttribPointer(textureIn_num, 2, GL_FLOAT, GL_FALSE, 0, tex));
+    GL_CHECK(glEnableVertexAttribArray(textureIn_num));
 
     //从shader获取材质
     m_unis[0] = m_program.uniformLocation(GET_STR(tex_y));
@@ -175,16 +187,12 @@ void XVideoWidget::paintGL() {
 
     /****************************************y****************************************/
     glActiveTexture(GL_TEXTURE0);//激活了0层材质
-    qDebug() << glGetError();
     glBindTexture(GL_TEXTURE_2D,m_texs[0]); //0层绑定到Y材质
-    qDebug() << glGetError();
     //修改材质内容(复印内存中内容)
     glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_w,m_h,
                     GL_RED,GL_UNSIGNED_BYTE,m_datas[0]);
-    qDebug() << glGetError();
     //与shader uni变量关联
     glUniform1i(m_unis[0], 0);
-    qDebug() << glGetError();
     /****************************************y****************************************/
 
     /****************************************u****************************************/
