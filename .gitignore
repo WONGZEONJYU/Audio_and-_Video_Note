@@ -30,6 +30,8 @@
 /code/win/4-player/TestQtAudioSink/cmake-build-debug
 /code/win/4-player/TestQtOpenGL/cmake-build-debug
 /code/win/4-player/TestQtOpenGL/.idea
+/code/win/4-player/TestQtOpenGL_2/cmake-build-debug
+/code/win/4-player/TestQtOpenGL_2/.idea
 /code/mac/1-SDL/01-sdl-basic/bin/
 /code/mac/1-SDL/02-sdl-window/bin/
 /code/mac/1-SDL/03-sdl_event/bin/
