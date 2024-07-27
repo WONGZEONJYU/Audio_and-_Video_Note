@@ -1,0 +1,46 @@
+/********************************************************************************
+** Form generated from reading UI file 'XPlay2Widget.ui'
+**
+** Created by: Qt User Interface Compiler version 6.4.2
+**
+** WARNING! All changes made in this file will be lost when recompiling UI file!
+********************************************************************************/
+
+#ifndef UI_XPLAY2WIDGET_H
+#define UI_XPLAY2WIDGET_H
+
+#include <QtCore/QVariant>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QWidget>
+
+QT_BEGIN_NAMESPACE
+
+class Ui_XPlay2Widget
+{
+public:
+
+    void setupUi(QWidget *XPlay2Widget)
+    {
+        if (XPlay2Widget->objectName().isEmpty())
+            XPlay2Widget->setObjectName("XPlay2Widget");
+        XPlay2Widget->resize(400, 300);
+
+        retranslateUi(XPlay2Widget);
+
+        QMetaObject::connectSlotsByName(XPlay2Widget);
+    } // setupUi
+
+    void retranslateUi(QWidget *XPlay2Widget)
+    {
+        XPlay2Widget->setWindowTitle(QCoreApplication::translate("XPlay2Widget", "XPlay2Widget", nullptr));
+    } // retranslateUi
+
+};
+
+namespace Ui {
+    class XPlay2Widget: public Ui_XPlay2Widget {};
+} // namespace Ui
+
+QT_END_NAMESPACE
+
+#endif // UI_XPLAY2WIDGET_H
