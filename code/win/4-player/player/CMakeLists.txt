@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.28.1)
 project(player)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -16,7 +16,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     link_directories(c:/SDL2-2.28.5-VC/lib/x64)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
-    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.0/macos")
+    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.4.2/macos")
     include_directories(/usr/local/ffmpeg/include)
     include_directories(/opt/homebrew/Cellar/sdl2/2.30.1/include/SDL2)
 
@@ -84,9 +84,9 @@ add_executable(player main.cpp
 set(FFMPEG_LIBS avcodec avdevice avfilter avformat avutil postproc swresample swscale SDL2)
 
 target_link_libraries(player
-        Qt::Core
-        Qt::Gui
-        Qt::Widgets
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
         ${FFMPEG_LIBS}
 )
 
