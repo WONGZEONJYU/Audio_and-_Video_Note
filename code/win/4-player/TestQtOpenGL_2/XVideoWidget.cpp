@@ -4,6 +4,7 @@
 
 #include "XVideoWidget.hpp"
 #include <QByteArray>
+#include <QCoreApplication>
 
 #define GL_CHECK(stmt) do { \
         stmt; \
@@ -18,34 +19,39 @@ XVideoWidget::XVideoWidget(QWidget *parent):QOpenGLWidget(parent){
 }
 
 XVideoWidget::~XVideoWidget() {
-
+    qDebug() << __FUNCTION__ ;
     for(auto & item:m_textureYUV){
         item->release();
         item->destroy();
         delete item;
+        item = nullptr;
     }
 
     if (m_shader){
         m_shader->release();
         delete m_shader;
+        m_shader = nullptr;
     }
 
     if (m_VAO){
         m_VAO->release();
         m_VAO->destroy();
         delete m_VAO;
+        m_VAO = nullptr;
     }
 
     if (m_VBO){
         m_VBO->release();
         m_VBO->destroy();
         delete m_VBO;
+        m_VBO = nullptr;
     }
 
     if (m_EBO){
         m_EBO->release();
         m_EBO->destroy();
         delete m_EBO;
+        m_EBO = nullptr;
     }
 }
 
@@ -54,8 +60,14 @@ void XVideoWidget::initializeGL() {
     qDebug() << "begin " << __FUNCTION__ ;
 
     m_file.setFileName(GET_STR(out240x128.yuv));
-    if (!m_file.open(QFile::ReadOnly)){
-        throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
+
+    try {
+        if (!m_file.open(QFile::ReadOnly)){
+            throw std::runtime_error(GET_STR(out240x128.yuv file open failed!));
+        }
+    } catch (const std::exception &e) {
+        qDebug() << e.what();
+        return;
     }
 
     //初始化opengl
@@ -178,6 +190,10 @@ void XVideoWidget::paintGL() {
 
     qDebug() << "begin: " << __FUNCTION__;
 
+    if (!m_file.isOpen()){
+        qDebug() << "m_file is not open";
+    }
+
     m_shader->bind();
     QOpenGLVertexArrayObject::Binder vao(m_VAO);
     //m_VAO->bind(); //被QOpenGLVertexArrayObject::Binder vao(m_VAO);取代
@@ -216,7 +232,7 @@ void XVideoWidget::paintGL() {
 }
 
 void XVideoWidget::resizeGL(int w, int h) {
-    //qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
+    qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
     //glViewport(0, 0, w, h);
 }
 
