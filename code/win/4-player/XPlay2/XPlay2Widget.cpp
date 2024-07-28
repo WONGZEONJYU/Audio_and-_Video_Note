@@ -6,11 +6,14 @@
 
 #include "XPlay2Widget.hpp"
 #include "ui_XPlay2Widget.h"
+#include <QMUtex>
 
 XPlay2Widget_sptr XPlay2Widget::uni_win{};
 
 XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
 
+    static QMutex mux;
+    QMutexLocker locker(&mux);
     try {
         if (!uni_win){
             uni_win.reset(new XPlay2Widget);
@@ -19,9 +22,11 @@ XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
         return uni_win;
     } catch (const std::bad_alloc &e) {
         uni_win.reset();
+        locker.unlock();
         throw std::runtime_error("new XPlay2Widget failed");
     } catch (const std::runtime_error &e) {
         uni_win.reset();
+        locker.unlock();
         throw e;
     }
 }
@@ -47,5 +52,3 @@ void XPlay2Widget::Construct() noexcept(false) {
 void XPlay2Widget::DeConstruct() noexcept {
     delete ui;
 }
-
-
