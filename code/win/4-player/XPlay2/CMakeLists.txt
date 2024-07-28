@@ -36,8 +36,35 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
 
 endif()
 
+set(FFMPEG_LIBS
+        avcodec
+        avdevice
+        avfilter
+        avformat
+        avutil
+        postproc
+        swresample
+        swscale
+        SDL2
+)
+
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src)
+
+set(SRC_CODE
+        src/XThrow.cpp
+        src/XThrow.hpp
+        src/XDemux.cpp
+        src/XDemux.hpp
+        src/AVHelper.h
+        src/AVHelper.cpp
+        src/ShareAVFrame.cpp
+        src/ShareAVPacket.cpp
+        src/SwrContext_t.cpp
+        src/SwrContext_t.hpp
+        src/ShareAVFrame.hpp
+        src/ShareAVPacket.hpp
+)
 
 find_package(OpenGL REQUIRED)
 find_package(Qt6 COMPONENTS
@@ -48,12 +75,13 @@ find_package(Qt6 COMPONENTS
         OpenGLWidgets
         REQUIRED)
 
-add_executable(XPlay2 main.cpp
+add_executable(XPlay2
+        main.cpp
         XPlay2Widget.cpp
         XPlay2Widget.hpp
         XPlay2Widget.ui
-        XThrow.cpp
-        XThrow.hpp)
+        ${SRC_CODE}
+)
 target_link_libraries(XPlay2
         Qt::Core
         Qt::Gui
@@ -61,6 +89,7 @@ target_link_libraries(XPlay2
         Qt6::OpenGL
         Qt6::OpenGLWidgets
         OpenGL::GL
+        ${FFMPEG_LIBS}
         ${Vulkan_LIBRARY}
 )
 
