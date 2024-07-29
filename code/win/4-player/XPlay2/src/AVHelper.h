@@ -29,6 +29,12 @@ namespace AVHelper {
         void check_ff_func(const std::string &func,const std::string &file,
                            const int &line,const int &err_code) noexcept(false);
 
+        void check_nullptr(const std::string &func,const std::string &file,
+                           const int &line,const void *p) noexcept(false);
+
+        void check_EXC(const std::string &func,const std::string &file,
+                       const int &line,const std::exception &e) noexcept(false);
+
         std::string channel_layout_describe(const AVChannelLayout &) noexcept(true);
     }
 
@@ -59,8 +65,20 @@ private:
 };
 
 #define FF_CHECK_ERR(x) do{ \
-   const auto err_code{x};\
-   AVHelper::check_ff_func(#x,__FILE__,__LINE__,err_code);\
+const auto _err_code_{x};\
+AVHelper::check_ff_func(#x,__FILE__,__LINE__,_err_code_);\
 }while(false)
+
+#define CHECK_NULLPTR(x) do{ \
+const auto _p_ {x};\
+AVHelper::check_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_));\
+}while(false)
+
+#define CHECK_EXC(x)do{ \
+try{\
+x;\
+}catch(const std::exception &e){\
+AVHelper::check_EXC(#x,__FILE__,__LINE__,e);\
+}}while(false)
 
 #endif

@@ -7,6 +7,7 @@ extern "C" {
 }
 
 #include "XAVPacket.hpp"
+#include <string>
 
 XAVPacket::XAVPacket() : AVPacket() {
 
@@ -47,6 +48,6 @@ XAVPacket_sptr new_XAVPacket() noexcept(false)
     try {
         return std::make_shared<XAVPacket>();
     } catch (...) {
-        throw std::runtime_error(__func__  + std::string(" error!\n"));
+        throw std::runtime_error(std::string(__func__ ) + " error!\n");
     }
 }

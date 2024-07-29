@@ -8,7 +8,6 @@ set(CMAKE_AUTOUIC ON)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_definitions(-DWINDOWS)
-    add_definitions(-D__STDC_CONSTANT_MACROS)
     set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
     include_directories(c:/ffmepg-7.1/include)
     include_directories(c:/SDL2-2.28.5-VC/include)
@@ -48,7 +47,7 @@ set(FFMPEG_LIBS
         swscale
         SDL2
 )
-
+add_definitions(-D__STDC_CONSTANT_MACROS)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src)
 

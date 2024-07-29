@@ -3,6 +3,7 @@
 //
 
 #include "XAVFrame.hpp"
+#include <string>
 
 XAVFrame::XAVFrame() : AVFrame() {
     pts                   =
