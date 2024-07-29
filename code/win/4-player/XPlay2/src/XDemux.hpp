@@ -8,9 +8,11 @@
 #include <string>
 #include <mutex>
 #include <atomic>
+#include <memory>
 
 struct AVFormatContext;
 struct AVStream;
+struct XAVPacket;
 
 class XDemux {
 
@@ -20,6 +22,7 @@ class XDemux {
 public:
     explicit XDemux();
     virtual void Open(const std::string &) noexcept(false);
+    virtual std::shared_ptr<XAVPacket> read() noexcept(false);
     virtual ~XDemux();
 
     [[nodiscard]] auto totalMS() const noexcept(true){

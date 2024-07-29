@@ -12,9 +12,11 @@ extern "C"{
 
 #include <iostream>
 #include <string>
+#include <atomic>
 
 namespace AVHelper {
-    inline namespace v1{
+
+    inline namespace v1 {
 
         std::string av_get_err(const int&) noexcept(true);
 
@@ -40,15 +42,17 @@ struct Destroyer final{
     Destroyer(const Destroyer&) = delete;
     Destroyer& operator=(const Destroyer&) = delete;
     inline explicit Destroyer(F &&f):fn(std::move(f)){}
-    inline void destroy(){
-        if (!is_destroy){
+    inline void destroy() {
+        if (!is_destroy) {
             is_destroy = true;
             fn();
         }
     }
+
     ~Destroyer() {
         destroy();
     }
+
 private:
     F fn;
     std::atomic_bool is_destroy{};

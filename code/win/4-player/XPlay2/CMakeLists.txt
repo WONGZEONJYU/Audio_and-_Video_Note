@@ -8,6 +8,7 @@ set(CMAKE_AUTOUIC ON)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_definitions(-DWINDOWS)
+    add_definitions(-D__STDC_CONSTANT_MACROS)
     set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
     include_directories(c:/ffmepg-7.1/include)
     include_directories(c:/SDL2-2.28.5-VC/include)
@@ -58,12 +59,16 @@ set(SRC_CODE
         src/XDemux.hpp
         src/AVHelper.h
         src/AVHelper.cpp
-        src/ShareAVFrame.cpp
-        src/ShareAVPacket.cpp
+        src/XShareAVFrame.cpp
+        src/XShareAVPacket.cpp
         src/SwrContext_t.cpp
         src/SwrContext_t.hpp
-        src/ShareAVFrame.hpp
-        src/ShareAVPacket.hpp
+        src/XShareAVFrame.hpp
+        src/XShareAVPacket.hpp
+        src/XAVPacket.cpp
+        src/XAVPacket.hpp
+        src/XAVFrame.cpp
+        src/XAVFrame.hpp
 )
 
 find_package(OpenGL REQUIRED)

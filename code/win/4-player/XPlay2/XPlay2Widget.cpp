@@ -24,10 +24,10 @@ XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
         uni_win.reset();
         locker.unlock();
         throw std::runtime_error("new XPlay2Widget failed");
-    } catch (const std::runtime_error &e) {
+    } catch (...) {
         uni_win.reset();
         locker.unlock();
-        throw e;
+        std::rethrow_exception(std::current_exception());
     }
 }
 
@@ -42,13 +42,13 @@ XPlay2Widget::~XPlay2Widget() {
 void XPlay2Widget::Construct() noexcept(false) {
 
     try {
-        ui = new Ui::XPlay2Widget;
-        ui->setupUi(this);
+        m_ui.reset(new Ui::XPlay2Widget);
+        m_ui->setupUi(this);
     } catch (const std::bad_alloc &e) {
         throw std::runtime_error("new Ui::XPlay2Widget failed");
     }
 }
 
 void XPlay2Widget::DeConstruct() noexcept {
-    delete ui;
+
 }

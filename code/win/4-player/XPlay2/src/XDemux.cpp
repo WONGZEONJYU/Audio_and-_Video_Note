@@ -12,6 +12,7 @@ using namespace std;
 
 #include "XDemux.hpp"
 #include "AVHelper.h"
+#include "XAVPacket.hpp"
 
 atomic_uint64_t XDemux:: sm_init_times{};
 mutex XDemux::sm_mux;
@@ -45,7 +46,7 @@ void XDemux::Open(const string &url) noexcept(false){
     AVDictionary *opts{};
     unique_lock lock(m_mux);
     Destroyer d([&opts]{
-        cerr << "av_dict_free\n";
+        //cerr << "av_dict_free\n";
         av_dict_free(&opts);
     });
 
@@ -97,7 +98,6 @@ void XDemux::show_audio_info() const noexcept(true) {
     const auto minute{isnan(duration) ? NAN : static_cast<double >(static_cast<uint64_t>(duration) % 3600) / 60.0 };
     const auto Second{isnan(duration) ? NAN : static_cast<double >(static_cast<uint64_t>(duration) % 60) };
 
-
     cerr << "audio_stream_index: " << m_audio_stream_index << "\n" <<
         "codec_id: " << codec->codec_id << "\n" <<
         "codec_name: " << avcodec_get_name(codec->codec_id) << "\n" <<
@@ -139,4 +139,12 @@ void XDemux::show_video_info() const noexcept(true) {
          "bit_rate: " << codec->bit_rate << "\n";
 
     cerr << "=======================video_info========================\n\n";
+}
+
+XAVPacket_sptr XDemux::read() noexcept(false) {
+
+    XAVPacket_sptr packet;
+
+
+    return {};
 }

@@ -36,7 +36,7 @@ void SwrContext_t::Construct(const AVChannelLayout *out_ch_layout,
     init();
 }
 
-SwrContext_sp_type SwrContext_t::create() noexcept(false){
+SwrContext_sp_type SwrContext_t::create() noexcept(false) {
 
     SwrContext_sp_type obj(new_SwrContext_t());
 

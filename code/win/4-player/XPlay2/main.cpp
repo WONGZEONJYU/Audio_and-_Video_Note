@@ -7,9 +7,9 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     try {
 
-        XDemux dmux,d1;
-        dmux.Open("2_audio_track_5s.mp4");
-        d1.Open("2_audio_track_5s.mp4");
+        XDemux de,d1;
+        de.Open("2_audio.mp4");
+        d1.Open("rtmp://live.hkstv.hk.lxdns.com/live/hks");
 
         XPlay2Widget::Handle()->show();
         return QApplication::exec();

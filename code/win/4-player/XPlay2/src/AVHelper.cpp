@@ -7,19 +7,20 @@ using namespace std;
 namespace AVHelper {
 
     inline namespace v1 {
+
         error_code make_error_code_helper(const int &errcode) noexcept(true) {
             return std::make_error_code(static_cast<std::errc>(errcode));
         }
 
-        string av_get_err(const int& error_num) noexcept(true){
+        string av_get_err(const int& error_num) noexcept(true) {
             constexpr auto ERROR_STRING_SIZE {1024};
             char err_buf[ERROR_STRING_SIZE]{};
             av_strerror(error_num, err_buf, std::size(err_buf));
             return {err_buf};
         }
 
-        void av_filter_graph_dump(AVFilterGraph * Graph,const string & filename) noexcept(false)
-        {
+        void av_filter_graph_dump(AVFilterGraph * Graph,const string & filename) noexcept(false) {
+
             ofstream graphFile(filename,std::ios::trunc);
 
             if (!graphFile){
@@ -56,7 +57,7 @@ namespace AVHelper {
         }
 
         void check_ff_func(const std::string &func,const std::string &file,
-                           const int &line,const int &err_code) noexcept(false){
+                           const int &line,const int &err_code) noexcept(false) {
             if (err_code < 0){
                 stringstream err_msg;
                 err_msg << "ffmpeg error :" << err_code <<
@@ -67,7 +68,8 @@ namespace AVHelper {
                 throw runtime_error(err_msg.str());
             }
         }
-        std::string channel_layout_describe(const AVChannelLayout &ch) noexcept(true){
+
+        std::string channel_layout_describe(const AVChannelLayout &ch) noexcept(true) {
             char describe[1024]{};
             av_channel_layout_describe(&ch,describe, size(describe));
             return describe;
