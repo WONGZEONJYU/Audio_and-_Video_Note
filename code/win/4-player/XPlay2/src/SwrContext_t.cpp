@@ -3,7 +3,7 @@ extern "C"{
 }
 
 #include "SwrContext_t.hpp"
-#include "AVHelper.h"
+#include "XHelper.h"
 
 void SwrContext_t::Construct() noexcept(false) {
     m_swr_ctx = swr_alloc();
@@ -30,7 +30,7 @@ void SwrContext_t::Construct(const AVChannelLayout *out_ch_layout,
                             log_offset,
                             log_ctx)};
     if (ret < 0){
-        throw std::runtime_error("swr_alloc_set_opts2 failed: " + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error("swr_alloc_set_opts2 failed: " + XHelper::av_get_err(ret) + "\n");
     }
 
     init();
@@ -79,7 +79,7 @@ void SwrContext_t::init() const noexcept(false){
 
     const auto ret {swr_init(m_swr_ctx)};
     if (ret < 0){
-        throw std::runtime_error("swr_init failed: " + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error("swr_init failed: " + XHelper::av_get_err(ret) + "\n");
     }
 }
 
@@ -88,7 +88,7 @@ int SwrContext_t::convert(uint8_t **out,const int &out_count,
 
     auto ret {swr_convert(m_swr_ctx,out,out_count,in,in_count)};
     if (ret < 0){
-        throw std::runtime_error("swr_convert failed: " + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error("swr_convert failed: " + XHelper::av_get_err(ret) + "\n");
     }
     return ret;
 }
@@ -113,42 +113,42 @@ int SwrContext_t::opt_set_sample_rate(const std::string& name,
 void SwrContext_t::set_input_ch_layout(const AVChannelLayout *layout) const noexcept(false){
     const auto ret{opt_set_ch_layout("ichl",layout)};
     if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
     }
 }
 
 void SwrContext_t::set_input_sample_fmt(const AVSampleFormat &fmt) const noexcept(false){
     const auto ret{opt_set_sample_fmt( "isf", fmt)};
     if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
     }
 }
 
 void SwrContext_t::set_input_sample_rate(const int64_t &val) const noexcept(false){
     const auto ret{opt_set_sample_rate("isr", val)};
     if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
     }
 }
 
 void SwrContext_t::set_output_ch_layout(const AVChannelLayout *layout) const noexcept(false){
     const auto ret{opt_set_ch_layout("ochl",layout)};
     if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
     }
 }
 
 void SwrContext_t::set_output_sample_fmt(const AVSampleFormat &fmt) const noexcept(false){
     const auto ret{opt_set_sample_fmt( "osf", fmt)};
     if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
     }
 }
 
 void SwrContext_t::set_output_sample_rate(const int64_t &val) const noexcept(false){
     const auto ret{opt_set_sample_rate("osr", val)};
     if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
     }
 }
 
@@ -159,7 +159,7 @@ int64_t SwrContext_t::get_delay(const int64_t& base) const noexcept(true){
 void SwrContext_t::set_compensation(const int &sample_delta,const int &compensation_distance) const noexcept(false){
     const auto ret {swr_set_compensation(m_swr_ctx,sample_delta,compensation_distance)};
     if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + AVHelper::av_get_err(ret) + "\n");
+        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
     }
 }
 

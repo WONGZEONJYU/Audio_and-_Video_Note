@@ -48,6 +48,7 @@ set(FFMPEG_LIBS
         SDL2
 )
 add_definitions(-D__STDC_CONSTANT_MACROS)
+add_definitions(-DHAVE_FFMPEG)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
@@ -56,8 +57,8 @@ set(SRC_CODE
         src/XThrow.hpp
         src/XDemux.cpp
         src/XDemux.hpp
-        src/AVHelper.h
-        src/AVHelper.cpp
+        src/XHelper.h
+        src/XHelper.cpp
         src/XShareAVFrame.cpp
         src/XShareAVPacket.cpp
         src/SwrContext_t.cpp
@@ -68,6 +69,8 @@ set(SRC_CODE
         src/XAVPacket.hpp
         src/XAVFrame.cpp
         src/XAVFrame.hpp
+        src/XAVCodecParameters.cpp
+        src/XAVCodecParameters.hpp
 )
 
 find_package(OpenGL REQUIRED)

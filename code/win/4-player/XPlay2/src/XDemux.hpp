@@ -9,10 +9,15 @@
 #include <mutex>
 #include <atomic>
 #include <memory>
+#include <vector>
 
 struct AVFormatContext;
 struct AVStream;
 struct XAVPacket;
+class XAVCodecParameters;
+
+using XAVCodecParameters_sptr_container = std::vector<std::shared_ptr<XAVCodecParameters>>;
+using XAVCodecParameters_container_sprt = std::shared_ptr<XAVCodecParameters_sptr_container>;
 
 class XDemux {
 
@@ -24,7 +29,8 @@ public:
     explicit XDemux();
     virtual void Open(const std::string &) noexcept(false);
     virtual std::shared_ptr<XAVPacket> Read() noexcept(false);
-    virtual ~XDemux();
+
+    XAVCodecParameters_container_sprt copy_ALLCodec_Parameters() noexcept(false);
 
     [[nodiscard]] auto totalMS() const noexcept(true){
         return m_totalMS;
@@ -38,7 +44,7 @@ protected:
 //    int m_audio_stream_index{},
 //        m_video_stream_index{};
     AVStream **m_streams{};
-    uint32_t *m_stream_indices{};
+    int *m_stream_indices{};
 
 private:
     static std::atomic_uint64_t sm_init_times;
@@ -48,6 +54,7 @@ private:
     uint32_t m_nb_streams{};
 
 public:
+    virtual ~XDemux();
     XDemux(const XDemux &) = delete;
     XDemux& operator=(const XDemux&) = delete;
 };

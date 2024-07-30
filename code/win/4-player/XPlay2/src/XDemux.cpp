@@ -11,8 +11,9 @@ extern "C"{
 using namespace std;
 
 #include "XDemux.hpp"
-#include "AVHelper.h"
+#include "XHelper.h"
 #include "XAVPacket.hpp"
+#include "XAVCodecParameters.hpp"
 
 atomic_uint64_t XDemux:: sm_init_times{};
 mutex XDemux::sm_mux;
@@ -48,12 +49,11 @@ void XDemux::Open(const string &url) noexcept(false){
         av_dict_free(&opts);
     });
 
+    FF_CHECK_ERR(av_dict_set(&opts, "rtsp_transport", "tcp", 0));
+    FF_CHECK_ERR(av_dict_set(&opts, "max_delay", "500", 0));
+
     unique_lock lock(m_mux);
-
     try {
-        FF_CHECK_ERR(av_dict_set(&opts, "rtsp_transport", "tcp", 0));
-        FF_CHECK_ERR(av_dict_set(&opts, "max_delay", "500", 0));
-
         FF_CHECK_ERR(avformat_open_input(&m_av_fmt_ctx,url.c_str(), nullptr, &opts));
         FF_CHECK_ERR(avformat_find_stream_info(m_av_fmt_ctx, nullptr));
 
@@ -64,10 +64,11 @@ void XDemux::Open(const string &url) noexcept(false){
         m_nb_streams = m_av_fmt_ctx->nb_streams;
         m_streams = m_av_fmt_ctx->streams;
 
-        CHECK_EXC(m_stream_indices = new uint32_t[m_av_fmt_ctx->nb_streams]{});
+        CHECK_EXC(m_stream_indices = new int[m_av_fmt_ctx->nb_streams]{});
+        std::fill_n(m_stream_indices,m_av_fmt_ctx->nb_streams,-1);
 
         for (uint32_t i {}; i < m_nb_streams; ++i) {
-            m_stream_indices[i] = i;
+            m_stream_indices[i] = static_cast<int>(i);
         }
 
         m_totalMS = m_av_fmt_ctx->duration / AV_TIME_BASE / 1000;
@@ -109,7 +110,7 @@ void XDemux::show_audio_info() const noexcept(true) {
                  "language: " << (tag ? tag->value : "unknown") << "\n" <<
                  "audio_format: " << av_get_sample_fmt_name(static_cast<AVSampleFormat>(codec->format)) << "\n" <<
                  "sample_rate: " << codec->sample_rate << "\n" <<
-                 "channel_layout: " << AVHelper::channel_layout_describe(codec->ch_layout) << "\n" <<
+                 "channel_layout: " << XHelper::channel_layout_describe(codec->ch_layout) << "\n" <<
                  "frame_size: " << codec->frame_size << "\n" <<
                  "duration: " << (isnan(duration) ? "unknown" :
                                   to_string(hour) + ":" + to_string(minute) + ":" + to_string(Second)) << "\n" <<
@@ -164,30 +165,49 @@ void XDemux::show_video_info() const noexcept(true) {
 XAVPacket_sptr XDemux::Read() noexcept(false) {
 
     XAVPacket_sptr packet;
-
-    try {
-        CHECK_NULLPTR(m_av_fmt_ctx);
-        unique_lock lock(m_mux);
-        packet = new_XAVPacket();
-        const auto ret {av_read_frame(m_av_fmt_ctx,packet.get())};
-        if (ret < 0){
-            packet.reset();
-        }else{
-            const auto time_base {m_av_fmt_ctx->streams[packet->stream_index]->time_base};
-            const auto pts{static_cast<double >(packet->pts)},
-                    dst{static_cast<double >(packet->dts)};
-            packet->pts = static_cast<int64_t >(pts * 1000.0 * av_q2d(time_base));
-            packet->dts = static_cast<int64_t >(dst * 1000.0 * av_q2d(time_base));
-            //cerr << "packet->stream_index: " << packet->stream_index << " pts: " << packet->pts << "\n";
-        }
-        return packet;
-    } catch (...) {
-        rethrow_exception(current_exception());
+    CHECK_NULLPTR(m_av_fmt_ctx);
+    CHECK_EXC(packet = new_XAVPacket());
+    unique_lock lock(m_mux);
+    const auto ret {av_read_frame(m_av_fmt_ctx,packet.get())};
+    if (ret < 0){
+        packet.reset();
+    }else{
+        const auto time_base {m_av_fmt_ctx->streams[packet->stream_index]->time_base};
+        const auto pts{static_cast<double >(packet->pts)},
+                dst{static_cast<double >(packet->dts)};
+        packet->pts = static_cast<int64_t >(pts * 1000.0 * av_q2d(time_base));
+        packet->dts = static_cast<int64_t >(dst * 1000.0 * av_q2d(time_base));
+        //cerr << "packet->stream_index: " << packet->stream_index << " pts: " << packet->pts << "\n";
     }
+    return packet;
 }
 
 void XDemux::Deconstruct() noexcept(true) {
     delete [] m_stream_indices;
     m_stream_indices = nullptr;
     avformat_close_input(&m_av_fmt_ctx);
+}
+
+XAVCodecParameters_container_sprt XDemux::copy_ALLCodec_Parameters() noexcept(false) {
+
+    CHECK_NULLPTR(m_av_fmt_ctx);
+    XAVCodecParameters_container_sprt c;
+    CHECK_EXC(c = make_shared<XAVCodecParameters_sptr_container>());
+    CHECK_EXC(c->resize(m_nb_streams));
+
+    unique_lock lock(m_mux);
+    try {
+        for (uint32_t i {}; i < m_nb_streams; ++i) {
+            XAVCodecParameters_sptr item;
+            CHECK_EXC(item = new_XAVCodecParameters());
+            CHECK_EXC(item->from_AVFormatContext(m_streams[i]->codecpar));
+            //c->insert(std::move(item));
+            c->at(i) = std::move(item);
+        }
+        return c;
+    } catch (...) {
+        lock.unlock();
+        c->clear();
+        rethrow_exception(current_exception());
+    }
 }
