@@ -10,6 +10,7 @@
 #include <atomic>
 #include <memory>
 #include <vector>
+#include "XHelper.h"
 
 struct AVFormatContext;
 struct AVStream;
@@ -29,9 +30,10 @@ public:
     explicit XDemux();
     virtual void Open(const std::string &) noexcept(false);
     virtual std::shared_ptr<XAVPacket> Read() noexcept(false);
-
-    XAVCodecParameters_container_sprt copy_ALLCodec_Parameters() noexcept(false);
-
+    virtual XAVCodecParameters_container_sprt copy_ALLCodec_Parameters() noexcept(false);
+    virtual bool Seek(const double &) noexcept(true);
+    virtual void Clear() noexcept(true);
+    virtual void Close() noexcept(true);
     [[nodiscard]] auto totalMS() const noexcept(true){
         return m_totalMS;
     }
@@ -55,8 +57,7 @@ private:
 
 public:
     virtual ~XDemux();
-    XDemux(const XDemux &) = delete;
-    XDemux& operator=(const XDemux&) = delete;
+    X_DISABLE_COPY(XDemux)
 };
 
 #endif
