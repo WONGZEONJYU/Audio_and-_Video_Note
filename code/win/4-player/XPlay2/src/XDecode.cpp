@@ -37,7 +37,6 @@ void XDecode::Open(const XAVCodecParameters_sptr &parm) noexcept(false) {
         m_codec_ctx->thread_count = static_cast<int>(thread::hardware_concurrency());
         parm->to_context(m_codec_ctx);
         FF_CHECK_ERR(avcodec_open2(m_codec_ctx, nullptr, nullptr));
-
     }catch (...) {
         lock.unlock();
         DeConstruct();
@@ -62,17 +61,19 @@ void XDecode::Clear() noexcept(false) {
     avcodec_flush_buffers(m_codec_ctx);
 }
 
-[[maybe_unused]] [[nodiscard]] bool XDecode::Send(const XAVPacket_sptr &pkt) const noexcept(false) {
+[[maybe_unused]]bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
 
     bool b{};
-
-    if (!m_codec_ctx){
-        cerr << __func__  << ": m_codec_ctx is empty\n";
-        return b;
+    auto ret{-1};
+    {
+        unique_lock lock(m_re_mux);
+        if (!m_codec_ctx){
+            cerr << __func__  << ": m_codec_ctx is empty\n";
+            return b;
+        }
+        FF_ERR_OUT(ret = avcodec_send_packet(m_codec_ctx,pkt.get()));
     }
 
-    auto ret{-1};
-    FF_ERR_OUT(ret = avcodec_send_packet(m_codec_ctx,pkt.get()));
     if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret ||
         AVERROR(EINVAL) == ret || AVERROR(ENOMEM) == ret) {
         return b;
@@ -84,21 +85,23 @@ void XDecode::Clear() noexcept(false) {
     return b;
 }
 
-[[maybe_unused]] [[nodiscard]] XAVFrame_sptr XDecode::Receive() const noexcept(false) {
+[[maybe_unused]] XAVFrame_sptr XDecode::Receive() noexcept(false) {
 
-    XAVFrame_sptr frame;
+    unique_lock lock(m_re_mux);
     if (!m_codec_ctx){
         cerr << __func__  << "m_codec_ctx is empty\n";
-        return frame;
+        return {};
     }
 
-    CHECK_EXC(frame = new_XAVFrame());
+    XAVFrame_sptr frame;
+    CHECK_EXC(frame = new_XAVFrame(),lock.unlock());
     auto ret{-1};
     FF_ERR_OUT(ret = avcodec_receive_frame(m_codec_ctx, frame.get()));
+    lock.unlock();
     if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret || AVERROR(EINVAL) == ret){
         frame.reset();
-        return frame;
-    }else if (ret < 0){
+    }else if (ret < 0){ //其他错误抛异常
+        frame.reset();
         FF_CHECK_ERR(ret);
     }else{}
     return frame;

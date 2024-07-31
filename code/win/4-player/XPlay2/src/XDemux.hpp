@@ -36,6 +36,8 @@ public:
     virtual std::shared_ptr<XAVPacket> Read() noexcept(false);
     //拷贝解码参数,无需手动释放,没打开文件则抛出异常
     virtual XAVCodecParameters_sptr_container_sptr copy_ALLCodec_Parameters() noexcept(false);
+
+    virtual bool is_Audio(const std::shared_ptr<XAVPacket> &) noexcept(true);
     //Seek位置,按百分比
     virtual bool Seek(const double &) noexcept(true);
     //刷新m_av_fmt_ctx

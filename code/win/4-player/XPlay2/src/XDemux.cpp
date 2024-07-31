@@ -174,11 +174,11 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
         packet.reset();
     }else{
         const auto time_base {m_av_fmt_ctx->streams[packet->stream_index]->time_base};
+        lock.unlock();
         const auto pts{static_cast<double >(packet->pts)},
                 dst{static_cast<double >(packet->dts)};
         packet->pts = static_cast<int64_t >(pts * 1000.0 * av_q2d(time_base));
         packet->dts = static_cast<int64_t >(dst * 1000.0 * av_q2d(time_base));
-        //cerr << "packet->stream_index: " << packet->stream_index << " pts: " << packet->pts << "\n";
     }
     return packet;
 }
@@ -217,6 +217,24 @@ XAVCodecParameters_sptr_container_sptr XDemux::copy_ALLCodec_Parameters() noexce
     }
 }
 
+bool XDemux::is_Audio(const XAVPacket_sptr &pkt) noexcept(true){
+
+    if (!pkt){
+        cerr << __func__ << "XAVPacket_sptr is empty\n";
+        return {};
+    }
+
+    unique_lock lock(m_mux);
+    if (!m_av_fmt_ctx){
+        cerr << __func__ << ": m_av_fmt_ctx is empty\n";
+        return {};
+    }
+
+    const auto m_type{m_streams[pkt->stream_index]->codecpar->codec_type};
+
+    return AVMEDIA_TYPE_VIDEO != m_type;
+}
+
 bool XDemux::Seek(const double &pos) noexcept(true)
 {
     unique_lock lock(m_mux);
@@ -243,10 +261,10 @@ bool XDemux::Seek(const double &pos) noexcept(true)
                     static_cast<int64_t>(static_cast<double >(m_streams[video_stream_index]->duration) * pos)};
 
     avformat_flush(m_av_fmt_ctx);
-    const auto re{av_seek_frame(m_av_fmt_ctx,video_stream_index,
-                                SeekPos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME)};
-    if (re < 0){
-        FF_ERR_OUT(re);
+    auto ret{-1};
+    FF_ERR_OUT(ret = av_seek_frame(m_av_fmt_ctx,video_stream_index,
+                                SeekPos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME));
+    if (ret < 0){
         return false;
     }
 

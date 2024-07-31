@@ -21,9 +21,12 @@ class XDecode {
 public:
     explicit XDecode() = default;
     virtual void Open(const XAVCodecParameters_sptr &) noexcept(false);
-    [[maybe_unused]] [[nodiscard]] virtual bool Send(const XAVPacket_sptr &) const noexcept(false);
-
-    [[maybe_unused]] [[nodiscard]] virtual XAVFrame_sptr Receive() const noexcept(false);
+    /**
+     * 发送空指针冲刷解码器
+     * @return
+     */
+    [[maybe_unused]] virtual bool Send(const XAVPacket_sptr &) noexcept(false);
+    [[maybe_unused]] virtual XAVFrame_sptr Receive() noexcept(false);
     virtual void Close() noexcept(false);
     virtual void Clear() noexcept(false);
 protected:
