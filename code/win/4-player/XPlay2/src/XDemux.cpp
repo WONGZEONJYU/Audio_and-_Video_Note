@@ -38,18 +38,16 @@ XDemux::~XDemux() {
 
 void XDemux::Open(const string &url) noexcept(false){
 
-    if (is_init){
-        cerr << url << " reopen!\n";
-        return;
-    }
+    Close();
 
     AVDictionary *opts{};
     Destroyer d([&opts]{
         av_dict_free(&opts);
     });
 
-    FF_CHECK_ERR(av_dict_set(&opts, "rtsp_transport", "tcp", 0));
-    FF_CHECK_ERR(av_dict_set(&opts, "max_delay", "500", 0));
+    FF_CHECK_ERR(av_dict_set(&opts, "rtsp_transport", "tcp", 0),d.destroy());
+    FF_CHECK_ERR(av_dict_set(&opts, "max_delay", "500", 0),d.destroy());
+
     unique_lock lock(m_mux);
     try {
 
@@ -76,11 +74,10 @@ void XDemux::Open(const string &url) noexcept(false){
 
         show_audio_info();
         show_video_info();
-        is_init = true; //同一个类不允许重复打开同一个文件
     } catch (...) {
         Deconstruct();
-        d.destroy();
         lock.unlock();
+        d.destroy();
         rethrow_exception(current_exception());
     }
 }
@@ -162,10 +159,16 @@ void XDemux::show_video_info() const noexcept(true) {
 
 XAVPacket_sptr XDemux::Read() noexcept(false) {
 
-    XAVPacket_sptr packet;
-    CHECK_NULLPTR(m_av_fmt_ctx);
-    CHECK_EXC(packet = new_XAVPacket());
     unique_lock lock(m_mux);
+
+    if (!m_av_fmt_ctx){
+        std::cerr << __func__ << " m_av_fmt_ctx is nullptr\n";
+        return {};
+    }
+
+    XAVPacket_sptr packet;
+    CHECK_EXC(packet = new_XAVPacket(),lock.unlock());
+
     const auto ret {av_read_frame(m_av_fmt_ctx,packet.get())};
     if (ret < 0){
         packet.reset();
@@ -181,28 +184,30 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
 }
 
 void XDemux::Deconstruct() noexcept(true) {
-    delete [] m_stream_indices;
+    delete []m_stream_indices;
     m_stream_indices = nullptr;
     avformat_close_input(&m_av_fmt_ctx);
     m_streams = nullptr;
     m_totalMS = 0;
-    is_init = false;
     m_nb_streams = 0;
 }
 
-XAVCodecParameters_container_sprt XDemux::copy_ALLCodec_Parameters() noexcept(false) {
+XAVCodecParameters_sptr_container_sptr XDemux::copy_ALLCodec_Parameters() noexcept(false) {
 
     unique_lock lock(m_mux);
-    XAVCodecParameters_container_sprt c;
-    try {
-        CHECK_NULLPTR(m_av_fmt_ctx);
-        CHECK_EXC(c = make_shared<XAVCodecParameters_sptr_container>());
-        CHECK_EXC(c->resize(m_nb_streams));
+    if (!m_av_fmt_ctx){
+        cerr << __func__ << ": m_av_fmt_ctx is empty\n";
+        return {};
+    }
 
-        for (uint32_t i {}; auto &item: *c) {
+    XAVCodecParameters_sptr_container_sptr c;
+    try {
+        CHECK_EXC(c = make_shared<XAVCodecParameters_sptr_container>());
+        for (int i {}; i < m_nb_streams ;++i) {
+            XAVCodecParameters_sptr item;
             CHECK_EXC(item = new_XAVCodecParameters());
             CHECK_EXC(item->from_AVFormatContext(m_streams[i]->codecpar));
-            ++i;
+            (*c)[i] = std::move(item);
         }
         return c;
     } catch (...) {
@@ -233,18 +238,15 @@ bool XDemux::Seek(const double &pos) noexcept(true)
         return false;
     }
 
-    int64_t SeekPos{};
-
-    if (AV_NOPTS_VALUE == m_streams[video_stream_index]->duration){
-        SeekPos = static_cast<int64_t>(static_cast<double>(m_av_fmt_ctx->duration) * pos);
-    }else{
-        SeekPos = static_cast<int64_t>(static_cast<double >(m_streams[video_stream_index]->duration) * pos);
-    }
+    const auto SeekPos{AV_NOPTS_VALUE == m_streams[video_stream_index]->duration ?
+                    static_cast<int64_t>(static_cast<double>(m_av_fmt_ctx->duration) * pos):
+                    static_cast<int64_t>(static_cast<double >(m_streams[video_stream_index]->duration) * pos)};
 
     avformat_flush(m_av_fmt_ctx);
-    const auto re{av_seek_frame(m_av_fmt_ctx,video_stream_index,SeekPos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME)};
+    const auto re{av_seek_frame(m_av_fmt_ctx,video_stream_index,
+                                SeekPos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME)};
     if (re < 0){
-        cerr << __func__ << ": " << XHelper::av_get_err(re);
+        FF_ERR_OUT(re);
         return false;
     }
 

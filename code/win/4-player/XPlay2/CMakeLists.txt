@@ -71,6 +71,8 @@ set(SRC_CODE
         src/XAVFrame.hpp
         src/XAVCodecParameters.cpp
         src/XAVCodecParameters.hpp
+        src/XDecode.cpp
+        src/XDecode.hpp
 )
 
 find_package(OpenGL REQUIRED)

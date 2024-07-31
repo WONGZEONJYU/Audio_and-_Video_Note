@@ -55,3 +55,15 @@ void XAVCodecParameters::to_context(AVCodecContext *dst) const noexcept(false) {
 XAVCodecParameters::~XAVCodecParameters() {
     DeConstruct();
 }
+
+int XAVCodecParameters::MediaType() const noexcept(true){
+    return m_parm->codec_type;
+}
+
+int XAVCodecParameters::codec_id() const noexcept(true){
+    return m_parm->codec_id;
+}
+
+std::string XAVCodecParameters::codec_name() const noexcept(true) {
+    return avcodec_get_name(m_parm->codec_id);
+}

@@ -10,6 +10,7 @@
 #include <atomic>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 #include "XHelper.h"
 
 struct AVFormatContext;
@@ -17,8 +18,9 @@ struct AVStream;
 struct XAVPacket;
 class XAVCodecParameters;
 
-using XAVCodecParameters_sptr_container = std::vector<std::shared_ptr<XAVCodecParameters>>;
-using XAVCodecParameters_container_sprt = std::shared_ptr<XAVCodecParameters_sptr_container>;
+using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
+using XAVCodecParameters_sptr_container = typename std::unordered_map<int,XAVCodecParameters_sptr>;
+using XAVCodecParameters_sptr_container_sptr = typename std::shared_ptr<XAVCodecParameters_sptr_container>;
 
 class XDemux {
 
@@ -28,11 +30,17 @@ class XDemux {
 
 public:
     explicit XDemux();
+    //打开文件,打开失败抛出异常
     virtual void Open(const std::string &) noexcept(false);
+    //读取packed,std::shared_ptr<XAVPacket>可能为空,有异常
     virtual std::shared_ptr<XAVPacket> Read() noexcept(false);
-    virtual XAVCodecParameters_container_sprt copy_ALLCodec_Parameters() noexcept(false);
+    //拷贝解码参数,无需手动释放,没打开文件则抛出异常
+    virtual XAVCodecParameters_sptr_container_sptr copy_ALLCodec_Parameters() noexcept(false);
+    //Seek位置,按百分比
     virtual bool Seek(const double &) noexcept(true);
+    //刷新m_av_fmt_ctx
     virtual void Clear() noexcept(true);
+    //关闭m_av_fmt_ctx,重新打开文件之前,需手动关闭
     virtual void Close() noexcept(true);
     [[nodiscard]] auto totalMS() const noexcept(true){
         return m_totalMS;
@@ -52,7 +60,6 @@ private:
     static std::atomic_uint64_t sm_init_times;
     static std::mutex sm_mux;
     int64_t m_totalMS{};
-    std::atomic_bool is_init{};
     uint32_t m_nb_streams{};
 
 public:

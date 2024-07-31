@@ -62,6 +62,19 @@ namespace XHelper {
             throw runtime_error(err_msg.str());
         }
     }
+
+    void ff_err_out(const std::string &func,const std::string &file,
+                    const int &line,const int &err_code) noexcept(true){
+        if (err_code < 0){
+            stringstream err_msg;
+            err_msg << "ffmpeg error:" << err_code <<
+                    " at " << file << ":" << line <<
+                    " -for " << func << " wrong reason: " <<
+                    av_get_err(err_code) << "\n";
+            cerr << err_msg.str();
+        }
+    }
+
 #endif
 
     std::string channel_layout_describe(const AVChannelLayout &ch) noexcept(true) {

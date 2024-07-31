@@ -6,6 +6,7 @@
 #define XPLAY2_XAVCODECPARAMETERS_HPP
 
 #include <memory>
+#include <string>
 #include "XHelper.h"
 
 struct AVCodecParameters;
@@ -23,6 +24,9 @@ public:
     void from_AVFormatContext(const AVCodecParameters *) const noexcept(false);
     void from_context(const AVCodecContext *) const noexcept(false);
     void to_context(AVCodecContext *) const noexcept(false);
+    [[nodiscard]] int MediaType() const noexcept(true);
+    [[nodiscard]] int codec_id() const noexcept(true);
+    [[nodiscard]] std::string codec_name() const noexcept(true);
 private:
     AVCodecParameters *m_parm{};
 public:

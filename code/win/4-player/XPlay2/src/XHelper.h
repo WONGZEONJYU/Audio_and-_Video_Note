@@ -27,6 +27,9 @@ namespace XHelper {
     void check_ff_func(const std::string &func,const std::string &file,
                        const int &line,const int &err_code) noexcept(false);
 
+    void ff_err_out(const std::string &func,const std::string &file,
+                    const int &line,const int &err_code) noexcept(true);
+
     std::string channel_layout_describe(const AVChannelLayout &) noexcept(true);
 #endif
     void check_nullptr(const std::string &func,const std::string &file,
@@ -60,23 +63,30 @@ private:
 };
 
 #ifdef HAVE_FFMPEG
-    #define FF_CHECK_ERR(x) do{ \
+    #define FF_CHECK_ERR(x,...) do{\
     const auto _err_code_{x};\
-    XHelper::check_ff_func(#x,__FILE__,__LINE__,_err_code_);\
+    if(_err_code_ < 0){\
+        __VA_ARGS__;\
+        XHelper::check_ff_func(#x,__FILE__,__LINE__,_err_code_);\
+    }}while(false)
+
+    #define FF_ERR_OUT(x) do{ \
+        XHelper::ff_err_out(#x,__FILE__,__LINE__,x);\
     }while(false)
+
 #endif
 
 #define CHECK_NULLPTR(x) do{ \
-const auto _p_ {x};\
-XHelper::check_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_));\
+    const auto _p_ {x};\
+        XHelper::check_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_));\
 }while(false)
 
-#define CHECK_EXC(x)do{ \
-try{\
-x;\
-}catch(const std::exception &e){\
-XHelper::check_EXC(#x,__FILE__,__LINE__,e);\
-}}while(false)
+#define CHECK_EXC(x,...)do{ \
+    try{x;}catch(const std::exception &e){ \
+    __VA_ARGS__;\
+    XHelper::check_EXC(#x,__FILE__,__LINE__,e);}\
+}while(false)
+
 
 #define X_DISABLE_COPY(Class) \
     Class(const Class &) = delete;\
