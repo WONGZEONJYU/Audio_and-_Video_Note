@@ -1,6 +1,7 @@
 //
 // Created by wong on 2024/7/27.
 //
+#include "XDemux.hpp"
 
 extern "C"{
 #include <libavformat/avformat.h>
@@ -8,9 +9,10 @@ extern "C"{
 #include <libavutil/channel_layout.h>
 }
 
-#include "XDemux.hpp"
 #include "XAVPacket.hpp"
 #include "XAVCodecParameters.hpp"
+
+#include <iostream>
 
 using namespace std;
 
@@ -45,14 +47,18 @@ void XDemux::Open(const string &url) noexcept(false){
         av_dict_free(&opts);
     });
 
-    FF_CHECK_ERR(av_dict_set(&opts, "rtsp_transport", "tcp", 0),d.destroy());
-    FF_CHECK_ERR(av_dict_set(&opts, "max_delay", "500", 0),d.destroy());
-
-    unique_lock lock(m_mux);
     try {
+        FF_CHECK_ERR(av_dict_set(&opts, "rtsp_transport", "tcp", 0));
+        FF_CHECK_ERR(av_dict_set(&opts, "max_delay", "500", 0));
+    } catch (...) {
+        d.destroy();
+        rethrow_exception(current_exception());
+    }
 
+    unique_lock lock(m_re_mux);
+    try {
         FF_CHECK_ERR(avformat_open_input(&m_av_fmt_ctx,url.c_str(), nullptr, &opts));
-        FF_CHECK_ERR(avformat_find_stream_info(m_av_fmt_ctx, nullptr));
+        avformat_find_stream_info(m_av_fmt_ctx, nullptr);
 
         if (!m_av_fmt_ctx->nb_streams){
             throw runtime_error("no audio_stream and no video_stream!\n");
@@ -159,7 +165,7 @@ void XDemux::show_video_info() const noexcept(true) {
 
 XAVPacket_sptr XDemux::Read() noexcept(false) {
 
-    unique_lock lock(m_mux);
+    unique_lock lock(m_re_mux);
 
     if (!m_av_fmt_ctx){
         std::cerr << __func__ << " m_av_fmt_ctx is nullptr\n";
@@ -175,8 +181,8 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
     }else{
         const auto time_base {m_av_fmt_ctx->streams[packet->stream_index]->time_base};
         lock.unlock();
-        const auto pts{static_cast<double >(packet->pts)},
-                dst{static_cast<double >(packet->dts)};
+        const auto pts{static_cast<double>(packet->pts)},
+                dst{static_cast<double>(packet->dts)};
         packet->pts = static_cast<int64_t >(pts * 1000.0 * av_q2d(time_base));
         packet->dts = static_cast<int64_t >(dst * 1000.0 * av_q2d(time_base));
     }
@@ -194,7 +200,7 @@ void XDemux::Deconstruct() noexcept(true) {
 
 XAVCodecParameters_sptr_container_sptr XDemux::copy_ALLCodec_Parameters() noexcept(false) {
 
-    unique_lock lock(m_mux);
+    unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
         cerr << __func__ << ": m_av_fmt_ctx is empty\n";
         return {};
@@ -224,7 +230,7 @@ bool XDemux::is_Audio(const XAVPacket_sptr &pkt) noexcept(true){
         return {};
     }
 
-    unique_lock lock(m_mux);
+    unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
         cerr << __func__ << ": m_av_fmt_ctx is empty\n";
         return {};
@@ -237,10 +243,10 @@ bool XDemux::is_Audio(const XAVPacket_sptr &pkt) noexcept(true){
 
 bool XDemux::Seek(const double &pos) noexcept(true)
 {
-    unique_lock lock(m_mux);
+    unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
         cerr << __func__ << ": m_av_fmt_ctx is nullptr\n";
-        return false;
+        return {};
     }
 
     auto video_stream_index{-1};
@@ -253,7 +259,7 @@ bool XDemux::Seek(const double &pos) noexcept(true)
 
     if (video_stream_index < 0){
         cerr << __func__ << ": no video\n";
-        return false;
+        return {};
     }
 
     const auto SeekPos{AV_NOPTS_VALUE == m_streams[video_stream_index]->duration ?
@@ -261,18 +267,14 @@ bool XDemux::Seek(const double &pos) noexcept(true)
                     static_cast<int64_t>(static_cast<double >(m_streams[video_stream_index]->duration) * pos)};
 
     avformat_flush(m_av_fmt_ctx);
-    auto ret{-1};
+    int ret;
     FF_ERR_OUT(ret = av_seek_frame(m_av_fmt_ctx,video_stream_index,
                                 SeekPos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME));
-    if (ret < 0){
-        return false;
-    }
-
-    return true;
+    return ret >= 0;
 }
 
 void XDemux::Clear() noexcept(true) {
-    unique_lock lock(m_mux);
+    unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
         return;
     }
@@ -280,9 +282,6 @@ void XDemux::Clear() noexcept(true) {
 }
 
 void XDemux::Close() noexcept(true) {
-    unique_lock lock(m_mux);
-    if (!m_av_fmt_ctx){
-        return;
-    }
+    unique_lock lock(m_re_mux);
     Deconstruct();
 }

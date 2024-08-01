@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include "XHelper.h"
+#include "XHelper.hpp"
 
 struct AVFormatContext;
 struct AVStream;
@@ -30,26 +30,49 @@ class XDemux {
 
 public:
     explicit XDemux();
-    //打开文件,打开失败抛出异常
+    /**
+     * 打开文件,打开失败抛出异常,分配失败为异常
+     */
     virtual void Open(const std::string &) noexcept(false);
-    //读取packed,std::shared_ptr<XAVPacket>可能为空,有异常
+
+    /**
+     *  读取packed,std::shared_ptr<XAVPacket>可能出现空,有分配异常
+     * @return
+     */
     virtual std::shared_ptr<XAVPacket> Read() noexcept(false);
-    //拷贝解码参数,无需手动释放,没打开文件则抛出异常
+
+    /**
+     * 拷贝解码参数,无需手动释放,有分配异常
+     * @return
+     */
     virtual XAVCodecParameters_sptr_container_sptr copy_ALLCodec_Parameters() noexcept(false);
 
+    /**
+     * 判断是否为音频
+     * @return
+     */
     virtual bool is_Audio(const std::shared_ptr<XAVPacket> &) noexcept(true);
-    //Seek位置,按百分比
+
+    /**
+     * Seek位置,按百分比
+     * @return
+     */
     virtual bool Seek(const double &) noexcept(true);
-    //刷新m_av_fmt_ctx
+
+    /**
+     * 刷新m_av_fmt_ctx
+     */
     virtual void Clear() noexcept(true);
-    //关闭m_av_fmt_ctx,重新打开文件之前,需手动关闭
+    /**
+     * 关闭m_av_fmt_ctx,重新打开文件之前,需手动关闭
+     */
     virtual void Close() noexcept(true);
     [[nodiscard]] auto totalMS() const noexcept(true){
         return m_totalMS;
     }
 
 protected:
-    std::mutex m_mux;
+    std::recursive_mutex m_re_mux;
     AVFormatContext *m_av_fmt_ctx{};
 //    AVStream *m_audio_stream{},
 //            *m_video_stream{};

@@ -3,7 +3,7 @@ extern "C"{
 }
 
 #include "SwrContext_t.hpp"
-#include "XHelper.h"
+#include "XHelper.hpp"
 
 void SwrContext_t::Construct() noexcept(false) {
     m_swr_ctx = swr_alloc();

@@ -25,7 +25,6 @@ public:
     ~XPlay2Widget() override;
 private:
     QSharedPointer<Ui::XPlay2Widget> m_ui;
-    static XPlay2Widget_sptr uni_win;
 };
 
 #endif //XPLAY2_XPLAY2WIDGET_HPP

@@ -2,9 +2,11 @@
 // Created by Administrator on 2024/7/31.
 //
 extern "C"{
-#include <libavcodec/codec.h>
+#include <libavcodec/avcodec.h>
 }
+
 #include <thread>
+#include <iostream>
 #include "XDecode.hpp"
 #include "XAVCodecParameters.hpp"
 #include "XAVPacket.hpp"
@@ -61,7 +63,7 @@ void XDecode::Clear() noexcept(false) {
     avcodec_flush_buffers(m_codec_ctx);
 }
 
-[[maybe_unused]]bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
+bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
 
     bool b{};
     auto ret{-1};
@@ -85,7 +87,7 @@ void XDecode::Clear() noexcept(false) {
     return b;
 }
 
-[[maybe_unused]] XAVFrame_sptr XDecode::Receive() noexcept(false) {
+XAVFrame_sptr XDecode::Receive() noexcept(false) {
 
     unique_lock lock(m_re_mux);
     if (!m_codec_ctx){

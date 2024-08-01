@@ -7,7 +7,7 @@
 
 #include <memory>
 #include <string>
-#include "XHelper.h"
+#include "XHelper.hpp"
 
 struct AVCodecParameters;
 struct AVCodecContext;

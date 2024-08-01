@@ -12,20 +12,22 @@ extern "C" {
 #include "XDecode.hpp"
 
 int main(int argc, char *argv[]) {
-    //QApplication a(argc, argv);
+    QApplication a(argc, argv);
 
-    XDemux x;
-    XDecode vd,ad;
-    XAVCodecParameters_sptr_container_sptr c;
+//    XDemux x;
+//    XDecode vd,ad;
+//    XAVCodecParameters_sptr_container_sptr c;
+//    XAVPacket_sptr p;
+//    XAVFrame_sptr af,vf;
     try {
-        x.Open("2_audio.mp4");
-        x.Open("2_audio.mp4");
-        c = x.copy_ALLCodec_Parameters();
-        vd.Open(c->at(2));
-        ad.Open(c->at(0));
-
-        while (true){
-            auto p{x.Read()};
+//        x.Open("2_audio.mp4");
+//        x.Open("2_audio.mp4");
+//        c = x.copy_ALLCodec_Parameters();
+//        vd.Open(c->at(2));
+//        ad.Open(c->at(0));
+#if 0
+        while (true) {
+            p = x.Read();
             if (!p){
                 qDebug() << "read finish\n";
                 ad.Send({});
@@ -33,8 +35,8 @@ int main(int argc, char *argv[]) {
 
                 while (true){
 
-                    auto af{ad.Receive()};
-                    auto vf{vd.Receive()};
+                    af = ad.Receive();
+                    vf = vd.Receive();
 
                     if (af){
                         qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
@@ -54,9 +56,9 @@ int main(int argc, char *argv[]) {
             if (x.is_Audio(p)){
                 ad.Send(p);
                 while (true){
-                    auto f = ad.Receive();
-                    if (f){
-                        qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(f->format));
+                    af = ad.Receive();
+                    if (af){
+                        qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
                     } else{
                         break;
                     }
@@ -65,24 +67,33 @@ int main(int argc, char *argv[]) {
             } else{
                 vd.Send(p);
                 while (true){
-                    auto f = vd.Receive();
-                    if (f) {
-                        qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(f->format));
+                    vf = vd.Receive();
+                    if (vf) {
+                        qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(vf->format));
                     } else{
                         break;
                     }
                 }
             }
         }
-
-        return 0;
+#endif
+        //return 0;
         //XPlay2Widget::Handle()->show();
-        //return QApplication::exec();
+        auto w{XPlay2Widget::Handle()};
+        w->show();
+
+        auto ret{-1};
+        ret = QApplication::exec();
+        w.reset();
+        return ret;
     } catch (const std::exception &e) {
-        x.Close();
-        ad.Close();
-        vd.Close();
-        c.reset();
+//        x.Close();
+//        ad.Close();
+//        vd.Close();
+//        c.reset();
+//        p.reset();
+//        af.reset();
+//        vf.reset();
         qDebug() << e.what();
         return -1;
     }

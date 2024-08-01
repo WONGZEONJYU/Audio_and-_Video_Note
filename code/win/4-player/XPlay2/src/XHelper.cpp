@@ -1,4 +1,21 @@
-#include "XHelper.h"
+
+#include "XHelper.hpp"
+
+#ifdef HAVE_FFMPEG
+extern "C"{
+#include <libavutil/error.h>
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/timestamp.h>
+#include <libavfilter/avfilter.h>
+}
+#endif
+
+#ifdef HAVE_OPENGL
+#include <SDL_opengl.h>
+#endif
+
+#include <iostream>
 #include <fstream>
 #include <sstream>
 
@@ -75,6 +92,16 @@ namespace XHelper {
         }
     }
 
+#endif
+
+#ifdef HAVE_OPENGL
+    void checkOpenGLError(const std::string & stmt, const std::string & fname,const int &line) noexcept(true){
+
+        const auto err{glGetError()};
+        if(GL_NO_ERROR != err) {
+            cerr << "OpenGL error " << err << " at " << fname << ":" << line << " - for " << stmt;
+        }
+    }
 #endif
 
     std::string channel_layout_describe(const AVChannelLayout &ch) noexcept(true) {

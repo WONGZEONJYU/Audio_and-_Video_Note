@@ -49,22 +49,17 @@ set(FFMPEG_LIBS
 )
 add_definitions(-D__STDC_CONSTANT_MACROS)
 add_definitions(-DHAVE_FFMPEG)
+add_definitions(-DHAVE_OPENGL)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 set(SRC_CODE
-        src/XThrow.cpp
-        src/XThrow.hpp
         src/XDemux.cpp
         src/XDemux.hpp
-        src/XHelper.h
+        src/XHelper.hpp
         src/XHelper.cpp
-        src/XShareAVFrame.cpp
-        src/XShareAVPacket.cpp
         src/SwrContext_t.cpp
         src/SwrContext_t.hpp
-        src/XShareAVFrame.hpp
-        src/XShareAVPacket.hpp
         src/XAVPacket.cpp
         src/XAVPacket.hpp
         src/XAVFrame.cpp
@@ -82,6 +77,7 @@ find_package(Qt6 COMPONENTS
         Widgets
         OpenGL
         OpenGLWidgets
+        Multimedia
         REQUIRED)
 
 add_executable(XPlay2
@@ -89,6 +85,8 @@ add_executable(XPlay2
         XPlay2Widget.cpp
         XPlay2Widget.hpp
         XPlay2Widget.ui
+        XVideoWidget.cpp
+        XVideoWidget.hpp
         ${SRC_CODE}
 )
 target_link_libraries(XPlay2
@@ -97,6 +95,7 @@ target_link_libraries(XPlay2
         Qt::Widgets
         Qt6::OpenGL
         Qt6::OpenGLWidgets
+        Qt6::Multimedia
         OpenGL::GL
         ${FFMPEG_LIBS}
         ${Vulkan_LIBRARY}

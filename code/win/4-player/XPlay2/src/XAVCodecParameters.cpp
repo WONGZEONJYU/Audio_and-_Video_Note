@@ -1,12 +1,14 @@
 //
 // Created by Administrator on 2024/7/30.
 //
+#include "XAVCodecParameters.hpp"
 
 extern "C"{
 #include <libavcodec/codec_par.h>
+#include <libavcodec/avcodec.h>
 }
 
-#include "XAVCodecParameters.hpp"
+#include <iostream>
 
 XAVCodecParameters_sptr new_XAVCodecParameters() noexcept(false)
 {

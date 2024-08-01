@@ -18,6 +18,8 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLTexture>
+#include <QSharedPointer>
+#include <QVector>
 
 class XVideoWidget final : public QOpenGLWidget,
         protected QOpenGLFunctions
@@ -105,16 +107,23 @@ Q_OBJECT
     void paintGL() override;
     void resizeGL(int , int ) override;
     void checkOpenGLError(const char* , const char* ,const int &);
+    void cleanup();
 public:
     explicit XVideoWidget(QWidget*  = nullptr);
     ~XVideoWidget() override;
 
 private:
     //shader程序
-    QOpenGLShaderProgram *m_shader{};
-    QOpenGLBuffer *m_VBO{},*m_EBO{};
-    QOpenGLVertexArrayObject *m_VAO{};
-    QOpenGLTexture *m_textureYUV[3]{};
+
+    //QOpenGLShaderProgram *m_shader{};
+    QSharedPointer<QOpenGLShaderProgram> m_shader;
+    //QOpenGLBuffer *m_VBO{},*m_EBO{};
+    QSharedPointer<QOpenGLBuffer> m_VBO,m_EBO;
+    //QOpenGLVertexArrayObject *m_VAO{};
+    QSharedPointer<QOpenGLVertexArrayObject> m_VAO;
+
+    //QOpenGLTexture *m_textureYUV[3]{};
+    QVector<QSharedPointer<QOpenGLTexture>> m_textureYUV;
 
     //材质内存空间
     int m_w{240},m_h{128};

@@ -12,18 +12,23 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QWidget>
+#include <XVideoWidget.hpp>
 
 QT_BEGIN_NAMESPACE
 
 class Ui_XPlay2Widget
 {
 public:
+    XVideoWidget *VideoWidget;
 
     void setupUi(QWidget *XPlay2Widget)
     {
         if (XPlay2Widget->objectName().isEmpty())
             XPlay2Widget->setObjectName("XPlay2Widget");
-        XPlay2Widget->resize(400, 300);
+        XPlay2Widget->resize(918, 679);
+        VideoWidget = new XVideoWidget(XPlay2Widget);
+        VideoWidget->setObjectName("VideoWidget");
+        VideoWidget->setGeometry(QRect(60, 30, 800, 600));
 
         retranslateUi(XPlay2Widget);
 
