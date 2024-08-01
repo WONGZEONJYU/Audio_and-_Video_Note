@@ -4,9 +4,11 @@
 
 #include "XVideoWidget.hpp"
 #include <QByteArray>
+
 #include "XAVFrame.hpp"
 
 XVideoWidget::XVideoWidget(QWidget *parent):QOpenGLWidget(parent){
+
 }
 
 XVideoWidget::~XVideoWidget() {
@@ -109,6 +111,12 @@ void XVideoWidget::initializeGL() {
 void XVideoWidget::paintGL() {
 
     qDebug() << "begin: " << __FUNCTION__;
+    QMutexLocker locker(&m_mux);
+    for (auto &item : m_yuv_datum){
+        if (item.isNull()){
+            return;
+        }
+    }
 
     m_shader->bind();
     QOpenGLVertexArrayObject::Binder vao(m_VAO.get());
@@ -201,7 +209,18 @@ void XVideoWidget::cleanup() noexcept(true) {
 void XVideoWidget::Init(const int &w,const int&h) noexcept(false){
 
     QMutexLocker locker(&m_mux);
+
+    if (!m_shader || !m_VBO || !m_EBO || !m_VAO){
+        qDebug() << "Please call the show() function first";
+        return;
+    }
+
     m_w = w,m_h = h;
+
+    m_shader->bind();
+    QOpenGLVertexArrayObject::Binder vao(m_VAO.get());
+    m_VBO->bind();
+    m_EBO->bind();
 
     /*分配纹理(材质)内存空间,并设置参数,并分配显存空间*/
     try {
@@ -232,7 +251,14 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false){
             qDebug() << "textureId: "  << item->textureId();
             ++i;
         }
+        m_shader->release();
+        m_VBO->release();
+        m_EBO->release();
     } catch (...) {
+        m_shader->release();
+        m_VBO->release();
+        m_EBO->release();
+        vao.release();
         cleanup();
         locker.unlock();
         std::rethrow_exception(std::current_exception());

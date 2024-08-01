@@ -13,19 +13,30 @@ extern "C" {
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
+#if defined(__APPLE__) && defined(__MACH__)
+    QSurfaceFormat format;
+    format.setVersion(4, 1);
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+#endif
+    XDemux x;
+    XDecode vd,ad;
+    XAVCodecParameters_sptr_container_sptr c;
+    XAVPacket_sptr p;
+    XAVFrame_sptr af,vf;
 
-//    XDemux x;
-//    XDecode vd,ad;
-//    XAVCodecParameters_sptr_container_sptr c;
-//    XAVPacket_sptr p;
-//    XAVFrame_sptr af,vf;
     try {
-//        x.Open("2_audio.mp4");
-//        x.Open("2_audio.mp4");
-//        c = x.copy_ALLCodec_Parameters();
-//        vd.Open(c->at(2));
-//        ad.Open(c->at(0));
+        auto w{XPlay2Widget::Handle()};
+        w->show();
 #if 0
+        x.Open("2_audio.mp4");
+        x.Open("2_audio.mp4");
+        c = x.copy_ALLCodec_Parameters();
+        vd.Open(c->at(2));
+        ad.Open(c->at(0));
+
         while (true) {
             p = x.Read();
             if (!p){
@@ -77,23 +88,20 @@ int main(int argc, char *argv[]) {
             }
         }
 #endif
-        //return 0;
-        //XPlay2Widget::Handle()->show();
-        auto w{XPlay2Widget::Handle()};
-        w->show();
 
         auto ret{-1};
         ret = QApplication::exec();
-        w.reset();
         return ret;
     } catch (const std::exception &e) {
-//        x.Close();
-//        ad.Close();
-//        vd.Close();
-//        c.reset();
-//        p.reset();
-//        af.reset();
-//        vf.reset();
+#if 1
+        x.Close();
+        ad.Close();
+        vd.Close();
+        c.reset();
+        p.reset();
+        af.reset();
+        vf.reset();
+#endif
         qDebug() << e.what();
         return -1;
     }

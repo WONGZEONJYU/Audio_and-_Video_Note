@@ -8,6 +8,7 @@
 #include "ui_XPlay2Widget.h"
 #include "XHelper.hpp"
 
+
 XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
 
     XPlay2Widget_sptr obj;
@@ -28,6 +29,8 @@ void XPlay2Widget::Construct() noexcept(false) {
 
     CHECK_EXC(m_ui.reset(new Ui::XPlay2Widget));
     m_ui->setupUi(this);
+    //show();
+    m_ui->VideoWidget->Init(800,600);
 }
 
 void XPlay2Widget::DeConstruct() noexcept {
