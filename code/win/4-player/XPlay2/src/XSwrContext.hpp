@@ -2,19 +2,20 @@
 #ifndef SWRCONTEXT_T_H
 #define SWRCONTEXT_T_H
 
-extern "C"{
-#include <libswresample/swresample.h>
-}
-
+#include <string>
 #include <memory>
+#include "XHelper.hpp"
 
-class SwrContext_t ;
-using SwrContext_sp_type = std::shared_ptr<SwrContext_t>;
+enum AVSampleFormat;
+struct AVChannelLayout;
+struct SwrContext;
+class XSwrContext ;
+using SwrContext_sptr = std::shared_ptr<XSwrContext>;
 
-class SwrContext_t final{
+class XSwrContext final{
 
-    static SwrContext_t* new_SwrContext_t() noexcept(false);
-    explicit SwrContext_t() = default;
+    static XSwrContext* new_XSwrContext() noexcept(false);
+    explicit XSwrContext() = default;
     void Construct() noexcept(false);
     void Construct(const AVChannelLayout *out_ch_layout,
                    const AVSampleFormat &out_sample_fmt,
@@ -37,7 +38,7 @@ class SwrContext_t final{
                              const int64_t &val) const noexcept(true);
 
 public:
-    using SwrContext_sp_t = std::shared_ptr<SwrContext_t>;
+    using SwrContext_sp_t = std::shared_ptr<XSwrContext>;
     static SwrContext_sp_t create() noexcept(false);
     static SwrContext_sp_t create(const AVChannelLayout *out_ch_layout,
                                   const AVSampleFormat &out_sample_fmt,
@@ -48,7 +49,7 @@ public:
                                   const int &log_offset = 0,
                                   void *log_ctx  = nullptr) noexcept(false);
 
-    ~SwrContext_t();
+
     void init() const noexcept(false);
 
     int convert (uint8_t **out,
@@ -72,12 +73,12 @@ private:
     SwrContext* m_swr_ctx{};
 
 public:
-    SwrContext_t(const SwrContext_t&) = delete;
-    SwrContext_t& operator=(const SwrContext_t&) = delete;
+    ~XSwrContext();
+    X_DISABLE_COPY(XSwrContext)
 };
 
-SwrContext_sp_type new_SwrContext_t() noexcept(false);
-SwrContext_sp_type new_SwrContext_t(const AVChannelLayout *out_ch_layout,
+SwrContext_sptr new_XSwrContext() noexcept(false);
+SwrContext_sptr new_XSwrContext(const AVChannelLayout *out_ch_layout,
                                     const AVSampleFormat &out_sample_fmt,
                                     const int &out_sample_rate,
                                     const AVChannelLayout *in_ch_layout,

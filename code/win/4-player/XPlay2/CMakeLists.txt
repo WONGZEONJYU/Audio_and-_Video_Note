@@ -58,8 +58,8 @@ set(SRC_CODE
         src/XDemux.hpp
         src/XHelper.hpp
         src/XHelper.cpp
-        src/SwrContext_t.cpp
-        src/SwrContext_t.hpp
+        src/XSwrContext.cpp
+        src/XSwrContext.hpp
         src/XAVPacket.cpp
         src/XAVPacket.hpp
         src/XAVFrame.cpp

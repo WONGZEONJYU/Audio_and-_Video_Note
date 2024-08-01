@@ -112,8 +112,15 @@ void XVideoWidget::paintGL() {
 
     qDebug() << "begin: " << __FUNCTION__;
     QMutexLocker locker(&m_mux);
+
+    if (m_yuv_datum.isEmpty()){
+        qDebug() << "end: " << __FUNCTION__;
+        return;
+    }
+
     for (auto &item : m_yuv_datum){
-        if (item.isNull()){
+        if (item.isEmpty()){
+            qDebug() << "end: " << __FUNCTION__;
             return;
         }
     }
@@ -268,7 +275,7 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false){
 void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
 
     if (!frame){
-        qDebug() << "\n";
+        qDebug() << __func__ << "XAVFrame_sptr is empty\n";
         return;
     }
 

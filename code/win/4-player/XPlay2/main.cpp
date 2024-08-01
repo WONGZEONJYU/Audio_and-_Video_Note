@@ -89,19 +89,9 @@ int main(int argc, char *argv[]) {
         }
 #endif
 
-        auto ret{-1};
-        ret = QApplication::exec();
+        const auto ret{QApplication::exec()};
         return ret;
     } catch (const std::exception &e) {
-#if 1
-        x.Close();
-        ad.Close();
-        vd.Close();
-        c.reset();
-        p.reset();
-        af.reset();
-        vf.reset();
-#endif
         qDebug() << e.what();
         return -1;
     }
