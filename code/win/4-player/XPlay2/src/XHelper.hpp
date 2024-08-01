@@ -2,19 +2,16 @@
 #ifndef XHELPER_H
 #define XHELPER_H
 
-#ifdef HAVE_FFMPEG
-extern "C"{
-#include <libavutil/error.h>
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/timestamp.h>
-#include <libavfilter/avfilter.h>
-}
-#endif
-
-#include <iostream>
 #include <string>
 #include <atomic>
+#include <system_error>
+
+#ifdef HAVE_FFMPEG
+struct AVFormatContext;
+struct AVPacket;
+struct AVFilterGraph;
+struct AVChannelLayout;
+#endif
 
 namespace XHelper {
 #ifdef HAVE_FFMPEG
@@ -32,6 +29,11 @@ namespace XHelper {
 
     std::string channel_layout_describe(const AVChannelLayout &) noexcept(true);
 #endif
+
+#ifdef HAVE_OPENGL
+    void checkOpenGLError(const std::string & , const std::string & ,const int &) noexcept(true);
+#endif
+
     void check_nullptr(const std::string &func,const std::string &file,
                        const int &line,const void *p) noexcept(false);
 
@@ -76,6 +78,13 @@ private:
 
 #endif
 
+#ifdef HAVE_OPENGL
+#define GL_CHECK(x) do { \
+        x;\
+        XHelper::checkOpenGLError(#x, __FILE__, __LINE__); \
+    } while (false)
+#endif
+
 #define CHECK_NULLPTR(x) do{ \
     const auto _p_ {x};\
         XHelper::check_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_));\
@@ -96,5 +105,7 @@ private:
     X_DISABLE_COPY(Class) \
     Class(Class &&) = delete; \
     Class &operator=(Class &&) = delete;
+
+#define GET_STR(args) #args
 
 #endif
