@@ -16,18 +16,18 @@ int main(int argc, char *argv[]) {
     fmt.setChannelConfig(QAudioFormat::ChannelConfigStereo);
 
     auto audio_sink{new QAudioSink(fmt)};
-    QCoreApplication::connect(audio_sink,&QAudioSink::stateChanged,[audio_sink](QtAudio::State state){
+    QCoreApplication::connect(audio_sink,&QAudioSink::stateChanged,[audio_sink](QAudio::State state){
         switch (state) {
-            case QtAudio::ActiveState:
+            case QAudio::ActiveState:
                 break;
 
-            case QtAudio::SuspendedState:
+            case QAudio::SuspendedState:
                 break;
 
-            case QtAudio::StoppedState:
+            case QAudio::StoppedState:
                 break;
 
-            case QtAudio::IdleState:
+            case QAudio::IdleState:
                 break;
         }
         qDebug() << state;

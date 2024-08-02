@@ -16,7 +16,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     link_directories(c:/SDL2-2.28.5-VC/lib/x64)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
-    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.0/macos")
+    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.4.2/macos")
     include_directories(/usr/local/ffmpeg/include)
     include_directories(/opt/homebrew/Cellar/sdl2/2.30.1/include/SDL2)
 

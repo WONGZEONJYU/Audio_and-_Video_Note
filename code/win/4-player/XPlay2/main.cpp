@@ -102,7 +102,6 @@ public:
     XVideoWidget *xVideoWidget{};
 };
 
-
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     std::exception_ptr eptr;
@@ -123,7 +122,7 @@ int main(int argc, char *argv[]) {
         t.eptr = std::addressof(eptr);
         t.xVideoWidget = w->m_ui->VideoWidget;
         t.init();
-        t.start();
+        //t.start();
 
         const auto ret{QApplication::exec()};
         t.quit();
