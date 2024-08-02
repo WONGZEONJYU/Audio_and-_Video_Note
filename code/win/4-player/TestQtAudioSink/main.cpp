@@ -3,19 +3,23 @@
 #include <QFile>
 #include <QAudioSink>
 #include <QThread>
+#include <QMediaDevices>
 
 #define GET_STR(args) #args
 
 int main(int argc, char *argv[]) {
+
     QCoreApplication a(argc, argv);
 
-    QAudioFormat fmt;
+    auto device {QMediaDevices::defaultAudioOutput()};
+    auto fmt {device.preferredFormat()};
+
     fmt.setSampleRate(44100);
     fmt.setChannelCount(2);
     fmt.setSampleFormat(QAudioFormat::Int16);
     fmt.setChannelConfig(QAudioFormat::ChannelConfigStereo);
 
-    auto audio_sink{new QAudioSink(fmt)};
+    auto audio_sink{new QAudioSink(device,fmt)};
     QCoreApplication::connect(audio_sink,&QAudioSink::stateChanged,[audio_sink](QAudio::State state){
         switch (state) {
             case QAudio::ActiveState:

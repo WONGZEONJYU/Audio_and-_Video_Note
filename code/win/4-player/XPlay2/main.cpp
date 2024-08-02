@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
         t.eptr = std::addressof(eptr);
         t.xVideoWidget = w->m_ui->VideoWidget;
         t.init();
-        //t.start();
+        t.start();
 
         const auto ret{QApplication::exec()};
         t.quit();
@@ -131,7 +131,6 @@ int main(int argc, char *argv[]) {
         if (eptr){
             std::rethrow_exception(eptr);
         }
-
         return ret;
     } catch (const std::exception &e) {
         qDebug() << e.what();

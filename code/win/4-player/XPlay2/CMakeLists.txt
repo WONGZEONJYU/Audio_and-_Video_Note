@@ -47,6 +47,7 @@ set(FFMPEG_LIBS
         swscale
         SDL2
 )
+
 add_definitions(-D__STDC_CONSTANT_MACROS)
 add_definitions(-DHAVE_FFMPEG)
 add_definitions(-DHAVE_OPENGL)
@@ -70,14 +71,18 @@ set(SRC_CODE
         src/XDecode.hpp
 )
 
+set(QT__LIB
+    Core
+    Gui
+    Widgets
+    OpenGL
+    OpenGLWidgets
+    Multimedia
+)
+
 find_package(OpenGL REQUIRED)
 find_package(Qt6 COMPONENTS
-        Core
-        Gui
-        Widgets
-        OpenGL
-        OpenGLWidgets
-        Multimedia
+        ${QT__LIB}
         REQUIRED)
 
 add_executable(XPlay2
@@ -122,7 +127,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
     endif ()
-    foreach (QT_LIB Core Gui Widgets)
+    foreach (QT_LIB ${QT__LIB})
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
