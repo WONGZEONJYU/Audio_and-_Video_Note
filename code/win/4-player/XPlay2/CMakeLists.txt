@@ -69,6 +69,8 @@ set(SRC_CODE
         src/XAVCodecParameters.hpp
         src/XDecode.cpp
         src/XDecode.hpp
+        src/XResample.cpp
+        src/XResample.hpp
 )
 
 set(QT__LIB

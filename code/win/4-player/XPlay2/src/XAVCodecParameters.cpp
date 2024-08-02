@@ -69,3 +69,15 @@ int XAVCodecParameters::codec_id() const noexcept(true){
 std::string XAVCodecParameters::codec_name() const noexcept(true) {
     return avcodec_get_name(m_parm->codec_id);
 }
+
+const AVChannelLayout *XAVCodecParameters::ch_layout() const noexcept(true) {
+    return &m_parm->ch_layout;
+}
+
+int XAVCodecParameters::sampleFormat() const noexcept(true) {
+    return m_parm->format;
+}
+
+int XAVCodecParameters::sample_rate() const noexcept(true) {
+    return m_parm->sample_rate;
+}

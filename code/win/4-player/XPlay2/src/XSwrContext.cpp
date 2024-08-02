@@ -72,20 +72,14 @@ SwrContext_sptr XSwrContext::create(const AVChannelLayout *out_ch_layout,
 }
 
 void XSwrContext::init() const noexcept(false){
-
-    const auto ret {swr_init(m_swr_ctx)};
-    if (ret < 0){
-        throw std::runtime_error("swr_init failed: " + XHelper::av_get_err(ret) + "\n");
-    }
+    FF_CHECK_ERR(swr_init(m_swr_ctx));
 }
 
 int XSwrContext::convert(uint8_t **out, const int &out_count,
                          const uint8_t * const *in, const int &in_count) const noexcept(false) {
 
-    auto ret {swr_convert(m_swr_ctx,out,out_count,in,in_count)};
-    if (ret < 0){
-        throw std::runtime_error("swr_convert failed: " + XHelper::av_get_err(ret) + "\n");
-    }
+    auto ret {-1};
+    FF_CHECK_ERR(ret = swr_convert(m_swr_ctx,out,out_count,in,in_count));
     return ret;
 }
 
@@ -107,45 +101,27 @@ int XSwrContext::opt_set_sample_rate(const std::string& name,
 #define FUNCTION_NAME std::string(__FUNCTION__)
 
 void XSwrContext::set_input_ch_layout(const AVChannelLayout *layout) const noexcept(false){
-    const auto ret{opt_set_ch_layout("ichl",layout)};
-    if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
-    }
+    FF_CHECK_ERR(opt_set_ch_layout("ichl",layout));
 }
 
 void XSwrContext::set_input_sample_fmt(const AVSampleFormat &fmt) const noexcept(false){
-    const auto ret{opt_set_sample_fmt( "isf", fmt)};
-    if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
-    }
+    FF_CHECK_ERR(opt_set_sample_fmt( "isf", fmt));
 }
 
 void XSwrContext::set_input_sample_rate(const int64_t &val) const noexcept(false){
-    const auto ret{opt_set_sample_rate("isr", val)};
-    if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
-    }
+    FF_CHECK_ERR(opt_set_sample_rate("isr", val));
 }
 
 void XSwrContext::set_output_ch_layout(const AVChannelLayout *layout) const noexcept(false){
-    const auto ret{opt_set_ch_layout("ochl",layout)};
-    if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
-    }
+    FF_CHECK_ERR(opt_set_ch_layout("ochl",layout));
 }
 
 void XSwrContext::set_output_sample_fmt(const AVSampleFormat &fmt) const noexcept(false){
-    const auto ret{opt_set_sample_fmt( "osf", fmt)};
-    if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
-    }
+    FF_CHECK_ERR(opt_set_sample_fmt( "osf", fmt));
 }
 
 void XSwrContext::set_output_sample_rate(const int64_t &val) const noexcept(false){
-    const auto ret{opt_set_sample_rate("osr", val)};
-    if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
-    }
+    FF_CHECK_ERR(opt_set_sample_rate("osr", val));
 }
 
 int64_t XSwrContext::get_delay(const int64_t& base) const noexcept(true){
@@ -153,10 +129,7 @@ int64_t XSwrContext::get_delay(const int64_t& base) const noexcept(true){
 }
 
 void XSwrContext::set_compensation(const int &sample_delta, const int &compensation_distance) const noexcept(false){
-    const auto ret {swr_set_compensation(m_swr_ctx,sample_delta,compensation_distance)};
-    if (ret < 0){
-        throw std::runtime_error( FUNCTION_NAME  + "\t" + XHelper::av_get_err(ret) + "\n");
-    }
+    FF_CHECK_ERR(swr_set_compensation(m_swr_ctx,sample_delta,compensation_distance));
 }
 
 void XSwrContext::DeConstruct() noexcept(true){

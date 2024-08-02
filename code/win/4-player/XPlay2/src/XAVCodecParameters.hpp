@@ -11,6 +11,7 @@
 
 struct AVCodecParameters;
 struct AVCodecContext;
+struct AVChannelLayout;
 class XAVCodecParameters;
 
 using XAVCodecParameters_sptr = std::shared_ptr<XAVCodecParameters>;
@@ -27,6 +28,10 @@ public:
     [[nodiscard]] int MediaType() const noexcept(true);
     [[nodiscard]] int codec_id() const noexcept(true);
     [[nodiscard]] std::string codec_name() const noexcept(true);
+    [[nodiscard]] const AVChannelLayout *ch_layout() const noexcept(true);
+    [[nodiscard]] int sampleFormat() const noexcept(true);
+    [[nodiscard]] int sample_rate() const noexcept(true);
+
 private:
     AVCodecParameters *m_parm{};
 public:
