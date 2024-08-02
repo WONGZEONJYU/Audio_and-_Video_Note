@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
         if (free_size < buf_size){
             qDebug() << GET_STR(free_size = ) << free_size;
-            QThread::usleep(1);
+            QThread::usleep(1000);
             continue;
         }
         const auto re{file.read(buf,buf_size)};
