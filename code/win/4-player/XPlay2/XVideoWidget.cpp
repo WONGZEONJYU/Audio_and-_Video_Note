@@ -19,7 +19,7 @@ XVideoWidget::~XVideoWidget() {
 void XVideoWidget::initializeGL() {
 
     qDebug() << "begin " << __FUNCTION__ ;
-
+    QMutexLocker locker(&m_mux);
     //初始化opengl
     initializeOpenGLFunctions();
 
@@ -169,7 +169,9 @@ void XVideoWidget::paintGL() {
 }
 
 void XVideoWidget::resizeGL(int w, int h) {
+
     qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
+    QMutexLocker locker(&m_mux);
     GL_CHECK(glViewport(0, 0, w, h));
 }
 
@@ -213,7 +215,7 @@ void XVideoWidget::cleanup() noexcept(true) {
     doneCurrent();
 }
 
-void XVideoWidget::Init(const int &w,const int&h) noexcept(false){
+void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
 
     QMutexLocker locker(&m_mux);
 
@@ -224,17 +226,24 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false){
 
     m_w = w,m_h = h;
 
-    m_shader->bind();
     QOpenGLVertexArrayObject::Binder vao(m_VAO.get());
-    m_VBO->bind();
-    m_EBO->bind();
+
+    XRAII r([this]{
+        m_shader->bind();
+        m_VBO->bind();
+        m_EBO->bind();
+        },[this]{
+        m_shader->release();
+        m_VBO->release();
+        m_EBO->release();
+    });
 
     /*分配纹理(材质)内存空间,并设置参数,并分配显存空间*/
     try {
         m_yuv_datum.clear();
         m_yuv_datum.resize(3);
 
-        m_textureYUV.clear();
+        m_textureYUV.clear(); //分配前，需要先释放
         m_textureYUV.resize(3);
         for(int i {};auto &item : m_textureYUV){
             CHECK_EXC(item.reset(new QOpenGLTexture(QOpenGLTexture::Target2D)));
@@ -258,13 +267,9 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false){
             qDebug() << "textureId: "  << item->textureId();
             ++i;
         }
-        m_shader->release();
-        m_VBO->release();
-        m_EBO->release();
+
     } catch (...) {
-        m_shader->release();
-        m_VBO->release();
-        m_EBO->release();
+        r.destroy();
         vao.release();
         cleanup();
         locker.unlock();
@@ -275,16 +280,31 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false){
 void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
 
     if (!frame){
-        qDebug() << __func__ << "XAVFrame_sptr is empty\n";
+        qDebug() << __func__ << "XAVFrame_sptr is empty";
+        return;
+    }
+
+    if (!(frame->width * frame->height)){
+        qDebug() << __func__ << " Non-video frames";
         return;
     }
 
     {
         QMutexLocker locker(&m_mux);
+
+        if (frame->width != m_w || frame->height != m_h){
+            qDebug() << __func__ << " Resolution error";
+            return;
+        }
+
+        if (!m_shader || !m_VAO || !m_VBO || !m_EBO || m_yuv_datum.isEmpty() || m_textureYUV.isEmpty()){
+            qDebug() << "Please call the Init() function first ";
+            return;
+        }
+
         for (uint32_t i{};auto &item:m_yuv_datum) {
 
             const auto len{ i ? m_w * m_h / 4 : m_w * m_h};
-            //item = {reinterpret_cast<const char*>(frame->data[i]),len};
             item = std::move(QByteArray(reinterpret_cast<const char*>(frame->data[i]),len));
             ++i;
         }

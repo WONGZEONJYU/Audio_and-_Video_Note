@@ -75,6 +75,9 @@ void XDemux::Open(const string &url) noexcept(false){
         }
 
         m_totalMS = m_av_fmt_ctx->duration / (AV_TIME_BASE / 1000);
+
+
+
         av_dump_format(m_av_fmt_ctx,0,url.c_str(),0);
         cerr << "\n\n";
 
@@ -127,7 +130,7 @@ void XDemux::show_audio_info() const noexcept(true) {
     cerr << "=======================audio_info========================\n\n";
 }
 
-void XDemux::show_video_info() const noexcept(true) {
+void XDemux::show_video_info()  noexcept(true) {
 
     cerr << "=======================video_info========================\n";
     bool b{};
@@ -149,8 +152,8 @@ void XDemux::show_video_info() const noexcept(true) {
                  "frame_rate: " << codec->framerate.num << "\n" <<
                  "duration: " << (isnan(duration) ? "unknown" :
                                   to_string(hour) + ":" + to_string(minute) + ":" + to_string(Second)) << "\n" <<
-                 "width: " << codec->width << "\n" <<
-                 "height: " << codec->height << "\n" <<
+                 "width: " << (m_widget = codec->width) << "\n" <<
+                 "height: " << (m_height = codec->height) << "\n" <<
                  "bit_rate: " << codec->bit_rate << "\n";
             b = true;
         }
@@ -190,12 +193,11 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
 }
 
 void XDemux::Deconstruct() noexcept(true) {
-    delete []m_stream_indices;
+    delete [] m_stream_indices;
     m_stream_indices = nullptr;
     avformat_close_input(&m_av_fmt_ctx);
     m_streams = nullptr;
-    m_totalMS = 0;
-    m_nb_streams = 0;
+    m_totalMS = m_nb_streams = m_widget = m_height = 0;
 }
 
 XAVCodecParameters_sptr_container_sptr XDemux::copy_ALLCodec_Parameters() noexcept(false) {

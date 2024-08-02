@@ -25,7 +25,7 @@ using XAVCodecParameters_sptr_container_sptr = typename std::shared_ptr<XAVCodec
 class XDemux {
 
     void show_audio_info() const noexcept(true);
-    void show_video_info() const noexcept(true);
+    void show_video_info()  noexcept(true);
     void Deconstruct() noexcept(true);
 
 public:
@@ -71,6 +71,9 @@ public:
         return m_totalMS;
     }
 
+    auto widget() const {return m_widget;}
+    auto height() const {return m_height;}
+
 protected:
     std::recursive_mutex m_re_mux;
     AVFormatContext *m_av_fmt_ctx{};
@@ -79,13 +82,14 @@ protected:
 //    int m_audio_stream_index{},
 //        m_video_stream_index{};
     AVStream **m_streams{};
+    int64_t m_totalMS{};
     int *m_stream_indices{};
+    int m_widget{},m_height{};
+    uint32_t m_nb_streams{};
 
 private:
     static std::atomic_uint64_t sm_init_times;
     static std::mutex sm_mux;
-    int64_t m_totalMS{};
-    uint32_t m_nb_streams{};
 
 public:
     virtual ~XDemux();

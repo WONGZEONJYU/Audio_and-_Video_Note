@@ -116,6 +116,11 @@ Q_OBJECT
 public:
     explicit XVideoWidget(QWidget*  = nullptr);
     ~XVideoWidget() override;
+    /**
+     * 该函数在分配纹理对象失败的时候抛异常并会清理所有成员属性
+     * @param w
+     * @param h
+     */
     void Init(const int &w,const int&h) noexcept(false);
     void Repaint(const XAVFrame_sptr &);
 

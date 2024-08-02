@@ -25,10 +25,10 @@ public:
     {
         if (XPlay2Widget->objectName().isEmpty())
             XPlay2Widget->setObjectName("XPlay2Widget");
-        XPlay2Widget->resize(918, 679);
+        XPlay2Widget->resize(1920, 1080);
         VideoWidget = new XVideoWidget(XPlay2Widget);
         VideoWidget->setObjectName("VideoWidget");
-        VideoWidget->setGeometry(QRect(60, 30, 800, 600));
+        VideoWidget->setGeometry(QRect(0, 0, 1920, 1080));
 
         retranslateUi(XPlay2Widget);
 
