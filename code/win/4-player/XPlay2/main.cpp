@@ -13,6 +13,7 @@ extern "C" {
 #include "XAVCodecParameters.hpp"
 #include "XDecode.hpp"
 #include "ui_XPlay2Widget.h"
+#include "XResample.hpp"
 
 class TestThread : public QThread {
 
@@ -22,7 +23,7 @@ class TestThread : public QThread {
 
             while (true) {
                 p = x.Read();
-                if (!p){
+                if (!p){ //媒体文件读取为空
                     qDebug() << "read finish\n";
                     ad.Send({});
                     vd.Send({});
@@ -33,12 +34,13 @@ class TestThread : public QThread {
                         vf = vd.Receive();
 
                         if (af){
-                            qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
+                            //qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
+                            qDebug() << "ReSample_nb: " << re.Resample(af,resampleData) << " capacity: " << resampleData.capacity();
                         }
 
                         if (vf){
                             xVideoWidget->Repaint(vf);
-                            qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(vf->format));
+                            //qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(vf->format));
                             QThread::msleep(40);
                         }
 
@@ -54,7 +56,8 @@ class TestThread : public QThread {
                     while (true){
                         af = ad.Receive();
                         if (af){
-                            qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
+                            //qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
+                            qDebug() << "ReSample_nb: " << re.Resample(af,resampleData) << " capacity: " << resampleData.capacity();
                         } else{
                             break;
                         }
@@ -87,7 +90,7 @@ public:
             c = x.copy_ALLCodec_Parameters();
             vd.Open(c->at(2));
             ad.Open(c->at(0));
-
+            re.Open(c->at(0));
         } catch (...) {
             *eptr = std::current_exception();
         }
@@ -98,8 +101,10 @@ public:
     XAVCodecParameters_sptr_container_sptr c;
     XAVPacket_sptr p;
     XAVFrame_sptr af,vf;
+    XResample re;
     std::exception_ptr *eptr{};
     XVideoWidget *xVideoWidget{};
+    resample_data_t resampleData;
 };
 
 int main(int argc, char *argv[]) {

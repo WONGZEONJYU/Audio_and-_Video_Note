@@ -98,8 +98,6 @@ int XSwrContext::opt_set_sample_rate(const std::string& name,
     return av_opt_set_int(m_swr_ctx, name.c_str(), val, 0);
 }
 
-#define FUNCTION_NAME std::string(__FUNCTION__)
-
 void XSwrContext::set_input_ch_layout(const AVChannelLayout *layout) const noexcept(false){
     FF_CHECK_ERR(opt_set_ch_layout("ichl",layout));
 }

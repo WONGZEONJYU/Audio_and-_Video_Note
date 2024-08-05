@@ -67,12 +67,13 @@ public:
      * 关闭m_av_fmt_ctx,重新打开文件之前,需手动关闭
      */
     virtual void Close() noexcept(true);
+
     [[nodiscard]] auto totalMS() const noexcept(true){
         return m_totalMS;
     }
 
-    auto widget() const {return m_widget;}
-    auto height() const {return m_height;}
+    [[nodiscard]] auto widget() const {return m_widget;}
+    [[nodiscard]] auto height() const {return m_height;}
 
 protected:
     std::recursive_mutex m_re_mux;

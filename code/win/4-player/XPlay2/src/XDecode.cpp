@@ -27,9 +27,9 @@ void XDecode::Open(const XAVCodecParameters_sptr &parm) noexcept(false) {
 
     Close();
 
-    auto codec{avcodec_find_decoder(static_cast<AVCodecID>(parm->codec_id()))};
+    auto codec{avcodec_find_decoder(static_cast<AVCodecID>(parm->Codec_id()))};
     if (!codec){
-        cerr << "can't find the codec id: " << parm->codec_name() << "\n";
+        cerr << "can't find the codec id: " << parm->Codec_name() << "\n";
         return;
     }
 
@@ -98,7 +98,8 @@ XAVFrame_sptr XDecode::Receive() noexcept(false) {
     XAVFrame_sptr frame;
     CHECK_EXC(frame = new_XAVFrame(),lock.unlock());
     auto ret{-1};
-    FF_ERR_OUT(ret = avcodec_receive_frame(m_codec_ctx, frame.get()));
+    //FF_ERR_OUT(ret = avcodec_receive_frame(m_codec_ctx, frame.get()));
+    ret = avcodec_receive_frame(m_codec_ctx, frame.get());
     lock.unlock();
     if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret || AVERROR(EINVAL) == ret){
         frame.reset();

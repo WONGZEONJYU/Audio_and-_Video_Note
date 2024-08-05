@@ -5,40 +5,56 @@
 #ifndef XPLAY2_XAVCODECPARAMETERS_HPP
 #define XPLAY2_XAVCODECPARAMETERS_HPP
 
+extern "C"{
+#include <libavcodec/codec_par.h>
+}
+
 #include <memory>
 #include <string>
 #include "XHelper.hpp"
 
-struct AVCodecParameters;
 struct AVCodecContext;
-struct AVChannelLayout;
 class XAVCodecParameters;
-
 using XAVCodecParameters_sptr = std::shared_ptr<XAVCodecParameters>;
 
-class XAVCodecParameters final {
-    friend XAVCodecParameters_sptr new_XAVCodecParameters() noexcept(false);
-    explicit XAVCodecParameters() = default;
-    void Construct() noexcept(false);
-    void DeConstruct() noexcept(true);
+class XAVCodecParameters final : AVCodecParameters{
+    static void Reset(AVCodecParameters*) noexcept(true);
+    void Move(AVCodecParameters*) noexcept(true);
 public:
-    void from_AVFormatContext(const AVCodecParameters *) const noexcept(false);
-    void from_context(const AVCodecContext *) const noexcept(false);
-    void to_context(AVCodecContext *) const noexcept(false);
-    [[nodiscard]] int MediaType() const noexcept(true);
-    [[nodiscard]] int codec_id() const noexcept(true);
-    [[nodiscard]] std::string codec_name() const noexcept(true);
-    [[nodiscard]] const AVChannelLayout *ch_layout() const noexcept(true);
-    [[nodiscard]] int sampleFormat() const noexcept(true);
-    [[nodiscard]] int sample_rate() const noexcept(true);
+    XAVCodecParameters();
+    explicit XAVCodecParameters(const AVCodecContext *);
+    XAVCodecParameters(const XAVCodecParameters &);
+    XAVCodecParameters(XAVCodecParameters &&) noexcept;
+    XAVCodecParameters& operator=(const XAVCodecParameters &);
+    XAVCodecParameters& operator=(XAVCodecParameters &&) noexcept;
 
-private:
-    AVCodecParameters *m_parm{};
-public:
+    void from_AVFormatContext(const AVCodecParameters *)  noexcept(false);
+    void from_context(const AVCodecContext *)  noexcept(false);
+    void to_context(AVCodecContext *) const noexcept(false);
+    [[nodiscard]] auto MediaType() const noexcept(true){
+        return codec_type;
+    }
+
+    [[nodiscard]] auto Codec_id() const noexcept(true){
+        return codec_id;
+    }
+
+    [[nodiscard]] std::string Codec_name() const noexcept(true);
+
+    [[nodiscard]] auto Ch_layout() const noexcept(true){
+        return &ch_layout;
+    }
+
+    [[nodiscard]] auto Sample_Format() const noexcept(true){
+        return format;
+    }
+
+    [[nodiscard]] auto Sample_rate() const noexcept(true){
+        return sample_rate;
+    }
     ~XAVCodecParameters();
-    X_DISABLE_COPY_MOVE(XAVCodecParameters)
 };
 
 XAVCodecParameters_sptr new_XAVCodecParameters() noexcept(false);
 
-#endif //XPLAY2_XAVCODECPARAMETERS_HPP
+#endif
