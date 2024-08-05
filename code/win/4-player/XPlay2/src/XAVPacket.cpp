@@ -7,7 +7,7 @@ extern "C" {
 }
 
 #include "XAVPacket.hpp"
-#include <string>
+#include "XHelper.hpp"
 
 XAVPacket::XAVPacket() : AVPacket() {
 
@@ -45,9 +45,7 @@ XAVPacket::~XAVPacket() {
 
 XAVPacket_sptr new_XAVPacket() noexcept(false)
 {
-    try {
-        return std::make_shared<XAVPacket>();
-    } catch (...) {
-        throw std::runtime_error(std::string(__func__ ) + " error!\n");
-    }
+    XAVPacket_sptr obj;
+    CHECK_EXC(obj = std::make_shared<XAVPacket>());
+    return obj;
 }

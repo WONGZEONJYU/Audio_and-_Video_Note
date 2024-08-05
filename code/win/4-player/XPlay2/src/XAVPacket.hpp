@@ -8,7 +8,6 @@
 extern "C"{
 #include <libavcodec/packet.h>
 }
-
 #include <memory>
 
 struct XAVPacket final : public AVPacket{

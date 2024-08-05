@@ -7,8 +7,7 @@
 
 extern "C"{
 #include <libavutil/frame.h>
-};
-
+}
 #include <memory>
 
 struct XAVFrame final : public AVFrame {

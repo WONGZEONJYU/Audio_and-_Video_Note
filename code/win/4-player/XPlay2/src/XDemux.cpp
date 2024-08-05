@@ -1,7 +1,6 @@
 //
 // Created by wong on 2024/7/27.
 //
-#include "XDemux.hpp"
 
 extern "C"{
 #include <libavformat/avformat.h>
@@ -9,9 +8,9 @@ extern "C"{
 #include <libavutil/channel_layout.h>
 }
 
+#include "XDemux.hpp"
 #include "XAVPacket.hpp"
 #include "XAVCodecParameters.hpp"
-
 #include <iostream>
 
 using namespace std;
@@ -22,7 +21,6 @@ mutex XDemux::sm_mux;
 XDemux::XDemux() {
 
     if (!sm_init_times){
-        cerr << __func__  << "\n";
         unique_lock lock(sm_mux);
         avformat_network_init();
     }
@@ -32,7 +30,6 @@ XDemux::XDemux() {
 XDemux::~XDemux() {
     Deconstruct();
     if (!(--sm_init_times)){
-        cerr << "sm_init_times = " << sm_init_times << "\n";
         unique_lock lock(sm_mux);
         avformat_network_deinit();
     }
@@ -60,23 +57,21 @@ void XDemux::Open(const string &url) noexcept(false){
         FF_CHECK_ERR(avformat_open_input(&m_av_fmt_ctx,url.c_str(), nullptr, &opts));
         avformat_find_stream_info(m_av_fmt_ctx, nullptr);
 
-        if (!m_av_fmt_ctx->nb_streams){
-            throw runtime_error("no audio_stream and no video_stream!\n");
-        }
-
         m_nb_streams = m_av_fmt_ctx->nb_streams;
         m_streams = m_av_fmt_ctx->streams;
 
-        CHECK_EXC(m_stream_indices = new int[m_av_fmt_ctx->nb_streams]{});
-        std::fill_n(m_stream_indices,m_av_fmt_ctx->nb_streams,-1);
+        if (!m_nb_streams || !m_streams){
+            throw runtime_error("no audio_stream and no video_stream!\n");
+        }
+
+        CHECK_EXC(m_stream_indices = new int[m_nb_streams]{});
+        std::fill_n(m_stream_indices,m_nb_streams,-1);
 
         for (uint32_t i {}; i < m_nb_streams; ++i) {
             m_stream_indices[i] = static_cast<int>(i);
         }
 
         m_totalMS = m_av_fmt_ctx->duration / (AV_TIME_BASE / 1000);
-
-
 
         av_dump_format(m_av_fmt_ctx,0,url.c_str(),0);
         cerr << "\n\n";
@@ -87,7 +82,7 @@ void XDemux::Open(const string &url) noexcept(false){
         Deconstruct();
         lock.unlock();
         d.destroy();
-        rethrow_exception(current_exception());
+        throw;
     }
 }
 
@@ -171,7 +166,7 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
     unique_lock lock(m_re_mux);
 
     if (!m_av_fmt_ctx){
-        std::cerr << __func__ << " m_av_fmt_ctx is nullptr\n";
+        PRINT_ERR_TIPS(Please initialize first);
         return {};
     }
 
@@ -182,7 +177,7 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
     if (ret < 0){
         packet.reset();
     }else{
-        const auto time_base {m_av_fmt_ctx->streams[packet->stream_index]->time_base};
+        const auto time_base {m_streams[packet->stream_index]->time_base};
         lock.unlock();
         const auto pts{static_cast<double>(packet->pts)},
                 dst{static_cast<double>(packet->dts)};
@@ -204,37 +199,31 @@ XAVCodecParameters_sptr_container_sptr XDemux::copy_ALLCodec_Parameters() noexce
 
     unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
-        cerr << __func__ << ": m_av_fmt_ctx is empty\n";
+        PRINT_ERR_TIPS(Please initialize first);
         return {};
     }
 
     XAVCodecParameters_sptr_container_sptr c;
-    try {
-        CHECK_EXC(c = make_shared<XAVCodecParameters_sptr_container>());
-        for (int i {}; i < m_nb_streams ;++i) {
-            XAVCodecParameters_sptr item;
-            CHECK_EXC(item = new_XAVCodecParameters());
-            CHECK_EXC(item->from_AVFormatContext(m_streams[i]->codecpar));
-            (*c)[i] = std::move(item);
-        }
-        return c;
-    } catch (...) {
-        lock.unlock();
-        c.reset();
-        rethrow_exception(current_exception());
+    CHECK_EXC(c = make_shared<XAVCodecParameters_sptr_container>(),lock.unlock());
+    for (int i {}; i < m_nb_streams ;++i) {
+        XAVCodecParameters_sptr item;
+        CHECK_EXC(item = new_XAVCodecParameters(m_streams[i]->codecpar),lock.unlock(),c->clear());
+        //如果new过程出现意外,释放所有资源并抛出异常
+        (*c)[i] = std::move(item);
     }
+    return c;
 }
 
 bool XDemux::is_Audio(const XAVPacket_sptr &pkt) noexcept(true){
 
     if (!pkt){
-        cerr << __func__ << "XAVPacket_sptr is empty\n";
+        PRINT_ERR_TIPS(XAVPacket_sptr is empty);
         return {};
     }
 
     unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
-        cerr << __func__ << ": m_av_fmt_ctx is empty\n";
+        PRINT_ERR_TIPS(Please initialize first);
         return {};
     }
 
@@ -247,7 +236,7 @@ bool XDemux::Seek(const double &pos) noexcept(true)
 {
     unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
-        cerr << __func__ << ": m_av_fmt_ctx is nullptr\n";
+        PRINT_ERR_TIPS(Please initialize first);
         return {};
     }
 
@@ -260,7 +249,7 @@ bool XDemux::Seek(const double &pos) noexcept(true)
     }
 
     if (video_stream_index < 0){
-        cerr << __func__ << ": no video\n";
+        PRINT_ERR_TIPS(no video);
         return {};
     }
 
@@ -278,6 +267,7 @@ bool XDemux::Seek(const double &pos) noexcept(true)
 void XDemux::Clear() noexcept(true) {
     unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
+        PRINT_ERR_TIPS(Please initialize first);
         return;
     }
     avformat_flush(m_av_fmt_ctx);

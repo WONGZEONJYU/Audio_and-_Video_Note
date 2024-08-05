@@ -5,7 +5,6 @@
 #ifndef XPLAY2_XDEMUX_HPP
 #define XPLAY2_XDEMUX_HPP
 
-#include <string>
 #include <mutex>
 #include <atomic>
 #include <memory>
@@ -78,16 +77,15 @@ public:
 protected:
     std::recursive_mutex m_re_mux;
     AVFormatContext *m_av_fmt_ctx{};
-//    AVStream *m_audio_stream{},
-//            *m_video_stream{};
-//    int m_audio_stream_index{},
-//        m_video_stream_index{};
+
     AVStream **m_streams{};
     int64_t m_totalMS{};
-    int *m_stream_indices{};
-    int m_widget{},m_height{};
+    int *m_stream_indices{},
+        m_widget{},m_height{};
     uint32_t m_nb_streams{};
 
+//      AVStream *m_audio_stream{},*m_video_stream{};
+//      int m_audio_stream_index{},m_video_stream_index{};
 private:
     static std::atomic_uint64_t sm_init_times;
     static std::mutex sm_mux;

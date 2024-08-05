@@ -22,11 +22,12 @@ class XAVCodecParameters final : AVCodecParameters{
     void Move(AVCodecParameters*) noexcept(true);
 public:
     XAVCodecParameters();
-    explicit XAVCodecParameters(const AVCodecContext *);
-    XAVCodecParameters(const XAVCodecParameters &);
-    XAVCodecParameters(XAVCodecParameters &&) noexcept;
-    XAVCodecParameters& operator=(const XAVCodecParameters &);
-    XAVCodecParameters& operator=(XAVCodecParameters &&) noexcept;
+    explicit XAVCodecParameters(const AVCodecContext *) noexcept(false);
+    explicit XAVCodecParameters(const AVCodecParameters *) noexcept(false);
+    XAVCodecParameters(const XAVCodecParameters &) noexcept(false);
+    XAVCodecParameters(XAVCodecParameters &&) noexcept(true);
+    XAVCodecParameters& operator=(const XAVCodecParameters &) noexcept(false);
+    XAVCodecParameters& operator=(XAVCodecParameters &&) noexcept(true);
 
     void from_AVFormatContext(const AVCodecParameters *)  noexcept(false);
     void from_context(const AVCodecContext *)  noexcept(false);
@@ -52,9 +53,12 @@ public:
     [[nodiscard]] auto Sample_rate() const noexcept(true){
         return sample_rate;
     }
+
     ~XAVCodecParameters();
 };
 
 XAVCodecParameters_sptr new_XAVCodecParameters() noexcept(false);
+XAVCodecParameters_sptr new_XAVCodecParameters(const AVCodecContext *) noexcept(false);
+XAVCodecParameters_sptr new_XAVCodecParameters(const AVCodecParameters *) noexcept(false);
 
 #endif

@@ -67,7 +67,7 @@ namespace XHelper {
                 " , stream_index " << pkt.stream_index << "\n" ;
     }
 
-    void check_ff_func(const std::string &func,const std::string &file,
+    void check_ff_func(const string &func,const string &file,
                        const int &line,const int &err_code) noexcept(false) {
         if (err_code < 0){
             stringstream err_msg;
@@ -80,7 +80,7 @@ namespace XHelper {
         }
     }
 
-    void ff_err_out(const std::string &func,const std::string &file,
+    void ff_err_out(const string &func,const string &file,
                     const int &line,const int &err_code) noexcept(true){
         if (err_code < 0){
             stringstream err_msg;
@@ -95,41 +95,49 @@ namespace XHelper {
 #endif
 
 #ifdef HAVE_OPENGL
-    void checkOpenGLError(const std::string & stmt, const std::string & fname,const int &line) noexcept(true){
+    void checkOpenGLError(const string &stmt, const string &fname,const int &line) noexcept(true){
 
         const auto err{glGetError()};
         if(GL_NO_ERROR != err) {
-            cerr << "OpenGL error " << err << " at " << fname << ":" << line << " - for " << stmt;
+            cerr << "OpenGL error :" << err << " at " << fname << ":" << line << " - for " << stmt;
         }
     }
 #endif
 
-    std::string channel_layout_describe(const AVChannelLayout &ch) noexcept(true) {
+    string channel_layout_describe(const AVChannelLayout &ch) noexcept(true) {
         char describe[1024]{};
         av_channel_layout_describe(&ch,describe, size(describe));
         return describe;
     }
 
-    void check_nullptr(const std::string &func,const std::string &file,
+    void check_nullptr(const string &func,const string &file,
                        const int &line,const void *p) noexcept(false){
 
         if (!p){
             stringstream err_msg;
-            err_msg << "error:" << " at " << file << ":" << line <<
+            err_msg << "error: at " << file << " : " << line <<
                     " -for " << func << " return is nullptr\n";
             throw runtime_error(err_msg.str());
         }
     }
 
-    void check_EXC(const std::string &func,const std::string &file,
+    void check_EXC(const string &func,const string &file,
                    const int &line,const exception &e) noexcept(false){
         stringstream err_msg;
-        err_msg << "error:" << " at " << file << ":" << line <<
+        err_msg << "error: at " << file << " : " << line <<
                 " -for " << func << " wrong reason: " << e.what() << '\n';
         throw runtime_error(err_msg.str());
     }
 
     error_code make_error_code_helper(const int &errcode) noexcept(true) {
         return std::make_error_code(static_cast<std::errc>(errcode));
+    }
+
+    void print_err_tips(const string &func,const string &file,
+                        const int &line,const string &msg) noexcept(true){
+        stringstream err_msg;
+        err_msg << "error: at" << file << " : " << line <<
+                " -for " << func << " wrong reason: " << msg << '\n';
+        cerr << err_msg.str();
     }
 }

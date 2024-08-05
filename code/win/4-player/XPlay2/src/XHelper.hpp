@@ -41,6 +41,9 @@ namespace XHelper {
                    const int &line,const std::exception &e) noexcept(false);
 
     std::error_code make_error_code_helper(const int &errcode) noexcept(true);
+
+    void print_err_tips(const std::string &func,const std::string &file,
+                        const int &line,const std::string &msg) noexcept(true);
 }
 
 #ifdef HAVE_FFMPEG
@@ -73,6 +76,10 @@ namespace XHelper {
     try{x;}catch(const std::exception &e){ \
     __VA_ARGS__;\
     XHelper::check_EXC(#x,__FILE__,__LINE__,e);}\
+}while(false)
+
+#define PRINT_ERR_TIPS(msg) do{ \
+    XHelper::print_err_tips(__func__,__FILE__,__LINE__,#msg);\
 }while(false)
 
 #define GET_STR(args) #args
@@ -129,19 +136,5 @@ private:
     F2 m_f2;
     std::atomic_bool m_is_destroy{};
 };
-
-// 辅助宏，用于计数
-#define GET_MACRO(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,NAME,...) NAME
-#define VA_SIZE(...) GET_MACRO(__VA_ARGS__, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-
-#define VA_CALL(MACRO, ...) MACRO(VA_SIZE(__VA_ARGS__), __VA_ARGS__)
-
-// 定义两个变参宏，根据参数数量调用不同的实现
-#define MY_MACRO_IMPL_2(count, fixed, ...) XRAII r(fixed, __VA_ARGS__)
-#define MY_MACRO_IMPL_3(count, fixed, ...) XRAII r(fixed, __VA_ARGS__)
-
-// 选择适当的实现
-#define MY_ADVANCED_MACRO(...) VA_CALL(MY_MACRO_SELECT, __VA_ARGS__)
-#define MY_MACRO_SELECT(count, ...) MY_MACRO_IMPL_##count(__VA_ARGS__)
 
 #endif

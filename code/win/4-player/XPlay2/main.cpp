@@ -84,16 +84,13 @@ class TestThread : public QThread {
 
 public:
     void init(){
-        try {
-            x.Open("2_audio.mp4");
-            xVideoWidget->Init(x.widget(),x.height());
-            c = x.copy_ALLCodec_Parameters();
-            vd.Open(c->at(2));
-            ad.Open(c->at(0));
-            re.Open(c->at(0));
-        } catch (...) {
-            *eptr = std::current_exception();
-        }
+        x.Open("2_audio.mp4");
+        //x.Open("");
+        xVideoWidget->Init(x.widget(),x.height());
+        c = x.copy_ALLCodec_Parameters();
+        vd.Open(c->at(2));
+        ad.Open(c->at(0));
+        re.Open(c->at(0));
     }
 
     XDemux x;

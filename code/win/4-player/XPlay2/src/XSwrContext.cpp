@@ -5,7 +5,6 @@ extern "C"{
 
 #include "XSwrContext.hpp"
 
-
 void XSwrContext::Construct() noexcept(false) {
     CHECK_NULLPTR(m_swr_ctx = swr_alloc());
 }
@@ -35,14 +34,8 @@ void XSwrContext::Construct(const AVChannelLayout *out_ch_layout,
 SwrContext_sptr XSwrContext::create() noexcept(false) {
 
     SwrContext_sptr obj(new_XSwrContext());
-
-    try {
-        obj->Construct();
-        return obj;
-    } catch (const std::runtime_error &e) {
-        obj.reset();
-        throw std::runtime_error("XSwrContext construct failed: " + std::string(e.what()) + "\n");
-    }
+    CHECK_EXC(obj->Construct(),obj.reset());
+    return obj;
 }
 
 SwrContext_sptr XSwrContext::create(const AVChannelLayout *out_ch_layout,
@@ -55,20 +48,15 @@ SwrContext_sptr XSwrContext::create(const AVChannelLayout *out_ch_layout,
                                        void *log_ctx) noexcept(false) {
     SwrContext_sptr obj(new_XSwrContext());
 
-    try {
-        obj->Construct(out_ch_layout,
-                       out_sample_fmt,
-                       out_sample_rate,
-                       in_ch_layout,
-                       in_sample_fmt,
-                       in_sample_rate,
-                       log_offset,
-                       log_ctx);
-        return obj;
-    } catch (const std::runtime_error &e) {
-        obj.reset();
-        throw std::runtime_error("XSwrContext construct failed: " + std::string(e.what()) + "\n");
-    }
+    CHECK_EXC(obj->Construct(out_ch_layout,
+                   out_sample_fmt,
+                   out_sample_rate,
+                   in_ch_layout,
+                   in_sample_fmt,
+                   in_sample_rate,
+                   log_offset,
+                   log_ctx),obj.reset());
+    return obj;
 }
 
 void XSwrContext::init() const noexcept(false){
@@ -138,10 +126,9 @@ XSwrContext::~XSwrContext(){
     DeConstruct();
 }
 
-XSwrContext* XSwrContext::new_XSwrContext() noexcept(false)
-{
-    XSwrContext* obj{};
-    CHECK_EXC(obj = new XSwrContext);
+XSwrContext* XSwrContext::new_XSwrContext() noexcept(false){
+    XSwrContext *obj;
+    CHECK_EXC(obj = new XSwrContext());
     return obj;
 }
 

@@ -13,14 +13,12 @@
 class XSwrContext;
 class XAVCodecParameters;
 class XAVFrame;
-
-using SwrContext_sptr = std::shared_ptr<XSwrContext>;
-using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
-using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
-
 using resample_data_t = std::vector<uint8_t>;
 
 class XResample {
+    using SwrContext_sptr = std::shared_ptr<XSwrContext>;
+    using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
+    using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
 
 public:
     explicit XResample() = default;

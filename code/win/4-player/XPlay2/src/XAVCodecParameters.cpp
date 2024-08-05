@@ -42,55 +42,69 @@ void XAVCodecParameters::Move(AVCodecParameters *obj) noexcept(true) {
     Reset(src_);
 }
 
-XAVCodecParameters::XAVCodecParameters() : AVCodecParameters(){
+XAVCodecParameters::XAVCodecParameters()
+: AVCodecParameters(){
     Reset(this);
 }
 
-XAVCodecParameters::XAVCodecParameters(const AVCodecContext *src):XAVCodecParameters(){
+XAVCodecParameters::XAVCodecParameters(const AVCodecContext *src) noexcept(false)
+:XAVCodecParameters(){
     from_context(src);
 }
 
-XAVCodecParameters::XAVCodecParameters(const XAVCodecParameters &obj) : XAVCodecParameters() {
+XAVCodecParameters::XAVCodecParameters(const AVCodecParameters *src) noexcept(false)
+:XAVCodecParameters(){
+    from_AVFormatContext(src);
+}
+
+XAVCodecParameters::XAVCodecParameters(const XAVCodecParameters &obj) noexcept(false)
+:XAVCodecParameters() {
     from_AVFormatContext(std::addressof(obj));
 }
 
-XAVCodecParameters::XAVCodecParameters(XAVCodecParameters &&obj) noexcept : XAVCodecParameters(){
+XAVCodecParameters::XAVCodecParameters(XAVCodecParameters &&obj) noexcept(true)
+: XAVCodecParameters(){
     Move(std::addressof(obj));
 }
 
-XAVCodecParameters &XAVCodecParameters::operator=(const XAVCodecParameters &obj) {
+XAVCodecParameters &XAVCodecParameters::operator=(const XAVCodecParameters &obj) noexcept(false) {
 
-    if (this != std::addressof(obj)){
-        from_AVFormatContext(std::addressof(obj));
+    auto obj_{std::addressof(obj)};
+    if (this != obj_){
+        from_AVFormatContext(obj_);
     }
     return *this;
 }
 
-XAVCodecParameters& XAVCodecParameters::operator=(XAVCodecParameters &&obj) noexcept
-{
-    if (this != std::addressof(obj)){
-        Move(std::addressof(obj));
+XAVCodecParameters& XAVCodecParameters::operator=(XAVCodecParameters &&obj) noexcept(true) {
+
+    auto obj_{std::addressof(obj)};
+    if (this != obj_){
+        Move(obj_);
     }
     return *this;
 }
 
-void XAVCodecParameters::from_AVFormatContext(const AVCodecParameters *src)  noexcept(false) {
+void XAVCodecParameters::from_AVFormatContext(const AVCodecParameters *src) noexcept(false) {
     if (!src){
-        std::cerr << __func__ << " src is nullptr\n";
+        PRINT_ERR_TIPS(src is nullptr);
+        return;
     }
     FF_CHECK_ERR(avcodec_parameters_copy(this, src));
 }
 
 void XAVCodecParameters::from_context(const AVCodecContext *src)  noexcept(false) {
     if (!src){
-        std::cerr << __func__ << " src is nullptr\n";
+        PRINT_ERR_TIPS(src is nullptr);
+        return;
     }
     FF_CHECK_ERR(avcodec_parameters_from_context(this,src));
 }
 
 void XAVCodecParameters::to_context(AVCodecContext *dst) const noexcept(false) {
     if (!dst){
-        std::cerr << __func__ << " dst is nullptr\n";
+        PRINT_ERR_TIPS(dst is nullptr);
+        return;
     }
     FF_CHECK_ERR(avcodec_parameters_to_context(dst,this));
 }
@@ -107,5 +121,17 @@ XAVCodecParameters_sptr new_XAVCodecParameters() noexcept(false) {
 
     XAVCodecParameters_sptr obj;
     CHECK_EXC(obj = std::make_shared<XAVCodecParameters>());
+    return obj;
+}
+
+XAVCodecParameters_sptr new_XAVCodecParameters(const AVCodecContext *src) noexcept(false) {
+    XAVCodecParameters_sptr obj;
+    CHECK_EXC(obj = std::make_shared<XAVCodecParameters>(src));
+    return obj;
+}
+
+XAVCodecParameters_sptr new_XAVCodecParameters(const AVCodecParameters *src) noexcept(false){
+    XAVCodecParameters_sptr obj;
+    CHECK_EXC(obj = std::make_shared<XAVCodecParameters>(src));
     return obj;
 }

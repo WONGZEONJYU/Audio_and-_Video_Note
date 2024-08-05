@@ -3,7 +3,7 @@
 //
 
 #include "XAVFrame.hpp"
-#include <string>
+#include "XHelper.hpp"
 
 XAVFrame::XAVFrame() : AVFrame() {
     pts                   =
@@ -50,9 +50,7 @@ XAVFrame::~XAVFrame() {
 
 XAVFrame_sptr new_XAVFrame() noexcept(false)
 {
-    try {
-        return std::make_shared<XAVFrame>();
-    } catch (...) {
-        throw std::runtime_error(__func__ + std::string(" error!\n"));
-    }
+    XAVFrame_sptr obj;
+    CHECK_EXC(obj = std::make_shared<XAVFrame>());
+    return obj;
 }

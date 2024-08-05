@@ -21,7 +21,7 @@ XDecode::~XDecode() {
 void XDecode::Open(const XAVCodecParameters_sptr &parm) noexcept(false) {
 
     if (!parm){
-        cerr << "XAVCodecParameters_sptr is empty\n";
+        PRINT_ERR_TIPS(XAVCodecParameters_sptr is empty);
         return;
     }
 
@@ -42,7 +42,8 @@ void XDecode::Open(const XAVCodecParameters_sptr &parm) noexcept(false) {
     }catch (...) {
         lock.unlock();
         DeConstruct();
-        rethrow_exception(current_exception());
+        //rethrow_exception(current_exception());
+        throw;
     }
 }
 
@@ -58,6 +59,7 @@ void XDecode::Close() noexcept(false) {
 void XDecode::Clear() noexcept(false) {
     unique_lock lock(m_re_mux);
     if (!m_codec_ctx){
+        PRINT_ERR_TIPS(Please initialize first);
         return;
     }
     avcodec_flush_buffers(m_codec_ctx);
@@ -70,7 +72,7 @@ bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
     {
         unique_lock lock(m_re_mux);
         if (!m_codec_ctx){
-            cerr << __func__  << ": m_codec_ctx is empty\n";
+            PRINT_ERR_TIPS(Please initialize first);
             return b;
         }
         FF_ERR_OUT(ret = avcodec_send_packet(m_codec_ctx,pkt.get()));
@@ -91,7 +93,7 @@ XAVFrame_sptr XDecode::Receive() noexcept(false) {
 
     unique_lock lock(m_re_mux);
     if (!m_codec_ctx){
-        cerr << __func__  << "m_codec_ctx is empty\n";
+        PRINT_ERR_TIPS(Please initialize first);
         return {};
     }
 
