@@ -2,7 +2,6 @@
 #ifndef SWRCONTEXT_T_H
 #define SWRCONTEXT_T_H
 
-#include <string>
 #include <memory>
 #include "XHelper.hpp"
 
@@ -38,9 +37,8 @@ class XSwrContext final{
                              const int64_t &val) const noexcept(true);
 
 public:
-    using SwrContext_sp_t = std::shared_ptr<XSwrContext>;
-    static SwrContext_sp_t create() noexcept(false);
-    static SwrContext_sp_t create(const AVChannelLayout *out_ch_layout,
+    static SwrContext_sptr create() noexcept(false);
+    static SwrContext_sptr create(const AVChannelLayout *out_ch_layout,
                                   const AVSampleFormat &out_sample_fmt,
                                   const int &out_sample_rate,
                                   const AVChannelLayout *in_ch_layout,

@@ -34,11 +34,12 @@ void XAVCodecParameters::Reset(AVCodecParameters *obj) noexcept(true) {
 }
 
 void XAVCodecParameters::Move(AVCodecParameters *obj) noexcept(true) {
-    Reset(this);
     auto src_{obj};
     auto dst_{static_cast<decltype(src_)>(this)};
+    Reset(dst_);//先释放自身的数据,再进行移动
     *dst_ = *src_;
     std::fill_n(reinterpret_cast<uint8_t*>(src_), sizeof(AVCodecParameters),0);
+    //std::fill_n此处无法省掉,避免成员extradata,ch_layout,coded_side_data成员被直接释放掉
     Reset(src_);
 }
 

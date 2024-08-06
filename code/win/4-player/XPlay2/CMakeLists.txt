@@ -71,6 +71,10 @@ set(SRC_CODE
         src/XDecode.hpp
         src/XResample.cpp
         src/XResample.hpp
+        src/XAudioPlay.cpp
+        src/XAudioPlay.hpp
+        src/QXAudioPlay.cpp
+        src/QXAudioPlay.hpp
 )
 
 set(QT__LIB
@@ -80,6 +84,7 @@ set(QT__LIB
     OpenGL
     OpenGLWidgets
     Multimedia
+    Network
 )
 
 find_package(OpenGL REQUIRED)
@@ -103,6 +108,7 @@ target_link_libraries(XPlay2
         Qt6::OpenGL
         Qt6::OpenGLWidgets
         Qt6::Multimedia
+        Qt6::Network
         OpenGL::GL
         ${FFMPEG_LIBS}
         ${Vulkan_LIBRARY}

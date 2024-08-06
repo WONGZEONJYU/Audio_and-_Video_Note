@@ -19,13 +19,17 @@ class XAVCodecParameters;
 
 using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
 using XAVCodecParameters_sptr_container = typename std::unordered_map<int,XAVCodecParameters_sptr>;
-using XAVCodecParameters_sptr_container_sptr = typename std::shared_ptr<XAVCodecParameters_sptr_container>;
+using XVideo_CodecParameters = typename std::shared_ptr<XAVCodecParameters_sptr_container>;
+using XAudio_CodecParameters = typename std::shared_ptr<XAVCodecParameters_sptr_container>;
 
 class XDemux {
 
     void show_audio_info() const noexcept(true);
     void show_video_info()  noexcept(true);
     void Deconstruct() noexcept(true);
+
+    using CodecParameters = typename std::shared_ptr<XAVCodecParameters_sptr_container>;
+    CodecParameters copy_Parameters_helper(const int &) noexcept(false);
 
 public:
     explicit XDemux();
@@ -41,10 +45,16 @@ public:
     virtual std::shared_ptr<XAVPacket> Read() noexcept(false);
 
     /**
-     * 拷贝解码参数,无需手动释放,有分配异常
-     * @return
+     * 拷贝视频解码参数集,无需手动释放,有分配异常,没有则返回空
+     * @return Video_CodecParameters
      */
-    virtual XAVCodecParameters_sptr_container_sptr copy_ALLCodec_Parameters() noexcept(false);
+    virtual XVideo_CodecParameters copy_VCodec_Parameters() noexcept(false);
+
+    /**
+     * 拷贝音频解码参数集,无需手动释放,有分配异常,没有则返回空
+     * @return Audio_CodecParameters
+     */
+    virtual XAudio_CodecParameters copy_ACodec_Parameters() noexcept(false);
 
     /**
      * 判断是否为音频
@@ -71,17 +81,13 @@ public:
         return m_totalMS;
     }
 
-    [[nodiscard]] auto widget() const {return m_widget;}
-    [[nodiscard]] auto height() const {return m_height;}
-
 protected:
     std::recursive_mutex m_re_mux;
     AVFormatContext *m_av_fmt_ctx{};
 
     AVStream **m_streams{};
     int64_t m_totalMS{};
-    int *m_stream_indices{},
-        m_widget{},m_height{};
+    int *m_stream_indices{};
     uint32_t m_nb_streams{};
 
 //      AVStream *m_audio_stream{},*m_video_stream{};

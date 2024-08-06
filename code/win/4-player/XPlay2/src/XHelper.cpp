@@ -112,7 +112,6 @@ namespace XHelper {
 
     void check_nullptr(const string &func,const string &file,
                        const int &line,const void *p) noexcept(false){
-
         if (!p){
             stringstream err_msg;
             err_msg << "error: at " << file << " : " << line <<

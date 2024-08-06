@@ -10,11 +10,18 @@ extern "C"{
 }
 #include <memory>
 
-struct XAVPacket final : public AVPacket{
-
+class XAVPacket final : public AVPacket{
+public:
     XAVPacket();
+    /**
+     * 引用计数+1
+     */
     XAVPacket(const XAVPacket &);
     XAVPacket(XAVPacket &&) noexcept;
+    /**
+     * 引用计数+1
+     * @return XAVPacket&
+     */
     XAVPacket& operator=(const XAVPacket &);
     XAVPacket& operator=(XAVPacket &&) noexcept;
     ~XAVPacket();

@@ -54,6 +54,14 @@ public:
         return sample_rate;
     }
 
+    [[nodiscard]] auto Width() const noexcept(true){
+        return width;
+    }
+
+    [[nodiscard]] auto Height() const noexcept(true){
+        return height;
+    }
+
     ~XAVCodecParameters();
 };
 

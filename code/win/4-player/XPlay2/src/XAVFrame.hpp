@@ -10,13 +10,21 @@ extern "C"{
 }
 #include <memory>
 
-struct XAVFrame final : public AVFrame {
+class XAVFrame final : public AVFrame {
 
+public:
     XAVFrame();
+    /**
+     * 拷贝并非真拷贝,而是引用计数+1
+     */
     XAVFrame(const XAVFrame &);
-    XAVFrame(XAVFrame &&) noexcept;
+    XAVFrame(XAVFrame &&) noexcept(true);
+    /**
+     * 引用计数+1
+     * @return XAVFrame&
+     */
     XAVFrame& operator=(const XAVFrame &);
-    XAVFrame& operator=(XAVFrame && ) noexcept;
+    XAVFrame& operator=(XAVFrame && ) noexcept(true);
     ~XAVFrame();
 };
 

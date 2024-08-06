@@ -10,11 +10,7 @@ extern "C" {
 #include "XHelper.hpp"
 
 XAVPacket::XAVPacket() : AVPacket() {
-
-    pts             = AV_NOPTS_VALUE;
-    dts             = AV_NOPTS_VALUE;
-    pos             = -1;
-    time_base       = {0,1};
+    av_packet_unref(this);
 }
 
 XAVPacket::XAVPacket(const XAVPacket &obj) : XAVPacket(){
@@ -26,15 +22,19 @@ XAVPacket::XAVPacket(XAVPacket &&obj) noexcept : XAVPacket() {
 }
 
 XAVPacket &XAVPacket::operator=(const XAVPacket &obj) {
-    if (this != std::addressof(obj)){
-        av_packet_ref(this,std::addressof(obj));
+    auto obj_{std::addressof(obj)};
+    if (this != obj_){
+        av_packet_unref(this);//先释放自身,再调用av_packet_ref
+        av_packet_ref(this,obj_);
     }
     return *this;
 }
 
 XAVPacket &XAVPacket::operator=(XAVPacket &&obj) noexcept {
-    if (this != std::addressof(obj)){
-        av_packet_move_ref(this,std::addressof(obj));
+    auto obj_{std::addressof(obj)};
+    if (this != obj_){
+        av_packet_unref(this);//先释放自身,再调用av_packet_move_ref
+        av_packet_move_ref(this,obj_);
     }
     return *this;
 }
@@ -43,8 +43,7 @@ XAVPacket::~XAVPacket() {
     av_packet_unref(this);
 }
 
-XAVPacket_sptr new_XAVPacket() noexcept(false)
-{
+XAVPacket_sptr new_XAVPacket() noexcept(false) {
     XAVPacket_sptr obj;
     CHECK_EXC(obj = std::make_shared<XAVPacket>());
     return obj;

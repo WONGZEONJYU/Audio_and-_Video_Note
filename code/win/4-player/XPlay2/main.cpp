@@ -14,6 +14,7 @@ extern "C" {
 #include "XDecode.hpp"
 #include "ui_XPlay2Widget.h"
 #include "XResample.hpp"
+#include "QXAudioPlay.hpp"
 
 class TestThread : public QThread {
 
@@ -23,22 +24,19 @@ class TestThread : public QThread {
 
             while (true) {
                 p = x.Read();
+
                 if (!p){ //媒体文件读取为空
                     qDebug() << "read finish\n";
                     ad.Send({});
                     vd.Send({});
 
                     while (true){
-
-                        af = ad.Receive();
-                        vf = vd.Receive();
-
-                        if (af){
+                        if ((af = ad.Receive())){
                             //qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
                             qDebug() << "ReSample_nb: " << re.Resample(af,resampleData) << " capacity: " << resampleData.capacity();
                         }
 
-                        if (vf){
+                        if ((vf = vd.Receive())){
                             xVideoWidget->Repaint(vf);
                             //qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(vf->format));
                             QThread::msleep(40);
@@ -53,27 +51,16 @@ class TestThread : public QThread {
 
                 if (x.is_Audio(p)){
                     ad.Send(p);
-                    while (true){
-                        af = ad.Receive();
-                        if (af){
-                            //qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
-                            qDebug() << "ReSample_nb: " << re.Resample(af,resampleData) << " capacity: " << resampleData.capacity();
-                        } else{
-                            break;
-                        }
+                    while ((af = ad.Receive())){
+                        qDebug() << "ReSample_nb: " << re.Resample(af,resampleData) << " capacity: " << resampleData.capacity();
                     }
 
                 } else{
                     vd.Send(p);
-                    while (true){
-                        vf = vd.Receive();
-                        if (vf) {
-                            xVideoWidget->Repaint(vf);
-                            qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(vf->format));
-                            QThread::msleep(40);
-                        } else{
-                            break;
-                        }
+                    while ((vf = vd.Receive())){
+                        xVideoWidget->Repaint(vf);
+                        qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(vf->format));
+                        QThread::msleep(30);
                     }
                 }
             }
@@ -86,16 +73,26 @@ public:
     void init(){
         x.Open("2_audio.mp4");
         //x.Open("");
-        xVideoWidget->Init(x.widget(),x.height());
-        c = x.copy_ALLCodec_Parameters();
-        vd.Open(c->at(2));
-        ad.Open(c->at(0));
-        re.Open(c->at(0));
+        xac = x.copy_ACodec_Parameters();
+        xvc = x.copy_VCodec_Parameters();
+
+        if (xac){
+            ad.Open(xac->at(0));
+            re.Open(xac->at(0));
+            QXAudioPlay::handle().set_Audio_parameter(xac->at(0)->Sample_rate(),xac->at(0)->Ch_layout()->nb_channels);
+            QXAudioPlay::handle().Open();
+        }
+
+        if (xvc){
+            xVideoWidget->Init(xvc->at(2)->Width(),xvc->at(2)->Height());
+            vd.Open(xvc->at(2));
+        }
     }
 
     XDemux x;
     XDecode vd,ad;
-    XAVCodecParameters_sptr_container_sptr c;
+    XAudio_CodecParameters xac;
+    XVideo_CodecParameters xvc;
     XAVPacket_sptr p;
     XAVFrame_sptr af,vf;
     XResample re;

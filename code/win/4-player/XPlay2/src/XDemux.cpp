@@ -147,8 +147,8 @@ void XDemux::show_video_info()  noexcept(true) {
                  "frame_rate: " << codec->framerate.num << "\n" <<
                  "duration: " << (isnan(duration) ? "unknown" :
                                   to_string(hour) + ":" + to_string(minute) + ":" + to_string(Second)) << "\n" <<
-                 "width: " << (m_widget = codec->width) << "\n" <<
-                 "height: " << (m_height = codec->height) << "\n" <<
+                 "width: " << codec->width << "\n" <<
+                 "height: " << codec->height << "\n" <<
                  "bit_rate: " << codec->bit_rate << "\n";
             b = true;
         }
@@ -192,26 +192,43 @@ void XDemux::Deconstruct() noexcept(true) {
     m_stream_indices = nullptr;
     avformat_close_input(&m_av_fmt_ctx);
     m_streams = nullptr;
-    m_totalMS = m_nb_streams = m_widget = m_height = 0;
+    m_totalMS = m_nb_streams = 0;
 }
 
-XAVCodecParameters_sptr_container_sptr XDemux::copy_ALLCodec_Parameters() noexcept(false) {
-
+XDemux::CodecParameters XDemux::copy_Parameters_helper(const int &MediaType) noexcept(false)
+{
     unique_lock lock(m_re_mux);
     if (!m_av_fmt_ctx){
         PRINT_ERR_TIPS(Please initialize first);
         return {};
     }
 
-    XAVCodecParameters_sptr_container_sptr c;
+    CodecParameters c;
     CHECK_EXC(c = make_shared<XAVCodecParameters_sptr_container>(),lock.unlock());
+    bool b{};
     for (int i {}; i < m_nb_streams ;++i) {
-        XAVCodecParameters_sptr item;
-        CHECK_EXC(item = new_XAVCodecParameters(m_streams[i]->codecpar),lock.unlock(),c->clear());
-        //如果new过程出现意外,释放所有资源并抛出异常
-        (*c)[i] = std::move(item);
+        const auto codecpar{m_streams[i]->codecpar};
+        if (MediaType == codecpar->codec_type){
+            XAVCodecParameters_sptr item;
+            CHECK_EXC(item = new_XAVCodecParameters(codecpar),lock.unlock(),c->clear());
+            //如果new过程出现意外,释放所有资源并抛出异常
+            (*c)[i] = std::move(item);
+            b = true;
+        }
+    }
+
+    if (!b){
+        c.reset();
     }
     return c;
+}
+
+XVideo_CodecParameters XDemux::copy_VCodec_Parameters() noexcept(false) {
+    return copy_Parameters_helper(AVMEDIA_TYPE_VIDEO);
+}
+
+XAudio_CodecParameters XDemux::copy_ACodec_Parameters() noexcept(false) {
+    return copy_Parameters_helper(AVMEDIA_TYPE_AUDIO);
 }
 
 bool XDemux::is_Audio(const XAVPacket_sptr &pkt) noexcept(true){
@@ -277,3 +294,5 @@ void XDemux::Close() noexcept(true) {
     unique_lock lock(m_re_mux);
     Deconstruct();
 }
+
+

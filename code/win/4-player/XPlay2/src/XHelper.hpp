@@ -5,6 +5,7 @@
 #include <string>
 #include <atomic>
 #include <system_error>
+#include <type_traits>
 
 #ifdef HAVE_FFMPEG
 struct AVFormatContext;
@@ -67,9 +68,15 @@ namespace XHelper {
     } while (false)
 #endif
 
-#define CHECK_NULLPTR(x) do{ \
+#define CHECK_NULLPTR(x,...) do{ \
     const auto _p_ {x};\
+    static_assert(std::is_pointer_v<std::remove_cv_t<decltype(_p_)>>,#x);\
+    try{\
         XHelper::check_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_));\
+    }catch(...){\
+        __VA_ARGS__;\
+        throw;\
+    }\
 }while(false)
 
 #define CHECK_EXC(x,...)do{ \
