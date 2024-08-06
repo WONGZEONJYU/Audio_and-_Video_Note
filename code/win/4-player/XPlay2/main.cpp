@@ -52,27 +52,34 @@ class TestThread : public QThread {
                 }
 
                 if (x.is_Audio(p)){
+                    if (p->stream_index == 1){
+                        continue; //多音轨有问题
+                    }
                     ad.Send(p);
-                    const auto buffersize{QXAudioPlay::handle()->BufferSize()};
-                    while (true){
+                    //while (true){
 
-                        const auto freesize {QXAudioPlay::handle()->FreeSize()};
-                        if (freesize < buffersize){
+                    af = ad.Receive();
+                    if (af){
+                        const auto relen {re.Resample(af,resampleData)};
+                        qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
+
+                        while (relen > 0){
+                            if (QXAudioPlay::handle()->FreeSize() >= relen){
+                                QXAudioPlay::handle()->Write(resampleData.data(),relen);
+                                break;
+                            }
                             QThread::msleep(1);
-                            continue;
-                        }
-
-                        if ((af = ad.Receive())){
-                            const auto relen {re.Resample(af,resampleData)};
-                            qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
-                            QXAudioPlay::handle()->Write(resampleData.data(),relen);
-                            //QThread::msleep(1);
-                        }else{
-                            break;
                         }
                     }
+                    //}
                 } else{
-//                    vd.Send(p);
+                    vd.Send(p);
+                    vf = vd.Receive();
+                    if (vf){
+                        xVideoWidget->Repaint(vf);
+                        //QThread::msleep(30);
+                    }
+
 //                    while ((vf = vd.Receive())){
 //                        xVideoWidget->Repaint(vf);
 //                        //QThread::msleep(30);
@@ -94,7 +101,8 @@ public:
         if (xac){
             ad.Open(xac->at(0));
             re.Open(xac->at(0));
-            QXAudioPlay::handle()->set_Audio_parameter(xac->at(0)->Sample_rate(),xac->at(0)->Ch_layout()->nb_channels);
+            //QXAudioPlay::handle()->set_Audio_parameter(xac->at(0)->Sample_rate(),xac->at(0)->Ch_layout()->nb_channels);
+            //QXAudioPlay::handle()->set_Audio_parameter(44100,xac->at(1)->Ch_layout()->nb_channels);
             QXAudioPlay::handle()->Open();
         }
 
