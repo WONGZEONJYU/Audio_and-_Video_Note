@@ -21,6 +21,7 @@ class QXAudioPlay final : public XAudioPlay {
     void Close() noexcept(true) override;
     void Write(const uint8_t *,const int64_t &) noexcept(false) override;
     [[nodiscard]] uint64_t FreeSize() const noexcept(false) override;
+    uint64_t BufferSize() const noexcept(true) override;
 
 public:
     static XAudioPlay* handle() ;

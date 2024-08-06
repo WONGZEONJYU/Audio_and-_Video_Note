@@ -13,6 +13,7 @@ public:
     virtual void Close() = 0;
     virtual void Write(const unsigned char *,const long long &) = 0;
     [[nodiscard]] virtual unsigned long long FreeSize() const = 0;
+    virtual unsigned long long BufferSize() const = 0;
     /**
      * SampleFormat 需要根据库去决定,这里使用qt库,QAudioFormat::Int16的值是2
      * @param SampleRate

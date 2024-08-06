@@ -81,3 +81,12 @@ uint64_t QXAudioPlay::FreeSize() const noexcept(false) {
     }
     return m_output->bytesFree();
 }
+
+uint64_t QXAudioPlay::BufferSize() const noexcept(true) {
+    QMutexLocker locker(const_cast<decltype(m_re_mux)*>(std::addressof(m_re_mux)));
+    if (!m_output){
+        PRINT_ERR_TIPS(Please turn on the device first);
+        return 0;
+    }
+    return m_output->bufferSize();
+}

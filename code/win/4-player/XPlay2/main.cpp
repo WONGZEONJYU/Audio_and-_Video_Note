@@ -25,6 +25,7 @@ class TestThread : public QThread {
                 p = x.Read();
                 if (!p){ //媒体文件读取为空
                     qDebug() << "read finish\n";
+                    break;
                     ad.Send({});
                     vd.Send({});
 
@@ -32,16 +33,9 @@ class TestThread : public QThread {
                         if ((af = ad.Receive())) {
                             const auto relen {re.Resample(af,resampleData)};
                             //qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
-//                            while (relen > 0) {
-//                                if (QXAudioPlay::handle()->FreeSize() >= relen) {
-//                                    QXAudioPlay::handle()->Write(resampleData.data(),relen);
-//                                    break;
-//                                }
-//                                QThread::usleep(1000);
-//                            }
-                            while (QXAudioPlay::handle()->FreeSize() >= relen) {
+                            if (QXAudioPlay::handle()->FreeSize() >= relen){
                                 QXAudioPlay::handle()->Write(resampleData.data(),relen);
-                                QThread::usleep(1000);
+                                QThread::msleep(1);
                             }
                         }
 
@@ -59,28 +53,30 @@ class TestThread : public QThread {
 
                 if (x.is_Audio(p)){
                     ad.Send(p);
-                    while ((af = ad.Receive())){
-                        const auto relen {re.Resample(af,resampleData)};
-                        //qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
-//                        while (relen > 0){
-//                            if (QXAudioPlay::handle()->FreeSize() >= relen){
-//                                QXAudioPlay::handle()->Write(resampleData.data(),relen);
-//                                break;
-//                            }
-//                            QThread::usleep(1000);
-//                        }
+                    const auto buffersize{QXAudioPlay::handle()->BufferSize()};
+                    while (true){
 
-                        while (QXAudioPlay::handle()->FreeSize() >= relen) {
+                        const auto freesize {QXAudioPlay::handle()->FreeSize()};
+                        if (freesize < buffersize){
+                            QThread::msleep(1);
+                            continue;
+                        }
+
+                        if ((af = ad.Receive())){
+                            const auto relen {re.Resample(af,resampleData)};
+                            qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
                             QXAudioPlay::handle()->Write(resampleData.data(),relen);
-                            QThread::usleep(1000);
+                            //QThread::msleep(1);
+                        }else{
+                            break;
                         }
                     }
                 } else{
-                    vd.Send(p);
-                    while ((vf = vd.Receive())){
-                        xVideoWidget->Repaint(vf);
-                        QThread::msleep(30);
-                    }
+//                    vd.Send(p);
+//                    while ((vf = vd.Receive())){
+//                        xVideoWidget->Repaint(vf);
+//                        //QThread::msleep(30);
+//                    }
                 }
             }
         } catch (...) {
