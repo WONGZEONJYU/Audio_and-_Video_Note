@@ -13,18 +13,17 @@
 class QAudioSink;
 class QIODevice;
 
-class QXAudioPlay final : public XAudioPlay{
+class QXAudioPlay final : public XAudioPlay {
 
     QXAudioPlay() = default;
     void Deconstruct() noexcept(true);
-
-public:
     void Open() noexcept(false) override ;
     void Close() noexcept(true) override;
     void Write(const uint8_t *,const int64_t &) noexcept(false) override;
     [[nodiscard]] uint64_t FreeSize() const noexcept(false) override;
 
-    static QXAudioPlay &handle() ;
+public:
+    static XAudioPlay* handle() ;
 
 private:
     QRecursiveMutex m_re_mux;

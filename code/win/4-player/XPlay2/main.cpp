@@ -21,25 +21,33 @@ class TestThread : public QThread {
     void run() override{
 
         try {
-
             while (true) {
                 p = x.Read();
-
                 if (!p){ //媒体文件读取为空
                     qDebug() << "read finish\n";
                     ad.Send({});
                     vd.Send({});
 
                     while (true){
-                        if ((af = ad.Receive())){
-                            //qDebug() << av_get_sample_fmt_name(static_cast<AVSampleFormat>(af->format));
-                            qDebug() << "ReSample_nb: " << re.Resample(af,resampleData) << " capacity: " << resampleData.capacity();
+                        if ((af = ad.Receive())) {
+                            const auto relen {re.Resample(af,resampleData)};
+                            //qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
+//                            while (relen > 0) {
+//                                if (QXAudioPlay::handle()->FreeSize() >= relen) {
+//                                    QXAudioPlay::handle()->Write(resampleData.data(),relen);
+//                                    break;
+//                                }
+//                                QThread::usleep(1000);
+//                            }
+                            while (QXAudioPlay::handle()->FreeSize() >= relen) {
+                                QXAudioPlay::handle()->Write(resampleData.data(),relen);
+                                QThread::usleep(1000);
+                            }
                         }
 
-                        if ((vf = vd.Receive())){
+                        if ((vf = vd.Receive())) {
                             xVideoWidget->Repaint(vf);
-                            //qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(vf->format));
-                            QThread::msleep(40);
+                            QThread::msleep(30);
                         }
 
                         if (!af && !vf){
@@ -52,14 +60,25 @@ class TestThread : public QThread {
                 if (x.is_Audio(p)){
                     ad.Send(p);
                     while ((af = ad.Receive())){
-                        qDebug() << "ReSample_nb: " << re.Resample(af,resampleData) << " capacity: " << resampleData.capacity();
-                    }
+                        const auto relen {re.Resample(af,resampleData)};
+                        //qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
+//                        while (relen > 0){
+//                            if (QXAudioPlay::handle()->FreeSize() >= relen){
+//                                QXAudioPlay::handle()->Write(resampleData.data(),relen);
+//                                break;
+//                            }
+//                            QThread::usleep(1000);
+//                        }
 
+                        while (QXAudioPlay::handle()->FreeSize() >= relen) {
+                            QXAudioPlay::handle()->Write(resampleData.data(),relen);
+                            QThread::usleep(1000);
+                        }
+                    }
                 } else{
                     vd.Send(p);
                     while ((vf = vd.Receive())){
                         xVideoWidget->Repaint(vf);
-                        qDebug() << av_get_pix_fmt_name(static_cast<AVPixelFormat>(vf->format));
                         QThread::msleep(30);
                     }
                 }
@@ -79,8 +98,8 @@ public:
         if (xac){
             ad.Open(xac->at(0));
             re.Open(xac->at(0));
-            QXAudioPlay::handle().set_Audio_parameter(xac->at(0)->Sample_rate(),xac->at(0)->Ch_layout()->nb_channels);
-            QXAudioPlay::handle().Open();
+            QXAudioPlay::handle()->set_Audio_parameter(xac->at(0)->Sample_rate(),xac->at(0)->Ch_layout()->nb_channels);
+            QXAudioPlay::handle()->Open();
         }
 
         if (xvc){

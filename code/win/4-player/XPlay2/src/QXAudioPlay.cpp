@@ -9,7 +9,7 @@
 
 void QXAudioPlay::Open() {
     Close();
-    const auto device {QMediaDevices::defaultAudioOutput()};
+    auto device {QMediaDevices::defaultAudioOutput()};
     auto fmt {device.preferredFormat()};
 
     fmt.setSampleRate(m_SampleRate);
@@ -33,9 +33,9 @@ QXAudioPlay::~QXAudioPlay() {
     Deconstruct();
 }
 
-QXAudioPlay &QXAudioPlay::handle() {
+XAudioPlay *QXAudioPlay::handle() {
     static QXAudioPlay qx;
-    return qx;
+    return std::addressof(qx);
 }
 
 void QXAudioPlay::Deconstruct() noexcept(true) {
@@ -59,16 +59,17 @@ void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) noexcept(
     }
 
     QMutexLocker locker(&m_re_mux);
-    if (!m_output || !m_IO){
+    if (!m_output || !m_IO) {
         PRINT_ERR_TIPS(Please turn on the device first);
         return;
     }
 
     const auto ret{m_IO->write(reinterpret_cast<const char *>(data), data_size)};
-    if (data_size != ret){
+
+    if (ret < 0){
+        CHECK_EXC(throw std::runtime_error(m_IO->errorString().toStdString()),locker.unlock());
+    }else if (data_size != ret) {
         PRINT_ERR_TIPS(data_size != ret);
-    }else if (ret < 0){
-        throw std::runtime_error(m_IO->errorString().toStdString());
     } else{}
 }
 

@@ -20,8 +20,8 @@ public:
      * @param SampleFormat
      */
     void set_Audio_parameter(const int &SampleRate,
-                                     const int &Channels,
-                                     const int &SampleFormat = 2) noexcept(true) ;
+                             const int &Channels,
+                             const int &SampleFormat = 2) noexcept(true) ;
 protected:
     int m_SampleRate{44100},
     /**
