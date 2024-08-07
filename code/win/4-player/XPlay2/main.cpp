@@ -23,9 +23,9 @@ class TestThread : public QThread {
         try {
             while (true) {
                 p = x.Read();
+
                 if (!p){ //媒体文件读取为空
                     qDebug() << "read finish\n";
-                    break;
                     ad.Send({});
                     vd.Send({});
 
@@ -41,49 +41,40 @@ class TestThread : public QThread {
 
                         if ((vf = vd.Receive())) {
                             xVideoWidget->Repaint(vf);
-                            QThread::msleep(30);
+                            //QThread::msleep(30);
                         }
 
                         if (!af && !vf){
                             break;
                         }
                     }
-                    break;
                 }
 
-                if (x.is_Audio(p)){
-                    if (p->stream_index == 1){
-                        continue; //多音轨有问题
-                    }
+                if (x.Present_Audio_Index() == p->stream_index){
                     ad.Send(p);
-                    //while (true){
+                    while (true){
+                        af = ad.Receive();
+                        if (af){
+                            const auto relen {re.Resample(af,resampleData)};
+                            qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
 
-                    af = ad.Receive();
-                    if (af){
-                        const auto relen {re.Resample(af,resampleData)};
-                        qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
-
-                        while (relen > 0){
-                            if (QXAudioPlay::handle()->FreeSize() >= relen){
-                                QXAudioPlay::handle()->Write(resampleData.data(),relen);
-                                break;
+                            while (relen > 0){
+                                if (QXAudioPlay::handle()->FreeSize() >= relen){
+                                    QXAudioPlay::handle()->Write(resampleData.data(),relen);
+                                    break;
+                                }
+                                QThread::msleep(1);
                             }
-                            QThread::msleep(1);
+                        } else{
+                            break;
                         }
                     }
-                    //}
-                } else{
+                } else if(x.Present_Video_Index() == p->stream_index){
                     vd.Send(p);
-                    vf = vd.Receive();
-                    if (vf){
+                    while ((vf = vd.Receive())){
                         xVideoWidget->Repaint(vf);
                         //QThread::msleep(30);
                     }
-
-//                    while ((vf = vd.Receive())){
-//                        xVideoWidget->Repaint(vf);
-//                        //QThread::msleep(30);
-//                    }
                 }
             }
         } catch (...) {
@@ -94,28 +85,27 @@ class TestThread : public QThread {
 public:
     void init(){
         x.Open("2_audio.mp4");
-        //x.Open("");
-        xac = x.copy_ACodec_Parameters();
-        xvc = x.copy_VCodec_Parameters();
+        xac = x.Copy_Present_AudioCodecParam();
+        xvc = x.Copy_Present_VideoCodecParam();
 
         if (xac){
-            ad.Open(xac->at(0));
-            re.Open(xac->at(0));
-            //QXAudioPlay::handle()->set_Audio_parameter(xac->at(0)->Sample_rate(),xac->at(0)->Ch_layout()->nb_channels);
-            //QXAudioPlay::handle()->set_Audio_parameter(44100,xac->at(1)->Ch_layout()->nb_channels);
+            ad.Open(xac);
+            re.Open(xac);
+            QXAudioPlay::handle()->set_Audio_parameter(xac->Sample_rate(),xac->Ch_layout()->nb_channels);
             QXAudioPlay::handle()->Open();
         }
 
         if (xvc){
-            xVideoWidget->Init(xvc->at(2)->Width(),xvc->at(2)->Height());
-            vd.Open(xvc->at(2));
+            xVideoWidget->Init(xvc->Width(),xvc->Height());
+            vd.Open(xvc);
         }
     }
 
     XDemux x;
     XDecode vd,ad;
-    XAudio_CodecParameters xac;
-    XVideo_CodecParameters xvc;
+    XAVCodecParameters_sptr xac;
+    XAVCodecParameters_sptr xvc;
+
     XAVPacket_sptr p;
     XAVFrame_sptr af,vf;
     XResample re;

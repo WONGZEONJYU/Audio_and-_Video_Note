@@ -9,7 +9,6 @@
 #include <atomic>
 #include <memory>
 #include <vector>
-#include <unordered_map>
 #include "XHelper.hpp"
 
 struct AVFormatContext;
@@ -18,18 +17,12 @@ struct XAVPacket;
 class XAVCodecParameters;
 
 using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
-using XAVCodecParameters_sptr_container = typename std::unordered_map<int,XAVCodecParameters_sptr>;
-using XVideo_CodecParameters = typename std::shared_ptr<XAVCodecParameters_sptr_container>;
-using XAudio_CodecParameters = typename std::shared_ptr<XAVCodecParameters_sptr_container>;
 
 class XDemux {
 
     void show_audio_info() const noexcept(true);
     void show_video_info()  noexcept(true);
-    void Deconstruct() noexcept(true);
-
-    using CodecParameters = typename std::shared_ptr<XAVCodecParameters_sptr_container>;
-    CodecParameters copy_Parameters_helper(const int &) noexcept(false);
+    void DeConstruct() noexcept(true);
 
 public:
     explicit XDemux();
@@ -48,13 +41,13 @@ public:
      * 拷贝视频解码参数集,无需手动释放,有分配异常,没有则返回空
      * @return Video_CodecParameters
      */
-    virtual XVideo_CodecParameters copy_VCodec_Parameters() noexcept(false);
+    virtual XAVCodecParameters_sptr Copy_Present_VideoCodecParam() noexcept(false);
 
     /**
      * 拷贝音频解码参数集,无需手动释放,有分配异常,没有则返回空
      * @return Audio_CodecParameters
      */
-    virtual XAudio_CodecParameters copy_ACodec_Parameters() noexcept(false);
+    virtual XAVCodecParameters_sptr Copy_Present_AudioCodecParam() noexcept(false);
 
     /**
      * 判断是否为音频
@@ -77,21 +70,30 @@ public:
      */
     virtual void Close() noexcept(true);
 
-    [[nodiscard]] auto totalMS() const noexcept(true){
+    [[nodiscard]] virtual int Present_Video_Index() const {
+        return m_Present_Video_index;
+    }
+
+    [[nodiscard]] virtual int Present_Audio_Index() const {
+        return m_Present_Audio_index;
+    }
+
+    [[nodiscard]] virtual int64_t totalMS() const noexcept(true){
         return m_totalMS;
     }
 
 protected:
     std::recursive_mutex m_re_mux;
+    std::vector<int> m_stream_indices;
     AVFormatContext *m_av_fmt_ctx{};
-
-    AVStream **m_streams{};
+    AVStream **m_streams{},
+            *m_Present_Video_st{},
+            *m_Present_Audio_st{};
     int64_t m_totalMS{};
-    int *m_stream_indices{};
     uint32_t m_nb_streams{};
+    int m_Present_Video_index{-1},
+        m_Present_Audio_index{-1};
 
-//      AVStream *m_audio_stream{},*m_video_stream{};
-//      int m_audio_stream_index{},m_video_stream_index{};
 private:
     static std::atomic_uint64_t sm_init_times;
     static std::mutex sm_mux;

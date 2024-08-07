@@ -54,13 +54,13 @@ void QXAudioPlay::Deconstruct() noexcept(true) {
 void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) noexcept(false) {
 
     if (!data || data_size <= 0) {
-        PRINT_ERR_TIPS(data or data_size error);
+        PRINT_ERR_TIPS(GET_STR(data or data_size error));
         return;
     }
 
     QMutexLocker locker(&m_re_mux);
     if (!m_output || !m_IO) {
-        PRINT_ERR_TIPS(Please turn on the device first);
+        PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
         return;
     }
 
@@ -69,14 +69,14 @@ void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) noexcept(
     if (ret < 0){
         CHECK_EXC(throw std::runtime_error(m_IO->errorString().toStdString()),locker.unlock());
     }else if (data_size != ret) {
-        PRINT_ERR_TIPS(data_size != ret);
+        PRINT_ERR_TIPS(GET_STR(data_size != ret));
     } else{}
 }
 
 uint64_t QXAudioPlay::FreeSize() const noexcept(false) {
     QMutexLocker locker(const_cast<decltype(m_re_mux)*>(std::addressof(m_re_mux)));
     if (!m_output){
-        PRINT_ERR_TIPS(Please turn on the device first);
+        PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
         return 0;
     }
     return m_output->bytesFree();
@@ -85,7 +85,7 @@ uint64_t QXAudioPlay::FreeSize() const noexcept(false) {
 uint64_t QXAudioPlay::BufferSize() const noexcept(true) {
     QMutexLocker locker(const_cast<decltype(m_re_mux)*>(std::addressof(m_re_mux)));
     if (!m_output){
-        PRINT_ERR_TIPS(Please turn on the device first);
+        PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
         return 0;
     }
     return m_output->bufferSize();

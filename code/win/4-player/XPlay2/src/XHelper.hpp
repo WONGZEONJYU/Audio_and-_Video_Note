@@ -86,7 +86,7 @@ namespace XHelper {
 }while(false)
 
 #define PRINT_ERR_TIPS(msg) do{ \
-    XHelper::print_err_tips(__func__,__FILE__,__LINE__,#msg);\
+    XHelper::print_err_tips(__func__,__FILE__,__LINE__,(msg));\
 }while(false)
 
 #define GET_STR(args) #args

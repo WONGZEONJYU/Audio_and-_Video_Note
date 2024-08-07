@@ -14,7 +14,7 @@ extern "C"{
 void XResample::Open(const XAVCodecParameters_sptr &parm) {
 
     if (!parm){
-        PRINT_ERR_TIPS(XAVCodecParameters_sptr is empty);
+        PRINT_ERR_TIPS(GET_STR(XAVCodecParameters_sptr is empty));
         return;
     }
 
@@ -36,14 +36,14 @@ void XResample::Close() noexcept(true) {
 int XResample::Resample(const XAVFrame_sptr &frame,resample_data_t &datum) noexcept(false) {
 
     if (!frame){
-        PRINT_ERR_TIPS(XAVFrame_sptr is empty);
+        PRINT_ERR_TIPS(GET_STR(XAVFrame_sptr is empty));
         return -1;
     }
 
     std::unique_lock lock(m_mux);
 
     if (!m_swr_ctx){
-        PRINT_ERR_TIPS(Please initialize first);
+        PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return -1;
     }
 

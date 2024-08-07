@@ -88,7 +88,7 @@ XAVCodecParameters& XAVCodecParameters::operator=(XAVCodecParameters &&obj) noex
 
 void XAVCodecParameters::from_AVFormatContext(const AVCodecParameters *src) noexcept(false) {
     if (!src){
-        PRINT_ERR_TIPS(src is nullptr);
+        PRINT_ERR_TIPS(GET_STR(src is nullptr));
         return;
     }
     FF_CHECK_ERR(avcodec_parameters_copy(this, src));
@@ -96,7 +96,7 @@ void XAVCodecParameters::from_AVFormatContext(const AVCodecParameters *src) noex
 
 void XAVCodecParameters::from_context(const AVCodecContext *src)  noexcept(false) {
     if (!src){
-        PRINT_ERR_TIPS(src is nullptr);
+        PRINT_ERR_TIPS(GET_STR(src is nullptr));
         return;
     }
     FF_CHECK_ERR(avcodec_parameters_from_context(this,src));
@@ -104,7 +104,7 @@ void XAVCodecParameters::from_context(const AVCodecContext *src)  noexcept(false
 
 void XAVCodecParameters::to_context(AVCodecContext *dst) const noexcept(false) {
     if (!dst){
-        PRINT_ERR_TIPS(dst is nullptr);
+        PRINT_ERR_TIPS(GET_STR(dst is nullptr));
         return;
     }
     FF_CHECK_ERR(avcodec_parameters_to_context(dst,this));

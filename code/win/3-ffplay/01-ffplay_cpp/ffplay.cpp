@@ -2609,7 +2609,7 @@ static int audio_thread(void *arg)
     }
 
     do {
-        if ((got_frame = decoder_decode_frame(&is->auddec, frame, NULL)) < 0){ //解码音频并存放到音频帧队列
+        if ((got_frame = decoder_decode_frame(&is->auddec, frame, nullptr)) < 0){ //解码音频并存放到音频帧队列
             goto the_end;
         }
 
@@ -2627,7 +2627,7 @@ static int audio_thread(void *arg)
                     char buf1[1024], buf2[1024];
                     av_channel_layout_describe(&is->audio_filter_src.ch_layout, buf1, sizeof(buf1)); //获取滤镜的预设通道布局描述
                     av_channel_layout_describe(&frame->ch_layout, buf2, sizeof(buf2)); //获取解码帧的通道布局描述
-                    av_log(NULL, AV_LOG_DEBUG,
+                    av_log(nullptr, AV_LOG_DEBUG,
                            "Audio frame changed from rate:%d ch:%d fmt:%s layout:%s serial:%d to rate:%d ch:%d fmt:%s layout:%s serial:%d\n",
                            is->audio_filter_src.freq, is->audio_filter_src.ch_layout.nb_channels, av_get_sample_fmt_name(is->audio_filter_src.fmt), buf1, last_serial,
                            frame->sample_rate, frame->ch_layout.nb_channels, av_get_sample_fmt_name(static_cast<AVSampleFormat>(frame->format)), buf2, is->auddec.pkt_serial);
@@ -2654,7 +2654,7 @@ static int audio_thread(void *arg)
 
             while ((ret = av_buffersink_get_frame_flags(is->out_audio_filter, frame, 0)) >= 0) { //循环从滤镜读取帧
 
-                FrameData *fd = frame->opaque_ref ? (FrameData*)frame->opaque_ref->data : NULL; //不懂为何这样才能获取pkt_pos
+                FrameData *fd = frame->opaque_ref ? (FrameData*)frame->opaque_ref->data : nullptr; //不懂为何这样才能获取pkt_pos
 
                 tb = av_buffersink_get_time_base(is->out_audio_filter); //用过滤后的帧的时间基准
 
@@ -3398,12 +3398,12 @@ static int create_hwaccel(AVBufferRef **device_ctx)
 static int stream_component_open(VideoState *is, int stream_index)
 {
     AVFormatContext *ic = is->ic;
-    const char *forced_codec_name = NULL;
-    AVDictionary *opts = NULL;
-    const AVDictionaryEntry *t = NULL;
+    const char *forced_codec_name {};
+    AVDictionary *opts {};
+    const AVDictionaryEntry *t {};
     int sample_rate;
-    AVChannelLayout ch_layout {  };
-    int ret = 0;
+    AVChannelLayout ch_layout {};
+    int ret{};
     int stream_lowres = lowres;
     const AVCodec *codec{};
 
@@ -3411,7 +3411,7 @@ static int stream_component_open(VideoState *is, int stream_index)
         return -1;
     }
 
-    AVCodecContext *avctx = avcodec_alloc_context3(NULL); //分配解码器上下文
+    AVCodecContext *avctx = avcodec_alloc_context3(nullptr); //分配解码器上下文
     if (!avctx){
         return AVERROR(ENOMEM);
     }
@@ -3437,10 +3437,10 @@ static int stream_component_open(VideoState *is, int stream_index)
 
     if (!codec) {
         if (forced_codec_name) {
-            av_log(NULL, AV_LOG_WARNING,
+            av_log(nullptr, AV_LOG_WARNING,
                    "No codec could be found with name '%s'\n", forced_codec_name);
         }else{
-            av_log(NULL, AV_LOG_WARNING,
+            av_log(nullptr, AV_LOG_WARNING,
                    "No decoder could be found for codec %s\n", avcodec_get_name(avctx->codec_id));
         }
         ret = AVERROR(EINVAL);
@@ -3472,7 +3472,7 @@ static int stream_component_open(VideoState *is, int stream_index)
         goto fail;
     }
 
-    if (!av_dict_get(opts, "threads", NULL, 0)){ //设置解码器内部线程数
+    if (!av_dict_get(opts, "threads", nullptr, 0)){ //设置解码器内部线程数
         av_dict_set(&opts, "threads", "auto", 0);
     }
 
@@ -3795,7 +3795,7 @@ static int read_thread(void *arg)
 
     is->max_frame_duration = (ic->iformat->flags & AVFMT_TS_DISCONT) ? 10.0 : 3600.0; //最大帧长
 
-    if (!window_title && (t = av_dict_get(ic->metadata, "title", NULL, 0))) {
+    if (!window_title && (t = av_dict_get(ic->metadata, "title", nullptr, 0))) {
         window_title = av_asprintf("%s - %s", t->value, input_filename);
     }
 
@@ -3845,7 +3845,7 @@ static int read_thread(void *arg)
     if (!video_disable) {
         st_index[AVMEDIA_TYPE_VIDEO] =
                 av_find_best_stream(ic, AVMEDIA_TYPE_VIDEO,
-                                    st_index[AVMEDIA_TYPE_VIDEO], -1, NULL, 0);
+                                    st_index[AVMEDIA_TYPE_VIDEO], -1, nullptr, 0);
     }
 
     if (!audio_disable) {
@@ -3853,7 +3853,7 @@ static int read_thread(void *arg)
                 av_find_best_stream(ic, AVMEDIA_TYPE_AUDIO,
                                     st_index[AVMEDIA_TYPE_AUDIO],
                                     st_index[AVMEDIA_TYPE_VIDEO],
-                                    NULL, 0);
+                                    nullptr, 0);
     }
 
     if (!video_disable && !subtitle_disable) {
@@ -3863,7 +3863,7 @@ static int read_thread(void *arg)
                                     (st_index[AVMEDIA_TYPE_AUDIO] >= 0 ?
                                      st_index[AVMEDIA_TYPE_AUDIO] :
                                      st_index[AVMEDIA_TYPE_VIDEO]),
-                                    NULL, 0);
+                                    nullptr, 0);
     }
 /***********************************************************************************************************************************/
     is->show_mode = show_mode;
@@ -3872,7 +3872,7 @@ static int read_thread(void *arg)
         AVStream *st = ic->streams[st_index[AVMEDIA_TYPE_VIDEO]];
         AVCodecParameters *codecpar = st->codecpar;
         //根据流和帧宽高比猜测视频帧的像素宽高比(像素的宽高比,注意不是图像的)
-        AVRational sar = av_guess_sample_aspect_ratio(ic, st, NULL);
+        AVRational sar = av_guess_sample_aspect_ratio(ic, st, nullptr);
         if (codecpar->width){
             //设置显示窗口的大小和宽高比
             set_default_window_size(codecpar->width, codecpar->height, sar);
@@ -3901,7 +3901,7 @@ static int read_thread(void *arg)
     }
 
     if (is->video_stream < 0 && is->audio_stream < 0) {
-        av_log(NULL, AV_LOG_FATAL, "Failed to open file '%s' or configure filtergraph\n",is->filename);
+        av_log(nullptr, AV_LOG_FATAL, "Failed to open file '%s' or configure filtergraph\n",is->filename);
         ret = -1;
         goto fail;
     }
@@ -4079,7 +4079,7 @@ static int read_thread(void *arg)
 
     ret = 0;
  fail:
-    if (ic && !is->ic){
+    if (ic && !is->ic) {
         avformat_close_input(&ic);
     }
 
@@ -4159,11 +4159,11 @@ static VideoState *stream_open(const char *filename,
 
     //音量初始化
     if (startup_volume < 0) {
-        av_log(NULL, AV_LOG_WARNING, "-volume=%d < 0, setting to 0\n", startup_volume);
+        av_log(nullptr, AV_LOG_WARNING, "-volume=%d < 0, setting to 0\n", startup_volume);
     }
 
     if (startup_volume > 100) {
-        av_log(NULL, AV_LOG_WARNING, "-volume=%d > 100, setting to 100\n", startup_volume);
+        av_log(nullptr, AV_LOG_WARNING, "-volume=%d > 100, setting to 100\n", startup_volume);
     }
     //SDL_MIX_MAXVOLUME = 128
     startup_volume = av_clip(startup_volume, 0, 100);
@@ -4174,10 +4174,10 @@ static VideoState *stream_open(const char *filename,
     is->read_tid     = SDL_CreateThread(read_thread, "read_thread", is); //创建读线程
 
     if (!is->read_tid) {
-        av_log(NULL, AV_LOG_FATAL, "SDL_CreateThread(): %s\n", SDL_GetError());
+        av_log(nullptr, AV_LOG_FATAL, "SDL_CreateThread(): %s\n", SDL_GetError());
 fail:
         stream_close(is);
-        return NULL;
+        return nullptr;
     }
     return is;
 }
@@ -4209,9 +4209,9 @@ static void stream_cycle_channel(VideoState *is, int codec_type)
 
     int stream_index = start_index;
 
-    AVProgram *p = NULL;
+    AVProgram *p {};
     if (codec_type != AVMEDIA_TYPE_VIDEO && is->video_stream != -1) {
-        p = av_find_program_from_stream(ic, NULL, is->video_stream);
+        p = av_find_program_from_stream(ic, nullptr, is->video_stream);
         if (p) {
             nb_streams = p->nb_stream_indexes;
             for (start_index = 0; start_index < nb_streams; start_index++){
@@ -4390,7 +4390,7 @@ static void seek_chapter(VideoState *is, int incr)
         return;
     }
 
-    av_log(NULL, AV_LOG_VERBOSE, "Seeking to chapter %d.\n", i);
+    av_log(nullptr, AV_LOG_VERBOSE, "Seeking to chapter %d.\n", i);
     stream_seek(is, av_rescale_q(is->ic->chapters[i]->start, is->ic->chapters[i]->time_base,
                                  AV_TIME_BASE_Q), 0, 0);
 }
@@ -4587,7 +4587,7 @@ static void event_loop(VideoState *cur_stream)
                 hh   = ns / 3600;
                 mm   = (ns % 3600) / 60;
                 ss   = (ns % 60);
-                av_log(NULL, AV_LOG_INFO,
+                av_log(nullptr, AV_LOG_INFO,
                        "Seek to %2.0f%% (%2d:%02d:%02d) of total duration (%2d:%02d:%02d)       \n", frac*100,
                         hh, mm, ss, thh, tmm, tss);
                 ts = frac * cur_stream->ic->duration;
@@ -4604,7 +4604,7 @@ static void event_loop(VideoState *cur_stream)
                     screen_height = cur_stream->height = event.window.data2;
                     if (cur_stream->vis_texture) {
                         SDL_DestroyTexture(cur_stream->vis_texture);
-                        cur_stream->vis_texture = NULL;
+                        cur_stream->vis_texture = nullptr;
                     }
                     if (vk_renderer){
                         vk_renderer_resize(vk_renderer, screen_width, screen_height);
@@ -4651,7 +4651,7 @@ static int opt_format(void *optctx, const char *opt, const char *arg)
 {
     file_iformat = av_find_input_format(arg);
     if (!file_iformat) {
-        av_log(NULL, AV_LOG_FATAL, "Unknown input format: %s\n", arg);
+        av_log(nullptr, AV_LOG_FATAL, "Unknown input format: %s\n", arg);
         return AVERROR(EINVAL);
     }
     return 0;
@@ -4666,7 +4666,7 @@ static int opt_sync(void *optctx, const char *opt, const char *arg)
     }else if (!strcmp(arg, "ext")){
         av_sync_type = AV_SYNC_EXTERNAL_CLOCK;
     }else {
-        av_log(NULL, AV_LOG_ERROR, "Unknown value for %s: %s\n", opt, arg);
+        av_log(nullptr, AV_LOG_ERROR, "Unknown value for %s: %s\n", opt, arg);
         exit(1);
     }
     return 0;
@@ -4715,19 +4715,19 @@ static int opt_codec(void *optctx, const char *opt, const char *arg)
    const char *spec = strchr(opt, ':');
 
    if (!spec) {
-       av_log(NULL, AV_LOG_ERROR,
+       av_log(nullptr, AV_LOG_ERROR,
               "No media specifier was specified in '%s' in option '%s'\n",
                arg, opt);
        return AVERROR(EINVAL);
    }
    spec++;
-   const char **name = NULL;
+   const char **name = nullptr;
    switch (spec[0]) {
    case 'a' : name = &audio_codec_name;    break;
    case 's' : name = &subtitle_codec_name; break;
    case 'v' : name = &video_codec_name;    break;
    default:
-       av_log(NULL, AV_LOG_ERROR,
+       av_log(nullptr, AV_LOG_ERROR,
               "Invalid media specifier '%s' in option '%s'\n", spec, opt);
        return AVERROR(EINVAL);
    }
@@ -4859,7 +4859,7 @@ int main(int argc, char **argv)
 
     show_banner(argc, argv, options);
     //对传递的参数进行初始化
-    ret = parse_options(NULL, argc, argv, options, opt_input_file);
+    ret = parse_options(nullptr, argc, argv, options, opt_input_file);
 
     if (ret < 0){
         exit(ret == AVERROR_EXIT ? 0 : 1);
@@ -4867,8 +4867,8 @@ int main(int argc, char **argv)
 
     if (!input_filename) {
         show_usage();
-        av_log(NULL, AV_LOG_FATAL, "An input file must be specified\n");
-        av_log(NULL, AV_LOG_FATAL,
+        av_log(nullptr, AV_LOG_FATAL, "An input file must be specified\n");
+        av_log(nullptr, AV_LOG_FATAL,
                "Use -h to get full help or, even better, run 'man %s'\n", program_name);
         exit(1);
     }
@@ -4896,8 +4896,8 @@ int main(int argc, char **argv)
     }
 
     if (SDL_Init (flags)) { //初始化SDL
-        av_log(NULL, AV_LOG_FATAL, "Could not initialize SDL - %s\n", SDL_GetError());
-        av_log(NULL, AV_LOG_FATAL, "(Did you set the DISPLAY variable?)\n");
+        av_log(nullptr, AV_LOG_FATAL, "Could not initialize SDL - %s\n", SDL_GetError());
+        av_log(nullptr, AV_LOG_FATAL, "(Did you set the DISPLAY variable?)\n");
         exit(1);
     }
 
@@ -4924,7 +4924,7 @@ int main(int argc, char **argv)
         SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
 #endif
         if (hwaccel && !enable_vulkan) {
-            av_log(NULL, AV_LOG_INFO, "Enable vulkan renderer to support hwaccel %s\n", hwaccel);
+            av_log(nullptr, AV_LOG_INFO, "Enable vulkan renderer to support hwaccel %s\n", hwaccel);
             enable_vulkan = 1;
         }
         if (enable_vulkan) {
@@ -4934,7 +4934,7 @@ int main(int argc, char **argv)
                 flags |= SDL_WINDOW_VULKAN;
 #endif
             } else {
-                av_log(NULL, AV_LOG_WARNING, "Doesn't support vulkan renderer, fallback to SDL renderer\n");
+                av_log(nullptr, AV_LOG_WARNING, "Doesn't support vulkan renderer, fallback to SDL renderer\n");
                 enable_vulkan = 0;
             }
         }
@@ -4943,12 +4943,12 @@ int main(int argc, char **argv)
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
         if (!window) {
-            av_log(NULL, AV_LOG_FATAL, "Failed to create window: %s", SDL_GetError());
-            do_exit(NULL);
+            av_log(nullptr, AV_LOG_FATAL, "Failed to create window: %s", SDL_GetError());
+            do_exit(nullptr);
         }
 
         if (vk_renderer) { //有硬件加速则采用硬件加速
-            AVDictionary *dict = NULL;
+            AVDictionary *dict = nullptr;
 
             if (vulkan_params){
                 av_dict_parse_string(&dict, vulkan_params, "=", ":", 0);
@@ -4958,22 +4958,22 @@ int main(int argc, char **argv)
             av_dict_free(&dict);
             if (ret < 0) {
                 char errbuf[AV_ERROR_MAX_STRING_SIZE]{};
-                av_log(NULL, AV_LOG_FATAL, "Failed to create vulkan renderer, %s\n", av_make_error_string(errbuf,AV_ERROR_MAX_STRING_SIZE,ret));
-                do_exit(NULL);
+                av_log(nullptr, AV_LOG_FATAL, "Failed to create vulkan renderer, %s\n", av_make_error_string(errbuf,AV_ERROR_MAX_STRING_SIZE,ret));
+                do_exit(nullptr);
             }
         } else {
             renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC); //创建渲染器
             if (!renderer) {
-                av_log(NULL, AV_LOG_WARNING, "Failed to initialize a hardware accelerated renderer: %s\n", SDL_GetError());
+                av_log(nullptr, AV_LOG_WARNING, "Failed to initialize a hardware accelerated renderer: %s\n", SDL_GetError());
                 renderer = SDL_CreateRenderer(window, -1, 0);
             }
             if (renderer) {
                 if (!SDL_GetRendererInfo(renderer, &renderer_info))
-                    av_log(NULL, AV_LOG_VERBOSE, "Initialized %s renderer.\n", renderer_info.name);
+                    av_log(nullptr, AV_LOG_VERBOSE, "Initialized %s renderer.\n", renderer_info.name);
             }
             if (!renderer || !renderer_info.num_texture_formats) {
-                av_log(NULL, AV_LOG_FATAL, "Failed to create window or renderer: %s", SDL_GetError());
-                do_exit(NULL);
+                av_log(nullptr, AV_LOG_FATAL, "Failed to create window or renderer: %s", SDL_GetError());
+                do_exit(nullptr);
             }
         }
     }
@@ -4981,8 +4981,8 @@ int main(int argc, char **argv)
     is = stream_open(input_filename, file_iformat);
 
     if (!is) {
-        av_log(NULL, AV_LOG_FATAL, "Failed to initialize VideoState!\n");
-        do_exit(NULL);
+        av_log(nullptr, AV_LOG_FATAL, "Failed to initialize VideoState!\n");
+        do_exit(nullptr);
     }
 
     //事件响应
