@@ -21,6 +21,9 @@ class TestThread : public QThread {
     void run() override{
 
         try {
+            QXAudioPlay::handle()->set_Audio_parameter(xac->Sample_rate(),xac->Ch_layout()->nb_channels);
+            QXAudioPlay::handle()->Open();
+
             while (true) {
                 p = x.Read();
 
@@ -92,8 +95,6 @@ public:
         if (xac){
             ad.Open(xac);
             re.Open(xac);
-            QXAudioPlay::handle()->set_Audio_parameter(xac->Sample_rate(),xac->Ch_layout()->nb_channels);
-            QXAudioPlay::handle()->Open();
         }
 
         if (xvc){
