@@ -6,6 +6,10 @@
 #include <QAudioFormat>
 #include <QAudioSink>
 #include <QMediaDevices>
+#include <QEventLoop>
+#include <QFuture>
+#include <QFutureWatcher>
+#include <QtConcurrent/QtConcurrent>
 
 void QXAudioPlay::Open() {
     Close();
@@ -58,15 +62,31 @@ void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) noexcept(
         return;
     }
 
-    QMutexLocker locker(&m_re_mux);
-    if (!m_output || !m_IO) {
-        PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
-        return;
+    {
+        QMutexLocker locker(&m_re_mux);
+        if (!m_output || !m_IO) {
+            PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
+            return;
+        }
     }
 
-    const auto ret{m_IO->write(reinterpret_cast<const char *>(data), data_size)};
+    auto future {QtConcurrent::run([this,data,data_size](){
+        QMutexLocker locker(&m_re_mux);
+        return m_IO->write(reinterpret_cast<const char *>(data), data_size);
+        })};
+
+    QFutureWatcher<qint64> watcher;
+    QEventLoop loop;
+    connect(&watcher, &QFutureWatcher<qint64>::finished, &loop, &QEventLoop::quit);
+    watcher.setFuture(future);
+    loop.exec();
+
+    disconnect(&watcher, nullptr,&loop, nullptr);
+
+    const auto ret {watcher.result()};
 
     if (ret < 0){
+        QMutexLocker locker(&m_re_mux);
         CHECK_EXC(throw std::runtime_error(m_IO->errorString().toStdString()),locker.unlock());
     }else if (data_size != ret) {
         PRINT_ERR_TIPS(GET_STR(data_size != ret));

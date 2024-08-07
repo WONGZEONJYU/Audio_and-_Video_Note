@@ -48,6 +48,7 @@ class TestThread : public QThread {
                             break;
                         }
                     }
+                    break;
                 }
 
                 if (x.Present_Audio_Index() == p->stream_index){

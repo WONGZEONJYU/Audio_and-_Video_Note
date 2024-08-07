@@ -9,12 +9,13 @@
 #include "XHelper.hpp"
 #include <QRecursiveMutex>
 #include <QSharedPointer>
+#include <QObject>
 
 class QAudioSink;
 class QIODevice;
 
-class QXAudioPlay final : public XAudioPlay {
-
+class QXAudioPlay final : public QObject, public XAudioPlay {
+Q_OBJECT
     QXAudioPlay() = default;
     void Deconstruct() noexcept(true);
     void Open() noexcept(false) override ;
