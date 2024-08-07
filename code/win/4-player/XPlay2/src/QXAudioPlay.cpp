@@ -38,6 +38,8 @@ QXAudioPlay::~QXAudioPlay() {
 }
 
 XAudioPlay *QXAudioPlay::handle() {
+    static QMutex mux;
+    QMutexLocker locker(&mux);
     static QXAudioPlay qx;
     return std::addressof(qx);
 }
@@ -118,5 +120,5 @@ void QXAudioPlay::MoveToThread(QThread *th) {
         PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
         return;
     }
-    m_IO->moveToThread(th);
+    //m_IO->moveToThread(th);
 }
