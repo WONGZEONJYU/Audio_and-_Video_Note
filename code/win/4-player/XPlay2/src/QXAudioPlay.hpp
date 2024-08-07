@@ -26,7 +26,7 @@ Q_OBJECT
 
 public:
     static XAudioPlay* handle() ;
-
+    void MoveToThread(QThread *);
 private:
     QRecursiveMutex m_re_mux;
     QSharedPointer<QAudioSink> m_output;

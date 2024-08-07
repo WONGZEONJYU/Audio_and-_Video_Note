@@ -81,7 +81,7 @@ void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) noexcept(
     watcher.setFuture(future);
     loop.exec();
 
-    disconnect(&watcher, nullptr,&loop, nullptr);
+    disconnect(&watcher, nullptr, &loop, nullptr);
 
     const auto ret {watcher.result()};
 
@@ -109,4 +109,14 @@ uint64_t QXAudioPlay::BufferSize() const noexcept(true) {
         return 0;
     }
     return m_output->bufferSize();
+}
+
+void QXAudioPlay::MoveToThread(QThread *th) {
+
+    QMutexLocker locker(&m_re_mux);
+    if (!m_output || !m_IO) {
+        PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
+        return;
+    }
+    m_IO->moveToThread(th);
 }

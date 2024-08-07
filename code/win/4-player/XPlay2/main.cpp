@@ -100,6 +100,8 @@ public:
             xVideoWidget->Init(xvc->Width(),xvc->Height());
             vd.Open(xvc);
         }
+
+        dynamic_cast<QXAudioPlay*>(QXAudioPlay::handle())->MoveToThread(this);
     }
 
     XDemux x;
