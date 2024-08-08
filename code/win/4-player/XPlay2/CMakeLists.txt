@@ -75,6 +75,8 @@ set(SRC_CODE
         src/XAudioPlay.hpp
         src/QXAudioPlay.cpp
         src/QXAudioPlay.hpp
+        src/XAudioThread.cpp
+        src/XAudioThread.hpp
 )
 
 set(QT__LIB

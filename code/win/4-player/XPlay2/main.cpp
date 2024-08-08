@@ -126,27 +126,18 @@ int main(int argc, char *argv[]) {
 
     QApplication a(argc, argv);
 
-#if defined(__APPLE__) && defined(__MACH__)
-    QSurfaceFormat format;
-    format.setVersion(4, 1);
-    format.setDepthBufferSize(24);
-    format.setStencilBufferSize(8);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-    QSurfaceFormat::setDefaultFormat(format);
-#endif
     std::exception_ptr eptr;
     try {
         auto w{XPlay2Widget::Handle()};
         w->show();
         TestThread t;
         t.xVideoWidget = w->m_ui->VideoWidget;
-
         t.eptr = std::addressof(eptr);
         t.init();
         t.start();
         const auto ret{QApplication::exec()};
-        t.quit();
         t.m_stop = true;
+        t.quit();
         t.wait();
         if (eptr){
             std::rethrow_exception(eptr);

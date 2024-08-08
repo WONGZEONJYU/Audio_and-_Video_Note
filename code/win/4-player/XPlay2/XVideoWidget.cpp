@@ -8,7 +8,15 @@
 #include "XAVFrame.hpp"
 
 XVideoWidget::XVideoWidget(QWidget *parent):QOpenGLWidget(parent){
-
+#if defined(__APPLE__) && defined(__MACH__)
+    QSurfaceFormat format;
+    format.setVersion(4, 1);
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+    setFormat(format);
+#endif
 }
 
 XVideoWidget::~XVideoWidget() {
@@ -110,17 +118,13 @@ void XVideoWidget::initializeGL() {
 
 void XVideoWidget::paintGL() {
 
-    //qDebug() << "begin: " << __FUNCTION__;
     QMutexLocker locker(&m_mux);
-
     if (m_yuv_datum.isEmpty()){
-        qDebug() << "end: " << __FUNCTION__;
         return;
     }
 
     for (auto &item : m_yuv_datum){
         if (item.isEmpty()){
-            qDebug() << "end: " << __FUNCTION__;
             return;
         }
     }

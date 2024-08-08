@@ -9,12 +9,15 @@
 #include "XHelper.hpp"
 #include <QRecursiveMutex>
 #include <QSharedPointer>
-#include <QThread>
 #include <QAudioFormat>
 #include <QAudioDevice>
 
 class QAudioSink;
 class QIODevice;
+
+/**
+ * Open Close Write需在同一个线程下操作以下函数,否则容易出现问题
+ */
 
 class QXAudioPlay final : public XAudioPlay {
 

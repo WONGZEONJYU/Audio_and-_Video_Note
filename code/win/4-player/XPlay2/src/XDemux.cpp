@@ -83,12 +83,11 @@ void XDemux::Open(const string &url) noexcept(false){
         cerr << "\n\n";
         show_audio_info();
         show_video_info();
-        cerr << "\n\n";
 
         cerr << GET_STR(Present_Video_index: ) <<
                 (m_Present_Video_index >= 0 ? to_string(m_Present_Video_index) : GET_STR(does not exist)) << "\n" <<
                  GET_STR(Present_Audio_index: ) <<
-                 (m_Present_Audio_index >= 0 ? to_string(m_Present_Audio_index) : GET_STR(does not exist)) << "\n";
+                 (m_Present_Audio_index >= 0 ? to_string(m_Present_Audio_index) : GET_STR(does not exist)) << "\n\n";
 
     } catch (...) {
         DeConstruct();

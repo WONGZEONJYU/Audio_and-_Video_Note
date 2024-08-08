@@ -42,7 +42,6 @@ void XDecode::Open(const XAVCodecParameters_sptr &parm) noexcept(false) {
     }catch (...) {
         lock.unlock();
         DeConstruct();
-        //rethrow_exception(current_exception());
         throw;
     }
 }

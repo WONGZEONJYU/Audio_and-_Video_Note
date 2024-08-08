@@ -14,17 +14,6 @@
 
 void QXAudioPlay::Open() {
     Close();
-//    m_dev = QMediaDevices::defaultAudioOutput();
-//    m_format =  m_dev.preferredFormat();
-//
-//    m_format.setSampleRate(m_SampleRate);
-//    m_format.setChannelCount(m_SampleFormat);
-//    m_format.setSampleFormat(static_cast<QAudioFormat::SampleFormat>(m_SampleFormat));
-//    m_format.setChannelCount(m_Channels);
-//    m_format.setChannelConfig(QAudioFormat::ChannelConfigStereo);
-//
-//    CHECK_EXC(m_output.reset(new QAudioSink(m_dev,m_format)));
-
     const auto dev{QMediaDevices::defaultAudioOutput()};
     auto fmt{dev.preferredFormat()};
 
@@ -69,8 +58,6 @@ void QXAudioPlay::Deconstruct() noexcept(true) {
 }
 
 void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) {
-    //Write_Helper(reinterpret_cast<const char *>(data),data_size);
-    qDebug() << GET_STR(begin) << __func__ ;
 
     if (!data || data_size <= 0) {
         PRINT_ERR_TIPS(GET_STR(data or data_size error));
@@ -86,12 +73,11 @@ void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) {
     const auto ret {m_IO->write(reinterpret_cast<const char *>(data),data_size)};
 
     if (ret < 0){
-        CHECK_EXC(throw std::runtime_error(m_IO->errorString().toStdString()));
+        CHECK_EXC(throw std::runtime_error(m_IO->errorString().toStdString()),locker.unlock());
     }else if (data_size != ret) {
         PRINT_ERR_TIPS(GET_STR(data_size != ret));
     } else{}
 
-    qDebug() << GET_STR(end) << __func__ ;
 }
 
 void QXAudioPlay::QtSetParent(void *p) noexcept(true){
