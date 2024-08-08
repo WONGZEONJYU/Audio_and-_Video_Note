@@ -5,7 +5,6 @@ extern "C" {
 #include <QApplication>
 #include <QSurfaceFormat>
 #include <QThread>
-#include <QMetaType>
 #include "XVideoWidget.hpp"
 #include "XPlay2Widget.hpp"
 #include "XDemux.hpp"
@@ -19,7 +18,7 @@ extern "C" {
 
 class TestThread : public QThread {
 
-    void run() override{
+    void run() override {
 
         try {
             QXAudioPlay::handle()->set_Audio_parameter(xac->Sample_rate(),xac->Ch_layout()->nb_channels);
