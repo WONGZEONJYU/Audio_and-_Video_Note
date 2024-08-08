@@ -9,24 +9,26 @@
 #include "XHelper.hpp"
 #include <QRecursiveMutex>
 #include <QSharedPointer>
-#include <QObject>
+#include <QThread>
+#include <QAudioFormat>
+#include <QAudioDevice>
 
 class QAudioSink;
 class QIODevice;
 
-class QXAudioPlay final : public QObject, public XAudioPlay {
-Q_OBJECT
-    QXAudioPlay() = default;
+class QXAudioPlay final : public XAudioPlay {
+
+    explicit QXAudioPlay() = default;
     void Deconstruct() noexcept(true);
     void Open() noexcept(false) override ;
     void Close() noexcept(true) override;
-    void Write(const uint8_t *,const int64_t &) noexcept(false) override;
     [[nodiscard]] uint64_t FreeSize() const noexcept(false) override;
     [[nodiscard]] uint64_t BufferSize() const noexcept(true) override;
-
+    void Write(const uint8_t *,const int64_t &) override;
+    void QtSetParent(void *) noexcept(true) override;
 public:
-    static XAudioPlay* handle() ;
-    void MoveToThread(QThread *);
+    static XAudioPlay *handle();
+
 private:
     QRecursiveMutex m_re_mux;
     QSharedPointer<QAudioSink> m_output;

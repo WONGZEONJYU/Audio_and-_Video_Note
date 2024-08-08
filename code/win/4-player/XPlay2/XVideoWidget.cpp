@@ -110,7 +110,7 @@ void XVideoWidget::initializeGL() {
 
 void XVideoWidget::paintGL() {
 
-    qDebug() << "begin: " << __FUNCTION__;
+    //qDebug() << "begin: " << __FUNCTION__;
     QMutexLocker locker(&m_mux);
 
     if (m_yuv_datum.isEmpty()){
@@ -165,7 +165,7 @@ void XVideoWidget::paintGL() {
     m_VBO->release();
     m_EBO->release();
 
-    qDebug() << "end: " << __FUNCTION__;
+    //qDebug() << "end: " << __FUNCTION__;
 }
 
 void XVideoWidget::resizeGL(int w, int h) {
@@ -303,7 +303,6 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
         }
 
         for (uint32_t i{};auto &item:m_yuv_datum) {
-
             const auto len{ i ? m_w * m_h / 4 : m_w * m_h};
             item = std::move(QByteArray(reinterpret_cast<const char*>(frame->data[i]),len));
             ++i;

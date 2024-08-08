@@ -5,6 +5,7 @@ extern "C" {
 #include <QApplication>
 #include <QSurfaceFormat>
 #include <QThread>
+#include <QMetaType>
 #include "XVideoWidget.hpp"
 #include "XPlay2Widget.hpp"
 #include "XDemux.hpp"
@@ -24,7 +25,7 @@ class TestThread : public QThread {
             QXAudioPlay::handle()->set_Audio_parameter(xac->Sample_rate(),xac->Ch_layout()->nb_channels);
             QXAudioPlay::handle()->Open();
 
-            while (true) {
+            while (!m_stop) {
                 p = x.Read();
 
                 if (!p){ //媒体文件读取为空
@@ -44,7 +45,7 @@ class TestThread : public QThread {
 
                         if ((vf = vd.Receive())) {
                             xVideoWidget->Repaint(vf);
-                            //QThread::msleep(30);
+                            QThread::msleep(30);
                         }
 
                         if (!af && !vf){
@@ -60,7 +61,7 @@ class TestThread : public QThread {
                         af = ad.Receive();
                         if (af){
                             const auto relen {re.Resample(af,resampleData)};
-                            qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
+                            //qDebug() << "ReSample_nb: " << relen << " capacity: " << resampleData.capacity();
 
                             while (relen > 0){
                                 if (QXAudioPlay::handle()->FreeSize() >= relen){
@@ -69,6 +70,7 @@ class TestThread : public QThread {
                                 }
                                 QThread::msleep(1);
                             }
+
                         } else{
                             break;
                         }
@@ -77,17 +79,21 @@ class TestThread : public QThread {
                     vd.Send(p);
                     while ((vf = vd.Receive())){
                         xVideoWidget->Repaint(vf);
-                        //QThread::msleep(30);
+                        QThread::msleep(30);
                     }
+                }else{
+                    p.reset();
                 }
             }
         } catch (...) {
+            QXAudioPlay::handle()->Close();
             *eptr = std::current_exception();
         }
+        QXAudioPlay::handle()->Close();
     }
 
 public:
-    void init(){
+    void init() {
         x.Open("2_audio.mp4");
         xac = x.Copy_Present_AudioCodecParam();
         xvc = x.Copy_Present_VideoCodecParam();
@@ -101,8 +107,6 @@ public:
             xVideoWidget->Init(xvc->Width(),xvc->Height());
             vd.Open(xvc);
         }
-
-        dynamic_cast<QXAudioPlay*>(QXAudioPlay::handle())->MoveToThread(this);
     }
 
     XDemux x;
@@ -116,11 +120,13 @@ public:
     std::exception_ptr *eptr{};
     XVideoWidget *xVideoWidget{};
     resample_data_t resampleData;
+    std::atomic_bool m_stop;
 };
 
 int main(int argc, char *argv[]) {
+
     QApplication a(argc, argv);
-    std::exception_ptr eptr;
+
 #if defined(__APPLE__) && defined(__MACH__)
     QSurfaceFormat format;
     format.setVersion(4, 1);
@@ -129,20 +135,19 @@ int main(int argc, char *argv[]) {
     format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
 #endif
-
+    std::exception_ptr eptr;
     try {
         auto w{XPlay2Widget::Handle()};
         w->show();
-
         TestThread t;
-        t.eptr = std::addressof(eptr);
         t.xVideoWidget = w->m_ui->VideoWidget;
+
+        t.eptr = std::addressof(eptr);
         t.init();
         t.start();
-
         const auto ret{QApplication::exec()};
         t.quit();
-        t.terminate();
+        t.m_stop = true;
         t.wait();
         if (eptr){
             std::rethrow_exception(eptr);
