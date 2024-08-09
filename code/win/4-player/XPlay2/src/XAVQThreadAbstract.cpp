@@ -1,19 +1,19 @@
 //
 // Created by Administrator on 2024/8/9.
 //
-#include "XAVQThread_Abstract.hpp"
+#include "XAVQThreadAbstract.hpp"
 #include "XHelper.hpp"
 
-XAVQThread_Abstract::XAVQThread_Abstract(std::exception_ptr *e):
+XAVQThreadAbstract::XAVQThreadAbstract(std::exception_ptr *e):
 QThread(),m_exceptionPtr{e} {
 
 }
 
-XAVQThread_Abstract::~XAVQThread_Abstract() {
+XAVQThreadAbstract::~XAVQThreadAbstract() {
     Exit_Thread();
 }
 
-void XAVQThread_Abstract::Push(XAVPacket_sptr &&pkt) noexcept(false){
+void XAVQThreadAbstract::Push(XAVPacket_sptr &&pkt) noexcept(false){
     if (!pkt){
         PRINT_ERR_TIPS(GET_STR(XAVPacket_sptr is empty));
         return;
@@ -31,12 +31,12 @@ void XAVQThread_Abstract::Push(XAVPacket_sptr &&pkt) noexcept(false){
     }
 }
 
-void XAVQThread_Abstract::Exit_Thread() noexcept(true) {
+void XAVQThreadAbstract::Exit_Thread() noexcept(true) {
     m_is_Exit = true;
     quit();
     wait();
 }
 
-void XAVQThread_Abstract::SetException_ptr(std::exception_ptr *e) noexcept(true){
-    m_exceptionPtr = e;
+void XAVQThreadAbstract::SetException_ptr(std::exception_ptr *e) noexcept(true){
+    m_exceptionPtr.store(e);
 }
