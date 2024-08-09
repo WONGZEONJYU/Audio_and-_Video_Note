@@ -53,12 +53,13 @@ int XResample::Resample(const XAVFrame_sptr &frame,resample_data_t &datum) noexc
                                  AV_SAMPLE_FMT_S16,1)};
 
     if (datum.capacity() < out_size){
+        datum.clear();
         datum.resize(out_size);
     }
 
     uint8_t *d[AV_NUM_DATA_POINTERS]{datum.data()};
 
-    auto ret_nb_samples{-1};
+    int ret_nb_samples;
     FF_CHECK_ERR(ret_nb_samples = m_swr_ctx->convert(d,out_count,frame->data,frame->nb_samples),lock.unlock());
 
     return av_samples_get_buffer_size(nullptr,frame->ch_layout.nb_channels,ret_nb_samples,AV_SAMPLE_FMT_S16,1);

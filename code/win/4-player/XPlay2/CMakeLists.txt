@@ -77,6 +77,11 @@ set(SRC_CODE
         src/QXAudioPlay.hpp
         src/XAudioThread.cpp
         src/XAudioThread.hpp
+        src/IVideoCall.hpp
+        src/XVideoThread.cpp
+        src/XVideoThread.hpp
+        src/XAVQThread_Abstract.hpp
+        src/XAVQThread_Abstract.cpp
 )
 
 set(QT__LIB

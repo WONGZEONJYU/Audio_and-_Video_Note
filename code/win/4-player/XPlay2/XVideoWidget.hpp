@@ -22,12 +22,13 @@
 #include <QScopedArrayPointer>
 #include <QByteArray>
 #include "XHelper.hpp"
+#include "IVideoCall.hpp"
 
 class XAVFrame;
 using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
 
 class XVideoWidget final : public QOpenGLWidget,
-                           protected QOpenGLFunctions
+                           protected QOpenGLFunctions, IVideoCall
 {
 //attribute新版已经弃用
 //varying新版已经弃用
@@ -121,8 +122,8 @@ public:
      * @param w
      * @param h
      */
-    void Init(const int &w,const int&h) noexcept(false);
-    void Repaint(const XAVFrame_sptr &);
+    void Init(const int &w,const int&h) noexcept(false) override;
+    void Repaint(const XAVFrame_sptr &) override;
 
 private:
     QMutex m_mux;
