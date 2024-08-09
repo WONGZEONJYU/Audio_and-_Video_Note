@@ -13,7 +13,7 @@ class IVideoCall {
 
 public:
     virtual void Init(const int &w,const int&h) noexcept(false) = 0;
-    virtual void Repaint(const XAVFrame_sptr &) = 0;
+    virtual void Repaint(const XAVFrame_sptr &) noexcept(false) = 0;
 };
 
 #endif

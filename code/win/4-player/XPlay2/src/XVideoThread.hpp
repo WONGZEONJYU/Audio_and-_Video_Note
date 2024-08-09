@@ -5,23 +5,22 @@
 #ifndef XPLAY2_XVIDEOTHREAD_HPP
 #define XPLAY2_XVIDEOTHREAD_HPP
 
-#include "XAVQThread_Abstract.hpp"
+#include "XAVQThreadAbstract.hpp"
 #include "IVideoCall.hpp"
-#include "XHelper.hpp"
 
-class XVideoThread : public XAVQThread_Abstract {
-
+class XVideoThread : public XAVQThreadAbstract {
+Q_OBJECT
     void run() override;
     void Open(const XAVCodecParameters_sptr &) noexcept(false) override;
 public:
-    explicit XVideoThread(IVideoCall* = nullptr,std::exception_ptr * = nullptr);
+    explicit XVideoThread(std::exception_ptr * = nullptr);
     void Open(const XAVCodecParameters_sptr &,IVideoCall *) noexcept(false);
-    using XAVQThread_Abstract::SetException_ptr;
+    using XAVQThreadAbstract::Push;
+    using XAVQThreadAbstract::SetException_ptr;
 
 protected:
-    std::atomic<IVideoCall*> m_call{};
-private:
-
+    //std::atomic<IVideoCall*> m_call{};
+    IVideoCall* m_call{};
 public:
     ~XVideoThread() override;
 };

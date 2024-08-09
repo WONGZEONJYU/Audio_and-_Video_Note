@@ -80,8 +80,10 @@ set(SRC_CODE
         src/IVideoCall.hpp
         src/XVideoThread.cpp
         src/XVideoThread.hpp
-        src/XAVQThread_Abstract.hpp
-        src/XAVQThread_Abstract.cpp
+        src/XAVQThreadAbstract.hpp
+        src/XAVQThreadAbstract.cpp
+        src/XDemuxThread.cpp
+        src/XDemuxThread.hpp
 )
 
 set(QT__LIB

@@ -9,8 +9,6 @@
 #include "XHelper.hpp"
 #include <QRecursiveMutex>
 #include <QSharedPointer>
-#include <QAudioFormat>
-#include <QAudioDevice>
 
 class QAudioSink;
 class QIODevice;

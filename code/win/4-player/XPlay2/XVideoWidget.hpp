@@ -19,7 +19,6 @@
 #include <QMutex>
 #include <QSharedPointer>
 #include <QVector>
-#include <QScopedArrayPointer>
 #include <QByteArray>
 #include "XHelper.hpp"
 #include "IVideoCall.hpp"
@@ -28,7 +27,7 @@ class XAVFrame;
 using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
 
 class XVideoWidget final : public QOpenGLWidget,
-                           protected QOpenGLFunctions, IVideoCall
+                           protected QOpenGLFunctions, public IVideoCall
 {
 //attribute新版已经弃用
 //varying新版已经弃用

@@ -5,12 +5,12 @@
 #ifndef XPLAY2_XAUDIOTHREAD_HPP
 #define XPLAY2_XAUDIOTHREAD_HPP
 
-#include "XAVQThread_Abstract.hpp"
+#include "XAVQThreadAbstract.hpp"
 
 class XResample;
 class XAudioPlay;
 
-class XAudioThread : public XAVQThread_Abstract {
+class XAudioThread : public XAVQThreadAbstract {
 
 Q_OBJECT
     void DeConstruct() noexcept(true);
@@ -18,7 +18,8 @@ Q_OBJECT
 public:
     explicit XAudioThread(std::exception_ptr * = nullptr);
     void Open(const XAVCodecParameters_sptr &) noexcept(false) override;
-    //virtual void Push(XAVPacket_sptr &&) ;
+    using XAVQThreadAbstract::Push;
+    using XAVQThreadAbstract::SetException_ptr;
 
 protected:
     std::vector<uint8_t> m_resample_datum;
