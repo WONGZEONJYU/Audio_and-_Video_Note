@@ -254,14 +254,8 @@ bool XDemux::is_Audio(const XAVPacket_sptr &pkt) noexcept(true){
     }
 
     unique_lock lock(m_re_mux);
-    if (!m_av_fmt_ctx){
-        PRINT_ERR_TIPS(GET_STR(Please initialize first));
-        return {};
-    }
 
-    const auto m_type{m_streams[pkt->stream_index]->codecpar->codec_type};
-
-    return AVMEDIA_TYPE_VIDEO != m_type;
+    return m_Present_Video_index != pkt->stream_index;
 }
 
 bool XDemux::Seek(const double &pos) noexcept(true)

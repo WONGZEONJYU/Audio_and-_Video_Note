@@ -11,6 +11,7 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QWidget>
 #include <XVideoWidget.hpp>
 
@@ -19,16 +20,23 @@ QT_BEGIN_NAMESPACE
 class Ui_XPlay2Widget
 {
 public:
+    QGridLayout *gridLayout;
     XVideoWidget *VideoWidget;
 
     void setupUi(QWidget *XPlay2Widget)
     {
         if (XPlay2Widget->objectName().isEmpty())
             XPlay2Widget->setObjectName("XPlay2Widget");
-        XPlay2Widget->resize(1920, 1080);
+        XPlay2Widget->resize(1233, 775);
+        gridLayout = new QGridLayout(XPlay2Widget);
+        gridLayout->setSpacing(0);
+        gridLayout->setObjectName("gridLayout");
+        gridLayout->setContentsMargins(0, 0, 0, 0);
         VideoWidget = new XVideoWidget(XPlay2Widget);
         VideoWidget->setObjectName("VideoWidget");
-        VideoWidget->setGeometry(QRect(0, 0, 1920, 1080));
+
+        gridLayout->addWidget(VideoWidget, 0, 0, 1, 1);
+
 
         retranslateUi(XPlay2Widget);
 

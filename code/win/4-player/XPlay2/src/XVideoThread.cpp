@@ -19,18 +19,17 @@ void XVideoThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
     QMutexLocker locker(&m_mux);
     if (!m_decode){
         CHECK_EXC(m_decode.reset(new XDecode()),locker.unlock());
+        m_decode->Open(p);
         m_wc.wakeAll();
     }
-    m_decode->Open(p);
 }
 
 void XVideoThread::run() {
 
-    QMutexLocker locker(&m_mux);
-
     try {
-        while (!m_is_Exit){
-            //qDebug() << currentThreadId() ;
+        while (!m_is_Exit) {
+            QMutexLocker locker(&m_mux);
+
             if (!m_decode || !m_call){
                 PRINT_ERR_TIPS(GET_STR(Please open first));
                 m_wc.wait(&m_mux,1);
@@ -38,8 +37,8 @@ void XVideoThread::run() {
             }
 
             while (!m_is_Exit){
-
-                const auto vf{m_decode->Receive()};//有异常
+                XAVFrame_sptr vf;
+                CHECK_EXC(vf = m_decode->Receive(),locker.unlock());//有异常
                 if (!vf){
                     break;
                 }
@@ -51,15 +50,15 @@ void XVideoThread::run() {
                 m_wc.wait(&m_mux,1);
                 continue;
             }
-
-            const auto b{ m_decode->Send(m_Packets.first()) };
+            bool b;
+            CHECK_EXC(b = m_decode->Send(m_Packets.first()),locker.unlock());
             if (b){
                 m_Packets.removeFirst();
                 m_wc.wakeAll();
             }
         }
     } catch (...) {
-        locker.unlock();
+        QMutexLocker locker(&m_mux);
         if (m_exceptionPtr){
             *m_exceptionPtr = std::current_exception();
         }

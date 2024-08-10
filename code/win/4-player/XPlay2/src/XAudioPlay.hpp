@@ -11,7 +11,7 @@ public:
     virtual ~XAudioPlay() = default;
     virtual void Open() = 0;
     virtual void Close() = 0;
-    virtual void Write(const unsigned char *,const long long &) = 0;
+    virtual void Write(const unsigned char *,const long long &) noexcept(false) = 0;
     [[nodiscard]] virtual unsigned long long FreeSize() const {return 0;}
     [[nodiscard]] virtual unsigned long long BufferSize() const {return 0;}
     /**

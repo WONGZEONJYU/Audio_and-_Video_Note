@@ -12,6 +12,8 @@ extern "C" {
 #include "XAudioThread.hpp"
 #include "XVideoThread.hpp"
 
+#include "XDemuxThread.hpp"
+
 class TestThread : public QThread {
 
     void run() override {
@@ -168,37 +170,42 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     std::exception_ptr at_exp,vt_exp,rt_exp;
     XPlay2Widget_sptr w;
-    QSharedPointer<TestThread> t;
+    //QSharedPointer<TestThread> t;
+    QSharedPointer<XDemuxThread> de;
 
     int ret;
     try {
         w = XPlay2Widget::Handle();
         w->show();
 
-        t.reset(new TestThread());
-        t->xVideoWidget = w->m_ui->VideoWidget;
-        t->m_rt_ex = std::addressof(rt_exp);
-        t->at.SetException_ptr(std::addressof(at_exp));
-        t->vt.SetException_ptr(std::addressof(vt_exp));
-        t->init();
-        t->start();
+//        t.reset(new TestThread());
+//        t->xVideoWidget = w->m_ui->VideoWidget;
+//        t->m_rt_ex = std::addressof(rt_exp);
+//        t->at.SetException_ptr(std::addressof(at_exp));
+//        t->vt.SetException_ptr(std::addressof(vt_exp));
+//        t->init();
+//        t->start();
+        de.reset(new XDemuxThread());
+        de->Open("2_audio.mp4",w->m_ui->VideoWidget);
+        de->Start();
         ret = QApplication::exec();
 
-        if (at_exp){
-            std::rethrow_exception(at_exp);
-        }
+//        if (at_exp){
+//            std::rethrow_exception(at_exp);
+//        }
+//
+//        if (vt_exp){
+//            std::rethrow_exception(vt_exp);
+//        }
+//
+//        if (rt_exp){
+//            std::rethrow_exception(rt_exp);
+//        }
 
-        if (vt_exp){
-            std::rethrow_exception(vt_exp);
-        }
-
-        if (rt_exp){
-            std::rethrow_exception(rt_exp);
-        }
         return ret;
     } catch (const std::exception &e) {
         w.reset();
-        t.reset();
+//        t.reset();
         qDebug() << e.what();
         return -1;
     }

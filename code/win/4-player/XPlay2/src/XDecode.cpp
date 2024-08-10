@@ -66,17 +66,17 @@ void XDecode::Clear() noexcept(false) {
 
 bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
 
-    bool b{};
     int ret;
     {
         unique_lock lock(m_re_mux);
         if (!m_codec_ctx){
             PRINT_ERR_TIPS(GET_STR(Please initialize first));
-            return b;
+            return {};
         }
         FF_ERR_OUT(ret = avcodec_send_packet(m_codec_ctx,pkt.get()));
     }
 
+    bool b{};
     if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret ||
         AVERROR(EINVAL) == ret || AVERROR(ENOMEM) == ret) {
         return b;

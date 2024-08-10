@@ -64,12 +64,16 @@ XAudioThread::~XAudioThread(){
 
 void XAudioThread::run() noexcept(false) {
 
-    QMutexLocker lock(&m_mux);
-
     try {
-        m_audio_play->Open();
+
+        {
+            QMutexLocker lock(&m_mux);
+            m_audio_play->Open();
+        }
 
         while (!m_is_Exit) {
+
+            QMutexLocker lock(&m_mux);
 
             if (!m_decode || !m_resample) {
                 PRINT_ERR_TIPS(GET_STR(Please open first));
@@ -78,13 +82,13 @@ void XAudioThread::run() noexcept(false) {
             }
 
             while (!m_is_Exit) {
-
-                const auto af{m_decode->Receive()};//可能抛异常
+                XAVFrame_sptr af;
+                CHECK_EXC(af = m_decode->Receive(),lock.unlock()); //可能抛异常
                 if (!af){
                     break;
                 }
-
-                const auto re_size{m_resample->Resample(af, m_resample_datum)};
+                int re_size{};
+                CHECK_EXC(re_size = m_resample->Resample(af, m_resample_datum),lock.unlock());
 
                 while (!m_is_Exit) {
 
@@ -98,7 +102,7 @@ void XAudioThread::run() noexcept(false) {
                         lock.relock();
                         continue;
                     }
-                    m_audio_play->Write(m_resample_datum.data(),re_size);
+                    CHECK_EXC(m_audio_play->Write(m_resample_datum.data(),re_size),lock.unlock());
                     break;
                 }
             }
@@ -108,16 +112,21 @@ void XAudioThread::run() noexcept(false) {
                 continue;
             }
 
-            const auto b {m_decode->Send(m_Packets.first())};
+            bool b;
+            CHECK_EXC(b = m_decode->Send(m_Packets.first()),lock.unlock());
             if (b){
                 m_Packets.removeFirst();
                 m_wc.wakeAll();
             }
         }
-        m_audio_play->Close();
+
+        {
+            QMutexLocker lock(&m_mux);
+            m_audio_play->Close();
+        }
     } catch (...) {
+        QMutexLocker lock(&m_mux);
         m_audio_play->Close();
-        lock.unlock();
         if (m_exceptionPtr){
             *m_exceptionPtr = current_exception();
         }

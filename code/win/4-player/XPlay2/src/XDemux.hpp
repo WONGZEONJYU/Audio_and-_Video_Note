@@ -91,7 +91,7 @@ protected:
             *m_Present_Audio_st{};
     int64_t m_totalMS{};
     uint32_t m_nb_streams{};
-    int m_Present_Video_index{-1},
+    std::atomic_int m_Present_Video_index{-1},
         m_Present_Audio_index{-1};
 
 private:

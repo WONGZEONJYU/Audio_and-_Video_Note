@@ -57,7 +57,7 @@ void QXAudioPlay::Deconstruct() noexcept(true) {
     }
 }
 
-void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) {
+void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) noexcept(false){
 
     if (!data || data_size <= 0) {
         PRINT_ERR_TIPS(GET_STR(data or data_size error));
