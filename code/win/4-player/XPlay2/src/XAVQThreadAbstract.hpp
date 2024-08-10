@@ -6,7 +6,7 @@
 #define XPLAY2_XAVQTHREADABSTRACT_HPP
 
 #include <QThread>
-#include <QRecursiveMutex>
+#include <QMutex>
 #include <QSharedPointer>
 #include <QWaitCondition>
 #include <QQueue>
@@ -25,13 +25,19 @@ protected:
     static inline constexpr auto Max_List{100};
     explicit XAVQThreadAbstract(std::exception_ptr * = nullptr);
     ~XAVQThreadAbstract() override;
+    /**
+     * 线程退出等待
+     */
     void Exit_Thread() noexcept(true);
+    //派生类可以直接
+    //using XAVQThreadAbstract::SetException_ptr;
     void SetException_ptr(std::exception_ptr *) noexcept(true);
     virtual void Open(const XAVCodecParameters_sptr &) = 0;
+    //派生类可以直接using XAVQThreadAbstract::Push;
     virtual void Push(XAVPacket_sptr &&) noexcept(false);
 
     std::atomic<std::exception_ptr *> m_exceptionPtr{};
-    QRecursiveMutex m_re_mux;
+    QMutex m_mux;
     QWaitCondition m_wc;
     std::atomic_bool m_is_Exit{};
     QQueue<XAVPacket_sptr> m_Packets;

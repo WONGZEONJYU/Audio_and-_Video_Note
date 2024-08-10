@@ -8,7 +8,6 @@
 #include "XAVCodecParameters.hpp"
 
 XVideoThread::XVideoThread(std::exception_ptr *p): XAVQThreadAbstract(p){
-
 }
 
 XVideoThread::~XVideoThread() {
@@ -17,24 +16,24 @@ XVideoThread::~XVideoThread() {
 
 void XVideoThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
 
-    QMutexLocker locker(&m_re_mux);
+    QMutexLocker locker(&m_mux);
     if (!m_decode){
         CHECK_EXC(m_decode.reset(new XDecode()),locker.unlock());
+        m_wc.wakeAll();
     }
     m_decode->Open(p);
 }
 
 void XVideoThread::run() {
 
-    QMutexLocker locker(&m_re_mux);
+    QMutexLocker locker(&m_mux);
 
     try {
         while (!m_is_Exit){
             //qDebug() << currentThreadId() ;
             if (!m_decode || !m_call){
                 PRINT_ERR_TIPS(GET_STR(Please open first));
-                locker.unlock();
-                msleep(1);
+                m_wc.wait(&m_mux,1);
                 continue;
             }
 
@@ -44,21 +43,19 @@ void XVideoThread::run() {
                 if (!vf){
                     break;
                 }
-                //m_call.load()->Repaint(vf);
-                m_call->Repaint(vf);
+                m_call.load()->Repaint(vf);
                 msleep(40);
             }
 
             if (m_Packets.isEmpty()){
-                locker.unlock();
-                msleep(1);
-                locker.relock();
+                m_wc.wait(&m_mux,1);
                 continue;
             }
 
             const auto b{ m_decode->Send(m_Packets.first()) };
             if (b){
                 m_Packets.removeFirst();
+                m_wc.wakeAll();
             }
         }
     } catch (...) {
@@ -81,9 +78,11 @@ void XVideoThread::Open(const XAVCodecParameters_sptr &p, IVideoCall *call) noex
         return;
     }
 
-    QMutexLocker locker(&m_re_mux);
-    m_call = call;
-    //m_call.load()->Init(p->Width(),p->Height());
-    m_call->Init(p->Width(),p->Height());
+    {
+        QMutexLocker locker(&m_mux);
+        m_call = call;
+        m_call.load()->Init(p->Width(),p->Height());
+    }
+
     Open(p);
 }

@@ -19,11 +19,9 @@ public:
     using XAVQThreadAbstract::SetException_ptr;
 
 protected:
-    //std::atomic<IVideoCall*> m_call{};
-    IVideoCall* m_call{};
+    std::atomic<IVideoCall*> m_call{};
 public:
     ~XVideoThread() override;
 };
 
-
-#endif //XPLAY2_XVIDEOTHREAD_HPP
+#endif

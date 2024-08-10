@@ -13,7 +13,6 @@ using namespace std;
 
 XAudioThread::XAudioThread(std::exception_ptr *e) : XAVQThreadAbstract(e),
                                                     m_audio_play{QXAudioPlay::handle()} {
-
 }
 
 void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
@@ -23,8 +22,7 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
         return;
     }
 
-    QMutexLocker lock(&m_re_mux);
-
+    QMutexLocker lock(&m_mux);
     try {
         if (!m_decode){
             m_decode.reset(new XDecode);
@@ -34,13 +32,11 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
             m_resample.reset(new XResample);
         }
 
-//        if (!m_audio_play){
-//            m_audio_play = QXAudioPlay::handle();
-//        }
-
         m_resample->Open(p);
         m_audio_play->set_Audio_parameter(p->Sample_rate(),p->Ch_layout()->nb_channels,QAudioFormat::Int16);
         m_decode->Open(p);
+
+        m_wc.wakeAll();
 
     } catch (...) {
         DeConstruct();
@@ -68,19 +64,16 @@ XAudioThread::~XAudioThread(){
 
 void XAudioThread::run() noexcept(false) {
 
-    QMutexLocker lock(&m_re_mux);
+    QMutexLocker lock(&m_mux);
 
     try {
         m_audio_play->Open();
 
         while (!m_is_Exit) {
-            qDebug() << currentThreadId();
 
-            if (!m_decode || !m_resample){
+            if (!m_decode || !m_resample) {
                 PRINT_ERR_TIPS(GET_STR(Please open first));
-                lock.unlock();
-                msleep(1);
-                lock.relock();
+                m_wc.wait(&m_mux,1);
                 continue;
             }
 
@@ -110,16 +103,15 @@ void XAudioThread::run() noexcept(false) {
                 }
             }
 
-            if (m_Packets.isEmpty()){
-                lock.unlock();
-                msleep(1);
-                lock.relock();
+            if (m_Packets.isEmpty()) {
+                m_wc.wait(&m_mux,1);
                 continue;
             }
 
             const auto b {m_decode->Send(m_Packets.first())};
             if (b){
                 m_Packets.removeFirst();
+                m_wc.wakeAll();
             }
         }
         m_audio_play->Close();

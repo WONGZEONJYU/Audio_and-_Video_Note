@@ -67,7 +67,7 @@ void XDecode::Clear() noexcept(false) {
 bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
 
     bool b{};
-    auto ret{-1};
+    int ret;
     {
         unique_lock lock(m_re_mux);
         if (!m_codec_ctx){
@@ -98,12 +98,14 @@ XAVFrame_sptr XDecode::Receive() noexcept(false) {
 
     XAVFrame_sptr frame;
     CHECK_EXC(frame = new_XAVFrame(),lock.unlock());
-    auto ret{-1};
-    //FF_ERR_OUT(ret = avcodec_receive_frame(m_codec_ctx, frame.get()));
-    ret = avcodec_receive_frame(m_codec_ctx, frame.get());
+
+    const auto ret {avcodec_receive_frame(m_codec_ctx, frame.get())};
     lock.unlock();
     if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret || AVERROR(EINVAL) == ret){
         frame.reset();
+        if (AVERROR(EINVAL) == ret){
+            FF_ERR_OUT(ret);
+        }
     }else if (ret < 0){ //其他错误抛异常
         frame.reset();
         FF_CHECK_ERR(ret);
