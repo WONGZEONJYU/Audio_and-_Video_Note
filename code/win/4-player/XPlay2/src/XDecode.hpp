@@ -44,10 +44,16 @@ public:
      * 清空解码器
      */
     virtual void Clear() noexcept(false);
+
+    /**
+     * @return 解码后的pts
+     */
+    [[nodiscard]] int64_t Pts() const noexcept(true) {return m_pts;}
+
 protected:
     std::recursive_mutex m_re_mux;
     AVCodecContext *m_codec_ctx{};
-
+    std::atomic_int64_t m_pts{};
 public:
     virtual ~XDecode();
     X_DISABLE_COPY(XDecode);

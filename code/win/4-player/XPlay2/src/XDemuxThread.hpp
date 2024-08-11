@@ -51,7 +51,6 @@ protected:
      */
     XAVCodecParameters_sptr m_vc;
 
-
 public:
     ~XDemuxThread() override;
 };

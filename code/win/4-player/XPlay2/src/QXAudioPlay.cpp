@@ -23,13 +23,13 @@ void QXAudioPlay::Open() {
     fmt.setChannelCount(m_Channels);
     fmt.setChannelConfig(QAudioFormat::ChannelConfigStereo);
 
-    QMutexLocker locker(&m_re_mux);
+    QMutexLocker locker(&m_mux);
     CHECK_EXC(m_output.reset(new QAudioSink(dev,fmt)),locker.unlock());
     CHECK_NULLPTR(m_IO = m_output->start(),m_output.reset(),locker.unlock());
 }
 
 void QXAudioPlay::Close() noexcept(true) {
-    QMutexLocker locker(&m_re_mux);
+    QMutexLocker locker(&m_mux);
     Deconstruct();
 }
 
@@ -64,7 +64,7 @@ void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) noexcept(
         return;
     }
 
-    QMutexLocker locker(&m_re_mux);
+    QMutexLocker locker(&m_mux);
     if (!m_output || !m_IO) {
         PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
         return;
@@ -89,7 +89,7 @@ void QXAudioPlay::QtSetParent(void *p) noexcept(true){
 }
 
 uint64_t QXAudioPlay::FreeSize() const noexcept(false) {
-    QMutexLocker locker(const_cast<decltype(m_re_mux)*>(std::addressof(m_re_mux)));
+    QMutexLocker locker(const_cast<decltype(m_mux)*>(std::addressof(m_mux)));
     if (!m_output){
         PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
         return 0;
@@ -98,10 +98,33 @@ uint64_t QXAudioPlay::FreeSize() const noexcept(false) {
 }
 
 uint64_t QXAudioPlay::BufferSize() const noexcept(true) {
-    QMutexLocker locker(const_cast<decltype(m_re_mux)*>(std::addressof(m_re_mux)));
+    QMutexLocker locker(const_cast<decltype(m_mux)*>(std::addressof(m_mux)));
     if (!m_output){
         PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
         return 0;
     }
     return m_output->bufferSize();
+}
+
+int64_t QXAudioPlay::NoPlayMs() const {
+    QMutexLocker locker(const_cast<decltype(m_mux)*>(std::addressof(m_mux)));
+    if (!m_output){
+        PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
+        return 0;
+    }
+    /**
+     * 未播放到字节数
+     */
+    const double no_play_bytes {
+        static_cast<double>(m_output->bufferSize() - m_output->bytesFree())
+    };
+
+    /**
+     * 每秒采样到的字节数,公式 = 采样率 * 通道数 * (采样深度/8)
+     */
+    const double Bytes_per_second {
+        static_cast<double>(m_SampleRate * m_Channels * m_SampleFormat)
+    };
+
+    return Bytes_per_second <= 0 ? 0 : static_cast<int64_t >(no_play_bytes / Bytes_per_second) * 1000;
 }

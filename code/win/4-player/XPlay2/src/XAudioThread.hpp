@@ -20,6 +20,7 @@ public:
     void Open(const XAVCodecParameters_sptr &) noexcept(false) override;
     using XAVQThreadAbstract::Push;
     using XAVQThreadAbstract::SetException_ptr;
+    using XAVQThreadAbstract::Pts;
 
 protected:
     std::vector<uint8_t> m_resample_datum;

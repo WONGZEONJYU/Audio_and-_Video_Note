@@ -7,7 +7,7 @@
 
 #include "XAudioPlay.hpp"
 #include "XHelper.hpp"
-#include <QRecursiveMutex>
+#include <QMutex>
 #include <QSharedPointer>
 
 class QAudioSink;
@@ -27,11 +27,12 @@ class QXAudioPlay final : public XAudioPlay {
     [[nodiscard]] uint64_t BufferSize() const noexcept(true) override;
     void Write(const uint8_t *,const int64_t &) noexcept(false) override;
     void QtSetParent(void *) noexcept(true) override;
+    int64_t NoPlayMs() const override;
 public:
     static XAudioPlay *handle();
 
 private:
-    QRecursiveMutex m_re_mux;
+    QMutex m_mux;
     QSharedPointer<QAudioSink> m_output;
     /**
      * 不能delete m_IO,只能置空

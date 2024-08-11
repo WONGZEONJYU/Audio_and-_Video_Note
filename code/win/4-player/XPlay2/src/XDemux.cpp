@@ -18,6 +18,12 @@ using namespace std;
 atomic_uint64_t XDemux:: sm_init_times{};
 mutex XDemux::sm_mux;
 
+int XDemux::io_callback(void *args){
+    auto this_{static_cast<XDemux*>(args)};
+    cerr << this_ << "\n";
+    return this_->m_is_exit;
+}
+
 XDemux::XDemux() {
 
     if (!sm_init_times){
@@ -49,14 +55,15 @@ void XDemux::Open(const string &url) noexcept(false){
         FF_CHECK_ERR(av_dict_set(&opts, GET_STR(max_delay), GET_STR(500), 0));
     } catch (...) {
         d.destroy();
-        rethrow_exception(current_exception());
+        throw;
     }
 
     unique_lock lock(m_re_mux);
     try {
         FF_CHECK_ERR(avformat_open_input(&m_av_fmt_ctx,url.c_str(), nullptr, &opts));
         FF_CHECK_ERR(avformat_find_stream_info(m_av_fmt_ctx, nullptr));
-
+        m_av_fmt_ctx->interrupt_callback.callback = io_callback;
+        m_av_fmt_ctx->interrupt_callback.opaque = this;
         m_nb_streams = m_av_fmt_ctx->nb_streams;
         m_streams = m_av_fmt_ctx->streams;
 
@@ -195,8 +202,8 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
         lock.unlock();
         const auto pts{static_cast<double>(packet->pts)},
                 dst{static_cast<double>(packet->dts)};
-        packet->pts = static_cast<int64_t >(pts * 1000.0 * av_q2d(time_base));
-        packet->dts = static_cast<int64_t >(dst * 1000.0 * av_q2d(time_base));
+        packet->pts = static_cast<decltype(packet->pts)>(pts * 1000.0 * av_q2d(time_base));
+        packet->dts = static_cast<decltype(packet->dts)>(dst * 1000.0 * av_q2d(time_base));
     }
     return packet;
 }

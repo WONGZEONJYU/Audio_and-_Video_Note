@@ -36,7 +36,3 @@ void XAVQThreadAbstract::Exit_Thread() noexcept(true) {
     quit();
     wait();
 }
-
-void XAVQThreadAbstract::SetException_ptr(std::exception_ptr *e) noexcept(true) {
-    m_exceptionPtr.store(e);
-}

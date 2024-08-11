@@ -16,7 +16,11 @@ XVideoThread::~XVideoThread() {
 
 void XVideoThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
 
+    m_pts = 0;
+    m_sync_pts = 0;
+
     QMutexLocker locker(&m_mux);
+
     if (!m_decode){
         CHECK_EXC(m_decode.reset(new XDecode()),locker.unlock());
         m_decode->Open(p);
@@ -43,13 +47,19 @@ void XVideoThread::run() {
                     break;
                 }
                 m_call.load()->Repaint(vf);
-                msleep(40);
             }
 
             if (m_Packets.isEmpty()){
                 m_wc.wait(&m_mux,1);
                 continue;
             }
+
+            if (m_sync_pts < m_decode->Pts()){
+                locker.unlock();
+                msleep(1);
+                continue;
+            }
+
             bool b;
             CHECK_EXC(b = m_decode->Send(m_Packets.first()),locker.unlock());
             if (b){
@@ -58,7 +68,6 @@ void XVideoThread::run() {
             }
         }
     } catch (...) {
-        QMutexLocker locker(&m_mux);
         if (m_exceptionPtr){
             *m_exceptionPtr = std::current_exception();
         }

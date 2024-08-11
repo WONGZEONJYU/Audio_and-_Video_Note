@@ -23,6 +23,10 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
     }
 
     QMutexLocker lock(&m_mux);
+
+    m_pts = 0;
+    m_sync_pts = 0;
+
     try {
         if (!m_decode){
             m_decode.reset(new XDecode);
@@ -87,6 +91,12 @@ void XAudioThread::run() noexcept(false) {
                 if (!af){
                     break;
                 }
+
+                /*
+                 *获取时间差
+                 */
+                m_pts = m_decode->Pts() - m_audio_play->NoPlayMs();
+
                 int re_size{};
                 CHECK_EXC(re_size = m_resample->Resample(af, m_resample_datum),lock.unlock());
 
@@ -125,8 +135,10 @@ void XAudioThread::run() noexcept(false) {
             m_audio_play->Close();
         }
     } catch (...) {
-        QMutexLocker lock(&m_mux);
-        m_audio_play->Close();
+        {
+            QMutexLocker lock(&m_mux);
+            m_audio_play->Close();
+        }
         if (m_exceptionPtr){
             *m_exceptionPtr = current_exception();
         }

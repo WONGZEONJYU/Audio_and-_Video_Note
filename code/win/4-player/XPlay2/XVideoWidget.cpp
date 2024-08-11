@@ -138,16 +138,7 @@ void XVideoWidget::paintGL() {
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
     GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));//用于支持竖屏
 
-//    for (int i {}; i < std::size(m_textureYUV); ++i) {
-//        //Y数据的长度m_w * m_h
-//        //U数据的长度 m_w * m_h / 4
-//        //V数据的长度 m_w * m_h / 4
-//        const auto len{i ? m_w * m_h / 4 : m_w * m_h};
-//        m_textureYUV[i]->bind(i);
-//        m_textureYUV[i]->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8, nullptr);
-//    }
-
-    for(int i{};auto &item:m_textureYUV) {
+    for(uint32_t i{};auto &item:m_textureYUV) {
         //Y数据的长度m_w * m_h
         //U数据的长度 m_w * m_h / 4
         //V数据的长度 m_w * m_h / 4
@@ -174,8 +165,8 @@ void XVideoWidget::paintGL() {
 
 void XVideoWidget::resizeGL(int w, int h) {
 
-    qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
-    QMutexLocker locker(&m_mux);
+    //qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
+    //QMutexLocker locker(&m_mux);
     GL_CHECK(glViewport(0, 0, w, h));
 }
 
@@ -277,7 +268,7 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
         vao.release();
         cleanup();
         locker.unlock();
-        std::rethrow_exception(std::current_exception());
+        throw;
     }
 }
 
@@ -296,20 +287,42 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
     {
         QMutexLocker locker(&m_mux);
 
-        if (frame->width != m_w || frame->height != m_h){
-            qDebug() << __func__ << " Resolution error";
-            return;
-        }
-
         if (!m_shader || !m_VAO || !m_VBO || !m_EBO || m_yuv_datum.isEmpty() || m_textureYUV.isEmpty()){
             qDebug() << "Please call the Init() function first ";
             return;
         }
 
-        for (uint32_t i{};auto &item:m_yuv_datum) {
-            const auto len{ i ? m_w * m_h / 4 : m_w * m_h};
-            item = std::move(QByteArray(reinterpret_cast<const char*>(frame->data[i]),len));
-            ++i;
+        if (frame->width != m_w || frame->height != m_h){
+            qDebug() << __func__ << " Resolution error";
+            return;
+        }
+
+        if (m_w != frame->linesize[0]){ //需对齐
+
+            for(auto &item : m_yuv_datum){
+                item.clear();
+            }
+
+            for(uint32_t i {};i < m_h;++i){
+                const auto p {reinterpret_cast<const char*>(frame->data[0] + frame->linesize[0] * i)};
+                m_yuv_datum[0].append(p,m_w);
+            }
+
+            for (uint32_t i {}; i < m_h / 2 ; ++i) {
+                const auto p {reinterpret_cast<const char*>(frame->data[1] + frame->linesize[1] * i)};
+                m_yuv_datum[1].append(p,m_w / 2);
+            }
+
+            for (uint32_t i {}; i < m_h / 2 ; ++i) {
+                const auto p {reinterpret_cast<const char*>(frame->data[2] + frame->linesize[2] * i)};
+                m_yuv_datum[2].append(p,m_w / 2);
+            }
+        }else{ //无需对齐
+            for (uint32_t i{};auto &item:m_yuv_datum) {
+                const auto len{ i ? m_w * m_h / 4 : m_w * m_h};
+                item = std::move(QByteArray(reinterpret_cast<const char*>(frame->data[i]),len));
+                ++i;
+            }
         }
     }
 

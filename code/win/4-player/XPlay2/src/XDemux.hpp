@@ -23,7 +23,7 @@ class XDemux {
     void show_audio_info() const noexcept(true);
     void show_video_info()  noexcept(true);
     void DeConstruct() noexcept(true);
-
+    static int io_callback(void *);
 public:
     explicit XDemux();
     /**
@@ -93,7 +93,7 @@ protected:
     uint32_t m_nb_streams{};
     std::atomic_int m_Present_Video_index{-1},
         m_Present_Audio_index{-1};
-
+    std::atomic_int m_is_exit{};
 private:
     static std::atomic_uint64_t sm_init_times;
     static std::mutex sm_mux;

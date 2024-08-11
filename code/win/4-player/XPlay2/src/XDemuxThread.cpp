@@ -20,6 +20,8 @@ XDemuxThread::~XDemuxThread() {
 }
 
 void XDemuxThread::DeConstruct() noexcept(true) {
+    m_at.reset();
+    m_vt.reset();
     m_is_exit = true;
     quit();
     wait();
@@ -41,6 +43,7 @@ void XDemuxThread::Open(const QString &url,IVideoCall *call) noexcept(false) {
     try {
         m_demux.reset(new XDemux());
         m_demux->Open(url.toStdString());
+
         m_ac = m_demux->Copy_Present_AudioCodecParam();
         m_vc = m_demux->Copy_Present_VideoCodecParam();
 
@@ -70,6 +73,11 @@ void XDemuxThread::run() {
                 continue;
             }
 
+            /**
+             * 音频获取到到pts给视频进行同步
+             */
+            m_vt->Set_Sync_Pts(m_at->Pts());
+
             XAVPacket_sptr pkt;
             CHECK_EXC(pkt = m_demux->Read(),locker.unlock()); //可能有异常
             if (!pkt){
@@ -90,7 +98,7 @@ void XDemuxThread::run() {
         }
 
     } catch (...) {
-        QMutexLocker locker(&m_mux);
+        //QMutexLocker locker(&m_mux);
         if (m_ex_ptr){
             *m_ex_ptr = std::current_exception();
         }

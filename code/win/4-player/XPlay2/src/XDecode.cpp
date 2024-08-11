@@ -47,6 +47,7 @@ void XDecode::Open(const XAVCodecParameters_sptr &parm) noexcept(false) {
 }
 
 void XDecode::DeConstruct() noexcept(true) {
+    m_pts = 0;
     avcodec_free_context(&m_codec_ctx);
 }
 
@@ -109,6 +110,8 @@ XAVFrame_sptr XDecode::Receive() noexcept(false) {
     }else if (ret < 0){ //其他错误抛异常
         frame.reset();
         FF_CHECK_ERR(ret);
-    }else{}
+    }else{
+        m_pts = frame->pts;
+    }
     return frame;
 }

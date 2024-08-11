@@ -14,6 +14,12 @@ public:
     virtual void Write(const unsigned char *,const long long &) noexcept(false) = 0;
     [[nodiscard]] virtual unsigned long long FreeSize() const {return 0;}
     [[nodiscard]] virtual unsigned long long BufferSize() const {return 0;}
+
+    /**
+     * @return 未播放的时间
+     */
+
+    [[nodiscard]] virtual long long NoPlayMs() const = 0;
     /**
      * QT专用,非QT使用无效
      */
@@ -26,7 +32,11 @@ public:
      */
     void set_Audio_parameter(const int &SampleRate,
                              const int &Channels,
-                             const int &SampleFormat = 2) noexcept(true) ;
+                             const int &SampleFormat = 2) noexcept(true) {
+        m_SampleRate = SampleRate;
+        m_SampleFormat = SampleFormat;
+        m_Channels = Channels;
+    }
 
 protected:
     int m_SampleRate{44100},

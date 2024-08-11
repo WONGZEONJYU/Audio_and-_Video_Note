@@ -17,7 +17,7 @@ public:
     void Open(const XAVCodecParameters_sptr &,IVideoCall *) noexcept(false);
     using XAVQThreadAbstract::Push;
     using XAVQThreadAbstract::SetException_ptr;
-
+    using XAVQThreadAbstract::Set_Sync_Pts;
 protected:
     std::atomic<IVideoCall*> m_call{};
 public:
