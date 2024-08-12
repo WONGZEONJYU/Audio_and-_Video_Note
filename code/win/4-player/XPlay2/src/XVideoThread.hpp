@@ -15,11 +15,9 @@ Q_OBJECT
 public:
     explicit XVideoThread(std::exception_ptr * = nullptr);
     void Open(const XAVCodecParameters_sptr &,IVideoCall *) noexcept(false);
-    using XDecodeThread::Push;
-    using XDecodeThread::SetException_ptr;
-    using XDecodeThread::Set_Sync_Pts;
 protected:
     std::atomic<IVideoCall*> m_call{};
+    QMutex m_v_mux;
 public:
     ~XVideoThread() override;
 };

@@ -11,8 +11,9 @@
 
 using namespace std;
 
-XAudioThread::XAudioThread(std::exception_ptr *e) : XDecodeThread(e),
-                                                    m_audio_play{QXAudioPlay::handle()} {
+XAudioThread::XAudioThread(std::exception_ptr *e) :
+XDecodeThread(e),m_audio_play{QXAudioPlay::handle()}{
+
 }
 
 XAudioThread::~XAudioThread() {
@@ -26,26 +27,24 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
         return;
     }
 
+    QMutexLocker locker(&m_a_mux);
     m_pts = m_sync_pts = 0;
-
-    QMutexLocker lock(&m_mux);
 
     try {
         Create_Decode();
-
         if (!m_resample){
             m_resample.reset(new XResample);
         }
 
         m_resample->Open(p);
-        m_audio_play->set_Audio_parameter(p->Sample_rate(),p->Ch_layout()->nb_channels,QAudioFormat::Int16);
+        m_audio_play->set_Audio_parameter(p->Sample_rate(),
+                                          p->Ch_layout()->nb_channels,
+                                          QAudioFormat::Int16);
         m_decode->Open(p);
-
-        m_wc.wakeAll();
 
     } catch (...) {
         DeConstruct();
-        lock.unlock();
+        locker.unlock();
         throw ;
     }
 }
@@ -55,29 +54,22 @@ void XAudioThread::DeConstruct() noexcept(true){
 }
 
 void XAudioThread::entry() noexcept(false) {
-
     std::vector<uint8_t> resample_datum;
-
     try {
 
         {
-            QMutexLocker lock(&m_mux);
+            QMutexLocker lock(&m_a_mux);
             m_audio_play->Open();
         }
 
         while (!m_is_Exit) {
 
-            QMutexLocker lock(&m_mux);
-
-            if (!m_decode || !m_resample) {
-                PRINT_ERR_TIPS(GET_STR(Please open first));
-                m_wc.wait(&m_mux,1);
-                continue;
-            }
-
+            QMutexLocker locker(&m_a_mux);
+            //qDebug() << GET_STR(XAVideoThread::) << __func__ ;
             while (!m_is_Exit) {
+
                 XAVFrame_sptr af;
-                CHECK_EXC(af = m_decode->Receive(),lock.unlock()); //可能抛异常
+                CHECK_EXC(af = m_decode->Receive(),locker.unlock()); //可能抛异常
                 if (!af){
                     break;
                 }
@@ -86,9 +78,10 @@ void XAudioThread::entry() noexcept(false) {
                  *获取时间差
                  */
                 m_pts = m_decode->Pts() - m_audio_play->NoPlayMs();
-
+                qDebug() << "m_decode->Pts() - m_audio_play->NoPlayMs() = " << m_pts;
                 int re_size{};
-                CHECK_EXC(re_size = m_resample->Resample(af, resample_datum),lock.unlock());
+                CHECK_EXC(re_size = m_resample->Resample(af, resample_datum),
+                          locker.unlock());
 
                 while (!m_is_Exit) {
 
@@ -97,40 +90,39 @@ void XAudioThread::entry() noexcept(false) {
                     }
 
                     if (m_audio_play->FreeSize() < re_size) {
-                        lock.unlock();
                         msleep(1);
-                        lock.relock();
                         continue;
                     }
-                    CHECK_EXC(m_audio_play->Write(resample_datum.data(),re_size),lock.unlock());
+
+                    CHECK_EXC(m_audio_play->Write(resample_datum.data(),re_size));
                     break;
                 }
             }
 
-//            if (m_Packets.isEmpty()) {
-//                m_wc.wait(&m_mux,1);
-//                continue;
-//            }
+
+            auto pkt = Pop();
 
             bool b;
-            CHECK_EXC(b = m_decode->Send(Pop()),lock.unlock());
+            CHECK_EXC(b = m_decode->Send(pkt),locker.unlock());
             if (b){
                 PopFront();
-                m_wc.wakeAll();
             }else{
-                m_wc.wait(&m_mux,1);
+                locker.unlock();
+                msleep(1);
+                continue;
             }
         }
 
         {
-            QMutexLocker lock(&m_mux);
+            QMutexLocker lock(&m_a_mux);
             m_audio_play->Close();
         }
     } catch (...) {
         {
-            QMutexLocker lock(&m_mux);
+            QMutexLocker lock(&m_a_mux);
             m_audio_play->Close();
         }
+        qDebug() << __func__ << "catch";
         if (m_exceptionPtr){
             *m_exceptionPtr = current_exception();
         }

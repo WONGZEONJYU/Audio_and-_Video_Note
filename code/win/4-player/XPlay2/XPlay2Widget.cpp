@@ -48,5 +48,12 @@ void XPlay2Widget::OpenFile() {
         return;
     }
     setWindowTitle(name);
-    dt->Open(name.toLocal8Bit(),m_ui->VideoWidget);
+
+    try {
+        dt->Open(name.toLocal8Bit(),m_ui->VideoWidget);
+    } catch (const std::exception &e) {
+        qDebug() << e.what();
+        throw ;
+    }
+
 }

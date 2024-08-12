@@ -75,6 +75,7 @@ bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
             return {};
         }
         FF_ERR_OUT(ret = avcodec_send_packet(m_codec_ctx,pkt.get()));
+        //ret = avcodec_send_packet(m_codec_ctx,pkt.get());
     }
 
     bool b{};
@@ -104,9 +105,10 @@ XAVFrame_sptr XDecode::Receive() noexcept(false) {
     lock.unlock();
     if (AVERROR(EAGAIN) == ret || AVERROR_EOF == ret || AVERROR(EINVAL) == ret){
         frame.reset();
-        if (AVERROR(EINVAL) == ret){
-            FF_ERR_OUT(ret);
-        }
+        FF_ERR_OUT(ret);
+//        if (AVERROR(EINVAL) == ret){
+//            FF_ERR_OUT(ret);
+//        }
     }else if (ret < 0){ //其他错误抛异常
         frame.reset();
         FF_CHECK_ERR(ret);

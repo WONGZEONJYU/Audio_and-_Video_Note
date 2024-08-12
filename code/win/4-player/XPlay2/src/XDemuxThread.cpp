@@ -40,6 +40,7 @@ void XDemuxThread::Open(const QString &url,IVideoCall *call) noexcept(false) {
     }
 
     QMutexLocker locker(&m_mux);
+
     try {
 
         if (!m_demux){
@@ -60,7 +61,6 @@ void XDemuxThread::Open(const QString &url,IVideoCall *call) noexcept(false) {
 
         m_at->Open(m_ac);
         m_vt->Open(m_vc,call);
-        m_wc.wakeAll();
 
     } catch (...) {
         locker.unlock();
@@ -72,32 +72,37 @@ void XDemuxThread::run() {
 
     try {
         while (!m_is_exit){
-
+            qDebug() << "dfsgsdrhdrthjdytjdythjtfgjtyj";
             QMutexLocker locker(&m_mux);
-
-            if (!m_demux || !m_at || !m_vt){
-                m_wc.wait(&m_mux,1);
-                continue;
-            }
+//
+//            if (!m_demux || !m_at || !m_vt){
+//                m_wc.wait(&m_mux,1);
+//                continue;
+//            }
 
             /**
              * 音频获取到到pts给视频进行同步
              */
-            m_vt->Set_Sync_Pts(m_at->Pts());
+            //m_vt->Set_Sync_Pts(m_at->Pts());
 
             XAVPacket_sptr pkt;
             CHECK_EXC(pkt = m_demux->Read(),locker.unlock()); //可能有异常
             if (!pkt){
-                m_wc.wait(&m_mux,5);
+                //qDebug() << "pkt.get(): " << pkt.get();
+                locker.unlock();
+                msleep(5);
                 continue;
             }
 
             const auto a_index {m_demux->Present_Audio_Index()},
                         v_index {m_demux->Present_Video_Index()};
 
+            //qDebug() << "pkt->stream_index :" << pkt->stream_index;
             if (a_index == pkt->stream_index){
+                //qDebug() << "pkt->stream_index :" << pkt->stream_index;
                 m_at->Push(std::move(pkt));
             }else if (v_index == pkt->stream_index){
+                //qDebug() << "pkt->stream_index :" << pkt->stream_index;
                 m_vt->Push(std::move(pkt));
             } else{
                 pkt.reset();
@@ -121,11 +126,11 @@ void XDemuxThread::Start() noexcept(false) {
     }
 
     if (!m_at){
-        m_at.reset(new XAudioThread(m_ex_ptr.load()));
+        m_at.reset(new XAudioThread());
     }
 
     if (!m_vt) {
-        m_vt.reset(new XVideoThread(m_ex_ptr.load()));
+        m_vt.reset(new XVideoThread());
     }
 
     start();

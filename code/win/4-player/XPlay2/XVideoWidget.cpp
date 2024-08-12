@@ -320,9 +320,9 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
         }else{ //无需对齐
             for (uint32_t i{};auto &item:m_yuv_datum) {
                 const auto len{ i ? m_w * m_h / 4 : m_w * m_h};
-                //item = std::move(QByteArray(reinterpret_cast<const char*>(frame->data[i]),len));
-                const auto p {reinterpret_cast<const char*>(frame->data[i])};
-                item.insert(0,p,len);
+                item = std::move(QByteArray(reinterpret_cast<const char*>(frame->data[i]),len));
+//                const auto p {reinterpret_cast<const char*>(frame->data[i])};
+//                item.insert(0,p,len);
                 ++i;
             }
         }

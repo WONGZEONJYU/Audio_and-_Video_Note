@@ -80,7 +80,7 @@ public:
     virtual XAVPacket_sptr Pop() noexcept(false);
 
     /**
-     * 配合Pop()使用
+     * 配合Pop()使用.移除队列的帧
      */
     virtual void PopFront() noexcept(false);
 
@@ -92,12 +92,12 @@ public:
 
 protected:
     std::atomic<std::exception_ptr *> m_exceptionPtr{};
-    QMutex m_mux;
-    QWaitCondition m_wc;
     std::atomic_bool m_is_Exit{};
-    QQueue<XAVPacket_sptr> m_Packets;
     QSharedPointer<XDecode> m_decode;
     std::atomic_int64_t m_pts{},m_sync_pts{};
+    QQueue<XAVPacket_sptr> m_Packets;
+    //QWaitCondition m_cv;
+    QMutex m_d_mux;
 };
 
 #endif

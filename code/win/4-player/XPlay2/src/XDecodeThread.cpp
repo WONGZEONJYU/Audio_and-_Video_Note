@@ -7,6 +7,9 @@
 
 XDecodeThread::XDecodeThread(std::exception_ptr *e):
 QThread(),m_exceptionPtr{e} {
+    if (!m_decode){
+        m_decode.reset(new XDecode());
+    }
 }
 
 XDecodeThread::~XDecodeThread(){
@@ -21,18 +24,20 @@ void XDecodeThread::Push(XAVPacket_sptr &&pkt) noexcept(false) {
     }
 
     while (!m_is_Exit) {
-        QMutexLocker lock(&m_mux);
+        QMutexLocker lock(&m_d_mux);
         if (m_Packets.size() < Max_List){
-            m_Packets.enqueue(pkt);
-            m_wc.wakeAll();
+            m_Packets.push_back(std::move(pkt));
+            //m_cv.wakeAll();
             break;
         }
-        m_wc.wait(&m_mux,1);
+        lock.unlock();
+        msleep(1);
+        //m_cv.wait(&m_d_mux,1);
     }
 }
 
 void XDecodeThread::Clear() noexcept(true) {
-    QMutexLocker lock(&m_mux);
+    QMutexLocker lock(&m_d_mux);
     m_decode->Clear();
     m_Packets.clear();
 }
@@ -41,13 +46,13 @@ void XDecodeThread::Close() noexcept(true) {
     Clear();
     Exit_Thread();
     m_decode->Close();
-    QMutexLocker lock(&m_mux);
+    QMutexLocker lock(&m_d_mux);
     m_decode.reset();
 }
 
 void XDecodeThread::Exit_Thread() noexcept(true) {
     m_is_Exit = true;
-    m_wc.wakeAll();
+    //m_cv.wakeAll();
     quit();
     wait();
 }
@@ -58,7 +63,7 @@ void XDecodeThread::run() noexcept(false){
 
 XAVPacket_sptr XDecodeThread::Pop() noexcept(false) {
 
-    QMutexLocker lock(&m_mux);
+    QMutexLocker lock(&m_d_mux);
     if (m_Packets.isEmpty()){
         return {};
     }
@@ -66,17 +71,17 @@ XAVPacket_sptr XDecodeThread::Pop() noexcept(false) {
 }
 
 void XDecodeThread::PopFront() noexcept(false) {
-    QMutexLocker lock(&m_mux);
+    QMutexLocker lock(&m_d_mux);
     if (m_Packets.isEmpty()){
         return;
     }
     m_Packets.removeFirst();
-    m_wc.wakeAll();
+    //m_cv.wakeAll();
 }
 
 void XDecodeThread::Create_Decode() noexcept(false) {
-
-    if (!m_decode){
-        m_decode.reset(new XDecode());
-    }
+//    QMutexLocker lock(&m_d_mux);
+//    if (!m_decode){
+//        m_decode.reset(new XDecode());
+//    }
 }
