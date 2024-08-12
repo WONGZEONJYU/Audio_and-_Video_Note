@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1233</width>
-    <height>775</height>
+    <width>1280</width>
+    <height>744</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,6 +32,13 @@
    <item row="0" column="0">
     <widget class="XVideoWidget" name="VideoWidget"/>
    </item>
+   <item row="1" column="0">
+    <widget class="QPushButton" name="OpenFile">
+     <property name="text">
+      <string>Open Media File</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -42,5 +49,25 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>OpenFile</sender>
+   <signal>clicked()</signal>
+   <receiver>XPlay2Widget</receiver>
+   <slot>OpenFile()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>650</x>
+     <y>732</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>655</x>
+     <y>808</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>OpenFile()</slot>
+ </slots>
 </ui>

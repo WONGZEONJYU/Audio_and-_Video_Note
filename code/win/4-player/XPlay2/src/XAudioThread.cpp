@@ -11,8 +11,12 @@
 
 using namespace std;
 
-XAudioThread::XAudioThread(std::exception_ptr *e) : XAVQThreadAbstract(e),
+XAudioThread::XAudioThread(std::exception_ptr *e) : XDecodeThread(e),
                                                     m_audio_play{QXAudioPlay::handle()} {
+}
+
+XAudioThread::~XAudioThread() {
+    DeConstruct();
 }
 
 void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
@@ -22,15 +26,12 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
         return;
     }
 
+    m_pts = m_sync_pts = 0;
+
     QMutexLocker lock(&m_mux);
 
-    m_pts = 0;
-    m_sync_pts = 0;
-
     try {
-        if (!m_decode){
-            m_decode.reset(new XDecode);
-        }
+        Create_Decode();
 
         if (!m_resample){
             m_resample.reset(new XResample);
@@ -50,23 +51,12 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
 }
 
 void XAudioThread::DeConstruct() noexcept(true){
-
     Exit_Thread();
-
-    if (m_decode){
-        m_decode.reset();
-    }
-
-    if (m_resample){
-        m_resample.reset();
-    }
 }
 
-XAudioThread::~XAudioThread(){
-    DeConstruct();
-}
+void XAudioThread::entry() noexcept(false) {
 
-void XAudioThread::run() noexcept(false) {
+    std::vector<uint8_t> resample_datum;
 
     try {
 
@@ -98,7 +88,7 @@ void XAudioThread::run() noexcept(false) {
                 m_pts = m_decode->Pts() - m_audio_play->NoPlayMs();
 
                 int re_size{};
-                CHECK_EXC(re_size = m_resample->Resample(af, m_resample_datum),lock.unlock());
+                CHECK_EXC(re_size = m_resample->Resample(af, resample_datum),lock.unlock());
 
                 while (!m_is_Exit) {
 
@@ -112,21 +102,23 @@ void XAudioThread::run() noexcept(false) {
                         lock.relock();
                         continue;
                     }
-                    CHECK_EXC(m_audio_play->Write(m_resample_datum.data(),re_size),lock.unlock());
+                    CHECK_EXC(m_audio_play->Write(resample_datum.data(),re_size),lock.unlock());
                     break;
                 }
             }
 
-            if (m_Packets.isEmpty()) {
-                m_wc.wait(&m_mux,1);
-                continue;
-            }
+//            if (m_Packets.isEmpty()) {
+//                m_wc.wait(&m_mux,1);
+//                continue;
+//            }
 
             bool b;
-            CHECK_EXC(b = m_decode->Send(m_Packets.first()),lock.unlock());
+            CHECK_EXC(b = m_decode->Send(Pop()),lock.unlock());
             if (b){
-                m_Packets.removeFirst();
+                PopFront();
                 m_wc.wakeAll();
+            }else{
+                m_wc.wait(&m_mux,1);
             }
         }
 

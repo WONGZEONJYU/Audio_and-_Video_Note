@@ -58,7 +58,7 @@ void XDemux::Open(const string &url) noexcept(false){
         throw;
     }
 
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     try {
         FF_CHECK_ERR(avformat_open_input(&m_av_fmt_ctx,url.c_str(), nullptr, &opts));
         FF_CHECK_ERR(avformat_find_stream_info(m_av_fmt_ctx, nullptr));
@@ -184,7 +184,7 @@ void XDemux::show_video_info()  noexcept(true) {
 
 XAVPacket_sptr XDemux::Read() noexcept(false) {
 
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
 
     if (!m_av_fmt_ctx){
         PRINT_ERR_TIPS(GET_STR(Please initialize first));
@@ -219,7 +219,7 @@ void XDemux::DeConstruct() noexcept(true) {
 
 XAVCodecParameters_sptr XDemux::Copy_Present_VideoCodecParam() noexcept(false) {
 
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     if (!m_av_fmt_ctx){
         PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return {};
@@ -237,7 +237,7 @@ XAVCodecParameters_sptr XDemux::Copy_Present_VideoCodecParam() noexcept(false) {
 
 XAVCodecParameters_sptr XDemux::Copy_Present_AudioCodecParam() noexcept(false) {
 
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     if (!m_av_fmt_ctx){
         PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return {};
@@ -260,14 +260,12 @@ bool XDemux::is_Audio(const XAVPacket_sptr &pkt) noexcept(true){
         return {};
     }
 
-    unique_lock lock(m_re_mux);
-
+    unique_lock lock(m_mux);
     return m_Present_Video_index != pkt->stream_index;
 }
 
-bool XDemux::Seek(const double &pos) noexcept(true)
-{
-    unique_lock lock(m_re_mux);
+bool XDemux::Seek(const double &pos) noexcept(true) {
+    unique_lock lock(m_mux);
     if (!m_av_fmt_ctx){
         PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return {};
@@ -282,7 +280,7 @@ bool XDemux::Seek(const double &pos) noexcept(true)
                     static_cast<int64_t>(static_cast<double>(m_av_fmt_ctx->duration) * pos):
                     static_cast<int64_t>(static_cast<double >(m_Present_Video_st->duration) * pos)};
 
-    avformat_flush(m_av_fmt_ctx);
+    FF_ERR_OUT(avformat_flush(m_av_fmt_ctx));
     int ret;
     FF_ERR_OUT(ret = av_seek_frame(m_av_fmt_ctx,m_Present_Video_index,
                                 SeekPos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME));
@@ -290,15 +288,15 @@ bool XDemux::Seek(const double &pos) noexcept(true)
 }
 
 void XDemux::Clear() noexcept(true) {
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     if (!m_av_fmt_ctx){
         PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return;
     }
-    avformat_flush(m_av_fmt_ctx);
+    FF_ERR_OUT(avformat_flush(m_av_fmt_ctx));
 }
 
 void XDemux::Close() noexcept(true) {
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     DeConstruct();
 }

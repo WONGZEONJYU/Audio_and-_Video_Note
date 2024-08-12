@@ -33,7 +33,7 @@ void XDecode::Open(const XAVCodecParameters_sptr &parm) noexcept(false) {
         return;
     }
 
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     try {
         CHECK_NULLPTR(m_codec_ctx = avcodec_alloc_context3(nullptr));
         m_codec_ctx->thread_count = static_cast<int>(thread::hardware_concurrency());
@@ -52,12 +52,12 @@ void XDecode::DeConstruct() noexcept(true) {
 }
 
 void XDecode::Close() noexcept(false) {
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     DeConstruct();
 }
 
 void XDecode::Clear() noexcept(false) {
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     if (!m_codec_ctx){
         PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return;
@@ -69,7 +69,7 @@ bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
 
     int ret;
     {
-        unique_lock lock(m_re_mux);
+        unique_lock lock(m_mux);
         if (!m_codec_ctx){
             PRINT_ERR_TIPS(GET_STR(Please initialize first));
             return {};
@@ -91,7 +91,7 @@ bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
 
 XAVFrame_sptr XDecode::Receive() noexcept(false) {
 
-    unique_lock lock(m_re_mux);
+    unique_lock lock(m_mux);
     if (!m_codec_ctx){
         PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return {};

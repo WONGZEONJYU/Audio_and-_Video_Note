@@ -51,7 +51,7 @@ public:
     [[nodiscard]] int64_t Pts() const noexcept(true) {return m_pts;}
 
 protected:
-    std::recursive_mutex m_re_mux;
+    std::mutex m_mux;
     AVCodecContext *m_codec_ctx{};
     std::atomic_int64_t m_pts{};
 public:

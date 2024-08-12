@@ -185,12 +185,14 @@ int main(int argc, char *argv[]) {
 //        t->vt.SetException_ptr(std::addressof(vt_exp));
 //        t->init();
 //        t->start();
-        de.reset(new XDemuxThread());
+        //de.reset(new XDemuxThread());
         //de->Open("2_audio.mp4",w->m_ui->VideoWidget);
+
         //de->Open(GET_STR(rtmp:\/\/liteavapp.qcloud.com\/live\/liteavdemoplayerstreamid),w->m_ui->VideoWidget);
-        de->Open(GET_STR(1. 课程介绍~1.mp4),w->m_ui->VideoWidget);
+
+        //de->Open(GET_STR(1. 课程介绍~1.mp4),w->m_ui->VideoWidget);
         //de->Open(GET_STR(http:\/\/devimages.apple.com\/iphone\/samples\/bipbop\/gear1\/prog_index.m3u8),w->m_ui->VideoWidget);
-        de->Start();
+        //de->Start();
         ret = QApplication::exec();
 
 //        if (at_exp){

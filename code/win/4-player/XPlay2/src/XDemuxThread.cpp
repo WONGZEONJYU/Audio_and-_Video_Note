@@ -11,7 +11,7 @@
 #include "XAVPacket.hpp"
 
 XDemuxThread::XDemuxThread(std::exception_ptr * e):
-QThread(), m_ex_ptr(e){
+    QThread(), m_ex_ptr(e) {
 
 }
 
@@ -41,18 +41,25 @@ void XDemuxThread::Open(const QString &url,IVideoCall *call) noexcept(false) {
 
     QMutexLocker locker(&m_mux);
     try {
-        m_demux.reset(new XDemux());
-        m_demux->Open(url.toStdString());
 
+        if (!m_demux){
+            m_demux.reset(new XDemux());
+        }
+
+        if (!m_at){
+            m_at.reset(new XAudioThread(m_ex_ptr.load()));
+        }
+
+        if (!m_vt){
+            m_vt.reset(new XVideoThread(m_ex_ptr.load()));
+        }
+
+        m_demux->Open(url.toStdString());
         m_ac = m_demux->Copy_Present_AudioCodecParam();
         m_vc = m_demux->Copy_Present_VideoCodecParam();
 
-        m_at.reset(new XAudioThread(m_ex_ptr.load()));
         m_at->Open(m_ac);
-
-        m_vt.reset(new XVideoThread(m_ex_ptr.load()));
         m_vt->Open(m_vc,call);
-
         m_wc.wakeAll();
 
     } catch (...) {
@@ -106,12 +113,28 @@ void XDemuxThread::run() {
 }
 
 void XDemuxThread::Start() noexcept(false) {
+
     QMutexLocker locker(&m_mux);
-    if (!m_demux || !m_at || !m_vt) {
-        PRINT_ERR_TIPS(GET_STR(Please initialize first));
-        return;
+
+    if (!m_demux){
+        m_demux.reset(new XDemux());
     }
+
+    if (!m_at){
+        m_at.reset(new XAudioThread(m_ex_ptr.load()));
+    }
+
+    if (!m_vt) {
+        m_vt.reset(new XVideoThread(m_ex_ptr.load()));
+    }
+
     start();
-    m_at->start();
-    m_vt->start();
+
+    if (m_at){
+        m_at->start();
+    }
+
+    if (m_vt){
+        m_vt->start();
+    }
 }

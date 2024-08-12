@@ -7,6 +7,10 @@
 #include "XPlay2Widget.hpp"
 #include "ui_XPlay2Widget.h"
 #include "XHelper.hpp"
+#include <QFileDialog>
+#include <XDemuxThread.hpp>
+
+static XDemuxThread *dt;
 
 XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
 
@@ -18,6 +22,7 @@ XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
 
 XPlay2Widget::XPlay2Widget(QWidget *parent) :
         QWidget(parent) {
+
 }
 
 XPlay2Widget::~XPlay2Widget() {
@@ -28,8 +33,20 @@ void XPlay2Widget::Construct() noexcept(false) {
 
     CHECK_EXC(m_ui.reset(new Ui::XPlay2Widget));
     m_ui->setupUi(this);
+    dt = new XDemuxThread();
+    dt->Start();
 }
 
 void XPlay2Widget::DeConstruct() noexcept {
+    delete dt;
+    dt = nullptr;
+}
 
+void XPlay2Widget::OpenFile() {
+    auto name {QFileDialog::getOpenFileName(this,QString::fromLocal8Bit("Select Media Files"))};
+    if (name.isEmpty()){
+        return;
+    }
+    setWindowTitle(name);
+    dt->Open(name.toLocal8Bit(),m_ui->VideoWidget);
 }

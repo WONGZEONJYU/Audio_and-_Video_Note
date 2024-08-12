@@ -24,9 +24,12 @@ Q_OBJECT
 public:
     static XPlay2Widget_sptr Handle() noexcept(false);
     ~XPlay2Widget() override;
-//private:
-QSharedPointer<Ui::XPlay2Widget> m_ui;
 
+private slots:
+    void OpenFile();
+
+private:
+    QSharedPointer<Ui::XPlay2Widget> m_ui;
 };
 
-#endif //XPLAY2_XPLAY2WIDGET_HPP
+#endif

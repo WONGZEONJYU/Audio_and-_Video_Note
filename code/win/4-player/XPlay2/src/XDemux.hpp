@@ -83,7 +83,7 @@ public:
     }
 
 protected:
-    std::recursive_mutex m_re_mux;
+    std::mutex m_mux;
     std::vector<int> m_stream_indices;
     AVFormatContext *m_av_fmt_ctx{};
     AVStream **m_streams{},

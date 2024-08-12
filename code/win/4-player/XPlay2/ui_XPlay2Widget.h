@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QWidget>
 #include <XVideoWidget.hpp>
 
@@ -22,12 +23,13 @@ class Ui_XPlay2Widget
 public:
     QGridLayout *gridLayout;
     XVideoWidget *VideoWidget;
+    QPushButton *OpenFile;
 
     void setupUi(QWidget *XPlay2Widget)
     {
         if (XPlay2Widget->objectName().isEmpty())
             XPlay2Widget->setObjectName("XPlay2Widget");
-        XPlay2Widget->resize(1233, 775);
+        XPlay2Widget->resize(1280, 744);
         gridLayout = new QGridLayout(XPlay2Widget);
         gridLayout->setSpacing(0);
         gridLayout->setObjectName("gridLayout");
@@ -37,8 +39,14 @@ public:
 
         gridLayout->addWidget(VideoWidget, 0, 0, 1, 1);
 
+        OpenFile = new QPushButton(XPlay2Widget);
+        OpenFile->setObjectName("OpenFile");
+
+        gridLayout->addWidget(OpenFile, 1, 0, 1, 1);
+
 
         retranslateUi(XPlay2Widget);
+        QObject::connect(OpenFile, SIGNAL(clicked()), XPlay2Widget, SLOT(OpenFile()));
 
         QMetaObject::connectSlotsByName(XPlay2Widget);
     } // setupUi
@@ -46,6 +54,7 @@ public:
     void retranslateUi(QWidget *XPlay2Widget)
     {
         XPlay2Widget->setWindowTitle(QCoreApplication::translate("XPlay2Widget", "XPlay2Widget", nullptr));
+        OpenFile->setText(QCoreApplication::translate("XPlay2Widget", "Open Media File", nullptr));
     } // retranslateUi
 
 };

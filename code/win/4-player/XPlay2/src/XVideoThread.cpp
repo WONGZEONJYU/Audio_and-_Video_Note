@@ -7,7 +7,7 @@
 #include "IVideoCall.hpp"
 #include "XAVCodecParameters.hpp"
 
-XVideoThread::XVideoThread(std::exception_ptr *p): XAVQThreadAbstract(p){
+XVideoThread::XVideoThread(std::exception_ptr *p): XDecodeThread(p){
 }
 
 XVideoThread::~XVideoThread() {
@@ -23,12 +23,12 @@ void XVideoThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
 
     if (!m_decode){
         CHECK_EXC(m_decode.reset(new XDecode()),locker.unlock());
-        m_decode->Open(p);
-        m_wc.wakeAll();
     }
+    m_decode->Open(p);
+    m_wc.wakeAll();
 }
 
-void XVideoThread::run() {
+void XVideoThread::entry() {
 
     try {
         while (!m_is_Exit) {

@@ -80,8 +80,8 @@ set(SRC_CODE
         src/IVideoCall.hpp
         src/XVideoThread.cpp
         src/XVideoThread.hpp
-        src/XAVQThreadAbstract.hpp
-        src/XAVQThreadAbstract.cpp
+        src/XDecodeThread.hpp
+        src/XDecodeThread.cpp
         src/XDemuxThread.cpp
         src/XDemuxThread.hpp
 )
