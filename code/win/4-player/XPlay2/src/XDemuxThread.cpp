@@ -103,7 +103,7 @@ void XDemuxThread::run() {
                 end = false;
             }
 
-            const auto  pkt_index {pkt->stream_index};
+            const auto pkt_index {pkt->stream_index};
 
             if (a_index == pkt_index){
                 m_at->Push(std::move(pkt));
