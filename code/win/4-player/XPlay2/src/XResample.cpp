@@ -9,7 +9,6 @@ extern "C"{
 #include "XSwrContext.hpp"
 #include "XAVCodecParameters.hpp"
 #include "XAVFrame.hpp"
-#include <iostream>
 
 void XResample::Open(const XAVCodecParameters_sptr &parm) {
 
@@ -25,7 +24,8 @@ void XResample::Open(const XAVCodecParameters_sptr &parm) {
                                           parm->Sample_rate(),
                                           parm->Ch_layout(),
                                           static_cast<AVSampleFormat>(parm->Sample_Format()),
-                                          parm->Sample_rate()),lock.unlock());
+                                          parm->Sample_rate()),
+                                          lock.unlock());
 }
 
 void XResample::Close() noexcept(true) {

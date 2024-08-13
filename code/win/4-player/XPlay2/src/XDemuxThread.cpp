@@ -20,8 +20,6 @@ XDemuxThread::~XDemuxThread() {
 }
 
 void XDemuxThread::DeConstruct() noexcept(true) {
-    m_at.reset();
-    m_vt.reset();
     m_is_exit = true;
     quit();
     wait();
@@ -72,49 +70,45 @@ void XDemuxThread::run() {
 
     try {
         while (!m_is_exit){
-            qDebug() << "dfsgsdrhdrthjdytjdythjtfgjtyj";
+
             QMutexLocker locker(&m_mux);
-//
-//            if (!m_demux || !m_at || !m_vt){
-//                m_wc.wait(&m_mux,1);
-//                continue;
-//            }
 
             /**
              * 音频获取到到pts给视频进行同步
              */
-            //m_vt->Set_Sync_Pts(m_at->Pts());
+
+            m_vt->Set_Sync_Pts(m_at->Pts());
 
             XAVPacket_sptr pkt;
             CHECK_EXC(pkt = m_demux->Read(),locker.unlock()); //可能有异常
             if (!pkt){
-                //qDebug() << "pkt.get(): " << pkt.get();
                 locker.unlock();
                 msleep(5);
                 continue;
             }
 
             const auto a_index {m_demux->Present_Audio_Index()},
-                        v_index {m_demux->Present_Video_Index()};
+                        v_index {m_demux->Present_Video_Index()},
+                        pkt_index {pkt->stream_index};
 
-            //qDebug() << "pkt->stream_index :" << pkt->stream_index;
-            if (a_index == pkt->stream_index){
-                //qDebug() << "pkt->stream_index :" << pkt->stream_index;
+            if (a_index == pkt_index){
                 m_at->Push(std::move(pkt));
-            }else if (v_index == pkt->stream_index){
-                //qDebug() << "pkt->stream_index :" << pkt->stream_index;
+            }else if (v_index == pkt_index){
                 m_vt->Push(std::move(pkt));
             } else{
                 pkt.reset();
             }
+
+            locker.unlock();
+            usleep(1);
         }
 
     } catch (...) {
-        //QMutexLocker locker(&m_mux);
         if (m_ex_ptr){
             *m_ex_ptr = std::current_exception();
         }
     }
+    qDebug() << "XDemuxThread::run exit";
 }
 
 void XDemuxThread::Start() noexcept(false) {

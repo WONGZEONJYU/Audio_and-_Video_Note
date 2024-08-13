@@ -55,5 +55,4 @@ void XPlay2Widget::OpenFile() {
         qDebug() << e.what();
         throw ;
     }
-
 }

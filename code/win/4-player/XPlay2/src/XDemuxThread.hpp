@@ -26,6 +26,7 @@ Q_OBJECT
 public:
     explicit XDemuxThread(std::exception_ptr * = nullptr);
     virtual void Open(const QString &,IVideoCall *) noexcept(false);
+
     virtual void Start() noexcept(false);
 protected:
     std::atomic<std::exception_ptr*> m_ex_ptr{};

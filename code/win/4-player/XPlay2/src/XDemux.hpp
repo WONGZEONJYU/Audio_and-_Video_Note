@@ -13,7 +13,7 @@
 
 struct AVFormatContext;
 struct AVStream;
-struct XAVPacket;
+class XAVPacket;
 class XAVCodecParameters;
 
 using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;

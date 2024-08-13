@@ -19,10 +19,11 @@ public:
     explicit XAudioThread(std::exception_ptr * = nullptr);
     ~XAudioThread() override;
     void Open(const XAVCodecParameters_sptr &) noexcept(false) override;
-
+    void Close() noexcept(true) override;
 protected:
+    std::atomic<XAudioPlay *> m_audio_play{};
     QSharedPointer<XResample> m_resample;
-    XAudioPlay *m_audio_play{};
+//    XAudioPlay *m_audio_play{};
     QMutex m_a_mux;
 };
 

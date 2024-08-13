@@ -27,7 +27,7 @@ class QXAudioPlay final : public XAudioPlay {
     [[nodiscard]] uint64_t BufferSize() const noexcept(true) override;
     void Write(const uint8_t *,const int64_t &) noexcept(false) override;
     void QtSetParent(void *) noexcept(true) override;
-    int64_t NoPlayMs() const override;
+    [[nodiscard]] int64_t NoPlayMs() const override;
 public:
     static XAudioPlay *handle();
 

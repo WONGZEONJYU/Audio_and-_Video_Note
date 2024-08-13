@@ -15,51 +15,42 @@ XVideoThread::~XVideoThread() {
     Exit_Thread();
 }
 
-void XVideoThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
-
-    {
-        QMutexLocker locker(&m_v_mux);
-        m_pts = m_sync_pts = 0;
-    }
-    Create_Decode();
-
-    m_decode->Open(p);
-}
 
 void XVideoThread::entry() {
 
     try {
         while (!m_is_Exit) {
-            QMutexLocker locker(&m_v_mux);
-            //qDebug() << GET_STR(XVideoThread::) << __func__ ;
+//            QMutexLocker locker(&m_v_mux);
+            int64_t pts{};
+            while (!m_is_Exit) {
+                XAVFrame_sptr vf;
+                CHECK_EXC(vf = Receive_Frame(pts));//有异常
+                if (!vf){
+                    break;
+                }
+                m_call.load()->Repaint(vf);
+            }
 
-//            while (!m_is_Exit){
-//                XAVFrame_sptr vf;
-//                CHECK_EXC(vf = m_decode->Receive(),locker.unlock());//有异常
-//                if (!vf){
-//                    break;
-//                }
-//                m_call.load()->Repaint(vf);
-//            }
-//
-//            if (m_sync_pts > 0 && m_sync_pts < m_decode->Pts()){
+            if (m_sync_pts > 0 && m_sync_pts < pts){
 //                locker.unlock();
-//                msleep(1);
-//                continue;
-//            }
+                msleep(1);
+                continue;
+            }
 
-            Pop();
-            PopFront();;
-
-//            bool b;
-//            CHECK_EXC(b = m_decode->Send(Pop()),locker.unlock());
-//            if (b){
-//                PopFront();
-//            }else{
+            if (Empty()){
 //                locker.unlock();
-//                msleep(1);
-//                continue;
-//            }
+                msleep(1);
+                continue;
+            }
+
+            bool b;
+            CHECK_EXC(b = Send_Packet(Pop()));
+            if (b){
+                PopFront();
+            }else{
+                msleep(1);
+                continue;
+            }
         }
     } catch (...) {
         qDebug() << __func__ << "catch";
@@ -81,11 +72,8 @@ void XVideoThread::Open(const XAVCodecParameters_sptr &p, IVideoCall *call) noex
         return;
     }
 
-    {
-        QMutexLocker locker(&m_v_mux);
-        m_call = call;
-        m_call.load()->Init(p->Width(),p->Height());
-    }
-
-    Open(p);
+    Clear();
+    m_call = call;
+    m_call.load()->Init(p->Width(),p->Height());
+    XDecodeThread::Open(p);
 }

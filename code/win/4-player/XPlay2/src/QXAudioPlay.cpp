@@ -19,13 +19,14 @@ void QXAudioPlay::Open() {
 
     fmt.setSampleRate(m_SampleRate);
     fmt.setChannelCount(m_SampleFormat);
-    fmt.setSampleFormat(static_cast<QAudioFormat::SampleFormat>(m_SampleFormat));
+    fmt.setSampleFormat(static_cast<QAudioFormat::SampleFormat>(m_SampleFormat.load()));
     fmt.setChannelCount(m_Channels);
     fmt.setChannelConfig(QAudioFormat::ChannelConfigStereo);
 
     QMutexLocker locker(&m_mux);
     CHECK_EXC(m_output.reset(new QAudioSink(dev,fmt)),locker.unlock());
     CHECK_NULLPTR(m_IO = m_output->start(),m_output.reset(),locker.unlock());
+    m_is_change = false;
 }
 
 void QXAudioPlay::Close() noexcept(true) {

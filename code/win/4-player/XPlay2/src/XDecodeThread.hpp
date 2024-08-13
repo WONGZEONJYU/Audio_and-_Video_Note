@@ -14,14 +14,20 @@
 class XAVCodecParameters;
 class XDecode;
 class XAVPacket;
+class XAVFrame;
 
 using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
-using XAVPacket_sptr = std::shared_ptr<XAVPacket>;
+using XAVPacket_sptr = typename std::shared_ptr<XAVPacket>;
+using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
 
 class XDecodeThread : public QThread {
 Q_OBJECT
 
     void run() noexcept(false) override;
+    /**
+     * 派生类需实现线程入口函数
+     */
+    virtual void entry() noexcept(false) = 0;
 
 protected:
     static inline constexpr auto Max_List{100};
@@ -29,19 +35,38 @@ protected:
     ~XDecodeThread() override;
 
     /**
-     * 派生类需实现线程入口函数
-     */
-    virtual void entry() noexcept(false) = 0;
-
-    /**
      * 派生类需实现打开函数
      */
-    virtual void Open(const XAVCodecParameters_sptr &) = 0;
+    virtual void Open(const XAVCodecParameters_sptr &) noexcept(false);
 
     /**
      * 创建解码器
      */
     void Create_Decode() noexcept(false);
+
+    /**
+     * 读取一包未解码数据,如果读取不到则返回空,建议使用之前先调用Empty()进行判空
+     * @return XAVPacket_sptr or nullptr
+     */
+    virtual XAVPacket_sptr Pop() noexcept(false);
+
+    /**
+     * 配合Pop()使用.移除队列的帧
+     */
+    virtual void PopFront() noexcept(false);
+
+    /**
+     * 判空
+     * @return true or false
+     */
+    virtual bool Empty() noexcept(false);
+
+    /**
+     * 发送解码包
+     */
+    virtual bool Send_Packet(const XAVPacket_sptr &) noexcept(false);
+
+    [[nodiscard]] virtual XAVFrame_sptr Receive_Frame(int64_t &pts) noexcept(false);
 
 public:
 
@@ -72,32 +97,22 @@ public:
      */
     virtual void Push(XAVPacket_sptr &&) noexcept(false);
 
-    /**
-     * 读取一包未解码数据,如果读取不到则返回空
-     * @return XAVPacket_sptr or nullptr
-     */
-
-    virtual XAVPacket_sptr Pop() noexcept(false);
-
-    /**
-     * 配合Pop()使用.移除队列的帧
-     */
-    virtual void PopFront() noexcept(false);
-
-    void Set_Sync_Pts(const int64_t &pts) {
+    void Set_Sync_Pts(const int64_t &pts) noexcept(true){
         m_sync_pts = pts;
     }
 
-    [[nodiscard]] int64_t Pts() const {return m_pts;}
+    [[nodiscard]] int64_t Pts() const noexcept(true) {return m_pts;}
 
 protected:
     std::atomic<std::exception_ptr *> m_exceptionPtr{};
     std::atomic_bool m_is_Exit{};
-    QSharedPointer<XDecode> m_decode;
     std::atomic_int64_t m_pts{},m_sync_pts{};
+
+private:
     QQueue<XAVPacket_sptr> m_Packets;
-    //QWaitCondition m_cv;
+    QWaitCondition m_cv;
     QMutex m_d_mux;
+    QSharedPointer<XDecode> m_decode;
 };
 
 #endif

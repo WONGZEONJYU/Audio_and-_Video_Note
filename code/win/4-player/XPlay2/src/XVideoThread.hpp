@@ -11,10 +11,10 @@
 class XVideoThread : public XDecodeThread {
 Q_OBJECT
     void entry() override;
-    void Open(const XAVCodecParameters_sptr &) noexcept(false) override;
 public:
     explicit XVideoThread(std::exception_ptr * = nullptr);
     void Open(const XAVCodecParameters_sptr &,IVideoCall *) noexcept(false);
+
 protected:
     std::atomic<IVideoCall*> m_call{};
     QMutex m_v_mux;
