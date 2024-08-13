@@ -300,3 +300,13 @@ void XDemux::Close() noexcept(true) {
     unique_lock lock(m_mux);
     DeConstruct();
 }
+
+bool XDemux::End() noexcept(true) {
+    bool b{};
+    if (!m_av_fmt_ctx){
+        PRINT_ERR_TIPS(GET_STR(Please initialize first));
+        return b;
+    }
+
+    return false;
+}

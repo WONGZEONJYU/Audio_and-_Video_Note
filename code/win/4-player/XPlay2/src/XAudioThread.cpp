@@ -102,11 +102,6 @@ void XAudioThread::entry() noexcept(false) {
                 }
             }
 
-            if (Empty()) {
-                msleep(1);
-                continue;
-            }
-
             bool b;
             CHECK_EXC(b = Send_Packet(Pop()));
             if (b){

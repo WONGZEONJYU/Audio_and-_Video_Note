@@ -69,27 +69,41 @@ void XDemuxThread::Open(const QString &url,IVideoCall *call) noexcept(false) {
 void XDemuxThread::run() {
 
     try {
+        bool end{};
         while (!m_is_exit){
 
             QMutexLocker locker(&m_mux);
 
+            const auto a_index {m_demux->Present_Audio_Index()},
+                    v_index {m_demux->Present_Video_Index()};
             /**
              * 音频获取到到pts给视频进行同步
              */
-
             m_vt->Set_Sync_Pts(m_at->Pts());
 
             XAVPacket_sptr pkt;
             CHECK_EXC(pkt = m_demux->Read(),locker.unlock()); //可能有异常
-            if (!pkt){
+            if (!pkt && !end){
+                end = true;
+                if (a_index >= 0){
+                    m_at->Push({});
+                }
+                if (v_index >= 0){
+                    m_vt->Push({});
+                }
+                locker.unlock();
+                msleep(1);
+                continue;
+            }
+            else if (!pkt) {
                 locker.unlock();
                 msleep(5);
                 continue;
+            }else{
+                end = false;
             }
 
-            const auto a_index {m_demux->Present_Audio_Index()},
-                        v_index {m_demux->Present_Video_Index()},
-                        pkt_index {pkt->stream_index};
+            const auto  pkt_index {pkt->stream_index};
 
             if (a_index == pkt_index){
                 m_at->Push(std::move(pkt));

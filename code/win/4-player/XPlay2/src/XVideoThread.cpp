@@ -15,12 +15,10 @@ XVideoThread::~XVideoThread() {
     Exit_Thread();
 }
 
-
 void XVideoThread::entry() {
 
     try {
         while (!m_is_Exit) {
-//            QMutexLocker locker(&m_v_mux);
             int64_t pts{};
             while (!m_is_Exit) {
                 XAVFrame_sptr vf;
@@ -32,13 +30,6 @@ void XVideoThread::entry() {
             }
 
             if (m_sync_pts > 0 && m_sync_pts < pts){
-//                locker.unlock();
-                msleep(1);
-                continue;
-            }
-
-            if (Empty()){
-//                locker.unlock();
                 msleep(1);
                 continue;
             }

@@ -1513,7 +1513,7 @@ static void stream_close(VideoState *is)
     // 动态(线程/callback)的先停止退出
     /* XXX: use a special url_shutdown call to abort parse cleanly */
     is->abort_request = 1; //请求退出
-    SDL_WaitThread(is->read_tid, NULL);
+    SDL_WaitThread(is->read_tid, nullptr);
 
     /* close each stream */
     if (is->audio_stream >= 0) {
@@ -1594,7 +1594,7 @@ static void do_exit(VideoState *is)
     }
 
     SDL_Quit();
-    av_log(NULL, AV_LOG_QUIET, "%s", "");
+    av_log(nullptr, AV_LOG_QUIET, "%s", "");
     exit(0);
 }
 
@@ -3682,10 +3682,10 @@ static int is_realtime(AVFormatContext *s)
 static int read_thread(void *arg)
 {
     VideoState *is = static_cast<decltype(is)>(arg);
-    AVFormatContext *ic = NULL;
+    AVFormatContext *ic {};
     int err, i, ret;
     int st_index[AVMEDIA_TYPE_NB];
-    AVPacket *pkt = NULL;
+    AVPacket *pkt {};
 
 
     const AVDictionaryEntry *t;
@@ -3946,7 +3946,7 @@ static int read_thread(void *arg)
             //is->seek_flags决定是按照时间seek还是按字节seek
 
             if (ret < 0) {
-                av_log(NULL, AV_LOG_ERROR,
+                av_log(nullptr, AV_LOG_ERROR,
                        "%s: error while seeking\n", is->ic->url);
             }else{
                 //seek的时候，要把原先的数据情况，并重启解码器，put flush_pkt的目的是告知解码线程需要

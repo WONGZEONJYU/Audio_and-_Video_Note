@@ -10,6 +10,7 @@
 #include <QSharedPointer>
 #include <QWaitCondition>
 #include <QQueue>
+#include <QReadWriteLock>
 
 class XAVCodecParameters;
 class XDecode;
@@ -112,6 +113,7 @@ private:
     QQueue<XAVPacket_sptr> m_Packets;
     QWaitCondition m_cv;
     QMutex m_d_mux;
+    QReadWriteLock m_rw_mux;
     QSharedPointer<XDecode> m_decode;
 };
 
