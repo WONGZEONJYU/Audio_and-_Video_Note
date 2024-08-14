@@ -93,7 +93,7 @@ XAVFrame_sptr XDecode::Receive() noexcept(false) {
 
     unique_lock lock(m_mux);
     if (!m_codec_ctx){
-        PRINT_ERR_TIPS(GET_STR(Please initialize first));
+        //PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return {};
     }
 

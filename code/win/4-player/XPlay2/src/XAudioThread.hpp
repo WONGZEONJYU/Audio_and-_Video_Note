@@ -23,7 +23,6 @@ public:
 protected:
     std::atomic<XAudioPlay *> m_audio_play{};
     QSharedPointer<XResample> m_resample;
-//    XAudioPlay *m_audio_play{};
     QMutex m_a_mux;
 };
 

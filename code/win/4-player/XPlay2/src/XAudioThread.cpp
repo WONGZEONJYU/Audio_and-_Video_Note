@@ -55,11 +55,14 @@ void XAudioThread::entry() noexcept(false) {
 
     try {
 
-        m_audio_play.load()->Open();
-
         std::vector<uint8_t> resample_datum;
 
         while (!m_is_Exit) {
+
+            if (m_is_Pause){
+                msleep(5);
+                continue;
+            }
 
             if (m_audio_play.load()->Is_Transform()){
                 m_audio_play.load()->Open();
@@ -78,7 +81,6 @@ void XAudioThread::entry() noexcept(false) {
                  *获取时间差,用于同步
                  */
                 m_pts = pts - m_audio_play.load()->NoPlayMs();
-
                 QMutexLocker locker(&m_a_mux);
                 int re_size{};
                 CHECK_EXC(re_size = m_resample->Resample(af, resample_datum),
@@ -100,14 +102,14 @@ void XAudioThread::entry() noexcept(false) {
                 }
             }
 
-            bool b;
-            CHECK_EXC(b = Send_Packet(Pop()));
-            if (b){
-                PopFront();
-            }else{
+            if (Empty()){
                 msleep(1);
                 continue;
             }
+
+            bool b;
+            CHECK_EXC(b = Send_Packet(Pop()));
+            PopFront();
         }
 
         m_audio_play.load()->Close();
@@ -123,7 +125,6 @@ void XAudioThread::entry() noexcept(false) {
 
 void XAudioThread::Close() noexcept(true) {
     XDecodeThread::Close();
-    m_resample->Close();
     QMutexLocker locker(&m_a_mux);
     m_resample.reset();
 }

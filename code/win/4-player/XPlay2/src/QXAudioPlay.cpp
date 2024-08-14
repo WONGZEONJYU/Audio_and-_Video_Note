@@ -129,3 +129,10 @@ int64_t QXAudioPlay::NoPlayMs() const {
 
     return Bytes_per_second <= 0 ? 0 : static_cast<int64_t >(no_play_bytes / Bytes_per_second) * 1000;
 }
+
+void QXAudioPlay::SetPause(const bool &b) noexcept(true) {
+    QMutexLocker locker(&m_mux);
+    if (m_output){
+
+    }
+}

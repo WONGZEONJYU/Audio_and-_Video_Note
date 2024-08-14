@@ -259,7 +259,7 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
             /*表示当纹理坐标超出[0.0, 1.0] 范围时,将纹理坐标钳制到边缘值*/
             item->allocateStorage();
             /*分配显存*/
-            qDebug() << "textureId: "  << item->textureId();
+            //qDebug() << "textureId: "  << item->textureId();
             ++i;
         }
 

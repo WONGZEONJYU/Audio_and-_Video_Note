@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>744</height>
+    <width>1187</width>
+    <height>763</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,13 +29,30 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <item row="0" column="0">
+   <item row="0" column="0" colspan="2">
     <widget class="XVideoWidget" name="VideoWidget"/>
    </item>
-   <item row="1" column="0">
+   <item row="2" column="0">
     <widget class="QPushButton" name="OpenFile">
      <property name="text">
       <string>Open Media File</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QPushButton" name="isPlay">
+     <property name="text">
+      <string>Play</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QSlider" name="PlayPos">
+     <property name="maximum">
+      <number>999</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -57,8 +74,8 @@
    <slot>OpenFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>650</x>
-     <y>732</y>
+     <x>593</x>
+     <y>762</y>
     </hint>
     <hint type="destinationlabel">
      <x>655</x>
@@ -66,8 +83,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>isPlay</sender>
+   <signal>clicked()</signal>
+   <receiver>XPlay2Widget</receiver>
+   <slot>PlayOrPause()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>926</x>
+     <y>753</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1054</x>
+     <y>853</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>OpenFile()</slot>
+  <slot>PlayOrPause()</slot>
  </slots>
 </ui>

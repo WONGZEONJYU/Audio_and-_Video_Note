@@ -28,6 +28,8 @@ class QXAudioPlay final : public XAudioPlay {
     void Write(const uint8_t *,const int64_t &) noexcept(false) override;
     void QtSetParent(void *) noexcept(true) override;
     [[nodiscard]] int64_t NoPlayMs() const override;
+    void SetPause(const bool &) noexcept(true) override;
+    //void handleStateChanged(QAudio::State newState);
 public:
     static XAudioPlay *handle();
 

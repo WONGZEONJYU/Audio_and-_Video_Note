@@ -17,7 +17,7 @@ public:
 
 protected:
     std::atomic<IVideoCall*> m_call{};
-    QMutex m_v_mux;
+    //QMutex m_v_mux;
 public:
     ~XVideoThread() override;
 };

@@ -82,7 +82,6 @@ public:
         return m_totalMS;
     }
 
-    virtual bool End() noexcept(true);
 protected:
     std::mutex m_mux;
     std::vector<int> m_stream_indices;

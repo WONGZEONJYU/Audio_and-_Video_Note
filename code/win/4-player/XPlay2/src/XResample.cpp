@@ -9,6 +9,7 @@ extern "C"{
 #include "XSwrContext.hpp"
 #include "XAVCodecParameters.hpp"
 #include "XAVFrame.hpp"
+#include <iostream>
 
 void XResample::Open(const XAVCodecParameters_sptr &parm) {
 
@@ -64,4 +65,3 @@ int XResample::Resample(const XAVFrame_sptr &frame,resample_data_t &datum) noexc
 
     return av_samples_get_buffer_size(nullptr,frame->ch_layout.nb_channels,ret_nb_samples,AV_SAMPLE_FMT_S16,1);
 }
-

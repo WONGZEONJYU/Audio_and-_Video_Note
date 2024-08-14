@@ -37,6 +37,9 @@ public:
      * QT专用,非QT使用无效
      */
     virtual void QtSetParent(void *) noexcept(true){};
+
+    virtual void SetPause(const bool &) noexcept(true) = 0;
+
     /**
      * SampleFormat 需要根据库去决定,这里使用qt库,QAudioFormat::Int16的值是2
      * @param SampleRate

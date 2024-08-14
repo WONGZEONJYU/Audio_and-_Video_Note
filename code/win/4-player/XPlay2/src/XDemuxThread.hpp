@@ -9,14 +9,15 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QSharedPointer>
-#include <QString>
 
+class QString;
 class XDemux;
 class XAudioThread;
 class XVideoThread;
 class IVideoCall;
 class XAVCodecParameters;
-using XAVCodecParameters_sptr = std::shared_ptr<XAVCodecParameters>;
+
+using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
 
 class XDemuxThread : public QThread {
 Q_OBJECT
@@ -26,14 +27,31 @@ Q_OBJECT
 public:
     explicit XDemuxThread(std::exception_ptr * = nullptr);
     virtual void Open(const QString &,IVideoCall *) noexcept(false);
-
+    virtual void Close() noexcept(false);
     virtual void Start() noexcept(false);
-protected:
-    std::atomic<std::exception_ptr*> m_ex_ptr{};
 
-    std::atomic_bool m_is_exit{};
+    [[nodiscard]] auto totalMS() const noexcept(true){
+        return m_total_Ms.load();
+    }
+
+    [[nodiscard]] auto Pts() const noexcept(true){
+        return m_pts.load();
+    }
+
+    void SetPause(const bool &b){
+        m_isPause = b;
+    };
+
+    [[nodiscard]] auto is_Pause() const noexcept(true){
+        return m_isPause.load();
+    }
+
+protected:
+    std::atomic_int64_t m_pts{},m_total_Ms{};
+    std::atomic<std::exception_ptr*> m_ex_ptr{};
+    std::atomic_bool m_is_exit{},m_isPause{};
     QMutex m_mux;
-    QWaitCondition m_wc;
+    QWaitCondition m_cv;
     QSharedPointer<XDemux> m_demux;
     /**
      * 音频解码线程

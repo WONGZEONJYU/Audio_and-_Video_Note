@@ -22,25 +22,25 @@ XDecodeThread::~XDecodeThread() {
 }
 
 void XDecodeThread::Create_Decode() noexcept(false) {
-
+    QMutexLocker locker(&m_d_mux);
     if (!m_decode){
-        QMutexLocker locker(&m_d_mux);
         CHECK_EXC(m_decode.reset(new XDecode()),locker.unlock());
     }
 }
 
-void XDecodeThread::Open(const XAVCodecParameters_sptr &p){
+void XDecodeThread::Open(const XAVCodecParameters_sptr &p) {
     Create_Decode();
     Clear();
     m_decode->Open(p);
+    m_cv.wakeAll();
 }
 
 void XDecodeThread::Push(XAVPacket_sptr &&pkt) noexcept(false) {
 
-    if (!pkt) {
-        PRINT_ERR_TIPS(GET_STR(XAVPacket_sptr is empty));
-        return;
-    }
+//    if (!pkt) {
+//        PRINT_ERR_TIPS(GET_STR(XAVPacket_sptr is empty));
+//        return;
+//    }
 
     while (!m_is_Exit) {
         QReadLocker locker(&m_rw_mux);
@@ -49,7 +49,7 @@ void XDecodeThread::Push(XAVPacket_sptr &&pkt) noexcept(false) {
             m_cv.wakeAll();
             break;
         }
-        m_cv.wait(&m_rw_mux,1);
+        m_cv.wait(&m_rw_mux);
     }
 }
 
@@ -84,7 +84,7 @@ void XDecodeThread::run() noexcept(false){
 }
 
 XAVPacket_sptr XDecodeThread::Pop() noexcept(false) {
-#if 0
+#if 1
     QMutexLocker locker(&m_d_mux);
     if (m_Packets.isEmpty()){
         return {};
@@ -93,8 +93,8 @@ XAVPacket_sptr XDecodeThread::Pop() noexcept(false) {
 #else
     while (!m_is_Exit){
         QReadLocker locker(&m_rw_mux);
-        if (m_Packets.isEmpty()){
-            m_cv.wait(&m_rw_mux,1);
+        if (m_Packets.isEmpty()) {
+            m_cv.wait(&m_rw_mux);
             continue;
         }
         return m_Packets.first();
@@ -109,7 +109,7 @@ void XDecodeThread::PopFront() noexcept(false) {
         return;
     }
     m_Packets.removeFirst();
-    m_cv.wakeOne();
+    m_cv.wakeAll();
 }
 
 bool XDecodeThread::Empty() noexcept(false){

@@ -2,15 +2,11 @@
 // Created by Administrator on 2024/7/27.
 //
 
-// You may need to build the project (run Qt uic code generator) to get "ui_XPlay2Widget.h" resolved
-
 #include "XPlay2Widget.hpp"
 #include "ui_XPlay2Widget.h"
 #include "XHelper.hpp"
 #include <QFileDialog>
 #include <XDemuxThread.hpp>
-
-static XDemuxThread *dt;
 
 XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
 
@@ -22,7 +18,6 @@ XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
 
 XPlay2Widget::XPlay2Widget(QWidget *parent) :
         QWidget(parent) {
-
 }
 
 XPlay2Widget::~XPlay2Widget() {
@@ -33,13 +28,13 @@ void XPlay2Widget::Construct() noexcept(false) {
 
     CHECK_EXC(m_ui.reset(new Ui::XPlay2Widget));
     m_ui->setupUi(this);
-    dt = new XDemuxThread();
-    dt->Start();
+    m_dmt.reset(new XDemuxThread());
+    m_dmt->Start();
+    startTimer(40);
 }
 
 void XPlay2Widget::DeConstruct() noexcept {
-    delete dt;
-    dt = nullptr;
+    m_dmt.reset();
 }
 
 void XPlay2Widget::OpenFile() {
@@ -48,11 +43,41 @@ void XPlay2Widget::OpenFile() {
         return;
     }
     setWindowTitle(name);
-
     try {
-        dt->Open(name.toLocal8Bit(),m_ui->VideoWidget);
+        m_dmt->Open(name.toLocal8Bit(),m_ui->VideoWidget);
+        SetPause(m_dmt->is_Pause());
     } catch (const std::exception &e) {
         qDebug() << e.what();
-        throw ;
+        throw;
     }
+}
+
+void XPlay2Widget::timerEvent(QTimerEvent *event) {
+    const auto total {m_dmt->totalMS()};
+    if (total > 0) {
+        const auto pos {static_cast<double>(m_dmt->Pts()) / static_cast<double>(total)};
+        const auto v{static_cast<decltype(pos)>(m_ui->PlayPos->maximum()) * pos};
+        m_ui->PlayPos->setValue(static_cast<int>(v));
+    }
+}
+
+void XPlay2Widget::resizeEvent(QResizeEvent *event) {
+    QWidget::resizeEvent(event);
+    //m_ui->VideoWidget->resize(size());
+}
+
+void XPlay2Widget::mouseDoubleClickEvent(QMouseEvent *event) {
+    //QWidget::mouseDoubleClickEvent(event);
+    isFullScreen() ? showNormal(): showFullScreen();
+}
+
+void XPlay2Widget::SetPause(const bool &b) {
+    b ? m_ui->isPlay->setText("Play") : m_ui->isPlay->setText("Pause");
+}
+
+void XPlay2Widget::PlayOrPause() {
+    qDebug() << __func__ ;
+    const auto b {!m_dmt->is_Pause()};
+    SetPause(b);
+    m_dmt->SetPause(b);
 }

@@ -187,14 +187,20 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
     unique_lock lock(m_mux);
 
     if (!m_av_fmt_ctx){
-        PRINT_ERR_TIPS(GET_STR(Please initialize first));
+        //PRINT_ERR_TIPS(GET_STR(Please initialize first));
+        return {};
+    }
+
+    int ret;
+    FF_ERR_OUT(ret = avio_feof(m_av_fmt_ctx->pb));
+    if (ret < 0){
         return {};
     }
 
     XAVPacket_sptr packet;
     CHECK_EXC(packet = new_XAVPacket(),lock.unlock());
-
-    const auto ret {av_read_frame(m_av_fmt_ctx,packet.get())};
+    ret = av_read_frame(m_av_fmt_ctx,packet.get());
+    //FF_ERR_OUT(ret = av_read_frame(m_av_fmt_ctx,packet.get()));
     if (ret < 0){
         packet.reset();
     }else{
@@ -299,14 +305,4 @@ void XDemux::Clear() noexcept(true) {
 void XDemux::Close() noexcept(true) {
     unique_lock lock(m_mux);
     DeConstruct();
-}
-
-bool XDemux::End() noexcept(true) {
-    bool b{};
-    if (!m_av_fmt_ctx){
-        PRINT_ERR_TIPS(GET_STR(Please initialize first));
-        return b;
-    }
-
-    return false;
 }
