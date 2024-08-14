@@ -81,10 +81,13 @@ void XAudioThread::entry() noexcept(false) {
                  *获取时间差,用于同步
                  */
                 m_pts = pts - m_audio_play.load()->NoPlayMs();
-                QMutexLocker locker(&m_a_mux);
+
                 int re_size{};
-                CHECK_EXC(re_size = m_resample->Resample(af, resample_datum),
-                          locker.unlock());
+                {
+                    QMutexLocker locker(&m_a_mux);
+                    CHECK_EXC(re_size = m_resample->Resample(af, resample_datum),
+                              locker.unlock());
+                }
 
                 while (!m_is_Exit) {
 
@@ -92,7 +95,7 @@ void XAudioThread::entry() noexcept(false) {
                         break;
                     }
 
-                    if (m_audio_play.load()->FreeSize() < re_size) {
+                    if (m_is_Pause || m_audio_play.load()->FreeSize() < re_size) {
                         msleep(1);
                         continue;
                     }
@@ -127,4 +130,11 @@ void XAudioThread::Close() noexcept(true) {
     XDecodeThread::Close();
     QMutexLocker locker(&m_a_mux);
     m_resample.reset();
+}
+
+void XAudioThread::SetPause(const bool &b) noexcept(true){
+    XDecodeThread::SetPause(b);
+    if (m_audio_play){
+        m_audio_play.load()->SetPause(b);
+    }
 }

@@ -2239,7 +2239,7 @@ static int get_video_frame(VideoState *is, AVFrame *frame)
 {
     int got_picture;
 
-    if ((got_picture = decoder_decode_frame(&is->viddec, frame, NULL)) < 0){
+    if ((got_picture = decoder_decode_frame(&is->viddec, frame, nullptr)) < 0){
         return -1;
     }
 
@@ -2733,7 +2733,7 @@ static int video_thread(void *arg)
         return AVERROR(ENOMEM);
     }
 
-    for (;;) {
+    while(true) {
         ret = get_video_frame(is, frame);
         if (ret < 0){
             goto the_end;
@@ -2807,7 +2807,7 @@ static int video_thread(void *arg)
                 break;
             }
 
-            FrameData *fd = frame->opaque_ref ? (FrameData*)frame->opaque_ref->data : NULL; //获取pkt_pos
+            FrameData *fd = frame->opaque_ref ? (FrameData*)frame->opaque_ref->data : nullptr; //获取pkt_pos
 
             is->frame_last_filter_delay = (double )av_gettime_relative() / 1000000.0 - is->frame_last_returned_time; //记录从滤镜读取一帧数据需要多久,用于丢帧(get_video_frame函数使用)
 

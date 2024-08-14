@@ -132,7 +132,9 @@ int64_t QXAudioPlay::NoPlayMs() const {
 
 void QXAudioPlay::SetPause(const bool &b) noexcept(true) {
     QMutexLocker locker(&m_mux);
-    if (m_output){
-
+    if (!m_output){
+        PRINT_ERR_TIPS(GET_STR(Please turn on the device first));
+        return;
     }
+    b ? m_output->suspend() : m_output->resume();
 }

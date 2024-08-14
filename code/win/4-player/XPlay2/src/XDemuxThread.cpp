@@ -60,8 +60,6 @@ void XDemuxThread::Open(const QString &url,IVideoCall *call) noexcept(false) {
         m_at->Open(m_ac);
         m_vt->Open(m_vc,call);
         m_total_Ms = m_demux->totalMS();
-
-        m_isPause = false;
         m_cv.wakeAll();
 
     } catch (...) {
@@ -164,4 +162,15 @@ void XDemuxThread::Close() noexcept(false) {
     m_demux.reset();
     m_at.reset();
     m_vt.reset();
+}
+
+void XDemuxThread::SetPause(const bool &b){
+    m_isPause = b;
+    QMutexLocker locker(&m_mux);
+    if (m_at){
+        m_at->SetPause(b);
+    }
+    if (m_vt){
+        m_vt->SetPause(b);
+    }
 }

@@ -20,6 +20,7 @@ public:
     ~XAudioThread() override;
     void Open(const XAVCodecParameters_sptr &) noexcept(false) override;
     void Close() noexcept(true) override;
+    void SetPause(const bool &b) noexcept(true) override;
 protected:
     std::atomic<XAudioPlay *> m_audio_play{};
     QSharedPointer<XResample> m_resample;

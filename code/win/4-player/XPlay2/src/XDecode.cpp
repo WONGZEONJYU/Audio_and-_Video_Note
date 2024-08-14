@@ -113,5 +113,6 @@ XAVFrame_sptr XDecode::Receive() noexcept(false) {
     }else{
         m_pts = frame->pts;
     }
+
     return frame;
 }

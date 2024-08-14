@@ -104,7 +104,7 @@ public:
 
     [[nodiscard]] int64_t Pts() const noexcept(true) {return m_pts;}
 
-    void SetPause(const bool &b) noexcept(true){
+    virtual void SetPause(const bool &b) noexcept(true){
         m_is_Pause = b;
     }
 
@@ -116,7 +116,6 @@ protected:
     std::atomic<std::exception_ptr *> m_exceptionPtr{};
     std::atomic_bool m_is_Exit{},m_is_Pause{};
     std::atomic_int64_t m_pts{},m_sync_pts{};
-
 private:
     QQueue<XAVPacket_sptr> m_Packets;
     QWaitCondition m_cv;

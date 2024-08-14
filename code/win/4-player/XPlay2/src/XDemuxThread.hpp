@@ -38,9 +38,7 @@ public:
         return m_pts.load();
     }
 
-    void SetPause(const bool &b){
-        m_isPause = b;
-    };
+    void SetPause(const bool &b);
 
     [[nodiscard]] auto is_Pause() const noexcept(true){
         return m_isPause.load();

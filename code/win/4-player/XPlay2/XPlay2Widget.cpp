@@ -30,6 +30,8 @@ void XPlay2Widget::Construct() noexcept(false) {
     m_ui->setupUi(this);
     m_dmt.reset(new XDemuxThread());
     m_dmt->Start();
+    m_dmt->SetPause(true);
+    SetPause(m_dmt->is_Pause());
     startTimer(40);
 }
 
@@ -44,9 +46,16 @@ void XPlay2Widget::OpenFile() {
     }
     setWindowTitle(name);
     try {
+        m_ui->isPlay->setEnabled(false);
         m_dmt->Open(name.toLocal8Bit(),m_ui->VideoWidget);
+
+        if (m_dmt->is_Pause()){
+            m_dmt->SetPause(false);
+        }
         SetPause(m_dmt->is_Pause());
+        m_ui->isPlay->setEnabled(true);
     } catch (const std::exception &e) {
+        m_ui->isPlay->setEnabled(true);
         qDebug() << e.what();
         throw;
     }
@@ -76,8 +85,10 @@ void XPlay2Widget::SetPause(const bool &b) {
 }
 
 void XPlay2Widget::PlayOrPause() {
+    sender()->blockSignals(true);
     qDebug() << __func__ ;
     const auto b {!m_dmt->is_Pause()};
     SetPause(b);
     m_dmt->SetPause(b);
+    sender()->blockSignals(false);
 }

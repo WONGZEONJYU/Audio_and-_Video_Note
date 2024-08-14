@@ -41,7 +41,7 @@ void XVideoThread::entry() {
             }
 
             if (Empty()){
-                msleep(1);
+                //msleep(1);
                 continue;
             }
 
