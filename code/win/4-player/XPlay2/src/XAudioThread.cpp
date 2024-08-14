@@ -13,8 +13,6 @@ using namespace std;
 
 XAudioThread::XAudioThread(std::exception_ptr *e) :
 XDecodeThread(e),m_audio_play(QXAudioPlay::handle()) {
-
-
 }
 
 XAudioThread::~XAudioThread() {
