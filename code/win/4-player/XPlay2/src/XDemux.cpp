@@ -199,9 +199,10 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
 
     XAVPacket_sptr packet;
     CHECK_EXC(packet = new_XAVPacket(),lock.unlock());
-    ret = av_read_frame(m_av_fmt_ctx,packet.get());
-    //FF_ERR_OUT(ret = av_read_frame(m_av_fmt_ctx,packet.get()));
+    //ret = av_read_frame(m_av_fmt_ctx,packet.get());
+    FF_ERR_OUT(ret = av_read_frame(m_av_fmt_ctx,packet.get()));
     if (ret < 0){
+
         packet.reset();
     }else{
         const auto time_base {m_streams[packet->stream_index]->time_base};

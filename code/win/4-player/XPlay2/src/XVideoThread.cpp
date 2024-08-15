@@ -43,21 +43,22 @@ void XVideoThread::entry() {
                     break;
                 }
             }
+#if 0
+            if (Empty()) {
+                msleep(1);
+                continue;
+            }
 
-//            if (Empty()) {
-//                msleep(1);
-//                continue;
-//            }
-//
-//            bool b;
-//            CHECK_EXC(b = Send_Packet(Pop()));
-//            if (b){
-//                PopFront();
-//            }
-
+            bool b;
+            CHECK_EXC(b = Send_Packet(Pop()));
+            if (b){
+                PopFront();
+            }
+#else
             if (!Send_Packet()){
                 msleep(1);
             }
+#endif
         }
     } catch (...) {
         qDebug() << __func__ << "catch";
