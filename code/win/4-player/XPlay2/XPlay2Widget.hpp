@@ -34,8 +34,11 @@ public:
 private slots:
     void OpenFile();
     void PlayOrPause();
+    void SliderPressed();
+    void SliderReleased();
 
 private:
+    std::atomic_bool m_is_SliderPress{};
     QSharedPointer<Ui::XPlay2Widget> m_ui;
     QSharedPointer<XDemuxThread> m_dmt;
 };

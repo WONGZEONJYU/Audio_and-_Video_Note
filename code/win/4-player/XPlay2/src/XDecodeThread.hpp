@@ -67,6 +67,8 @@ protected:
      */
     virtual bool Send_Packet(const XAVPacket_sptr &) noexcept(false);
 
+    virtual bool Send_Packet() noexcept(false);
+
     [[nodiscard]] virtual XAVFrame_sptr Receive_Frame(int64_t &pts) noexcept(false);
 
 public:

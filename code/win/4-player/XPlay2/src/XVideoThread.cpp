@@ -26,28 +26,38 @@ void XVideoThread::entry() {
                 continue;
             }
 
-            if (m_sync_pts > 0 && m_sync_pts < pts){
-                msleep(1);
-                continue;
-            }
-
             while (!m_is_Exit) {
                 XAVFrame_sptr vf;
                 CHECK_EXC(vf = Receive_Frame(pts));//有异常
                 if (!vf){
                     break;
                 }
-                m_call.load()->Repaint(vf);
+
+                while (!m_is_Exit){
+
+                    if (0 < m_sync_pts && m_sync_pts < pts) {
+                        msleep(1);
+                        continue;
+                    }
+                    m_call.load()->Repaint(vf);
+                    break;
+                }
             }
 
-            if (Empty()){
-                //msleep(1);
-                continue;
-            }
+//            if (Empty()) {
+//                msleep(1);
+//                continue;
+//            }
+//
+//            bool b;
+//            CHECK_EXC(b = Send_Packet(Pop()));
+//            if (b){
+//                PopFront();
+//            }
 
-            bool b;
-            CHECK_EXC(b = Send_Packet(Pop()));
-            PopFront();
+            if (!Send_Packet()){
+                msleep(1);
+            }
         }
     } catch (...) {
         qDebug() << __func__ << "catch";
@@ -55,7 +65,6 @@ void XVideoThread::entry() {
             *m_exceptionPtr = std::current_exception();
         }
     }
-
 }
 
 void XVideoThread::Open(const XAVCodecParameters_sptr &p, IVideoCall *call) noexcept(false) {

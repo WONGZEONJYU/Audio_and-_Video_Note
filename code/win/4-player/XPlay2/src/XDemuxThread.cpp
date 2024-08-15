@@ -79,8 +79,6 @@ void XDemuxThread::run() {
                 continue;
             }
 
-            QMutexLocker locker(&m_mux);
-
             const auto a_index {m_demux->Present_Audio_Index()},
                     v_index {m_demux->Present_Video_Index()};
             /**
@@ -94,7 +92,8 @@ void XDemuxThread::run() {
             m_pts = m_at->Pts();
 
             XAVPacket_sptr pkt;
-            CHECK_EXC(pkt = m_demux->Read(),locker.unlock()); //可能有异常
+            QMutexLocker locker(&m_mux);
+            CHECK_EXC(pkt = m_demux->Read()); //可能有异常
             if (!pkt && !end){
                 end = true;
                 if (a_index >= 0){
@@ -109,7 +108,6 @@ void XDemuxThread::run() {
             }else{
                 end = false;
                 const auto pkt_index {pkt->stream_index};
-
                 if (a_index == pkt_index){
                     m_at->Push(std::move(pkt));
                 }else if (v_index == pkt_index){
@@ -117,7 +115,6 @@ void XDemuxThread::run() {
                 } else{
                     pkt.reset();
                 }
-
                 locker.unlock();
                 msleep(1);
             }
@@ -172,5 +169,26 @@ void XDemuxThread::SetPause(const bool &b){
     }
     if (m_vt){
         m_vt->SetPause(b);
+    }
+}
+
+void XDemuxThread::Seek(const double &pos) noexcept(true) {
+    Clear();
+    QMutexLocker locker(&m_mux);
+    if (m_demux){
+        m_demux->Seek(pos);
+    }
+}
+
+void XDemuxThread::Clear() noexcept(true) {
+    QMutexLocker locker(&m_mux);
+    if (m_demux){
+        m_demux->Clear();
+    }
+    if (m_at){
+        m_at->Clear();
+    }
+    if (m_vt){
+        m_vt->Clear();
     }
 }

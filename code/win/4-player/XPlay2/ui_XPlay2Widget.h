@@ -63,6 +63,8 @@ public:
         retranslateUi(XPlay2Widget);
         QObject::connect(OpenFile, SIGNAL(clicked()), XPlay2Widget, SLOT(OpenFile()));
         QObject::connect(isPlay, SIGNAL(clicked()), XPlay2Widget, SLOT(PlayOrPause()));
+        QObject::connect(PlayPos, SIGNAL(sliderReleased()), XPlay2Widget, SLOT(SliderReleased()));
+        QObject::connect(PlayPos, SIGNAL(sliderPressed()), XPlay2Widget, SLOT(SliderPressed()));
 
         QMetaObject::connectSlotsByName(XPlay2Widget);
     } // setupUi

@@ -59,6 +59,8 @@ public:
         return m_is_change.load();
     }
 
+    virtual void Clear() noexcept(true) = 0;
+
 protected:
     std::atomic_bool m_is_change{};
     std::atomic_int m_SampleRate{44100},

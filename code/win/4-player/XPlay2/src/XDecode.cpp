@@ -65,7 +65,7 @@ void XDecode::Clear() noexcept(false) {
     avcodec_flush_buffers(m_codec_ctx);
 }
 
-bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
+bool XDecode::Send(const XAVPacket_sptr &pkt) noexcept(false) {
 
     int ret;
     {
@@ -77,15 +77,15 @@ bool XDecode::Send(const XAVPacket_sptr &pkt)  noexcept(false) {
         FF_ERR_OUT(ret = avcodec_send_packet(m_codec_ctx,pkt.get()));
     }
 
-    bool b{};
-    if (AVERROR_EOF == ret || AVERROR(EAGAIN) == ret ||
-        AVERROR(EINVAL) == ret || AVERROR(ENOMEM) == ret) {
-        return b;
-    }else if (ret < 0){
-        FF_CHECK_ERR(ret);
-    } else{
+    auto b {AVERROR(EAGAIN) == ret || AVERROR(EINVAL) == ret || AVERROR(ENOMEM) == ret};
+    if (b) {
+        b = false;
+    } else if (ret < 0 && AVERROR_EOF != ret) {
+        FF_CHECK_ERR(ret); //此分支会抛异常
+    } else {
         b = true;
     }
+
     return b;
 }
 

@@ -11,7 +11,6 @@
 #include <QFutureWatcher>
 #include <QtConcurrent/QtConcurrent>
 
-
 void QXAudioPlay::Open() {
     Close();
     const auto dev{QMediaDevices::defaultAudioOutput()};
@@ -137,4 +136,11 @@ void QXAudioPlay::SetPause(const bool &b) noexcept(true) {
         return;
     }
     b ? m_output->suspend() : m_output->resume();
+}
+
+void QXAudioPlay::Clear() noexcept(true) {
+    QMutexLocker locker(&m_mux);
+    if (m_IO){
+        m_IO->reset();
+    }
 }

@@ -30,19 +30,23 @@ public:
     virtual void Close() noexcept(false);
     virtual void Start() noexcept(false);
 
-    [[nodiscard]] auto totalMS() const noexcept(true){
-        return m_total_Ms.load();
+    [[nodiscard]] virtual int64_t totalMS() const noexcept(true){
+        return m_total_Ms;
     }
 
-    [[nodiscard]] auto Pts() const noexcept(true){
-        return m_pts.load();
+    [[nodiscard]] virtual int64_t Pts() const noexcept(true){
+        return m_pts;
     }
 
-    void SetPause(const bool &b);
+    virtual void SetPause(const bool &b);
 
-    [[nodiscard]] auto is_Pause() const noexcept(true){
-        return m_isPause.load();
+    [[nodiscard]] virtual bool is_Pause() const noexcept(true){
+        return m_isPause;
     }
+
+    virtual void Seek(const double &) noexcept(true);
+
+    virtual void Clear() noexcept(true);
 
 protected:
     std::atomic_int64_t m_pts{},m_total_Ms{};

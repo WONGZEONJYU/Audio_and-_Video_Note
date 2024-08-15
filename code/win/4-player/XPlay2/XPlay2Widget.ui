@@ -99,9 +99,43 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>PlayPos</sender>
+   <signal>sliderReleased()</signal>
+   <receiver>XPlay2Widget</receiver>
+   <slot>SliderReleased()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1157</x>
+     <y>726</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1349</x>
+     <y>714</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>PlayPos</sender>
+   <signal>sliderPressed()</signal>
+   <receiver>XPlay2Widget</receiver>
+   <slot>SliderPressed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1046</x>
+     <y>726</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1293</x>
+     <y>703</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>OpenFile()</slot>
   <slot>PlayOrPause()</slot>
+  <slot>SliderPressed()</slot>
+  <slot>SliderReleased()</slot>
  </slots>
 </ui>

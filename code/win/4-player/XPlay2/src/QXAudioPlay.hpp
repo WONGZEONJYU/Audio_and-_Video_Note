@@ -30,6 +30,8 @@ class QXAudioPlay final : public XAudioPlay {
     [[nodiscard]] int64_t NoPlayMs() const override;
     void SetPause(const bool &) noexcept(true) override;
     //void handleStateChanged(QAudio::State newState);
+    void Clear() noexcept(true) override;
+
 public:
     static XAudioPlay *handle();
 

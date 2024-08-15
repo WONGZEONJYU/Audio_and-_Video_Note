@@ -61,15 +61,6 @@ void XPlay2Widget::OpenFile() {
     }
 }
 
-void XPlay2Widget::timerEvent(QTimerEvent *event) {
-    const auto total {m_dmt->totalMS()};
-    if (total > 0) {
-        const auto pos {static_cast<double>(m_dmt->Pts()) / static_cast<double>(total)};
-        const auto v{static_cast<decltype(pos)>(m_ui->PlayPos->maximum()) * pos};
-        m_ui->PlayPos->setValue(static_cast<int>(v));
-    }
-}
-
 void XPlay2Widget::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
     //m_ui->VideoWidget->resize(size());
@@ -91,4 +82,31 @@ void XPlay2Widget::PlayOrPause() {
     SetPause(b);
     m_dmt->SetPause(b);
     sender()->blockSignals(false);
+}
+
+void XPlay2Widget::timerEvent(QTimerEvent *event) {
+
+    if (m_is_SliderPress) {
+        return;
+    }
+
+    const auto total {m_dmt->totalMS()};
+    if (total > 0) {
+        const auto pos {static_cast<double>(m_dmt->Pts()) / static_cast<double>(total)};
+        const auto v{static_cast<decltype(pos)>(m_ui->PlayPos->maximum()) * pos};
+        m_ui->PlayPos->setValue(static_cast<int>(v));
+    }
+}
+
+void XPlay2Widget::SliderPressed() {
+    m_is_SliderPress = true;
+}
+
+void XPlay2Widget::SliderReleased() {
+    auto PlayPos{static_cast<const double >(m_ui->PlayPos->value())},
+            PlayMax{static_cast<const decltype(PlayPos)>(m_ui->PlayPos->maximum())};
+
+    const auto pos { PlayPos / PlayMax };
+    m_dmt->Seek(pos);
+    m_is_SliderPress = false;
 }

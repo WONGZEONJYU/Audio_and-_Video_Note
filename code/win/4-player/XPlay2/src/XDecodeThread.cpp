@@ -35,24 +35,6 @@ void XDecodeThread::Open(const XAVCodecParameters_sptr &p) {
     m_cv.wakeAll();
 }
 
-void XDecodeThread::Push(XAVPacket_sptr &&pkt) noexcept(false) {
-
-//    if (!pkt) {
-//        PRINT_ERR_TIPS(GET_STR(XAVPacket_sptr is empty));
-//        return;
-//    }
-
-    while (!m_is_Exit) {
-        QReadLocker locker(&m_rw_mux);
-        if (m_Packets.size() < Max_List) {
-            m_Packets.push_back(std::move(pkt));
-            m_cv.wakeAll();
-            break;
-        }
-        m_cv.wait(&m_rw_mux);
-    }
-}
-
 void XDecodeThread::Clear() noexcept(true) {
     m_pts = m_sync_pts = 0;
     if (m_decode){
@@ -83,24 +65,27 @@ void XDecodeThread::run() noexcept(false){
     entry();
 }
 
+void XDecodeThread::Push(XAVPacket_sptr &&pkt) noexcept(false) {
+    /**
+     * pkt允许为空,用于冲刷解码器
+     */
+    while (!m_is_Exit) {
+        QWriteLocker locker(&m_rw_mux);
+        if (m_Packets.size() < Max_List) {
+            m_Packets.emplaceBack(std::move(pkt));
+            m_cv.wakeAll();
+            break;
+        }
+        m_cv.wait(&m_rw_mux,1);
+    }
+}
+
 XAVPacket_sptr XDecodeThread::Pop() noexcept(false) {
-#if 1
-    QMutexLocker locker(&m_d_mux);
+    QReadLocker locker(&m_rw_mux);
     if (m_Packets.isEmpty()){
         return {};
     }
     return m_Packets.first();
-#else
-    while (!m_is_Exit){
-        QReadLocker locker(&m_rw_mux);
-        if (m_Packets.isEmpty()) {
-            m_cv.wait(&m_rw_mux);
-            continue;
-        }
-        return m_Packets.first();
-    }
-    return {};
-#endif
 }
 
 void XDecodeThread::PopFront() noexcept(false) {
@@ -117,11 +102,23 @@ bool XDecodeThread::Empty() noexcept(false){
     return m_Packets.isEmpty();
 }
 
-bool XDecodeThread::Send_Packet(const XAVPacket_sptr &pkt) noexcept(false){
+bool XDecodeThread::Send_Packet(const XAVPacket_sptr &pkt) noexcept(false) {
+
     bool b{};
     QMutexLocker locker(&m_d_mux);
     if (m_decode){
         CHECK_EXC(b = m_decode->Send(pkt),locker.unlock());
+    }
+    return b;
+}
+
+bool XDecodeThread::Send_Packet() noexcept(false) {
+    bool b {!Empty()};
+    if (b) {
+        b = Send_Packet(Pop());
+        if (b){
+            PopFront();
+        }
     }
     return b;
 }

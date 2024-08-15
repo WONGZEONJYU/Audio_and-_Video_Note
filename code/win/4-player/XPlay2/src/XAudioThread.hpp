@@ -20,11 +20,13 @@ public:
     ~XAudioThread() override;
     void Open(const XAVCodecParameters_sptr &) noexcept(false) override;
     void Close() noexcept(true) override;
+    void Clear() noexcept(true) override;
     void SetPause(const bool &b) noexcept(true) override;
 protected:
     std::atomic<XAudioPlay *> m_audio_play{};
     QSharedPointer<XResample> m_resample;
     QMutex m_a_mux;
+    //std::vector<uint8_t> m_resample_datum;
 };
 
 #endif

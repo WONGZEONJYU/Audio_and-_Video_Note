@@ -53,9 +53,8 @@ void XAudioThread::DeConstruct() noexcept(true){
 
 void XAudioThread::entry() noexcept(false) {
 
+    std::vector<uint8_t> resample_datum;
     try {
-
-        std::vector<uint8_t> resample_datum;
 
         while (!m_is_Exit) {
 
@@ -105,14 +104,19 @@ void XAudioThread::entry() noexcept(false) {
                 }
             }
 
-            if (Empty()){
+//            if (Empty()){
+//                msleep(1);
+//                continue;
+//            }
+//
+//            bool b;
+//            CHECK_EXC(b = Send_Packet(Pop()));
+//            if (b){
+//                PopFront();
+//            }
+            if (!Send_Packet()){
                 msleep(1);
-                continue;
             }
-
-            bool b;
-            CHECK_EXC(b = Send_Packet(Pop()));
-            PopFront();
         }
 
         m_audio_play.load()->Close();
@@ -137,4 +141,9 @@ void XAudioThread::SetPause(const bool &b) noexcept(true){
     if (m_audio_play){
         m_audio_play.load()->SetPause(b);
     }
+}
+
+void XAudioThread::Clear() noexcept(true) {
+    XDecodeThread::Clear();
+    m_audio_play.load()->Clear();
 }
