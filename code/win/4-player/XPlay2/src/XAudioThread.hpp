@@ -22,6 +22,8 @@ public:
     void Close() noexcept(true) override;
     void Clear() noexcept(true) override;
     void SetPause(const bool &b) noexcept(true) override;
+    void SetVolume(const double &) noexcept(true);
+    double Volume() const noexcept(true);
 protected:
     std::atomic<XAudioPlay *> m_audio_play{};
     QSharedPointer<XResample> m_resample;

@@ -12,6 +12,7 @@ extern "C"{
 #include "XAVPacket.hpp"
 #include "XAVCodecParameters.hpp"
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -76,10 +77,9 @@ void XDemux::Open(const string &url) noexcept(false){
         FF_CHECK_ERR(avformat_find_stream_info(m_av_fmt_ctx, nullptr));
         m_av_fmt_ctx->interrupt_callback.callback = io_callback;
         m_av_fmt_ctx->interrupt_callback.opaque = this;
-
         m_nb_streams = m_av_fmt_ctx->nb_streams;
         m_streams = m_av_fmt_ctx->streams;
-
+        m_av_fmt_ctx->iformat->name;
         if (!m_nb_streams || !m_streams) {
             throw runtime_error(GET_STR(no audio_stream and no video_stream!\n));
         }
@@ -112,6 +112,8 @@ void XDemux::Open(const string &url) noexcept(false){
                 (m_Present_Video_index >= 0 ? to_string(m_Present_Video_index) : GET_STR(does not exist)) << "\n" <<
                  GET_STR(Present_Audio_index: ) <<
                  (m_Present_Audio_index >= 0 ? to_string(m_Present_Audio_index) : GET_STR(does not exist)) << "\n\n";
+
+        //cerr << "m_av_fmt_ctx->iformat->name : " << m_av_fmt_ctx->iformat->name << "\n";
 
     } catch (...) {
         DeConstruct();

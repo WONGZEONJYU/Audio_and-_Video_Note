@@ -77,6 +77,9 @@ public:
         return m_isPause;
     }
 
+    virtual void SetVolume(const double &) noexcept(true);
+    virtual double Volume() const noexcept(true);
+
 protected:
     std::atomic_int64_t m_pts{},m_total_Ms{};
     std::atomic<std::exception_ptr*> m_ex_ptr{};

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1187</width>
-    <height>763</height>
+    <width>1287</width>
+    <height>848</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,32 +29,79 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <item row="0" column="0" colspan="2">
-    <widget class="XVideoWidget" name="VideoWidget"/>
-   </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="OpenFile">
-     <property name="text">
-      <string>Open Media File</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QPushButton" name="isPlay">
-     <property name="text">
-      <string>Play</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="XQSliderWidget" name="PlayPos">
-     <property name="maximum">
-      <number>999</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
+   <item row="0" column="0">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="XVideoWidget" name="VideoWidget">
+       <property name="minimumSize">
+        <size>
+         <width>1280</width>
+         <height>760</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="XQSliderWidget" name="PlayPos">
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="spacing">
+        <number>-1</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="OpenFile">
+         <property name="text">
+          <string>Open Media File</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="OpenURL">
+         <property name="text">
+          <string>OpenURL</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="isPlay">
+         <property name="text">
+          <string>Play</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSlider" name="VolumeSlider">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -79,8 +126,8 @@
    <slot>OpenFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>593</x>
-     <y>762</y>
+     <x>383</x>
+     <y>843</y>
     </hint>
     <hint type="destinationlabel">
      <x>655</x>
@@ -95,12 +142,12 @@
    <slot>PlayOrPause()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>926</x>
-     <y>753</y>
+     <x>1171</x>
+     <y>843</y>
     </hint>
     <hint type="destinationlabel">
      <x>1054</x>
-     <y>853</y>
+     <y>847</y>
     </hint>
    </hints>
   </connection>
@@ -112,10 +159,10 @@
    <hints>
     <hint type="sourcelabel">
      <x>1157</x>
-     <y>726</y>
+     <y>797</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1349</x>
+     <x>1286</x>
      <y>714</y>
     </hint>
    </hints>
@@ -128,11 +175,43 @@
    <hints>
     <hint type="sourcelabel">
      <x>1046</x>
-     <y>726</y>
+     <y>797</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1293</x>
+     <x>1286</x>
      <y>703</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>OpenURL</sender>
+   <signal>clicked()</signal>
+   <receiver>XPlay2Widget</receiver>
+   <slot>OpenURL()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>650</x>
+     <y>832</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>658</x>
+     <y>847</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>VolumeSlider</sender>
+   <signal>sliderReleased()</signal>
+   <receiver>XPlay2Widget</receiver>
+   <slot>VolumeReleased()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1212</x>
+     <y>830</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1228</x>
+     <y>856</y>
     </hint>
    </hints>
   </connection>
@@ -142,5 +221,7 @@
   <slot>PlayOrPause()</slot>
   <slot>SliderPressed()</slot>
   <slot>SliderReleased()</slot>
+  <slot>OpenURL()</slot>
+  <slot>VolumeReleased()</slot>
  </slots>
 </ui>

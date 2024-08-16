@@ -12,7 +12,10 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QSlider>
+#include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include <XQSliderWidget.hpp>
 #include <XVideoWidget.hpp>
@@ -23,41 +26,73 @@ class Ui_XPlay2Widget
 {
 public:
     QGridLayout *gridLayout;
+    QVBoxLayout *verticalLayout;
     XVideoWidget *VideoWidget;
-    QPushButton *OpenFile;
-    QPushButton *isPlay;
     XQSliderWidget *PlayPos;
+    QHBoxLayout *horizontalLayout;
+    QPushButton *OpenFile;
+    QPushButton *OpenURL;
+    QPushButton *isPlay;
+    QSlider *VolumeSlider;
 
     void setupUi(QWidget *XPlay2Widget)
     {
         if (XPlay2Widget->objectName().isEmpty())
             XPlay2Widget->setObjectName("XPlay2Widget");
-        XPlay2Widget->resize(1187, 763);
+        XPlay2Widget->resize(1287, 848);
         gridLayout = new QGridLayout(XPlay2Widget);
         gridLayout->setSpacing(0);
         gridLayout->setObjectName("gridLayout");
         gridLayout->setContentsMargins(0, 0, 0, 0);
+        verticalLayout = new QVBoxLayout();
+        verticalLayout->setObjectName("verticalLayout");
         VideoWidget = new XVideoWidget(XPlay2Widget);
         VideoWidget->setObjectName("VideoWidget");
+        VideoWidget->setMinimumSize(QSize(1280, 760));
 
-        gridLayout->addWidget(VideoWidget, 0, 0, 1, 2);
-
-        OpenFile = new QPushButton(XPlay2Widget);
-        OpenFile->setObjectName("OpenFile");
-
-        gridLayout->addWidget(OpenFile, 2, 0, 1, 1);
-
-        isPlay = new QPushButton(XPlay2Widget);
-        isPlay->setObjectName("isPlay");
-
-        gridLayout->addWidget(isPlay, 2, 1, 1, 1);
+        verticalLayout->addWidget(VideoWidget);
 
         PlayPos = new XQSliderWidget(XPlay2Widget);
         PlayPos->setObjectName("PlayPos");
         PlayPos->setMaximum(999);
         PlayPos->setOrientation(Qt::Horizontal);
 
-        gridLayout->addWidget(PlayPos, 1, 0, 1, 2);
+        verticalLayout->addWidget(PlayPos);
+
+        horizontalLayout = new QHBoxLayout();
+#ifndef Q_OS_MAC
+        horizontalLayout->setSpacing(-1);
+#endif
+        horizontalLayout->setObjectName("horizontalLayout");
+        OpenFile = new QPushButton(XPlay2Widget);
+        OpenFile->setObjectName("OpenFile");
+
+        horizontalLayout->addWidget(OpenFile);
+
+        OpenURL = new QPushButton(XPlay2Widget);
+        OpenURL->setObjectName("OpenURL");
+
+        horizontalLayout->addWidget(OpenURL);
+
+        isPlay = new QPushButton(XPlay2Widget);
+        isPlay->setObjectName("isPlay");
+
+        horizontalLayout->addWidget(isPlay);
+
+        VolumeSlider = new QSlider(XPlay2Widget);
+        VolumeSlider->setObjectName("VolumeSlider");
+        VolumeSlider->setMinimumSize(QSize(0, 0));
+        VolumeSlider->setMaximumSize(QSize(100, 16777215));
+        VolumeSlider->setMaximum(100);
+        VolumeSlider->setOrientation(Qt::Horizontal);
+
+        horizontalLayout->addWidget(VolumeSlider);
+
+
+        verticalLayout->addLayout(horizontalLayout);
+
+
+        gridLayout->addLayout(verticalLayout, 0, 0, 1, 1);
 
 
         retranslateUi(XPlay2Widget);
@@ -65,6 +100,8 @@ public:
         QObject::connect(isPlay, SIGNAL(clicked()), XPlay2Widget, SLOT(PlayOrPause()));
         QObject::connect(PlayPos, SIGNAL(sliderReleased()), XPlay2Widget, SLOT(SliderReleased()));
         QObject::connect(PlayPos, SIGNAL(sliderPressed()), XPlay2Widget, SLOT(SliderPressed()));
+        QObject::connect(OpenURL, SIGNAL(clicked()), XPlay2Widget, SLOT(OpenURL()));
+        QObject::connect(VolumeSlider, SIGNAL(sliderReleased()), XPlay2Widget, SLOT(VolumeReleased()));
 
         QMetaObject::connectSlotsByName(XPlay2Widget);
     } // setupUi
@@ -73,6 +110,7 @@ public:
     {
         XPlay2Widget->setWindowTitle(QCoreApplication::translate("XPlay2Widget", "XPlay2Widget", nullptr));
         OpenFile->setText(QCoreApplication::translate("XPlay2Widget", "Open Media File", nullptr));
+        OpenURL->setText(QCoreApplication::translate("XPlay2Widget", "OpenURL", nullptr));
         isPlay->setText(QCoreApplication::translate("XPlay2Widget", "Play", nullptr));
     } // retranslateUi
 

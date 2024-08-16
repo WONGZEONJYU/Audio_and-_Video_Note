@@ -61,6 +61,10 @@ public:
 
     virtual void Clear() noexcept(true) = 0;
 
+    virtual void SetVolume(const double &) noexcept(true) = 0;
+
+    virtual double Volume() const noexcept(true) = 0;
+
 protected:
     std::atomic_bool m_is_change{};
     std::atomic_int m_SampleRate{44100},

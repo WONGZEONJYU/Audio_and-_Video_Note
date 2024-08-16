@@ -149,3 +149,11 @@ void XAudioThread::Clear() noexcept(true) {
     XDecodeThread::Clear();
     m_audio_play.load()->Clear();
 }
+
+void XAudioThread::SetVolume(const double &n) noexcept(true){
+    m_audio_play.load()->SetVolume(n);
+}
+
+double XAudioThread::Volume() const noexcept(true){
+    return m_audio_play.load()->Volume();
+}

@@ -7,6 +7,7 @@
 #include "XHelper.hpp"
 #include <QFileDialog>
 #include <XDemuxThread.hpp>
+#include <QInputDialog>
 
 XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
 
@@ -48,16 +49,55 @@ void XPlay2Widget::OpenFile() {
     try {
         m_ui->isPlay->setEnabled(false);
         m_dmt->Open(name.toLocal8Bit(),m_ui->VideoWidget);
-
         if (m_dmt->is_Pause()){
             m_dmt->SetPause(false);
         }
         SetPause(m_dmt->is_Pause());
         m_ui->isPlay->setEnabled(true);
+        m_ui->PlayPos->setEnabled(true);
+        const auto max_v {static_cast<double >(m_ui->VolumeSlider->maximum())};
+        qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
+        m_ui->VolumeSlider->setValue(static_cast<int>(m_dmt->Volume() < 0.0 ? m_ui->VolumeSlider->maximum() :
+                                                      m_dmt->Volume() * max_v));
     } catch (const std::exception &e) {
         m_ui->isPlay->setEnabled(true);
         qDebug() << e.what();
-        throw;
+    }
+}
+
+void XPlay2Widget::OpenURL(){
+    auto url {QInputDialog::getText(this,"url","url")};
+    if (url.isEmpty()){
+        return;
+    }
+
+    if (!url.startsWith("rtmp://") &&
+        !url.startsWith("rtsp://") &&
+        !url.startsWith("sdp:://") &&
+        !url.startsWith("rtp://") &&
+        !url.startsWith("udp://")) {
+        qDebug() << url;
+        return;
+    }
+
+    try {
+        m_ui->isPlay->setEnabled(false);
+        m_dmt->Open(url.toLocal8Bit(),m_ui->VideoWidget);
+        if (m_dmt->is_Pause()){
+            m_dmt->SetPause(false);
+        }
+        SetPause(m_dmt->is_Pause());
+        m_ui->isPlay->setEnabled(true);
+        m_ui->PlayPos->setEnabled(false);
+        m_ui->PlayPos->setValue(0);
+        const auto max_v {static_cast<double >(m_ui->VolumeSlider->maximum())};
+        qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
+        m_ui->VolumeSlider->setValue(static_cast<int>(m_dmt->Volume() < 0.0 ? m_ui->VolumeSlider->maximum() :
+                                                      m_dmt->Volume() * max_v));
+    } catch (const std::exception &e) {
+        m_ui->isPlay->setEnabled(true);
+        m_ui->PlayPos->setEnabled(true);
+        qDebug() << e.what();
     }
 }
 
@@ -108,4 +148,11 @@ void XPlay2Widget::SliderReleased() {
     m_dmt->Seek(pos);
     m_is_SliderPress = false;
     sender()->blockSignals(false);
+}
+
+void XPlay2Widget::VolumeReleased(){
+    //qDebug() << m_ui->VolumeSlider->value();
+    const auto v1 {static_cast<double >(m_ui->VolumeSlider->value())},
+    max_v{static_cast<decltype(v1)>(m_ui->VolumeSlider->maximum())};
+    m_dmt->SetVolume(v1 / max_v);
 }

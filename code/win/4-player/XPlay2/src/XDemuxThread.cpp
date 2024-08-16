@@ -173,6 +173,7 @@ void XDemuxThread::SetPause(const bool &b){
 }
 
 void XDemuxThread::Seek(const double &pos) noexcept(true) {
+
     Clear();
     const auto status {m_isPause.load()};
     SetPause(true); //无论当前什么状态,都先暂停再seek
@@ -211,4 +212,19 @@ void XDemuxThread::Clear() noexcept(true) {
     if (m_vt){
         m_vt->Clear();
     }
+}
+
+void XDemuxThread::SetVolume(const double &n) noexcept(true){
+    QMutexLocker locker(&m_mux);
+    if (m_at){
+        m_at->SetVolume(n);
+    }
+}
+
+double XDemuxThread::Volume() const noexcept(true){
+    QMutexLocker locker(const_cast<QMutex*>(&m_mux));
+    if (m_at){
+        return m_at->Volume();
+    }
+    return -1.0;
 }

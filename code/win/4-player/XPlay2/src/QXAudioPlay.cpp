@@ -144,3 +144,18 @@ void QXAudioPlay::Clear() noexcept(true) {
         m_IO->reset();
     }
 }
+
+void QXAudioPlay::SetVolume(const double &n) noexcept(true){
+    QMutexLocker locker(&m_mux);
+    if (m_output){
+        m_output->setVolume(n);
+    }
+}
+
+double QXAudioPlay::Volume() const noexcept(true){
+    QMutexLocker locker(const_cast<QMutex*>(&m_mux));
+    if (m_output){
+        return m_output->volume();
+    }
+    return -1.0;
+}

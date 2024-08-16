@@ -232,7 +232,7 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
 
     /*分配纹理(材质)内存空间,并设置参数,并分配显存空间*/
     try {
-
+#if 0
         if (w != m_w || h != m_h){
             m_yuv_datum.clear();
             m_yuv_datum.resize(3);
@@ -245,6 +245,10 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
             }
         }
 
+#else
+        m_yuv_datum.clear();
+        m_yuv_datum.resize(3);
+#endif
         m_textureYUV.clear(); //分配前，需要先释放
         m_textureYUV.resize(3);
 
@@ -271,6 +275,7 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
             ++i;
         }
         m_w = w,m_h = h;
+        m_half_w = w / 2,m_half_h = h / 2;
     } catch (...) {
         r.destroy();
         vao.release();
@@ -307,29 +312,51 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
 
         if (m_w != frame->linesize[0]){ //需对齐
 
+#if 1
+            for (auto &item:m_yuv_datum) {
+                item.clear();
+            }
+#endif
+
             for(uint32_t i {};i < m_h;++i){
                 const auto src {reinterpret_cast<const char*>(frame->data[0] + frame->linesize[0] * i)};
+#if 0
                 auto dst {m_yuv_datum[0].data() + m_w * i};
                 std::copy_n(src,m_w.load(),dst);
+#else
+                m_yuv_datum[0].append(src,m_w);
+#endif
             }
 
-            for (uint32_t i {}; i < m_h / 2 ; ++i) {
+            for (uint32_t i {}; i < m_half_h ; ++i) {
                 const auto src {reinterpret_cast<const char*>(frame->data[1] + frame->linesize[1] * i)};
+#if 0
                 auto dst {m_yuv_datum[1].data() + (m_w / 2) * i};
                 std::copy_n(src,m_w / 2,dst);
+#else
+                m_yuv_datum[1].append(src,m_half_w);
+#endif
             }
 
-            for (uint32_t i {}; i < m_h / 2 ; ++i) {
+            for (uint32_t i {}; i < m_half_h ; ++i) {
                 const auto src {reinterpret_cast<const char*>(frame->data[2] + frame->linesize[2] * i)};
+#if 0
                 auto dst {m_yuv_datum[2].data() + (m_w / 2) * i};
                 std::copy_n(src,m_w / 2,dst);
+#else
+                m_yuv_datum[2].append(src,m_half_w);
+#endif
             }
         }else{ //无需对齐
             for (uint32_t i{};auto &item:m_yuv_datum) {
-                const auto len{ i ? m_w * m_h / 4 : m_w * m_h};
+                const auto len{ i ? m_half_w * m_half_h : m_w * m_h};
                 const auto src {reinterpret_cast<const char*>(frame->data[i])};
                 //auto begin_time {std::chrono::steady_clock::now()};
+#if 0
                 std::copy_n(src,len,item.data());
+#else
+                item = std::move(QByteArray(src,len));
+#endif
                 //auto end_time {std::chrono::steady_clock::now()};
                 //qDebug() << std::chrono::duration<double,std::milli>(end_time - begin_time).count();
 

@@ -144,7 +144,8 @@ private:
     //YUV数据空间
     QVector<QByteArray> m_yuv_datum;
 
-    std::atomic_int m_w{},m_h{};
+    std::atomic_int m_w{},m_h{},
+                    m_half_w{},m_half_h{};
 };
 
 #endif

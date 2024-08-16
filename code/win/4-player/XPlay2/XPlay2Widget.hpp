@@ -33,10 +33,11 @@ public:
 
 private slots:
     void OpenFile();
+    void OpenURL();
     void PlayOrPause();
     void SliderPressed();
     void SliderReleased();
-
+    void VolumeReleased();
 private:
     std::atomic_bool m_is_SliderPress{};
     QSharedPointer<Ui::XPlay2Widget> m_ui;
