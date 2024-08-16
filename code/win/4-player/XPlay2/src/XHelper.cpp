@@ -72,7 +72,7 @@ namespace XHelper {
         if (err_code < 0){
             stringstream err_msg;
             err_msg << "ffmpeg error:" << err_code <<
-                        " at " << file << ":" << line <<
+                        " at " << file << " : " << line <<
                         " -for " << func << " wrong reason: " <<
                         av_get_err(err_code) << "\n";
 
@@ -84,8 +84,8 @@ namespace XHelper {
                     const int &line,const int &err_code) noexcept(true){
         if (err_code < 0){
             stringstream err_msg;
-            err_msg << "ffmpeg error:" << err_code <<
-                    " at " << file << ":" << line <<
+            err_msg << "ffmpeg error: " << err_code <<
+                    " at " << file << " : " << line <<
                     " -for " << func << " wrong reason: " <<
                     av_get_err(err_code) << "\n";
             cerr << err_msg.str();

@@ -103,7 +103,6 @@ bool XDecodeThread::Empty() noexcept(false){
 }
 
 bool XDecodeThread::Send_Packet(const XAVPacket_sptr &pkt) noexcept(false) {
-
     bool b{};
     QMutexLocker locker(&m_d_mux);
     if (m_decode){
@@ -113,7 +112,7 @@ bool XDecodeThread::Send_Packet(const XAVPacket_sptr &pkt) noexcept(false) {
 }
 
 bool XDecodeThread::Send_Packet() noexcept(false) {
-    bool b {!Empty()};
+    auto b {!Empty()};
     if (b) {
         b = Send_Packet(Pop());
         if (b){

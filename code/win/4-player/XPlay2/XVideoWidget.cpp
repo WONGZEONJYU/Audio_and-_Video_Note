@@ -4,7 +4,7 @@
 
 #include "XVideoWidget.hpp"
 #include <QByteArray>
-
+#include <algorithm>
 #include "XAVFrame.hpp"
 
 XVideoWidget::XVideoWidget(QWidget *parent):QOpenGLWidget(parent){
@@ -129,11 +129,11 @@ void XVideoWidget::paintGL() {
         }
     }
 
-    m_shader->bind();
+    auto b { m_shader->bind() };
     QOpenGLVertexArrayObject::Binder vao(m_VAO.get());
     //m_VAO->bind(); //被QOpenGLVertexArrayObject::Binder vao(m_VAO);取代
-    m_VBO->bind();
-    m_EBO->bind();
+    b = m_VBO->bind();
+    b = m_EBO->bind();
 
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
     GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));//用于支持竖屏
@@ -165,7 +165,6 @@ void XVideoWidget::paintGL() {
 
 void XVideoWidget::resizeGL(int w, int h) {
 
-    //qDebug() << __FUNCTION__ << " w:" << w << " h:" << h;
     //QMutexLocker locker(&m_mux);
     GL_CHECK(glViewport(0, 0, w, h));
 }
@@ -219,8 +218,6 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
         return;
     }
 
-    m_w = w,m_h = h;
-
     QOpenGLVertexArrayObject::Binder vao(m_VAO.get());
 
     XRAII r([this]{
@@ -235,13 +232,24 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
 
     /*分配纹理(材质)内存空间,并设置参数,并分配显存空间*/
     try {
-        m_yuv_datum.clear();
-        m_yuv_datum.resize(3);
+
+        if (w != m_w || h != m_h){
+            m_yuv_datum.clear();
+            m_yuv_datum.resize(3);
+
+            for (uint32_t i {};auto &item:m_yuv_datum) {
+                const auto _w{i ? w / 2 : w},_h {i ? h / 2 : h};
+                const auto len {_w * _h};
+                item.resize(len);
+                ++i;
+            }
+        }
 
         m_textureYUV.clear(); //分配前，需要先释放
         m_textureYUV.resize(3);
+
         for(int i {};auto &item : m_textureYUV){
-            CHECK_EXC(item.reset(new QOpenGLTexture(QOpenGLTexture::Target2D)));
+            CHECK_EXC(item.reset(new QOpenGLTexture(QOpenGLTexture::Target2D)),locker.unlock());
 
             const auto _w{i ? w / 2 : w},_h {i ? h / 2 : h};
             item->setSize(_w,_h);
@@ -262,7 +270,7 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
             //qDebug() << "textureId: "  << item->textureId();
             ++i;
         }
-
+        m_w = w,m_h = h;
     } catch (...) {
         r.destroy();
         vao.release();
@@ -287,7 +295,7 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
     {
         QMutexLocker locker(&m_mux);
 
-        if (!m_shader || !m_VAO || !m_VBO || !m_EBO || m_yuv_datum.isEmpty() || m_textureYUV.isEmpty()){
+        if (!m_shader || !m_VAO || !m_VBO || !m_EBO || m_yuv_datum.isEmpty() || m_textureYUV.isEmpty()) {
             qDebug() << "Please call the Init() function first ";
             return;
         }
@@ -299,30 +307,32 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
 
         if (m_w != frame->linesize[0]){ //需对齐
 
-            for(auto &item : m_yuv_datum){
-                item.clear();
-            }
-
             for(uint32_t i {};i < m_h;++i){
-                const auto p {reinterpret_cast<const char*>(frame->data[0] + frame->linesize[0] * i)};
-                m_yuv_datum[0].append(p,m_w);
+                const auto src {reinterpret_cast<const char*>(frame->data[0] + frame->linesize[0] * i)};
+                auto dst {m_yuv_datum[0].data() + m_w * i};
+                std::copy_n(src,m_w.load(),dst);
             }
 
             for (uint32_t i {}; i < m_h / 2 ; ++i) {
-                const auto p {reinterpret_cast<const char*>(frame->data[1] + frame->linesize[1] * i)};
-                m_yuv_datum[1].append(p,m_w / 2);
+                const auto src {reinterpret_cast<const char*>(frame->data[1] + frame->linesize[1] * i)};
+                auto dst {m_yuv_datum[1].data() + (m_w / 2) * i};
+                std::copy_n(src,m_w / 2,dst);
             }
 
             for (uint32_t i {}; i < m_h / 2 ; ++i) {
-                const auto p {reinterpret_cast<const char*>(frame->data[2] + frame->linesize[2] * i)};
-                m_yuv_datum[2].append(p,m_w / 2);
+                const auto src {reinterpret_cast<const char*>(frame->data[2] + frame->linesize[2] * i)};
+                auto dst {m_yuv_datum[2].data() + (m_w / 2) * i};
+                std::copy_n(src,m_w / 2,dst);
             }
         }else{ //无需对齐
             for (uint32_t i{};auto &item:m_yuv_datum) {
                 const auto len{ i ? m_w * m_h / 4 : m_w * m_h};
-                item = std::move(QByteArray(reinterpret_cast<const char*>(frame->data[i]),len));
-//                const auto p {reinterpret_cast<const char*>(frame->data[i])};
-//                item.insert(0,p,len);
+                const auto src {reinterpret_cast<const char*>(frame->data[i])};
+                //auto begin_time {std::chrono::steady_clock::now()};
+                std::copy_n(src,len,item.data());
+                //auto end_time {std::chrono::steady_clock::now()};
+                //qDebug() << std::chrono::duration<double,std::milli>(end_time - begin_time).count();
+
                 ++i;
             }
         }

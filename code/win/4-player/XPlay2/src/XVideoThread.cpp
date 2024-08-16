@@ -85,3 +85,26 @@ void XVideoThread::Open(const XAVCodecParameters_sptr &p, IVideoCall *call) noex
     m_call.load()->Init(p->Width(),p->Height());
     XDecodeThread::Open(p);
 }
+
+bool XVideoThread::RepaintPts(const XAVPacket_sptr &pkt,
+                              const int64_t &seek_pts) noexcept(false) {
+    auto b {!Send_Packet(pkt)}; //如果解码失败当已经显示成功,让上一级函数结束,
+    // 因为在同一个位置读取的是同一包,即使再次读取还是会解码失败
+    if (b) {return b;}
+
+    do {
+        int64_t pts{};
+        const auto frame{Receive_Frame(pts)};
+        if (!frame) {
+            b = false;
+            break;
+        }
+
+        if (pts >= seek_pts) {
+            m_call.load()->Repaint(frame);
+            b = true;
+            break;
+        }
+    } while (!m_is_Exit);
+    return b;
+}

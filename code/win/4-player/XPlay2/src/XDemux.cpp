@@ -18,7 +18,7 @@ using namespace std;
 atomic_uint64_t XDemux:: sm_init_times{};
 mutex XDemux::sm_mux;
 
-int XDemux::io_callback(void *args){
+int XDemux::io_callback(void *args) {
     auto this_{static_cast<XDemux*>(args)};
     cerr << this_ << "\n";
     return this_->m_is_exit;
@@ -41,10 +41,22 @@ XDemux::~XDemux() {
     }
 }
 
+void XDemux::Find_Media(const int &media_type,
+                        std::atomic_int &index,
+                        AVStream *&st) noexcept(true) {
+
+    for(const auto &item:m_stream_indices) {
+        const auto type {m_streams[item]->codecpar->codec_type};
+        if (static_cast<AVMediaType>(media_type) == type) {
+            index = item;
+            st = m_streams[item];
+            break;
+        }
+    }
+}
+
 void XDemux::Open(const string &url) noexcept(false){
-
     Close();
-
     AVDictionary *opts{};
     Destroyer d([&opts]{
         av_dict_free(&opts);
@@ -64,6 +76,7 @@ void XDemux::Open(const string &url) noexcept(false){
         FF_CHECK_ERR(avformat_find_stream_info(m_av_fmt_ctx, nullptr));
         m_av_fmt_ctx->interrupt_callback.callback = io_callback;
         m_av_fmt_ctx->interrupt_callback.opaque = this;
+
         m_nb_streams = m_av_fmt_ctx->nb_streams;
         m_streams = m_av_fmt_ctx->streams;
 
@@ -78,12 +91,16 @@ void XDemux::Open(const string &url) noexcept(false){
             ++i;
         }
 
+#if 0
         m_Present_Video_index = av_find_best_stream(m_av_fmt_ctx,AVMEDIA_TYPE_VIDEO,-1,-1,nullptr,0);
         m_Present_Video_st = m_Present_Video_index >= 0 ? m_streams[m_Present_Video_index] : nullptr;
 
         m_Present_Audio_index = av_find_best_stream(m_av_fmt_ctx,AVMEDIA_TYPE_AUDIO,-1,-1,nullptr,0);
         m_Present_Audio_st = m_Present_Audio_index >= 0 ? m_streams[m_Present_Audio_index] : nullptr;
-
+#else
+        Find_Media(AVMEDIA_TYPE_AUDIO,m_Present_Audio_index,m_Present_Audio_st);
+        Find_Media(AVMEDIA_TYPE_VIDEO,m_Present_Video_index,m_Present_Video_st);
+#endif
         m_totalMS = m_av_fmt_ctx->duration / (AV_TIME_BASE / 1000);
 
         av_dump_format(m_av_fmt_ctx,0,url.c_str(),0);
@@ -185,9 +202,8 @@ void XDemux::show_video_info()  noexcept(true) {
 XAVPacket_sptr XDemux::Read() noexcept(false) {
 
     unique_lock lock(m_mux);
-
     if (!m_av_fmt_ctx){
-        //PRINT_ERR_TIPS(GET_STR(Please initialize first));
+        PRINT_ERR_TIPS(GET_STR(Please initialize first));
         return {};
     }
 
@@ -202,7 +218,6 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
     //ret = av_read_frame(m_av_fmt_ctx,packet.get());
     FF_ERR_OUT(ret = av_read_frame(m_av_fmt_ctx,packet.get()));
     if (ret < 0){
-
         packet.reset();
     }else{
         const auto time_base {m_streams[packet->stream_index]->time_base};
@@ -211,6 +226,19 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
                 dst{static_cast<double>(packet->dts)};
         packet->pts = static_cast<decltype(packet->pts)>(pts * 1000.0 * av_q2d(time_base));
         packet->dts = static_cast<decltype(packet->dts)>(dst * 1000.0 * av_q2d(time_base));
+    }
+    return packet;
+}
+
+XAVPacket_sptr XDemux::ReadVideo() noexcept(false) {
+
+    XAVPacket_sptr packet;
+    for (uint32_t i {}; i < 20; ++i) {
+        packet = Read();
+        if (!packet) {break;}
+        if (m_Present_Video_index == packet->stream_index) {
+            break;
+        }
     }
     return packet;
 }

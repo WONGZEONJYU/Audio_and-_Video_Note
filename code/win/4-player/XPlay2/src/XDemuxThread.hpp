@@ -26,32 +26,61 @@ Q_OBJECT
     void DeConstruct() noexcept(true);
 public:
     explicit XDemuxThread(std::exception_ptr * = nullptr);
+    /**
+     * 打开媒体文件
+     */
     virtual void Open(const QString &,IVideoCall *) noexcept(false);
+    /**
+     * 手动销毁本对象
+     */
     virtual void Close() noexcept(false);
+    /**
+     * 启动线程
+     */
     virtual void Start() noexcept(false);
+    /**
+     * 清除有关缓存
+     */
+    virtual void Clear() noexcept(true);
+    /**
+     * seek媒体文件
+     */
+    virtual void Seek(const double &) noexcept(true);
 
+    /**
+     * 获取媒体文件总时长
+     * @return
+     */
     [[nodiscard]] virtual int64_t totalMS() const noexcept(true){
         return m_total_Ms;
     }
 
-    [[nodiscard]] virtual int64_t Pts() const noexcept(true){
+    /**
+     * 获取音频/ 视频的PTS,用于对外作用,比如用于进度条的显示
+     * @return
+     */
+    [[nodiscard]] virtual int64_t Pts() const noexcept(true) {
         return m_pts;
     }
 
+    /**
+     * 暂停设置
+     * @param b
+     */
     virtual void SetPause(const bool &b);
 
+    /**
+     * 获取当前是否为暂停状态
+     * @return
+     */
     [[nodiscard]] virtual bool is_Pause() const noexcept(true){
         return m_isPause;
     }
 
-    virtual void Seek(const double &) noexcept(true);
-
-    virtual void Clear() noexcept(true);
-
 protected:
     std::atomic_int64_t m_pts{},m_total_Ms{};
     std::atomic<std::exception_ptr*> m_ex_ptr{};
-    std::atomic_bool m_is_exit{},m_isPause{};
+    std::atomic_bool m_is_Exit{},m_isPause{};
     QMutex m_mux;
     QWaitCondition m_cv;
     QSharedPointer<XDemux> m_demux;

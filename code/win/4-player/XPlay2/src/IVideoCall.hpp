@@ -11,8 +11,16 @@ using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
 
 class IVideoCall {
 
-public:
+public :
+    /***
+     * 初始化
+     * @param w
+     * @param h
+     */
     virtual void Init(const int &w,const int&h) noexcept(false) = 0;
+    /***
+     * param XAVFrame_sptr
+     */
     virtual void Repaint(const XAVFrame_sptr &) noexcept(false) = 0;
 };
 

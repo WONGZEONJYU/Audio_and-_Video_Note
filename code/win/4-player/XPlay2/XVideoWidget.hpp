@@ -19,7 +19,6 @@
 #include <QMutex>
 #include <QSharedPointer>
 #include <QVector>
-#include <QByteArray>
 #include "XHelper.hpp"
 #include "IVideoCall.hpp"
 
@@ -122,31 +121,30 @@ public:
      * @param h
      */
     void Init(const int &w,const int&h) noexcept(false) override;
+    /**
+     * 绘制YUV数据
+     */
     void Repaint(const XAVFrame_sptr &) override;
 
 private:
     QMutex m_mux;
 
     //shader程序
-    //QOpenGLShaderProgram *m_shader{};
     QSharedPointer<QOpenGLShaderProgram> m_shader;
 
     //显存空间,用于存储顶点坐标
-    //QOpenGLBuffer *m_VBO{},*m_EBO{};
     QSharedPointer<QOpenGLBuffer> m_VBO,m_EBO;
 
     //顶点内存对象
-    //QOpenGLVertexArrayObject *m_VAO{};
     QSharedPointer<QOpenGLVertexArrayObject> m_VAO;
 
     //材质内存空间,显卡的材质空间
-    //QOpenGLTexture *m_textureYUV[3]{};
     QVector<QSharedPointer<QOpenGLTexture>> m_textureYUV;
 
     //YUV数据空间
     QVector<QByteArray> m_yuv_datum;
 
-    int m_w{},m_h{};
+    std::atomic_int m_w{},m_h{};
 };
 
 #endif

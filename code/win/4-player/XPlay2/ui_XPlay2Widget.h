@@ -13,8 +13,8 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QSlider>
 #include <QtWidgets/QWidget>
+#include <XQSliderWidget.hpp>
 #include <XVideoWidget.hpp>
 
 QT_BEGIN_NAMESPACE
@@ -26,7 +26,7 @@ public:
     XVideoWidget *VideoWidget;
     QPushButton *OpenFile;
     QPushButton *isPlay;
-    QSlider *PlayPos;
+    XQSliderWidget *PlayPos;
 
     void setupUi(QWidget *XPlay2Widget)
     {
@@ -52,7 +52,7 @@ public:
 
         gridLayout->addWidget(isPlay, 2, 1, 1, 1);
 
-        PlayPos = new QSlider(XPlay2Widget);
+        PlayPos = new XQSliderWidget(XPlay2Widget);
         PlayPos->setObjectName("PlayPos");
         PlayPos->setMaximum(999);
         PlayPos->setOrientation(Qt::Horizontal);

@@ -63,11 +63,9 @@ void XPlay2Widget::OpenFile() {
 
 void XPlay2Widget::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
-    //m_ui->VideoWidget->resize(size());
 }
 
 void XPlay2Widget::mouseDoubleClickEvent(QMouseEvent *event) {
-    //QWidget::mouseDoubleClickEvent(event);
     isFullScreen() ? showNormal(): showFullScreen();
 }
 
@@ -77,7 +75,6 @@ void XPlay2Widget::SetPause(const bool &b) {
 
 void XPlay2Widget::PlayOrPause() {
     sender()->blockSignals(true);
-    qDebug() << __func__ ;
     const auto b {!m_dmt->is_Pause()};
     SetPause(b);
     m_dmt->SetPause(b);
@@ -103,10 +100,12 @@ void XPlay2Widget::SliderPressed() {
 }
 
 void XPlay2Widget::SliderReleased() {
+    sender()->blockSignals(true);
     auto PlayPos{static_cast<const double >(m_ui->PlayPos->value())},
             PlayMax{static_cast<const decltype(PlayPos)>(m_ui->PlayPos->maximum())};
 
     const auto pos { PlayPos / PlayMax };
     m_dmt->Seek(pos);
     m_is_SliderPress = false;
+    sender()->blockSignals(false);
 }

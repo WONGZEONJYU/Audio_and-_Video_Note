@@ -19,7 +19,7 @@ XDemuxThread::~XDemuxThread() {
 }
 
 void XDemuxThread::DeConstruct() noexcept(true) {
-    m_is_exit = true;
+    m_is_Exit = true;
     m_cv.wakeAll();
     quit();
     wait();
@@ -72,7 +72,7 @@ void XDemuxThread::run() {
 
     try {
         bool end{};
-        while (!m_is_exit){
+        while (!m_is_Exit){
 
             if (m_isPause){
                 msleep(5);
@@ -174,10 +174,30 @@ void XDemuxThread::SetPause(const bool &b){
 
 void XDemuxThread::Seek(const double &pos) noexcept(true) {
     Clear();
+    const auto status {m_isPause.load()};
+    SetPause(true); //无论当前什么状态,都先暂停再seek
+
     QMutexLocker locker(&m_mux);
     if (m_demux){
         m_demux->Seek(pos);
     }
+
+    const auto t_pos {pos * static_cast<decltype(pos)>(m_total_Ms.load())};
+    const auto seek_pts {static_cast<int64_t>(t_pos)};
+
+    while (!m_is_Exit) {
+        XAVPacket_sptr pkt;
+        CHECK_EXC(pkt = m_demux->ReadVideo(),locker.unlock());
+        if (!pkt) {
+            break;
+        }
+        if (m_vt->RepaintPts(pkt,seek_pts)) {
+            m_pts = seek_pts; //更新当前pts
+            break;
+        }
+    }
+    locker.unlock();
+    SetPause(status);
 }
 
 void XDemuxThread::Clear() noexcept(true) {

@@ -67,6 +67,10 @@ protected:
      */
     virtual bool Send_Packet(const XAVPacket_sptr &) noexcept(false);
 
+    /**
+     * 重载函数,简化流程
+     * @return
+     */
     virtual bool Send_Packet() noexcept(false);
 
     [[nodiscard]] virtual XAVFrame_sptr Receive_Frame(int64_t &pts) noexcept(false);
@@ -100,19 +104,34 @@ public:
      */
     virtual void Push(XAVPacket_sptr &&) noexcept(false);
 
+    /**
+     * 被同步使用
+     * @param pts
+     */
     void Set_Sync_Pts(const int64_t &pts) noexcept(true){
         m_sync_pts = pts;
     }
 
+    /**
+     * 返回解码一帧的PTS,此处用于同步
+     * @return
+     */
     [[nodiscard]] int64_t Pts() const noexcept(true) {return m_pts;}
 
+    /**
+     * 暂停
+     * @param b
+     */
     virtual void SetPause(const bool &b) noexcept(true){
         m_is_Pause = b;
     }
-
-//    [[nodiscard]] auto is_Pause() const noexcept(true){
-//        return m_is_Pause.load();
-//    }
+    /**
+     * 获取暂停状态
+     * @return
+     */
+    [[nodiscard]] bool is_Pause() const noexcept(true){
+        return m_is_Pause;
+    }
 
 protected:
     std::atomic<std::exception_ptr *> m_exceptionPtr{};

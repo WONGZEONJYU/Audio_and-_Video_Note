@@ -15,11 +15,11 @@ extern "C"{
 
 struct AVCodecContext;
 class XAVCodecParameters;
-using XAVCodecParameters_sptr = std::shared_ptr<XAVCodecParameters>;
+using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
 
-class XAVCodecParameters final : AVCodecParameters{
-    static void Reset(AVCodecParameters*) noexcept(true);
-    void Move(AVCodecParameters*) noexcept(true);
+class XAVCodecParameters final : AVCodecParameters {
+    static void Reset(AVCodecParameters *) noexcept(true);
+    void Move(AVCodecParameters *) noexcept(true);
 public:
     XAVCodecParameters();
     explicit XAVCodecParameters(const AVCodecContext *) noexcept(false);

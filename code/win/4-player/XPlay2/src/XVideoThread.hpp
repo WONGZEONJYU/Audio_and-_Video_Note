@@ -13,7 +13,11 @@ Q_OBJECT
     void entry() override;
 public:
     explicit XVideoThread(std::exception_ptr * = nullptr);
-    void Open(const XAVCodecParameters_sptr &,IVideoCall *) noexcept(false);
+    virtual void Open(const XAVCodecParameters_sptr &,IVideoCall *) noexcept(false);
+    /**
+     * seek后显示到关键帧的作用
+     */
+    virtual bool RepaintPts(const XAVPacket_sptr &,const int64_t &) noexcept(false);
 protected:
     std::atomic<IVideoCall*> m_call{};
     //QMutex m_v_mux;

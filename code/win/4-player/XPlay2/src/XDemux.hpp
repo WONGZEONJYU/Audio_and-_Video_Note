@@ -17,12 +17,14 @@ class XAVPacket;
 class XAVCodecParameters;
 
 using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
+using XAVPacket_sptr = typename std::shared_ptr<XAVPacket>;
 
 class XDemux {
 
     void show_audio_info() const noexcept(true);
     void show_video_info()  noexcept(true);
     void DeConstruct() noexcept(true);
+    void Find_Media(const int &,std::atomic_int &,AVStream *&) noexcept(true);
     static int io_callback(void *);
 public:
     explicit XDemux();
@@ -32,10 +34,16 @@ public:
     virtual void Open(const std::string &) noexcept(false);
 
     /**
-     *  读取packed,std::shared_ptr<XAVPacket>可能出现空,有分配异常
+     *  读取packed,XAVPacket_sptr可能出现空,XAVPacket_sptr分配失败则异常
      * @return
      */
-    virtual std::shared_ptr<XAVPacket> Read() noexcept(false);
+    virtual XAVPacket_sptr Read() noexcept(false);
+
+    /**
+     * 读取视频packet,音频packet丢弃
+     * @return
+     */
+    virtual XAVPacket_sptr ReadVideo() noexcept(false);
 
     /**
      * 拷贝视频解码参数集,无需手动释放,有分配异常,没有则返回空

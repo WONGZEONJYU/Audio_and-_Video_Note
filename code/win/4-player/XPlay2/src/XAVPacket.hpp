@@ -27,7 +27,7 @@ public:
     ~XAVPacket();
 };
 
-using XAVPacket_sptr = std::shared_ptr<XAVPacket>;
+using XAVPacket_sptr = typename std::shared_ptr<XAVPacket>;
 XAVPacket_sptr new_XAVPacket() noexcept(false);
 
 #endif

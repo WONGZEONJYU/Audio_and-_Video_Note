@@ -28,7 +28,7 @@ public:
     ~XAVFrame();
 };
 
-using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
+using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
 XAVFrame_sptr new_XAVFrame() noexcept(false);
 
 #endif

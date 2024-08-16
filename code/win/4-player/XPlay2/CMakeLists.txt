@@ -84,6 +84,8 @@ set(SRC_CODE
         src/XDecodeThread.cpp
         src/XDemuxThread.cpp
         src/XDemuxThread.hpp
+        XQSliderWidget.cpp
+        XQSliderWidget.hpp
 )
 
 set(QT__LIB
