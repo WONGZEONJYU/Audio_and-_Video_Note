@@ -221,9 +221,10 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
     QOpenGLVertexArrayObject::Binder vao(m_VAO.get());
 
     XRAII r([this]{
-        m_shader->bind();
-        m_VBO->bind();
-        m_EBO->bind();
+
+        auto b{ m_shader->bind() };
+        b = m_VBO->bind();
+        b = m_EBO->bind();
         },[this]{
         m_shader->release();
         m_VBO->release();

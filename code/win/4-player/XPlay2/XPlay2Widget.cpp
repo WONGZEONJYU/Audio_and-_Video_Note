@@ -150,9 +150,7 @@ void XPlay2Widget::SliderReleased() {
     sender()->blockSignals(false);
 }
 
-void XPlay2Widget::VolumeReleased(){
-    //qDebug() << m_ui->VolumeSlider->value();
-    const auto v1 {static_cast<double >(m_ui->VolumeSlider->value())},
-    max_v{static_cast<decltype(v1)>(m_ui->VolumeSlider->maximum())};
-    m_dmt->SetVolume(v1 / max_v);
+void XPlay2Widget::VolumeChanged(const int &v){
+    const auto max {static_cast<double >(m_ui->VolumeSlider->maximum())};
+    m_dmt->SetVolume(v / max);
 }

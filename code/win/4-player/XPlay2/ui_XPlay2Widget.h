@@ -60,9 +60,7 @@ public:
         verticalLayout->addWidget(PlayPos);
 
         horizontalLayout = new QHBoxLayout();
-#ifndef Q_OS_MAC
-        horizontalLayout->setSpacing(-1);
-#endif
+        horizontalLayout->setSpacing(6);
         horizontalLayout->setObjectName("horizontalLayout");
         OpenFile = new QPushButton(XPlay2Widget);
         OpenFile->setObjectName("OpenFile");
@@ -101,7 +99,7 @@ public:
         QObject::connect(PlayPos, SIGNAL(sliderReleased()), XPlay2Widget, SLOT(SliderReleased()));
         QObject::connect(PlayPos, SIGNAL(sliderPressed()), XPlay2Widget, SLOT(SliderPressed()));
         QObject::connect(OpenURL, SIGNAL(clicked()), XPlay2Widget, SLOT(OpenURL()));
-        QObject::connect(VolumeSlider, SIGNAL(sliderReleased()), XPlay2Widget, SLOT(VolumeReleased()));
+        QObject::connect(VolumeSlider, SIGNAL(valueChanged(int)), XPlay2Widget, SLOT(VolumeChanged(int)));
 
         QMetaObject::connectSlotsByName(XPlay2Widget);
     } // setupUi

@@ -40,7 +40,6 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
         m_audio_play.load()->set_Audio_parameter(p->Sample_rate(),
                                           p->Ch_layout()->nb_channels,
                                           QAudioFormat::Int16);
-
     } catch (...) {
         DeConstruct();
         throw ;
@@ -56,6 +55,8 @@ void XAudioThread::entry() noexcept(false) {
     std::vector<uint8_t> resample_datum;
     try {
 
+        m_audio_play.load()->Open();
+
         while (!m_is_Exit) {
 
             if (m_is_Pause){
@@ -63,7 +64,7 @@ void XAudioThread::entry() noexcept(false) {
                 continue;
             }
 
-            if (m_audio_play.load()->Is_Transform()){
+            if (m_audio_play.load()->Is_Transform()){ //中途改变媒体文件需要重新打开
                 m_audio_play.load()->Open();
             }
 
