@@ -47,6 +47,7 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
 }
 
 void XAudioThread::DeConstruct() noexcept(true){
+    m_a_cv.wakeAll();
     Exit_Thread();
 }
 
@@ -60,8 +61,8 @@ void XAudioThread::entry() noexcept(false) {
         while (!m_is_Exit) {
 
             if (m_is_Pause){
-                msleep(5);
-                continue;
+                m_a_cv.wait(&m_a_mux);
+                m_a_mux.unlock();
             }
 
             if (m_audio_play.load()->Is_Transform()){ //中途改变媒体文件需要重新打开
@@ -89,11 +90,7 @@ void XAudioThread::entry() noexcept(false) {
                               locker.unlock());
                 }
 
-                while (!m_is_Exit) {
-
-                    if (re_size <= 0){ //不能放在外层判断,此处需循环判断音频播放是否空闲
-                        break;
-                    }
+                while (!m_is_Exit && re_size > 0) {
 
                     if (m_is_Pause || m_audio_play.load()->FreeSize() < re_size) {
                         msleep(1);
@@ -143,6 +140,9 @@ void XAudioThread::SetPause(const bool &b) noexcept(true){
     XDecodeThread::SetPause(b);
     if (m_audio_play){
         m_audio_play.load()->SetPause(b);
+    }
+    if (!b){
+        m_a_cv.wakeAll();
     }
 }
 

@@ -88,6 +88,8 @@ set(SRC_CODE
         src/XDemuxThread.hpp
         XQSliderWidget.cpp
         XQSliderWidget.hpp
+        src/sonic.c
+        src/sonic.h
 )
 
 set(QT__LIB

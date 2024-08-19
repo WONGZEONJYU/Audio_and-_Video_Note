@@ -32,7 +32,7 @@ void XDecodeThread::Open(const XAVCodecParameters_sptr &p) {
     Create_Decode();
     Clear();
     m_decode->Open(p);
-    m_cv.wakeAll();
+    m_d_cv.wakeAll();
 }
 
 void XDecodeThread::Clear() noexcept(true) {
@@ -56,7 +56,7 @@ void XDecodeThread::Close() noexcept(true) {
 
 void XDecodeThread::Exit_Thread() noexcept(true) {
     m_is_Exit = true;
-    m_cv.wakeAll();
+    m_d_cv.wakeAll();
     quit();
     wait();
 }
@@ -73,10 +73,10 @@ void XDecodeThread::Push(XAVPacket_sptr &&pkt) noexcept(false) {
         QWriteLocker locker(&m_rw_mux);
         if (m_Packets.size() < Max_List) {
             m_Packets.emplaceBack(std::move(pkt));
-            m_cv.wakeAll();
+            m_d_cv.wakeAll();
             break;
         }
-        m_cv.wait(&m_rw_mux,1);
+        m_d_cv.wait(&m_rw_mux,1);
     }
 }
 
@@ -94,17 +94,17 @@ void XDecodeThread::PopFront() noexcept(false) {
         return;
     }
     m_Packets.removeFirst();
-    m_cv.wakeAll();
+    m_d_cv.wakeAll();
 }
 
-bool XDecodeThread::Empty() noexcept(false){
-    QReadLocker locker(&m_rw_mux);
+bool XDecodeThread::Empty() const noexcept(false){
+    QReadLocker locker(const_cast<decltype(m_rw_mux)*>(&m_rw_mux));
     return m_Packets.isEmpty();
 }
 
-bool XDecodeThread::Send_Packet(const XAVPacket_sptr &pkt) noexcept(false) {
+bool XDecodeThread::Send_Packet(const XAVPacket_sptr &pkt) const noexcept(false) {
     bool b{};
-    QMutexLocker locker(&m_d_mux);
+    QMutexLocker locker(const_cast<decltype(m_d_mux)*>(&m_d_mux));
     if (m_decode){
         CHECK_EXC(b = m_decode->Send(pkt),locker.unlock());
     }

@@ -18,9 +18,11 @@ public:
      * seek后显示到关键帧的作用
      */
     virtual bool RepaintPts(const XAVPacket_sptr &,const int64_t &) noexcept(false);
+    void SetPause(const bool &) noexcept(true) override;
 protected:
     std::atomic<IVideoCall*> m_call{};
-    //QMutex m_v_mux;
+    QMutex m_v_mux;
+    QWaitCondition m_v_cv;
 public:
     ~XVideoThread() override;
 };

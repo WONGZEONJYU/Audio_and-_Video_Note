@@ -306,7 +306,7 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
             return;
         }
 
-        if (frame->width != m_w || frame->height != m_h){
+        if (frame->width != m_w || frame->height != m_h) {
             qDebug() << __func__ << " Resolution error";
             return;
         }

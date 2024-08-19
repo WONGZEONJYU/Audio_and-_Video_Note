@@ -60,12 +60,12 @@ protected:
      * 判空
      * @return true or false
      */
-    virtual bool Empty() noexcept(false);
+    [[nodiscard]] virtual bool Empty() const noexcept(false);
 
     /**
      * 发送解码包
      */
-    virtual bool Send_Packet(const XAVPacket_sptr &) noexcept(false);
+    [[nodiscard]] virtual bool Send_Packet(const XAVPacket_sptr &) const noexcept(false);
 
     /**
      * 重载函数,简化流程
@@ -139,7 +139,7 @@ protected:
     std::atomic_int64_t m_pts{},m_sync_pts{};
 private:
     QQueue<XAVPacket_sptr> m_Packets;
-    QWaitCondition m_cv;
+    QWaitCondition m_d_cv;
     QMutex m_d_mux;
     QReadWriteLock m_rw_mux;
     QSharedPointer<XDecode> m_decode;
