@@ -9,15 +9,23 @@ class XSonic {
                                 SONIC_MAX_PITCH {400},
                                 SONIC_AMDF_FREQ {4000};
 
+
+
+    bool processStreamInput();
     bool AllocateStreamBuffers(const int &sampleRate,const int &numChannels);
+    void enlargeInputBufferIfNeeded(const int &);
+    bool AddFloatSamplesToInputBuffer(const float *,const int&);
+
+
+
 
 public:
-
-    virtual void Open(const int &sampleRate,const int &numChannels);
+    void Open(const int &sampleRate,const int &numChannels);
+    void Close() noexcept(true);
 
 /* Use this to write floating point data to be speed up or down into the stream.
    Values must be between -1 and 1.  Return 0 if memory realloc failed, otherwise 1 */
-    virtual int sonicWriteFloatToStream(float *samples, int numSamples);
+    virtual bool sonicWriteFloatToStream(float *samples, int numSamples);
 /* Use this to write 16-bit data to be speed up or down into the stream.
    Return 0 if memory realloc failed, otherwise 1 */
     virtual int sonicWriteShortToStream(short *samples, int numSamples);
@@ -67,11 +75,11 @@ public:
 /* Get the sample rate of the stream. */
     virtual int sonicGetSampleRate();
 /* Set the sample rate of the stream.  This will drop any samples that have not been read. */
-    virtual void sonicSetSampleRate(int sampleRate);
+//    virtual void sonicSetSampleRate(int sampleRate);
 /* Get the number of channels. */
     virtual int sonicGetNumChannels();
 /* Set the number of channels.  This will drop any samples that have not been read. */
-    virtual void sonicSetNumChannels(int numChannels);
+//    virtual void sonicSetNumChannels(int numChannels);
 /* This is a non-stream oriented interface to just change the speed of a sound
    sample.  It works in-place on the sample array, so there must be at least
    speed*numSamples available space in the array. Returns the new number of samples. */
@@ -82,7 +90,8 @@ public:
    speed*numSamples available space in the array. Returns the new number of samples. */
     virtual int sonicChangeShortSpeed(short *samples, int numSamples, float speed, float pitch,
                               float rate, float volume, int useChordPitch, int sampleRate, int numChannels);
-private:
+
+protected:
     std::vector<int16_t> m_inputBuffer,m_outputBuffer,
                         m_pitchBuffer,m_downSampleBuffer;
 #if 0

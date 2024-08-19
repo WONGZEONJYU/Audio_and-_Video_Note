@@ -1,41 +1,144 @@
 #include "sonic.hpp"
 
+/* The number of points to use in the sinc FIR filter for resampling. */
+static inline constexpr auto  SINC_FILTER_POINTS {12}, /* I am not able to hear improvement with higher N. */
+SINC_TABLE_SIZE {601};
+
+bool XSonic::processStreamInput(){
+
+    const auto originalNumOutputSamples{m_numOutputSamples};
+    const auto speed{m_speed / m_pitch};
+    auto rate{m_rate};
+    if (!m_useChordPitch){
+        rate *= m_pitch;
+    }
+
+    if(speed > 1.00001 || speed < 0.99999) {
+        changeSpeed(stream, speed);
+    } else {
+        if(!copyToOutput(stream, stream->inputBuffer, stream->numInputSamples)) {
+            return 0;
+        }
+        stream->numInputSamples = 0;
+    }
+
+    if(stream->useChordPitch) {
+        if(stream->pitch != 1.0f) {
+            if(!adjustPitch(stream, originalNumOutputSamples)) {
+                return 0;
+            }
+        }
+    } else if(rate != 1.0f) {
+        if(!adjustRate(stream, rate, originalNumOutputSamples)) {
+            return 0;
+        }
+    }
+    if(stream->volume != 1.0f) {
+        /* Adjust output volume. */
+        scaleSamples(stream->outputBuffer + originalNumOutputSamples*stream->numChannels,
+                     (stream->numOutputSamples - originalNumOutputSamples)*stream->numChannels,
+                     stream->volume);
+    }
+    return 1;
+
+    return {};
+}
+
 bool XSonic::AllocateStreamBuffers(const int &sampleRate,const int &numChannels) {
 
+    if (sampleRate <= 0 || numChannels <= 0){
+        return {};
+    }
 
+    Close();
+#if 1
+    const auto minPeriod {sampleRate / SONIC_MIN_PITCH};
+    const auto maxPeriod {sampleRate / SONIC_MAX_PITCH};
+#else
     const auto minPeriod {sampleRate / SONIC_MAX_PITCH};
     const auto maxPeriod {sampleRate / SONIC_MIN_PITCH};
-    const auto maxRequired{2 * m_maxPeriod};
+#endif
+    const auto maxRequired{2 * maxPeriod};
 
-    m_inputBufferSize = maxRequired;
-    m_inputBuffer.clear();
-    m_inputBuffer.resize(maxRequired * numChannels);
+    const auto alloc_size {maxRequired * numChannels};
 
-    m_outputBufferSize = maxRequired;
-    m_outputBuffer.clear();
-    m_outputBuffer.resize(maxRequired * numChannels);
-
-    m_pitchBufferSize = maxRequired;
-    m_pitchBuffer.clear();
-    m_pitchBuffer.resize(maxRequired * numChannels);
-
-    m_downSampleBuffer.clear();
+    m_inputBufferSize = m_outputBufferSize = m_pitchBufferSize = maxRequired;
+    m_inputBuffer.resize(alloc_size);
+    m_outputBuffer.resize(alloc_size);
+    m_pitchBuffer.resize(alloc_size);
     m_downSampleBuffer.resize(maxRequired);
 
     m_sampleRate = sampleRate;
     m_numChannels = numChannels;
-    m_prevPeriod = m_oldRatePosition = m_newRatePosition = 0;
-    m_minPeriod = m_maxPeriod = maxRequired;
+    m_prevPeriod = 0;
+    m_minPeriod = minPeriod;
+    m_maxPeriod = maxPeriod;
+    m_maxRequired = maxRequired;
+
+    m_speed = m_pitch = m_volume = m_rate = 1.0;
+    m_oldRatePosition = m_newRatePosition = m_useChordPitch = m_quality = 0;
+    m_avePower = 50.0;
+    return true;
+}
+
+void XSonic::enlargeInputBufferIfNeeded(const int &numSamples) {
+
+    if (m_numInputSamples + numSamples > m_inputBufferSize){
+        m_inputBufferSize += (m_inputBufferSize >> 1) + numSamples;
+        m_inputBuffer.resize(m_inputBufferSize * m_numChannels);
+    }
+}
+
+bool XSonic::AddFloatSamplesToInputBuffer(const float *samples, const int &numSamples) {
+
+    if (!samples || numSamples < 0){
+        return {};
+    }
+
+    if (!numSamples){
+        return true;
+    }
+
+    /**
+     * 计算出需拷贝的sample个数
+     */
+    auto count {numSamples * m_numChannels};
+
+    /**
+     * 扩大输入缓冲区
+     */
+    enlargeInputBufferIfNeeded(numSamples);
+
+    auto buffer {m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+
+    while (count--){
+        const auto v {static_cast<int16_t>((*samples++) * 32767.0f)};
+        *buffer++ = v;
+    }
+
+    m_numInputSamples += numSamples;
 
     return true;
 }
 
 void XSonic::Open(const int &sampleRate,const int &numChannels){
-
+    AllocateStreamBuffers(sampleRate,numChannels);
 }
 
-int XSonic::sonicWriteFloatToStream(float *samples, int numSamples) {
-    return 0;
+void XSonic::Close() noexcept(true) {
+    m_inputBuffer.clear();
+    m_outputBuffer.clear();
+    m_pitchBuffer.clear();
+    m_downSampleBuffer.clear();
+}
+
+bool XSonic::sonicWriteFloatToStream(float *samples, int numSamples) {
+
+    if (!AddFloatSamplesToInputBuffer(samples,numSamples)){
+        return {};
+    }
+
+    return true;
 }
 
 int XSonic::sonicWriteShortToStream(short *samples, int numSamples) {
@@ -118,17 +221,17 @@ int XSonic::sonicGetSampleRate() {
     return 0;
 }
 
-void XSonic::sonicSetSampleRate(int sampleRate) {
-
-}
+//void XSonic::sonicSetSampleRate(int sampleRate) {
+//
+//}
 
 int XSonic::sonicGetNumChannels() {
     return 0;
 }
 
-void XSonic::sonicSetNumChannels(int numChannels) {
-
-}
+//void XSonic::sonicSetNumChannels(int numChannels) {
+//
+//}
 
 int XSonic::sonicChangeFloatSpeed(float *samples, int numSamples, float speed, float pitch, float rate, float volume,
                                   int useChordPitch, int sampleRate, int numChannels) {
@@ -144,8 +247,8 @@ XSonic::XSonic(const int &sampleRate,const int &numChannels){
     Open(sampleRate,numChannels);
 }
 
-
 XSonic::~XSonic() {
 
 }
+
 

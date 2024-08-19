@@ -383,14 +383,14 @@ static int addFloatSamplesToInputBuffer(
         int numSamples)
 {
     short *buffer;
-    int count = numSamples*stream->numChannels;
+    int count = numSamples * stream->numChannels;
     if(numSamples == 0) {
         return 1;
     }
     if(!enlargeInputBufferIfNeeded(stream, numSamples)) {
         return 0;
     }
-    buffer = stream->inputBuffer + stream->numInputSamples*stream->numChannels;
+    buffer = stream->inputBuffer + stream->numInputSamples * stream->numChannels;
     while(count--) {
         *buffer++ = (*samples++)*32767.0f;
     }
