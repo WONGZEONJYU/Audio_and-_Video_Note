@@ -9,6 +9,7 @@
 
 class XResample;
 class XAudioPlay;
+struct sonicStreamStruct;
 
 class XAudioThread : public XDecodeThread {
 
@@ -29,6 +30,7 @@ protected:
     QSharedPointer<XResample> m_resample;
     QMutex m_a_mux;
     QWaitCondition m_a_cv;
+    sonicStreamStruct *m_SonicStream{};
 };
 
 #endif

@@ -258,7 +258,7 @@ static int allocateStreamBuffers(
 {
     int minPeriod = sampleRate/SONIC_MAX_PITCH;
     int maxPeriod = sampleRate/SONIC_MIN_PITCH;
-    int maxRequired = 2*maxPeriod;
+    int maxRequired = 2 * maxPeriod;
     stream->inputBufferSize = maxRequired;
     stream->inputBuffer = (short *)calloc(maxRequired, sizeof(short)*numChannels);
     if(stream->inputBuffer == NULL) {

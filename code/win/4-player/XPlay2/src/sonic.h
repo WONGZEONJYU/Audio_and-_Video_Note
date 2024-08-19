@@ -36,6 +36,7 @@ until the output desired speed is reached.  The length of data copied is:
 For slow down factors below 0.5, no data is copied, and an algorithm
 similar to high speed factors is used.
 */
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -48,6 +49,7 @@ extern "C" {
 #define SONIC_MAX_PITCH 400
 /* These are used to down-sample some inputs to improve speed */
 #define SONIC_AMDF_FREQ 4000
+
 struct sonicStreamStruct;
 typedef struct sonicStreamStruct *sonicStream;
 /* For all of the following functions, numChannels is multiplied by numSamples

@@ -90,6 +90,8 @@ set(SRC_CODE
         XQSliderWidget.hpp
         src/sonic.c
         src/sonic.h
+        src/sonic.hpp
+        src/sonic.cpp
 )
 
 set(QT__LIB

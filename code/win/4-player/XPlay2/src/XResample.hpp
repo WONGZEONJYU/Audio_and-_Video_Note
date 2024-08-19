@@ -24,7 +24,17 @@ public:
     explicit XResample() = default;
     virtual void Open(const XAVCodecParameters_sptr &) noexcept(false);
     virtual void Close() noexcept(true);
-    virtual int Resample(const XAVFrame_sptr &,resample_data_t &) noexcept(false);
+
+    /**
+     * 重采样,out_samples用于返回重采样后的sample的个数
+     * @param frame
+     * @param datum
+     * @param out_samples
+     * @return (out_samples * channels * bytes_per_sample)
+     */
+    virtual int Resample(const XAVFrame_sptr &frame,
+                         resample_data_t &datum,
+                         int &out_samples) noexcept(false);
 
 protected:
     std::mutex m_mux;
