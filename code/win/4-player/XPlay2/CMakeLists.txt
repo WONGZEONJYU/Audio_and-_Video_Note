@@ -8,7 +8,8 @@ set(CMAKE_AUTOUIC ON)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_definitions(-DWINDOWS)
-    set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
+    #set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
+    set(CMAKE_PREFIX_PATH "C:/Qt6/6.7.2/mingw_64/")
     include_directories(c:/ffmepg-7.1/include)
     include_directories(c:/SDL2-2.28.5-VC/include)
 
@@ -22,7 +23,8 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
-    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.4.2/macos")
+    #set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.4.2/macos")
+    set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.2/macos")
     include_directories(/usr/local/ffmpeg/include)
     include_directories(/opt/homebrew/Cellar/sdl2/2.30.1/include/SDL2)
 
