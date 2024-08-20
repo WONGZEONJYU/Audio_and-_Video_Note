@@ -15,7 +15,9 @@ class XSonic {
     static int findPitchPeriodInRange(const int16_t *,const int &,
                                const int &,int &,int &);
     void downSampleInput(const int16_t *,const int &);
-    [[nodiscard]] bool prevPeriodBetter(const int&,const int& ,const int&) const;
+    [[nodiscard]] bool prevPeriodBetter(const int&,
+                                        const int& ,
+                                        const int&) const;
     int findPitchPeriod(const int16_t * , const int &);
     int skipPitchPeriod(const int16_t *,
                         const double &,

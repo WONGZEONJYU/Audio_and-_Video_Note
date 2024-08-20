@@ -6,6 +6,7 @@
 #define XPLAY2_IVIDEOCALL_HPP
 
 #include <memory>
+
 class XAVFrame;
 using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
 

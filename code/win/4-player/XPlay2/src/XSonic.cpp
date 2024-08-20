@@ -1,8 +1,6 @@
 #include "XSonic.hpp"
 #include <algorithm>
 
-
-
 void XSonic::Open(const int &sampleRate,const int &numChannels){
     AllocateStreamBuffers(sampleRate,numChannels);
 }
