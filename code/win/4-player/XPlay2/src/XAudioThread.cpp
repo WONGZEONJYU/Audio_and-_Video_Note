@@ -8,7 +8,7 @@
 #include "XResample.hpp"
 #include "QXAudioPlay.hpp"
 #include "XAVCodecParameters.hpp"
-#include "sonic.h"
+#include "XSonic.h"
 
 using namespace std;
 

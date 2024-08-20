@@ -12,7 +12,7 @@
 #include <limits.h>
 #include <math.h>
 //#include "avutil/emsonic.h"
-#include "sonic.h"
+#include "XSonic.h"
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -675,20 +675,25 @@ static int prevPeriodBetter(
     if(minDiff == 0 || stream->prevPeriod == 0) {
         return 0;
     }
+
     if(preferNewPeriod) {
-        if(maxDiff > minDiff*3) {
+
+        if(maxDiff > minDiff * 3) {
             /* Got a reasonable match this period */
             return 0;
         }
-        if(minDiff*2 <= stream->prevMinDiff*3) {
+
+        if(minDiff * 2 <= stream->prevMinDiff * 3) {
             /* Mismatch is not that much greater this period */
             return 0;
         }
     } else {
+
         if(minDiff <= stream->prevMinDiff) {
             return 0;
         }
     }
+
     return 1;
 }
 /* Find the pitch period.  This is a critical step, and we may have to try
@@ -918,7 +923,7 @@ static short interpolate(
     for (i = 0; i < SINC_FILTER_POINTS; i++) {
         weight = findSincCoefficient(i, ratio, width);
         /* printf("%u %f\n", i, weight); */
-        value = in[i*stream->numChannels]*weight;
+        value = in[i * stream->numChannels] * weight;
         oldSign = getSign(total);
         total += value;
         if (oldSign != getSign(total) && getSign(value) == oldSign) {
@@ -960,8 +965,8 @@ static int adjustRate(
     }
     /* Leave at least N pitch sample in the buffer */
     for(position = 0; position < stream->numPitchSamples - N; position++) {
-        while((stream->oldRatePosition + 1)*newSampleRate >
-              stream->newRatePosition*oldSampleRate) {
+        while((stream->oldRatePosition + 1) * newSampleRate >
+              stream->newRatePosition * oldSampleRate) {
             if(!enlargeOutputBufferIfNeeded(stream, 1)) {
                 return 0;
             }

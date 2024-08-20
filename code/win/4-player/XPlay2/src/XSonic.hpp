@@ -9,15 +9,44 @@ class XSonic {
                                 SONIC_MAX_PITCH {400},
                                 SONIC_AMDF_FREQ {4000};
 
-
-
-    bool processStreamInput();
-    bool AllocateStreamBuffers(const int &sampleRate,const int &numChannels);
+    void enlargeOutputBufferIfNeeded(const int&);
+    void copyToOutput(const int16_t *,const int &);
+    int copyInputToOutput(const int &);
+    static int findPitchPeriodInRange(const int16_t *,const int &,
+                               const int &,int &,int &);
+    void downSampleInput(const int16_t *,const int &);
+    [[nodiscard]] bool prevPeriodBetter(const int&,const int& ,const int&) const;
+    int findPitchPeriod(const int16_t * , const int &);
+    int skipPitchPeriod(const int16_t *,
+                        const double &,
+                        const int &);
+    bool ChangeSpeed(const double &);
+    bool ProcessStreamInput();
+    bool AllocateStreamBuffers(const int &,const int &);
     void enlargeInputBufferIfNeeded(const int &);
     bool AddFloatSamplesToInputBuffer(const float *,const int&);
-
-
-
+    static void overlapAdd(const int &,
+                           const int &,
+                           int16_t *out,
+                           const int16_t *,
+                           const int16_t *);
+    int insertPitchPeriod(const int16_t *,
+                          const double &,
+                          const int &);
+    void removeInputSamples(const int &);
+    bool adjustPitch(const int &);
+    void moveNewSamplesToPitchBuffer(const int &);
+    static void overlapAddWithSeparation(const int &,
+                                         const int & ,
+                                         const int & ,
+                                         int16_t *,
+                                         const int16_t *,
+                                         const int16_t *);
+    void removePitchSamples(const int &);
+    bool adjustRate(const double &,const int &);
+    int16_t interpolate(const int16_t * , const int &,const int &) const;
+    static int findSincCoefficient(const int &,const int &,const int &);
+    static void scaleSamples(int16_t * , const int &,const double &);
 
 public:
     void Open(const int &sampleRate,const int &numChannels);
