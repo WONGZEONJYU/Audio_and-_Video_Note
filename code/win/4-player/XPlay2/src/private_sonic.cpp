@@ -83,11 +83,8 @@ int XSonic::copyInputToOutput(const int &position){
     }
 
     auto buffer{m_inputBuffer.data() + position * m_numChannels};
-
     copyToOutput(buffer,numSamples);
-
     m_remainingInputToCopy -= numSamples;
-
     return numSamples;
 }
 
@@ -128,7 +125,6 @@ int XSonic::findPitchPeriodInRange(const int16_t *samples,
 
     retMinDiff = static_cast<int>(minDiff) / bestPeriod;
     retMaxDiff = static_cast<int>(maxDiff) / worstPeriod;
-
     return bestPeriod;
 }
 
