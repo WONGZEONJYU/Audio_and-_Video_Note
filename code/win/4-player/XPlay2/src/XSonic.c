@@ -258,6 +258,7 @@ static int allocateStreamBuffers(
 {
     int minPeriod = sampleRate/SONIC_MAX_PITCH;
     int maxPeriod = sampleRate/SONIC_MIN_PITCH;
+
     int maxRequired = 2 * maxPeriod;
     stream->inputBufferSize = maxRequired;
     stream->inputBuffer = (short *)calloc(maxRequired, sizeof(short)*numChannels);
@@ -903,6 +904,7 @@ static int getSign(int value) {
     return value >= 0? 1 : 0;
 }
 /* Interpolate the new output sample. */
+
 static short interpolate(
         sonicStream stream,
         short *in,
@@ -939,6 +941,7 @@ static short interpolate(
     }
     return total >> 16;
 }
+
 /* Change the rate.  Interpolate with a sinc FIR filter using a Hann window. */
 static int adjustRate(
         sonicStream stream,
@@ -965,8 +968,11 @@ static int adjustRate(
     }
     /* Leave at least N pitch sample in the buffer */
     for(position = 0; position < stream->numPitchSamples - N; position++) {
+
         while((stream->oldRatePosition + 1) * newSampleRate >
-              stream->newRatePosition * oldSampleRate) {
+              stream->newRatePosition * oldSampleRate)
+        {
+
             if(!enlargeOutputBufferIfNeeded(stream, 1)) {
                 return 0;
             }
@@ -979,6 +985,7 @@ static int adjustRate(
             stream->newRatePosition++;
             stream->numOutputSamples++;
         }
+
         stream->oldRatePosition++;
         if(stream->oldRatePosition == oldSampleRate) {
             stream->oldRatePosition = 0;

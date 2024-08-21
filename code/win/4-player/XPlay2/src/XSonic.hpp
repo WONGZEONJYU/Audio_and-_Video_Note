@@ -5,19 +5,17 @@
 #include <vector>
 
 class XSonic {
-    static inline constexpr auto SONIC_MIN_PITCH {65},
-                                SONIC_MAX_PITCH {400},
-                                SONIC_AMDF_FREQ {4000};
+    static inline constexpr auto SONIC_MIN_PITCH_ {65},
+                                SONIC_MAX_PITCH_ {400},
+                                SONIC_AMDF_FREQ_ {4000};
 
-    void enlargeOutputBufferIfNeeded(const int&);
-    void copyToOutput(const int16_t *,const int &);
+    bool enlargeOutputBufferIfNeeded(const int&);
+    bool copyToOutput(const int16_t *,const int &);
     int copyInputToOutput(const int &);
     static int findPitchPeriodInRange(const int16_t *,const int &,
                                const int &,int &,int &);
     void downSampleInput(const int16_t *,const int &);
-    [[nodiscard]] bool prevPeriodBetter(const int&,
-                                        const int& ,
-                                        const int&) const;
+    [[nodiscard]] bool prevPeriodBetter(const int&,const int& ,const int&) const;
     int findPitchPeriod(const int16_t * , const int &);
     int skipPitchPeriod(const int16_t *,
                         const double &,
@@ -25,7 +23,7 @@ class XSonic {
     bool ChangeSpeed(const double &);
     bool ProcessStreamInput();
     bool AllocateStreamBuffers(const int &,const int &);
-    void enlargeInputBufferIfNeeded(const int &);
+    bool enlargeInputBufferIfNeeded(const int &);
     bool AddFloatSamplesToInputBuffer(const float *,const int&);
     static void overlapAdd(const int &,
                            const int &,
@@ -37,7 +35,7 @@ class XSonic {
                           const int &);
     void removeInputSamples(const int &);
     bool adjustPitch(const int &);
-    void moveNewSamplesToPitchBuffer(const int &);
+    bool moveNewSamplesToPitchBuffer(const int &);
     static void overlapAddWithSeparation(const int &,
                                          const int & ,
                                          const int & ,
@@ -49,78 +47,94 @@ class XSonic {
     int16_t interpolate(const int16_t * , const int &,const int &) const;
     static int findSincCoefficient(const int &,const int &,const int &);
     static void scaleSamples(int16_t * , const int &,const double &);
+    bool addShortSamplesToInputBuffer(const int16_t * , const int &);
+    bool addUnsignedCharSamplesToInputBuffer(const uint8_t *,const int &);
 
 public:
-    void Open(const int &sampleRate,const int &numChannels);
+    bool Open(const int &sampleRate,const int &numChannels);
     void Close() noexcept(true);
 
 /* Use this to write floating point data to be speed up or down into the stream.
    Values must be between -1 and 1.  Return 0 if memory realloc failed, otherwise 1 */
-    virtual bool sonicWriteFloatToStream(float *samples, int numSamples);
+    virtual bool sonicWriteFloatToStream(const float *samples,const int &numSamples);
 /* Use this to write 16-bit data to be speed up or down into the stream.
    Return 0 if memory realloc failed, otherwise 1 */
-    virtual int sonicWriteShortToStream(short *samples, int numSamples);
+    virtual bool sonicWriteShortToStream(const int16_t *samples,const int &numSamples);
 /* Use this to write 8-bit unsigned data to be speed up or down into the stream.
    Return 0 if memory realloc failed, otherwise 1 */
-    virtual int sonicWriteUnsignedCharToStream(unsigned char *samples, int numSamples);
+    virtual bool sonicWriteUnsignedCharToStream(const uint8_t *samples,const int &numSamples);
 /* Use this to read floating point data out of the stream.  Sometimes no data
    will be available, and zero is returned, which is not an error condition. */
-    virtual int sonicReadFloatFromStream(float *samples, int maxSamples);
+    virtual int sonicReadFloatFromStream(float *samples,const int &maxSamples);
 /* Use this to read 16-bit data out of the stream.  Sometimes no data will
    be available, and zero is returned, which is not an error condition. */
-    virtual int sonicReadShortFromStream(short *samples, int maxSamples);
+    virtual int sonicReadShortFromStream(int16_t *samples,const int &maxSamples);
 /* Use this to read 8-bit unsigned data out of the stream.  Sometimes no data will
    be available, and zero is returned, which is not an error condition. */
-    virtual int sonicReadUnsignedCharFromStream(unsigned char *samples, int maxSamples);
+    virtual int sonicReadUnsignedCharFromStream(uint8_t *samples,const int &maxSamples);
 /* Force the sonic stream to generate output using whatever data it currently
    has.  No extra delay will be added to the output, but flushing in the middle of
    words could introduce distortion. */
-    virtual int sonicFlushStream();
+    virtual bool sonicFlushStream();
 /* Return the number of samples in the output buffer */
-    virtual int sonicSamplesAvailable();
+    [[nodiscard]] virtual int sonicSamplesAvailable() const;
 /* Get the speed of the stream. */
-    virtual float sonicGetSpeed();
+    [[nodiscard]] virtual double sonicGetSpeed() const;
 /* Set the speed of the stream. */
-    virtual void sonicSetSpeed(float speed);
+    virtual void sonicSetSpeed(const double &);
 /* Get the pitch of the stream. */
-    virtual float sonicGetPitch();
+    [[nodiscard]] virtual double sonicGetPitch() const;
 /* Set the pitch of the stream. */
-    virtual void sonicSetPitch(float pitch);
+    virtual void sonicSetPitch(const double &);
 /* Get the rate of the stream. */
-    virtual float sonicGetRate();
+    [[nodiscard]] virtual double sonicGetRate() const;
 /* Set the rate of the stream. */
-    virtual void sonicSetRate(float rate);
+    virtual void sonicSetRate(const double &);
 /* Get the scaling factor of the stream. */
-    virtual float sonicGetVolume();
+    [[nodiscard]] virtual double sonicGetVolume();
 /* Set the scaling factor of the stream. */
-    virtual void sonicSetVolume(float volume);
+    virtual void sonicSetVolume(const double &);
 /* Get the chord pitch setting. */
-    virtual int sonicGetChordPitch();
+    [[nodiscard]] virtual int sonicGetChordPitch() const;
 /* Set chord pitch mode on or off.  Default is off.  See the documentation
    page for a description of this feature. */
-    virtual void sonicSetChordPitch(int useChordPitch);
+    virtual void sonicSetChordPitch(const int &);
 /* Get the quality setting. */
-    virtual int sonicGetQuality();
+    [[nodiscard]] virtual int sonicGetQuality();
 /* Set the "quality".  Default 0 is virtually as good as 1, but very much faster. */
-    virtual void sonicSetQuality(int quality);
+    virtual void sonicSetQuality(const int &);
 /* Get the sample rate of the stream. */
-    virtual int sonicGetSampleRate();
+    [[nodiscard]] virtual int sonicGetSampleRate() const;
 /* Set the sample rate of the stream.  This will drop any samples that have not been read. */
 //    virtual void sonicSetSampleRate(int sampleRate);
 /* Get the number of channels. */
-    virtual int sonicGetNumChannels();
+    [[nodiscard]] virtual int sonicGetNumChannels() const;
 /* Set the number of channels.  This will drop any samples that have not been read. */
 //    virtual void sonicSetNumChannels(int numChannels);
 /* This is a non-stream oriented interface to just change the speed of a sound
    sample.  It works in-place on the sample array, so there must be at least
    speed*numSamples available space in the array. Returns the new number of samples. */
-    virtual int sonicChangeFloatSpeed(float *samples, int numSamples, float speed, float pitch,
-                              float rate, float volume, int useChordPitch, int sampleRate, int numChannels);
+    [[nodiscard]] virtual int sonicChangeFloatSpeed(float *samples,
+                                                    int numSamples,
+                                                    double speed,
+                                                    double pitch,
+                                                    double rate,
+                                                    double volume,
+                                                    int useChordPitch,
+                                                    int sampleRate,
+                                                    int numChannels);
 /* This is a non-stream oriented interface to just change the speed of a sound
    sample.  It works in-place on the sample array, so there must be at least
    speed*numSamples available space in the array. Returns the new number of samples. */
-    virtual int sonicChangeShortSpeed(short *samples, int numSamples, float speed, float pitch,
-                              float rate, float volume, int useChordPitch, int sampleRate, int numChannels);
+    [[nodiscard]] virtual int sonicChangeShortSpeed(int16_t *samples,
+                                                    int numSamples,
+                                                    double speed,
+                                                    double pitch,
+                                                    double rate,
+                                                    double volume,
+                                                    int useChordPitch,
+                                                    int sampleRate,
+                                                    int numChannels);
 
 protected:
     std::vector<int16_t> m_inputBuffer,m_outputBuffer,
@@ -141,7 +155,7 @@ public:
     X_DISABLE_COPY_MOVE(XSonic)
     explicit XSonic() = default;
     explicit XSonic(const int &sampleRate,const int &numChannels);
-    virtual ~XSonic();
+    virtual ~XSonic() = default;
 };
 
 #endif

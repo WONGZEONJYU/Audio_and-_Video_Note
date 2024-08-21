@@ -9,6 +9,7 @@
 #include "QXAudioPlay.hpp"
 #include "XAVCodecParameters.hpp"
 #include "XSonic.h"
+#include "XSonic.hpp"
 
 using namespace std;
 
@@ -64,7 +65,7 @@ void XAudioThread::DeConstruct() noexcept(true){
 void XAudioThread::entry() noexcept(false) {
 
     std::vector<uint8_t> resample_datum,speed_datum;
-
+    XSonic sonic(44100,2);
     try {
 
         m_audio_play.load()->Open();
@@ -116,6 +117,18 @@ void XAudioThread::entry() noexcept(false) {
                             sonic_size = sonic_size * 4;
                         }
                     }
+
+                    //sonic_size = sonic.sonicChangeShortSpeed(reinterpret_cast<int16_t*>(resample_datum.data()),out_samples,1.5,1.0,1.0,1.0,1,44100,2);
+//                    sonic.sonicSetSpeed(2.0);
+//                    sonic.sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
+//                    if (speed_datum.capacity() <= re_size * sizeof(int16_t)) {
+//                            speed_datum.resize(re_size * sizeof(int16_t) + 1);
+//                    }
+//                    sonic_size = sonic.sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
+//
+//                    if (sonic_size > 0){
+//                        sonic_size = sonic_size * 4;
+//                    }
 #endif
                 }
 #if 0
