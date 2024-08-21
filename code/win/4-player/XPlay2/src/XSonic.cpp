@@ -66,7 +66,6 @@ int XSonic::sonicReadFloatFromStream(float *samples,const int &maxSamples) {
         auto src_{m_outputBuffer.data() + numSamples * m_numChannels};
         auto dst_{m_outputBuffer.data()};
         const auto size_{remainingSamples * m_numChannels};
-
         std::move(src_,src_ + size_,dst_);
     }
 
@@ -80,33 +79,29 @@ int XSonic::sonicReadShortFromStream(int16_t *samples,const int &maxSamples) {
         return {};
     }
 
-    auto numSamples {m_numOutputSamples};
+    auto numSamples{m_numOutputSamples};
 
     if(!numSamples) {
         return {};
     }
 
-    int remainingSamples {};
+    int remainingSamples{};
     if(numSamples > maxSamples) {
         remainingSamples = numSamples - maxSamples;
         numSamples = maxSamples;
     }
 
-    auto out_buffer {m_outputBuffer.data()};
-    auto count{numSamples * m_numChannels};
+    std::copy_n(m_outputBuffer.data(),numSamples * m_numChannels,samples);
 
-    while(count--) {
-        const auto v1{*out_buffer++};
-        const auto v2{static_cast<char>(v1 >> 8)};
-        *samples++ = static_cast<int16_t>(v2 + 128);
-    }
+    //memcpy(samples, stream->outputBuffer, numSamples*sizeof(short)*stream->numChannels);
 
     if(remainingSamples > 0) {
+//        memmove(stream->outputBuffer, stream->outputBuffer + numSamples*stream->numChannels,
+//                remainingSamples*sizeof(short)*stream->numChannels);
 
         auto src_{m_outputBuffer.data() + numSamples * m_numChannels};
         auto dst_{m_outputBuffer.data()};
         const auto size_{remainingSamples * m_numChannels};
-
         std::move(src_,src_ + size_,dst_);
     }
 
@@ -160,7 +155,7 @@ bool XSonic::sonicFlushStream() {
     const auto speed{m_speed / m_pitch};
     const auto rate{m_rate * m_pitch};
 
-    const auto temp_v{(remainingSamples / speed + m_numPitchSamples) / rate + 0.5};
+    const auto temp_v{(remainingSamples / speed + m_numPitchSamples) / rate + 0.5f};
     const auto expectedOutputSamples{m_numOutputSamples + static_cast<int>(temp_v)};
 
     /* Add enough silence to flush both input and pitch buffers. */
@@ -193,35 +188,35 @@ int XSonic::sonicSamplesAvailable() const{
     return m_numOutputSamples;
 }
 
-double XSonic::sonicGetSpeed() const{
+float XSonic::sonicGetSpeed() const{
     return m_speed;
 }
 
-void XSonic::sonicSetSpeed(const double &speed) {
+void XSonic::sonicSetSpeed(const float &speed) {
     m_speed = speed;
 }
 
-double XSonic::sonicGetPitch() const{
+float XSonic::sonicGetPitch() const{
     return m_pitch;
 }
 
-void XSonic::sonicSetPitch(const double &pitch) {
+void XSonic::sonicSetPitch(const float &pitch) {
     m_pitch = pitch;
 }
 
-double XSonic::sonicGetRate() const{
+float XSonic::sonicGetRate() const{
     return m_rate;
 }
 
-void XSonic::sonicSetRate(const double &rate) {
+void XSonic::sonicSetRate(const float &rate) {
     m_rate = rate;
 }
 
-double XSonic::sonicGetVolume() {
+float XSonic::sonicGetVolume() {
     return m_volume;
 }
 
-void XSonic::sonicSetVolume(const double &volume) {
+void XSonic::sonicSetVolume(const float &volume) {
     m_volume = volume;
 }
 

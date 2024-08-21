@@ -73,6 +73,7 @@ void XAudioThread::entry() noexcept(false) {
         while (!m_is_Exit) {
 
             if (m_is_Pause){
+                m_a_mux.lock();
                 m_a_cv.wait(&m_a_mux);
                 m_a_mux.unlock();
             }
@@ -103,32 +104,33 @@ void XAudioThread::entry() noexcept(false) {
                               locker.unlock());
 
 #if 1
-                    static constexpr auto speed_rate{2.0};
-                    if (m_SonicStream && out_samples > 0) {
-                        sonicSetSpeed(m_SonicStream,speed_rate);
-                        sonicWriteShortToStream(m_SonicStream, reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
-
-                        if (speed_datum.capacity() <= re_size * sizeof(int16_t)){
-                            speed_datum.resize(re_size * sizeof(int16_t) + 1);
-                        }
-
-                        sonic_size = sonicReadShortFromStream(m_SonicStream,reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
-                        if (sonic_size > 0){
-                            sonic_size = sonic_size * 4;
-                        }
-                    }
+//                    static constexpr auto speed_rate{2.0};
+//                    if (m_SonicStream && out_samples > 0) {
+//                        sonicSetSpeed(m_SonicStream,speed_rate);
+//                        sonicWriteShortToStream(m_SonicStream, reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
+//
+//                        if (speed_datum.capacity() <= re_size * sizeof(int16_t)){
+//                            speed_datum.resize(re_size * sizeof(int16_t) + 1);
+//                        }
+//
+//                        sonic_size = sonicReadShortFromStream(m_SonicStream,reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
+//                        qDebug() << sonic_size;
+//                        if (sonic_size > 0){
+//                            sonic_size = sonic_size * 4;
+//                        }
+//                    }
 
                     //sonic_size = sonic.sonicChangeShortSpeed(reinterpret_cast<int16_t*>(resample_datum.data()),out_samples,1.5,1.0,1.0,1.0,1,44100,2);
-//                    sonic.sonicSetSpeed(2.0);
-//                    sonic.sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
-//                    if (speed_datum.capacity() <= re_size * sizeof(int16_t)) {
-//                            speed_datum.resize(re_size * sizeof(int16_t) + 1);
-//                    }
-//                    sonic_size = sonic.sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
-//
-//                    if (sonic_size > 0){
-//                        sonic_size = sonic_size * 4;
-//                    }
+                    sonic.sonicSetSpeed(2.0);
+                    sonic.sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
+                    if (speed_datum.capacity() <= re_size * sizeof(int16_t)) {
+                            speed_datum.resize(re_size * sizeof(int16_t) + 1);
+                    }
+                    sonic_size = sonic.sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
+                    qDebug() << sonic_size;
+                    if (sonic_size > 0){
+                        sonic_size = sonic_size * 4;
+                    }
 #endif
                 }
 #if 0

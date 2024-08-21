@@ -23,6 +23,7 @@ void XVideoThread::entry() {
         while (!m_is_Exit) {
 
             if (m_is_Pause) {
+                m_v_mux.lock();
                 m_v_cv.wait(&m_v_mux);
                 m_v_mux.unlock();
             }

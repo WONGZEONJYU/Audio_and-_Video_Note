@@ -18,9 +18,9 @@ class XSonic {
     [[nodiscard]] bool prevPeriodBetter(const int&,const int& ,const int&) const;
     int findPitchPeriod(const int16_t * , const int &);
     int skipPitchPeriod(const int16_t *,
-                        const double &,
+                        const float &,
                         const int &);
-    bool ChangeSpeed(const double &);
+    bool ChangeSpeed(const float &);
     bool ProcessStreamInput();
     bool AllocateStreamBuffers(const int &,const int &);
     bool enlargeInputBufferIfNeeded(const int &);
@@ -31,7 +31,7 @@ class XSonic {
                            const int16_t *,
                            const int16_t *);
     int insertPitchPeriod(const int16_t *,
-                          const double &,
+                          const float &,
                           const int &);
     void removeInputSamples(const int &);
     bool adjustPitch(const int &);
@@ -43,10 +43,10 @@ class XSonic {
                                          const int16_t *,
                                          const int16_t *);
     void removePitchSamples(const int &);
-    bool adjustRate(const double &,const int &);
+    bool adjustRate(const float &,const int &);
     int16_t interpolate(const int16_t * , const int &,const int &) const;
     static int findSincCoefficient(const int &,const int &,const int &);
-    static void scaleSamples(int16_t * , const int &,const double &);
+    static void scaleSamples(int16_t * , const int &,const float &);
     bool addShortSamplesToInputBuffer(const int16_t * , const int &);
     bool addUnsignedCharSamplesToInputBuffer(const uint8_t *,const int &);
 
@@ -79,21 +79,21 @@ public:
 /* Return the number of samples in the output buffer */
     [[nodiscard]] virtual int sonicSamplesAvailable() const;
 /* Get the speed of the stream. */
-    [[nodiscard]] virtual double sonicGetSpeed() const;
+    [[nodiscard]] virtual float sonicGetSpeed() const;
 /* Set the speed of the stream. */
-    virtual void sonicSetSpeed(const double &);
+    virtual void sonicSetSpeed(const float &);
 /* Get the pitch of the stream. */
-    [[nodiscard]] virtual double sonicGetPitch() const;
+    [[nodiscard]] virtual float sonicGetPitch() const;
 /* Set the pitch of the stream. */
-    virtual void sonicSetPitch(const double &);
+    virtual void sonicSetPitch(const float &);
 /* Get the rate of the stream. */
-    [[nodiscard]] virtual double sonicGetRate() const;
+    [[nodiscard]] virtual float sonicGetRate() const;
 /* Set the rate of the stream. */
-    virtual void sonicSetRate(const double &);
+    virtual void sonicSetRate(const float &);
 /* Get the scaling factor of the stream. */
-    [[nodiscard]] virtual double sonicGetVolume();
+    [[nodiscard]] virtual float sonicGetVolume();
 /* Set the scaling factor of the stream. */
-    virtual void sonicSetVolume(const double &);
+    virtual void sonicSetVolume(const float &);
 /* Get the chord pitch setting. */
     [[nodiscard]] virtual int sonicGetChordPitch() const;
 /* Set chord pitch mode on or off.  Default is off.  See the documentation
@@ -145,7 +145,7 @@ protected:
     short *m_pitchBuffer;
     short *m_downSampleBuffer;
 #endif
-    double m_speed{},m_volume{},m_pitch{},m_rate{},m_avePower{};
+    float m_speed{},m_volume{},m_pitch{},m_rate{},m_avePower{};
     int m_oldRatePosition{},m_newRatePosition{},m_useChordPitch{},m_quality{},
             m_numChannels{},m_inputBufferSize{},m_pitchBufferSize{},m_outputBufferSize{},
             m_numInputSamples{},m_numOutputSamples{},m_numPitchSamples{},m_minPeriod{},
