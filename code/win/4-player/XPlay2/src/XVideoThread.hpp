@@ -14,6 +14,7 @@ Q_OBJECT
 public:
     explicit XVideoThread(std::exception_ptr * = nullptr);
     virtual void Open(const XAVCodecParameters_sptr &,IVideoCall *) noexcept(false);
+    void Close() noexcept(true) override;
     /**
      * seek后显示到关键帧的作用
      */

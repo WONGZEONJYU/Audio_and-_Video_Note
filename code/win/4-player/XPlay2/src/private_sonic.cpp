@@ -56,17 +56,21 @@ static inline constexpr int16_t sincTable[SINC_TABLE_SIZE] = {
         -12, -10, -9, -7, -6, -4, -3, -2, -2, -1, -1, 0, 0, 0, 0, 0, 0, 0
 };
 
-void XSonic::scaleSamples(int16_t *samples,const int &numSamples,const float & volume) {
+void XSonic::scaleSamples(int16_t *samples,
+                          const int &numSamples,
+                          const float & volume) {
+
     const auto fixedPointVolume{static_cast<int>(volume * 4096.0f)};
     auto numSamples_{numSamples};
 
     while(numSamples_--) {
-        auto value{(*samples * fixedPointVolume) >> 12};
+        const auto sample{*samples};
+        auto value{(sample * fixedPointVolume) >> 12};
         if(value > 32767) {
             value = 32767;
-        } else if(value < -32767) {
+        }else if(value < -32767) {
             value = -32767;
-        }
+        }else{}
         *samples++ = static_cast<int16_t>(value);
     }
 }
@@ -74,26 +78,17 @@ void XSonic::scaleSamples(int16_t *samples,const int &numSamples,const float & v
 bool XSonic::allocateStreamBuffers(const int &sampleRate,const int &numChannels) {
 
     Close();
-    const auto minPeriod{sampleRate / SONIC_MAX_PITCH_};
-    const auto maxPeriod{sampleRate/SONIC_MIN_PITCH_};
-    const auto maxRequired{2 * maxPeriod};
+    const auto minPeriod{sampleRate / SONIC_MAX_PITCH_},
+                maxPeriod{sampleRate/SONIC_MIN_PITCH_},
+                maxRequired{2 * maxPeriod};
 
     m_inputBufferSize = m_outputBufferSize = m_pitchBufferSize = maxRequired;
-    const auto alloc_size{maxRequired * numChannels};
     try {
-
-        m_inputBuffer.clear();
+        const auto alloc_size{maxRequired * numChannels};
         CHECK_EXC(m_inputBuffer.resize(alloc_size));
-
-        m_outputBuffer.clear();
         CHECK_EXC(m_outputBuffer.resize(alloc_size));
-
-        m_pitchBuffer.clear();
         CHECK_EXC(m_pitchBuffer.resize(alloc_size));
-
-        m_downSampleBuffer.clear();
         CHECK_EXC(m_downSampleBuffer.resize(maxRequired));
-
     } catch (const std::exception &e) {
         std::cerr << e.what() << "\n";
         return {};
@@ -141,7 +136,7 @@ bool XSonic::enlargeInputBufferIfNeeded(const int &numSamples) {
         m_inputBuffer.clear();
         try {
             CHECK_EXC(m_inputBuffer.resize(m_inputBufferSize * m_numChannels));
-        } catch (const std::exception &e) {
+        }catch(const std::exception &e) {
             std::cerr << e.what() << "\n";
             return {};
         }
@@ -514,7 +509,6 @@ bool XSonic::adjustPitch(const int &originalNumOutputSamples) {
 
     int position {};
     while(m_numPitchSamples - position >= m_maxRequired) {
-
         const auto period{findPitchPeriod(m_pitchBuffer.data() + position * numChannels, 0)};
         const auto float_period{static_cast<float >(period)};
         const auto newPeriod{static_cast<int>(float_period / pitch)};
@@ -557,6 +551,7 @@ int XSonic::findSincCoefficient(const int &i,
 
     const auto leftVal{sincTable[left]},
                 rightVal{sincTable[right]};
+
     return ((leftVal * (width - position) + rightVal * position) << 1) / width;
 }
 
@@ -651,7 +646,6 @@ bool XSonic::adjustRate(const float &rate,const int &originalNumOutputSamples) {
 
             if(m_newRatePosition != newSampleRate) {
                 std::cerr << "Assertion failed: m_newRatePosition != newSampleRate\n";
-                //exit(1);
                 return {};
             }
 
@@ -669,7 +663,7 @@ int XSonic::skipPitchPeriod(const int16_t *samples,
 
     const auto numChannels{m_numChannels};
     const auto f_period{static_cast<float >(period)};
-    long newSamples;
+    int newSamples;
 
     if(speed >= 2.0f) {
         newSamples = static_cast<decltype(newSamples) >(f_period / (speed - 1.0f));
@@ -775,10 +769,10 @@ bool XSonic::processStreamInput() {
         rate *= m_pitch;
     }
 
-    if(speed > 1.00001 || speed < 0.99999) {
+    if(speed > 1.00001f || speed < 0.99999f) {
         changeSpeed(speed);
     } else {
-        if(!copyToOutput( m_inputBuffer.data(),m_numInputSamples)) {
+        if(!copyToOutput(m_inputBuffer.data(),m_numInputSamples)) {
             return {};
         }
         m_numInputSamples = 0;

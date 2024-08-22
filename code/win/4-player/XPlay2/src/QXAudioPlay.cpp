@@ -5,10 +5,8 @@
 #include "QXAudioPlay.hpp"
 #include <QAudioFormat>
 #include <QAudioSink>
+#include <QAudio>
 #include <QMediaDevices>
-#include <QEventLoop>
-#include <QFuture>
-#include <QFutureWatcher>
 #include <QtConcurrent/QtConcurrent>
 
 void QXAudioPlay::Open() {
@@ -26,6 +24,10 @@ void QXAudioPlay::Open() {
     CHECK_EXC(m_output.reset(new QAudioSink(dev,fmt)),locker.unlock());
     CHECK_NULLPTR(m_IO = m_output->start(),m_output.reset(),locker.unlock());
     m_is_change = false;
+    QObject::connect(m_output.get(),&QAudioSink::stateChanged,[&](QAudio::State state){
+        qDebug() << state;
+        qDebug() << m_output->error();
+    });
 }
 
 void QXAudioPlay::Close() noexcept(true) {

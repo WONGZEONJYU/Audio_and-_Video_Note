@@ -24,7 +24,7 @@ void XVideoThread::entry() {
 
             if (m_is_Pause) {
                 m_v_mux.lock();
-                m_v_cv.wait(&m_v_mux);
+                m_v_cv.wait(&m_v_mux,5);
                 m_v_mux.unlock();
             }
 
@@ -39,6 +39,7 @@ void XVideoThread::entry() {
                 while (!m_is_Exit) {
                     const auto sync_pts {m_sync_pts.load()};
                     if ( m_is_Pause || (0 < sync_pts && sync_pts < pts) ) {
+                        //qDebug() << "sync_pts: " << sync_pts;
                         msleep(1);
                         continue;
                     }
@@ -119,4 +120,10 @@ void XVideoThread::SetPause(const bool &b) noexcept(true){
     if (!b){
         m_v_cv.wakeAll();
     }
+}
+
+void XVideoThread::Close() noexcept(true) {
+    m_v_cv.wakeAll();
+    XDecodeThread::Close();
+    //m_v_cv.wakeAll();
 }

@@ -57,16 +57,14 @@ void XAudioThread::DeConstruct() noexcept(true){
 void XAudioThread::entry() noexcept(false) {
 
     std::vector<uint8_t> resample_datum,speed_datum;
-
     try {
-
         m_audio_play.load()->Open();
 
         while (!m_is_Exit) {
 
             if (m_is_Pause){
                 m_a_mux.lock();
-                m_a_cv.wait(&m_a_mux);
+                m_a_cv.wait(&m_a_mux,5);
                 m_a_mux.unlock();
             }
 
@@ -83,9 +81,7 @@ void XAudioThread::entry() noexcept(false) {
                     break;
                 }
 
-                /*
-                 *获取时间差,用于同步
-                 */
+                /*获取时间差,用于同步*/
                 m_pts = pts - m_audio_play.load()->NoPlayMs();
 
                 int re_size{},sonic_size{},out_samples{};
@@ -93,15 +89,18 @@ void XAudioThread::entry() noexcept(false) {
                     QMutexLocker locker(&m_a_mux);
                     CHECK_EXC(re_size = m_resample->Resample(af, resample_datum,out_samples),
                               locker.unlock());
-
 #if 1
                     if (out_samples > 0) {
-                        m_xSonic.sonicSetSpeed(2.0f);
+                        static constexpr auto speed{0.5f};
+                        m_xSonic.sonicSetSpeed(speed);
                         m_xSonic.sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
-                        if (speed_datum.capacity() <= re_size * sizeof(int16_t)){
-                            speed_datum.resize(re_size * sizeof(int16_t) + 1);
+                        if (speed_datum.capacity() <= static_cast<int>(re_size / speed) * sizeof(int16_t)){
+                            speed_datum.resize(static_cast<int>(re_size / speed) * sizeof(int16_t) + 2);
                         }
-                        sonic_size = m_xSonic.sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
+                        //qDebug() << speed_datum.capacity();
+                        sonic_size = m_xSonic.sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),
+                                                                       static_cast<int>(out_samples / speed));
+                        //qDebug() << sonic_size;
                         if (sonic_size > 0){
                             sonic_size = sonic_size * 4;
                         }
@@ -122,8 +121,10 @@ void XAudioThread::entry() noexcept(false) {
             }
 #else
             while (!m_is_Exit && sonic_size > 0){
-
-                if (m_is_Pause || m_audio_play.load()->FreeSize() < sonic_size) {
+//                qDebug() << "sonic_size: " << sonic_size;
+//                qDebug() << "buffer_size: " << m_audio_play.load()->BufferSize();
+                const auto free_size {m_audio_play.load()->FreeSize()};
+                if (m_is_Pause || free_size < sonic_size) {
                     msleep(1);
                     continue;
                 }
@@ -166,6 +167,7 @@ void XAudioThread::entry() noexcept(false) {
 
 void XAudioThread::Close() noexcept(true) {
     XDecodeThread::Close();
+    m_a_cv.wakeAll();
     QMutexLocker locker(&m_a_mux);
     m_resample.reset();
 }

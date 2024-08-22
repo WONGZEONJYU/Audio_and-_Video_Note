@@ -21,6 +21,8 @@ XDemuxThread::~XDemuxThread() {
 void XDemuxThread::DeConstruct() noexcept(true) {
     m_is_Exit = true;
     m_cv.wakeAll();
+    m_at->Close();
+    m_vt->Close();
     quit();
     wait();
 }
