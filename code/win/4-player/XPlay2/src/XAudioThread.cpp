@@ -50,7 +50,6 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
 }
 
 void XAudioThread::DeConstruct() noexcept(true){
-    m_a_cv.wakeAll();
     Exit_Thread();
 }
 
@@ -63,9 +62,8 @@ void XAudioThread::entry() noexcept(false) {
         while (!m_is_Exit) {
 
             if (m_is_Pause){
-                m_a_mux.lock();
-                m_a_cv.wait(&m_a_mux,5);
-                m_a_mux.unlock();
+                msleep(5);
+                continue;
             }
 
             if (m_audio_play.load()->Is_Transform()){ //中途改变媒体文件需要重新打开
@@ -91,7 +89,7 @@ void XAudioThread::entry() noexcept(false) {
                               locker.unlock());
 #if 1
                     if (out_samples > 0) {
-                        static constexpr auto speed{0.5f};
+                        static constexpr auto speed{1.3f};
                         m_xSonic.sonicSetSpeed(speed);
                         m_xSonic.sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
                         if (speed_datum.capacity() <= static_cast<int>(re_size / speed) * sizeof(int16_t)){
@@ -121,8 +119,8 @@ void XAudioThread::entry() noexcept(false) {
             }
 #else
             while (!m_is_Exit && sonic_size > 0){
-//                qDebug() << "sonic_size: " << sonic_size;
-//                qDebug() << "buffer_size: " << m_audio_play.load()->BufferSize();
+                qDebug() << "sonic_size: " << sonic_size;
+                qDebug() << "buffer_size: " << m_audio_play.load()->BufferSize();
                 const auto free_size {m_audio_play.load()->FreeSize()};
                 if (m_is_Pause || free_size < sonic_size) {
                     msleep(1);
@@ -167,7 +165,6 @@ void XAudioThread::entry() noexcept(false) {
 
 void XAudioThread::Close() noexcept(true) {
     XDecodeThread::Close();
-    m_a_cv.wakeAll();
     QMutexLocker locker(&m_a_mux);
     m_resample.reset();
 }
@@ -176,9 +173,6 @@ void XAudioThread::SetPause(const bool &b) noexcept(true){
     XDecodeThread::SetPause(b);
     if (m_audio_play){
         m_audio_play.load()->SetPause(b);
-    }
-    if (!b){
-        m_a_cv.wakeAll();
     }
 }
 

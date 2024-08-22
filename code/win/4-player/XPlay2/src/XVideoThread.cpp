@@ -12,7 +12,6 @@ XVideoThread::XVideoThread(std::exception_ptr *p): XDecodeThread(p){
 }
 
 XVideoThread::~XVideoThread() {
-    m_v_cv.wakeAll();
     Exit_Thread();
 }
 
@@ -23,9 +22,8 @@ void XVideoThread::entry() {
         while (!m_is_Exit) {
 
             if (m_is_Pause) {
-                m_v_mux.lock();
-                m_v_cv.wait(&m_v_mux,5);
-                m_v_mux.unlock();
+                msleep(5);
+                continue;
             }
 
             while (!m_is_Exit) {
@@ -117,13 +115,8 @@ bool XVideoThread::RepaintPts(const XAVPacket_sptr &pkt,
 
 void XVideoThread::SetPause(const bool &b) noexcept(true){
     XDecodeThread::SetPause(b);
-    if (!b){
-        m_v_cv.wakeAll();
-    }
 }
 
 void XVideoThread::Close() noexcept(true) {
-    m_v_cv.wakeAll();
     XDecodeThread::Close();
-    //m_v_cv.wakeAll();
 }

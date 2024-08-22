@@ -22,6 +22,7 @@ void QXAudioPlay::Open() {
 
     QMutexLocker locker(&m_mux);
     CHECK_EXC(m_output.reset(new QAudioSink(dev,fmt)),locker.unlock());
+    m_output->setBufferSize(m_output->bufferSize() * 8);
     CHECK_NULLPTR(m_IO = m_output->start(),m_output.reset(),locker.unlock());
     m_is_change = false;
     QObject::connect(m_output.get(),&QAudioSink::stateChanged,[&](QAudio::State state){

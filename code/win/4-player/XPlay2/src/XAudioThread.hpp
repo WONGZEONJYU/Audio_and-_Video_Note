@@ -29,7 +29,7 @@ protected:
     std::atomic<XAudioPlay *> m_audio_play{};
     QSharedPointer<XResample> m_resample;
     QMutex m_a_mux;
-    QWaitCondition m_a_cv;
+    //QWaitCondition m_a_cv;
     XSonic m_xSonic;
 };
 

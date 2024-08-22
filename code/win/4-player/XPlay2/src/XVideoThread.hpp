@@ -23,7 +23,7 @@ public:
 protected:
     std::atomic<IVideoCall*> m_call{};
     QMutex m_v_mux;
-    QWaitCondition m_v_cv;
+    //QWaitCondition m_v_cv;
 public:
     ~XVideoThread() override;
 };
