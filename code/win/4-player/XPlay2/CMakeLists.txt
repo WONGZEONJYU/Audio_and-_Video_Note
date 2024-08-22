@@ -88,8 +88,6 @@ set(SRC_CODE
         src/XDemuxThread.hpp
         XQSliderWidget.cpp
         XQSliderWidget.hpp
-        src/XSonic.c
-        src/XSonic.h
         src/XSonic.hpp
         src/XSonic.cpp
         src/private_sonic.cpp

@@ -8,8 +8,6 @@
 #include "XResample.hpp"
 #include "QXAudioPlay.hpp"
 #include "XAVCodecParameters.hpp"
-#include "XSonic.h"
-#include "XSonic.hpp"
 
 using namespace std;
 
@@ -37,10 +35,7 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
             if (!m_resample) {
                 CHECK_EXC(m_resample.reset(new XResample()),locker.unlock());
             }
-            if (m_SonicStream){
-                sonicDestroyStream(m_SonicStream);
-            }
-            m_SonicStream = sonicCreateStream(p->Sample_rate(), p->Ch_layout()->nb_channels);
+            m_xSonic = XSonic(p->Sample_rate(),p->Ch_layout()->nb_channels);
         }
 
         m_resample->Open(p);
@@ -57,15 +52,12 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
 void XAudioThread::DeConstruct() noexcept(true){
     m_a_cv.wakeAll();
     Exit_Thread();
-    if (m_SonicStream){
-        sonicDestroyStream(m_SonicStream);
-    }
 }
 
 void XAudioThread::entry() noexcept(false) {
 
     std::vector<uint8_t> resample_datum,speed_datum;
-    XSonic sonic(44100,2);
+
     try {
 
         m_audio_play.load()->Open();
@@ -99,37 +91,20 @@ void XAudioThread::entry() noexcept(false) {
                 int re_size{},sonic_size{},out_samples{};
                 {
                     QMutexLocker locker(&m_a_mux);
-
                     CHECK_EXC(re_size = m_resample->Resample(af, resample_datum,out_samples),
                               locker.unlock());
 
 #if 1
-//                    static constexpr auto speed_rate{2.0};
-//                    if (m_SonicStream && out_samples > 0) {
-//                        sonicSetSpeed(m_SonicStream,speed_rate);
-//                        sonicWriteShortToStream(m_SonicStream, reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
-//
-//                        if (speed_datum.capacity() <= re_size * sizeof(int16_t)){
-//                            speed_datum.resize(re_size * sizeof(int16_t) + 1);
-//                        }
-//
-//                        sonic_size = sonicReadShortFromStream(m_SonicStream,reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
-//                        qDebug() << sonic_size;
-//                        if (sonic_size > 0){
-//                            sonic_size = sonic_size * 4;
-//                        }
-//                    }
-
-                    //sonic_size = sonic.sonicChangeShortSpeed(reinterpret_cast<int16_t*>(resample_datum.data()),out_samples,1.5,1.0,1.0,1.0,1,44100,2);
-                    sonic.sonicSetSpeed(2.0);
-                    sonic.sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
-                    if (speed_datum.capacity() <= re_size * sizeof(int16_t)) {
+                    if (out_samples > 0) {
+                        m_xSonic.sonicSetSpeed(2.0f);
+                        m_xSonic.sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
+                        if (speed_datum.capacity() <= re_size * sizeof(int16_t)){
                             speed_datum.resize(re_size * sizeof(int16_t) + 1);
-                    }
-                    sonic_size = sonic.sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
-                    qDebug() << sonic_size;
-                    if (sonic_size > 0){
-                        sonic_size = sonic_size * 4;
+                        }
+                        sonic_size = m_xSonic.sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),out_samples);
+                        if (sonic_size > 0){
+                            sonic_size = sonic_size * 4;
+                        }
                     }
 #endif
                 }
