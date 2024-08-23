@@ -263,16 +263,17 @@ int XSonic::copyInputToOutput(const int &position) {
     const auto in_buffer{m_inputBuffer.data() + position * m_numChannels};
 
     if(!copyToOutput(in_buffer,numSamples)) {
-        return 0;
+        return -1;
     }
+
     m_remainingInputToCopy -= numSamples;
     return numSamples;
 }
 
-void XSonic::downSampleInput(const int16_t *samples,const int &skip)
-{
+void XSonic::downSampleInput(const int16_t *samples,
+                             const int &skip) {
 
-    if (!samples || skip <= 0){
+    if (!samples){
         return;
     }
 
@@ -296,6 +297,9 @@ int XSonic::findPitchPeriodInRange(const int16_t *samples,
                                    const int &maxPeriod,
                                    int &retMinDiff,
                                    int &retMaxDiff) {
+    if (!samples){
+        return -1;
+    }
 
     int worstPeriod{255},bestPeriod{},minDiff{1},maxDiff{};
 
@@ -358,6 +362,10 @@ bool XSonic::prevPeriodBetter(const int &minDiff,
 
 int XSonic::findPitchPeriod(const int16_t *samples,const int &preferNewPeriod) {
 
+    if (!samples){
+        return -1;
+    }
+
     auto minPeriod{m_minPeriod},maxPeriod{m_maxPeriod};
     const auto sampleRate{m_sampleRate};
 
@@ -411,7 +419,7 @@ void XSonic::overlapAdd(const int &numSamples,
                         const int16_t *rampDown,
                         const int16_t *rampUp) {
 
-    for(uint32_t i{}; i < numChannels; i++) {
+    for(uint32_t i{};i < numChannels;i++) {
 
         auto o{out + i};
         auto u{rampUp + i};
@@ -523,6 +531,7 @@ bool XSonic::adjustPitch(const int &originalNumOutputSamples) {
     int position {};
     while(m_numPitchSamples - position >= m_maxRequired) {
         const auto period{findPitchPeriod(m_pitchBuffer.data() + position * numChannels, 0)};
+
         const auto float_period{static_cast<float >(period)};
         const auto newPeriod{static_cast<int>(float_period / pitch)};
 
@@ -568,9 +577,13 @@ int XSonic::findSincCoefficient(const int &i,
     return ((leftVal * (width - position) + rightVal * position) << 1) / width;
 }
 
-short XSonic::interpolate(const int16_t *in,
+int16_t XSonic::interpolate(const int16_t *in,
                           const int &oldSampleRate,
                           const int &newSampleRate) const {
+
+    if (!in){
+        return -1;
+    }
 
     constexpr auto getSign{[](const int &value){
         return value >= 0;
@@ -676,8 +689,8 @@ int XSonic::skipPitchPeriod(const int16_t *samples,
 
     const auto numChannels{m_numChannels};
     const auto f_period{static_cast<float >(period)};
-    int newSamples;
 
+    int newSamples;
     if(speed >= 2.0f) {
         newSamples = static_cast<decltype(newSamples) >(f_period / (speed - 1.0f));
     } else {
@@ -686,7 +699,7 @@ int XSonic::skipPitchPeriod(const int16_t *samples,
     }
 
     if(!enlargeOutputBufferIfNeeded(newSamples)) {
-        return 0;
+        return -1;
     }
 
     auto out_buffer{m_outputBuffer.data() + m_numOutputSamples * numChannels};
@@ -704,8 +717,8 @@ int XSonic::insertPitchPeriod(const int16_t *samples,
 
     const auto numChannels{m_numChannels};
     const auto f_period {static_cast<float >(period)};
-    int newSamples;
 
+    int newSamples;
     if(speed < 0.5f) {
         newSamples = static_cast<decltype(newSamples)>(f_period * speed / (1.0f - speed));
     } else {
@@ -714,7 +727,7 @@ int XSonic::insertPitchPeriod(const int16_t *samples,
     }
 
     if(!enlargeOutputBufferIfNeeded(period + newSamples)) {
-        return 0;
+        return -1;
     }
 
     auto out{m_outputBuffer.data() + m_numOutputSamples * numChannels};
@@ -746,17 +759,36 @@ bool XSonic::changeSpeed(const float &speed) {
         int newSamples;
         if(m_remainingInputToCopy > 0) {
             newSamples = copyInputToOutput(position);
+
+            if (newSamples < 0){
+                return {};
+            }
+
             position += newSamples;
         } else {
 
             auto samples{m_inputBuffer.data() + position * m_numChannels};
             auto period{findPitchPeriod(samples, 1)};
 
+            if (!period) {
+                return {};
+            }
+
             if(speed > 1.0) {
                 newSamples = skipPitchPeriod(samples,speed,period);
+
+                if (!newSamples){
+                    return {};
+                }
+
                 position += period + newSamples;
             } else {
                 newSamples = insertPitchPeriod( samples, speed, period);
+
+                if (!newSamples) {
+                    return {};
+                }
+
                 position += newSamples;
             }
         }

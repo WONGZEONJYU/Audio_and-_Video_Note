@@ -129,14 +129,27 @@ public:
      * 获取暂停状态
      * @return
      */
-    [[nodiscard]] bool is_Pause() const noexcept(true){
+    [[nodiscard]] virtual bool is_Pause() const noexcept(true){
         return m_is_Pause;
+    }
+
+    virtual void SetSpeed(const float &speed) noexcept(true) {
+        if (speed <= 0.0f || speed >= 5.0f){
+            m_speed = 1.0f;
+            return;
+        }
+        m_speed = speed;
+    }
+
+    [[nodiscard]] virtual float Speed() const noexcept(true){
+        return m_speed;
     }
 
 protected:
     std::atomic<std::exception_ptr *> m_exceptionPtr{};
-    std::atomic_bool m_is_Exit{},m_is_Pause{};
+    std::atomic_bool m_is_Exit{},m_is_Pause{true};
     std::atomic_int64_t m_pts{},m_sync_pts{};
+    std::atomic<float> m_speed{1.0f};
 private:
     QQueue<XAVPacket_sptr> m_Packets;
     QWaitCondition m_d_cv;

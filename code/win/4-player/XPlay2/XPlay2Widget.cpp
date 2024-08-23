@@ -55,6 +55,8 @@ void XPlay2Widget::OpenFile() {
         SetPause(m_dmt->is_Pause());
         m_ui->isPlay->setEnabled(true);
         m_ui->PlayPos->setEnabled(true);
+        m_ui->Speed->setEnabled(true);
+        m_ui->Speed->setValue(1.0);
         const auto max_v {static_cast<double >(m_ui->VolumeSlider->maximum())};
         qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
         m_ui->VolumeSlider->setValue(static_cast<int>(m_dmt->Volume() < 0.0 ? m_ui->VolumeSlider->maximum() :
@@ -90,6 +92,8 @@ void XPlay2Widget::OpenURL(){
         m_ui->isPlay->setEnabled(true);
         m_ui->PlayPos->setEnabled(false);
         m_ui->PlayPos->setValue(0);
+        m_ui->Speed->setEnabled(false);
+        m_dmt->SetSpeed(static_cast<float >(m_ui->Speed->value()));
         const auto max_v {static_cast<double >(m_ui->VolumeSlider->maximum())};
         qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
         m_ui->VolumeSlider->setValue(static_cast<int>(m_dmt->Volume() < 0.0 ? m_ui->VolumeSlider->maximum() :
@@ -97,6 +101,7 @@ void XPlay2Widget::OpenURL(){
     } catch (const std::exception &e) {
         m_ui->isPlay->setEnabled(true);
         m_ui->PlayPos->setEnabled(true);
+        m_ui->Speed->setEnabled(true);
         qDebug() << e.what();
     }
 }
@@ -153,4 +158,8 @@ void XPlay2Widget::SliderReleased() {
 void XPlay2Widget::VolumeChanged(const int &v){
     const auto max {static_cast<double >(m_ui->VolumeSlider->maximum())};
     m_dmt->SetVolume(v / max);
+}
+
+void XPlay2Widget::SpeedChanged(const double &v){
+    m_dmt->SetSpeed(static_cast<float >(v));
 }

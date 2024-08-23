@@ -78,6 +78,37 @@
         </widget>
        </item>
        <item>
+        <widget class="QDoubleSpinBox" name="Speed">
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="minimum">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>5.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.100000000000000</double>
+         </property>
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QSlider" name="VolumeSlider">
          <property name="minimumSize">
           <size>
@@ -126,7 +157,7 @@
    <slot>OpenFile()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>385</x>
+     <x>354</x>
      <y>832</y>
     </hint>
     <hint type="destinationlabel">
@@ -142,7 +173,7 @@
    <slot>PlayOrPause()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1178</x>
+     <x>1072</x>
      <y>832</y>
     </hint>
     <hint type="destinationlabel">
@@ -215,6 +246,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>Speed</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>XPlay2Widget</receiver>
+   <slot>SpeedChanged(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1103</x>
+     <y>822</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1187</x>
+     <y>1041</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>OpenFile()</slot>
@@ -223,5 +270,6 @@
   <slot>SliderReleased()</slot>
   <slot>OpenURL()</slot>
   <slot>VolumeChanged(int)</slot>
+  <slot>SpeedChanged(double)</slot>
  </slots>
 </ui>

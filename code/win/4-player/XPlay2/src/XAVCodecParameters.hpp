@@ -50,6 +50,8 @@ public:
         return format;
     }
 
+    [[nodiscard]] int Sample_Format_Size() const noexcept(true);
+
     [[nodiscard]] auto Sample_rate() const noexcept(true){
         return sample_rate;
     }

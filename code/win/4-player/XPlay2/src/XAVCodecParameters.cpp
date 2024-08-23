@@ -136,3 +136,7 @@ XAVCodecParameters_sptr new_XAVCodecParameters(const AVCodecParameters *src) noe
     CHECK_EXC(obj = std::make_shared<XAVCodecParameters>(src));
     return obj;
 }
+
+int XAVCodecParameters::Sample_Format_Size() const noexcept(true){
+    return av_get_bytes_per_sample(static_cast<AVSampleFormat>(format));
+}

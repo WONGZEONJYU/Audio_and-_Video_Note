@@ -211,6 +211,10 @@ int XSonic::sonicReadUnsignedCharFromStream(uint8_t *samples,
 
 bool XSonic::sonicFlushStream() {
 
+    if (!m_is_init){
+        return {};
+    }
+
     const auto maxRequired{m_maxRequired},
                 remainingSamples{m_numInputSamples};
 

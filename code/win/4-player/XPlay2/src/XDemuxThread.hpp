@@ -78,7 +78,10 @@ public:
     }
 
     virtual void SetVolume(const double &) noexcept(true);
-    virtual double Volume() const noexcept(true);
+    [[nodiscard]] virtual double Volume() const noexcept(true);
+
+    virtual void SetSpeed(const float &speed) noexcept(true);
+    [[nodiscard]] float Speed() const noexcept(true);
 
 protected:
     std::atomic_int64_t m_pts{},m_total_Ms{};
@@ -87,6 +90,7 @@ protected:
     QMutex m_mux;
     QWaitCondition m_cv;
     QSharedPointer<XDemux> m_demux;
+    //std::atomic<float> m_speed{};
     /**
      * 音频解码线程
      */

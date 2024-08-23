@@ -59,9 +59,9 @@ int XResample::Resample(const XAVFrame_sptr &frame,resample_data_t &datum,int &o
     const auto out_size{av_samples_get_buffer_size(nullptr,frame->ch_layout.nb_channels,static_cast<int>(out_count),
                                  AV_SAMPLE_FMT_S16,1)};
 
-    if (datum.capacity() < out_size){
+    if (datum.capacity() <= out_size){
         datum.clear();
-        datum.resize(out_size + 1);
+        datum.resize(out_size + (out_size >> 1));
     }
 
     uint8_t *d[AV_NUM_DATA_POINTERS]{datum.data()};

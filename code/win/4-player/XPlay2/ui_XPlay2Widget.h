@@ -11,6 +11,7 @@
 
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QDoubleSpinBox>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QPushButton>
@@ -33,6 +34,7 @@ public:
     QPushButton *OpenFile;
     QPushButton *OpenURL;
     QPushButton *isPlay;
+    QDoubleSpinBox *Speed;
     QSlider *VolumeSlider;
 
     void setupUi(QWidget *XPlay2Widget)
@@ -77,6 +79,18 @@ public:
 
         horizontalLayout->addWidget(isPlay);
 
+        Speed = new QDoubleSpinBox(XPlay2Widget);
+        Speed->setObjectName("Speed");
+        Speed->setMinimumSize(QSize(100, 0));
+        Speed->setMaximumSize(QSize(100, 16777215));
+        Speed->setDecimals(1);
+        Speed->setMinimum(0.100000000000000);
+        Speed->setMaximum(5.000000000000000);
+        Speed->setSingleStep(0.100000000000000);
+        Speed->setValue(1.000000000000000);
+
+        horizontalLayout->addWidget(Speed);
+
         VolumeSlider = new QSlider(XPlay2Widget);
         VolumeSlider->setObjectName("VolumeSlider");
         VolumeSlider->setMinimumSize(QSize(0, 0));
@@ -100,6 +114,7 @@ public:
         QObject::connect(PlayPos, SIGNAL(sliderPressed()), XPlay2Widget, SLOT(SliderPressed()));
         QObject::connect(OpenURL, SIGNAL(clicked()), XPlay2Widget, SLOT(OpenURL()));
         QObject::connect(VolumeSlider, SIGNAL(valueChanged(int)), XPlay2Widget, SLOT(VolumeChanged(int)));
+        QObject::connect(Speed, SIGNAL(valueChanged(double)), XPlay2Widget, SLOT(SpeedChanged(double)));
 
         QMetaObject::connectSlotsByName(XPlay2Widget);
     } // setupUi

@@ -45,6 +45,8 @@ namespace XHelper {
 
     void print_err_tips(const std::string &func,const std::string &file,
                         const int &line,const std::string &msg) noexcept(true);
+
+    bool float_Compare(const float &,const float &,const float & = 1e-6);
 }
 
 #ifdef HAVE_FFMPEG

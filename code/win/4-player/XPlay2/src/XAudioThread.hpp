@@ -25,12 +25,16 @@ public:
     void SetPause(const bool &b) noexcept(true) override;
     void SetVolume(const double &) noexcept(true);
     [[nodiscard]] double Volume() const noexcept(true);
+
 protected:
     std::atomic<XAudioPlay *> m_audio_play{};
     QSharedPointer<XResample> m_resample;
     QMutex m_a_mux;
     //QWaitCondition m_a_cv;
     QSharedPointer<XSonic> m_xSonic;
+    std::atomic_int m_Channels{},
+                m_Sample_Format{},
+                m_Sample_Rate{};
 };
 
 #endif
