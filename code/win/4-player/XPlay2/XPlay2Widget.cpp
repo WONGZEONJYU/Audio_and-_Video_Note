@@ -9,16 +9,14 @@
 #include <XDemuxThread.hpp>
 #include <QInputDialog>
 
-XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false){
-
+XPlay2Widget_sptr XPlay2Widget::Handle() noexcept(false) {
     XPlay2Widget_sptr obj;
     CHECK_EXC(obj.reset(new XPlay2Widget()));
     CHECK_EXC(obj->Construct(),obj.reset());
     return obj;
 }
 
-XPlay2Widget::XPlay2Widget(QWidget *parent) :
-        QWidget(parent) {
+XPlay2Widget::XPlay2Widget(QWidget *parent) : QWidget(parent) {
 }
 
 XPlay2Widget::~XPlay2Widget() {
@@ -57,7 +55,7 @@ void XPlay2Widget::OpenFile() {
         m_ui->PlayPos->setEnabled(true);
         m_ui->Speed->setEnabled(true);
         m_ui->Speed->setValue(1.0);
-        const auto max_v {static_cast<double >(m_ui->VolumeSlider->maximum())};
+        const auto max_v {static_cast<double>(m_ui->VolumeSlider->maximum())};
         qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
         m_ui->VolumeSlider->setValue(static_cast<int>(m_dmt->Volume() < 0.0 ? m_ui->VolumeSlider->maximum() :
                                                       m_dmt->Volume() * max_v));
@@ -67,8 +65,8 @@ void XPlay2Widget::OpenFile() {
     }
 }
 
-void XPlay2Widget::OpenURL(){
-    auto url {QInputDialog::getText(this,"url","url")};
+void XPlay2Widget::OpenURL() {
+    const auto url{QInputDialog::getText(this,"url","url")};
     if (url.isEmpty()){
         return;
     }
@@ -126,16 +124,17 @@ void XPlay2Widget::PlayOrPause() {
     sender()->blockSignals(false);
 }
 
-void XPlay2Widget::timerEvent(QTimerEvent *event) {
+void XPlay2Widget::timerEvent(QTimerEvent *) {
 
     if (m_is_SliderPress) {
         return;
     }
 
-    const auto total {m_dmt->totalMS()};
+    const auto total{m_dmt->totalMS()};
+
     if (total > 0) {
-        const auto pos {static_cast<double>(m_dmt->Pts()) / static_cast<double>(total)};
-        const auto v{static_cast<decltype(pos)>(m_ui->PlayPos->maximum()) * pos};
+        const auto pos{static_cast<double>(m_dmt->Pts()) / static_cast<double>(total)},
+                    v{static_cast<decltype(pos)>(m_ui->PlayPos->maximum()) * pos};
         m_ui->PlayPos->setValue(static_cast<int>(v));
     }
 }
@@ -145,21 +144,30 @@ void XPlay2Widget::SliderPressed() {
 }
 
 void XPlay2Widget::SliderReleased() {
-    sender()->blockSignals(true);
-    auto PlayPos{static_cast<const double >(m_ui->PlayPos->value())},
-            PlayMax{static_cast<const decltype(PlayPos)>(m_ui->PlayPos->maximum())};
 
-    const auto pos { PlayPos / PlayMax };
-    m_dmt->Seek(pos);
+    sender()->blockSignals(true);
+
+    const auto PlayPos{static_cast<double>(m_ui->PlayPos->value())},
+                PlayMax{static_cast<double>(m_ui->PlayPos->maximum())};
+
+    const auto pos{PlayPos / PlayMax};
+
+    try {
+        m_dmt->Seek(pos);
+    } catch (const std::exception &e) {
+        qDebug() << e.what();
+    }
+
     m_is_SliderPress = false;
+
     sender()->blockSignals(false);
 }
 
-void XPlay2Widget::VolumeChanged(const int &v){
-    const auto max {static_cast<double >(m_ui->VolumeSlider->maximum())};
+void XPlay2Widget::VolumeChanged(const int &v) {
+    const auto max{static_cast<double >(m_ui->VolumeSlider->maximum())};
     m_dmt->SetVolume(v / max);
 }
 
 void XPlay2Widget::SpeedChanged(const double &v){
-    m_dmt->SetSpeed(static_cast<float >(v));
+    m_dmt->SetSpeed(static_cast<float>(v));
 }

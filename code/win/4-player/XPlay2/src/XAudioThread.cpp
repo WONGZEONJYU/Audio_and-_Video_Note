@@ -36,23 +36,25 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
         XDecodeThread::Open(p);
         {
             QMutexLocker locker(&m_a_mux);
+
             if (!m_resample) {
                 CHECK_EXC(m_resample.reset(new XResample()),locker.unlock());
             }
 
-            if (!m_xSonic){
+            if (!m_xSonic) {
                 CHECK_EXC(m_xSonic.reset(new XSonic()),locker.unlock());
             }
 
-            m_xSonic->Open(m_Sample_Rate,m_Channels);
+            if(!m_xSonic->Open(m_Sample_Rate,m_Channels)){
+                throw std::runtime_error(GET_STR(m_xSonic->Open(m_Sample_Rate,m_Channels) failed));
+            }
         }
 
         m_resample->Open(p);
         m_audio_play.load()->set_Audio_parameter(m_Sample_Rate,m_Channels,QAudioFormat::Int16);
-
     } catch (...) {
         DeConstruct();
-        throw ;
+        throw;
     }
 }
 
@@ -97,21 +99,14 @@ void XAudioThread::entry() noexcept(false) {
                     CHECK_EXC(re_size = m_resample->Resample(af,resample_datum,out_samples),
                               locker.unlock());
 
-
-//                    if (m_speed != 1.0f){
-                    if (1){
+                    if (m_speed != 1.0f){
                         if (out_samples > 0) {
-                            m_speed = 2.0f;
-                            qDebug() << "m_speed: " << m_speed;
-
                             m_xSonic->sonicSetSpeed(m_speed);
-
                             m_xSonic->sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
-
-                            const auto size_{static_cast<int>(re_size / m_speed) * sizeof(int16_t)};
+                            const auto size_{static_cast<int>(static_cast<float >(re_size) / m_speed) * sizeof(int16_t)};
                             if (speed_datum.capacity() <= size_) {
                                 speed_datum.clear();
-                                speed_datum.resize(size_ + 2);
+                                speed_datum.resize(size_ + (size_ >> 1));
                             }
 
                             sonic_size = m_xSonic->sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),
@@ -121,7 +116,7 @@ void XAudioThread::entry() noexcept(false) {
                                 sonic_size = sonic_size * m_Channels * m_Sample_Format;
                             }
                         }
-                    }else{
+                    } else {
                         //qDebug() << "re_size: " << re_size;
                         sonic_size = re_size;
                         speed_datum = std::move(resample_datum);

@@ -18,7 +18,6 @@ XVideoThread::~XVideoThread() {
 void XVideoThread::entry() {
 
     try {
-
         while (!m_is_Exit) {
 
             if (m_is_Pause) {
@@ -36,10 +35,15 @@ void XVideoThread::entry() {
 
                 while (!m_is_Exit) {
                     const auto sync_pts {m_sync_pts.load()};
-                    if ( m_is_Pause || (0 < sync_pts && sync_pts < pts) ) {
-                        //qDebug() << "sync_pts: " << sync_pts;
-                        msleep(1);
-                        continue;
+
+                    if (m_has_audio){
+                        if ( m_is_Pause || (0 < sync_pts && sync_pts < pts) ) {
+                            //qDebug() << "sync_pts: " << sync_pts;
+                            msleep(1);
+                            continue;
+                        }
+                    }else{
+
                     }
                     m_call.load()->Repaint(vf);
                     break;
@@ -92,6 +96,7 @@ void XVideoThread::Open(const XAVCodecParameters_sptr &p, IVideoCall *call) noex
 
 bool XVideoThread::RepaintPts(const XAVPacket_sptr &pkt,
                               const int64_t &seek_pts) noexcept(false) {
+
     auto b {!Send_Packet(pkt)}; //如果解码失败当已经显示成功,让上一级函数结束,
     // 因为在同一个位置读取的是同一包,即使再次读取还是会解码失败
     if (b) {return b;}

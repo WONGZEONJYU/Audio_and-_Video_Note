@@ -45,7 +45,7 @@ public:
     /**
      * seek媒体文件
      */
-    virtual void Seek(const double &) noexcept(true);
+    virtual void Seek(const double &) noexcept(false);
 
     /**
      * 获取媒体文件总时长

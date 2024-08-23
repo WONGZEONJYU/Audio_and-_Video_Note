@@ -174,7 +174,7 @@ void XDemuxThread::SetPause(const bool &b){
     }
 }
 
-void XDemuxThread::Seek(const double &pos) noexcept(true) {
+void XDemuxThread::Seek(const double &pos) noexcept(false) {
 
     Clear();
     const auto status {m_isPause.load()};
@@ -183,18 +183,20 @@ void XDemuxThread::Seek(const double &pos) noexcept(true) {
     QMutexLocker locker(&m_mux);
     if (m_demux){
         m_demux->Seek(pos);
+        /*先seek到指定位置*/
     }
 
-    const auto t_pos {pos * static_cast<decltype(pos)>(m_total_Ms.load())};
-    const auto seek_pts {static_cast<int64_t>(t_pos)};
+    const auto t_pos {pos * static_cast<double>(m_total_Ms.load())};
+    const auto seek_pts{static_cast<int64_t>(t_pos)};
 
     while (!m_is_Exit) {
         XAVPacket_sptr pkt;
         CHECK_EXC(pkt = m_demux->ReadVideo(),locker.unlock());
+        /*先读取一次AVPacket*/
         if (!pkt) {
             break;
         }
-        if (m_vt->RepaintPts(pkt,seek_pts)) {
+        if (m_vt->RepaintPts(pkt,seek_pts)) { //解码并显示当前帧
             m_pts = seek_pts; //更新当前pts
             break;
         }
