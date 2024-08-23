@@ -77,6 +77,10 @@ void XSonic::scaleSamples(int16_t *samples,
 
 bool XSonic::allocateStreamBuffers(const int &sampleRate,const int &numChannels) {
 
+    if (sampleRate <= 0 || numChannels <= 0){
+        return {};
+    }
+
     Close();
     const auto minPeriod{sampleRate / SONIC_MAX_PITCH_},
                 maxPeriod{sampleRate/SONIC_MIN_PITCH_},
@@ -90,6 +94,7 @@ bool XSonic::allocateStreamBuffers(const int &sampleRate,const int &numChannels)
         CHECK_EXC(m_pitchBuffer.resize(alloc_size));
         CHECK_EXC(m_downSampleBuffer.resize(maxRequired));
     } catch (const std::exception &e) {
+        Close();
         std::cerr << e.what() << "\n";
         return {};
     }
@@ -110,7 +115,6 @@ bool XSonic::sonicCreateStream(const int &sampleRate,const int &numChannels){
     if (!allocateStreamBuffers(sampleRate,numChannels)){
         return {};
     }
-
     return true;
 }
 
@@ -146,7 +150,7 @@ bool XSonic::enlargeInputBufferIfNeeded(const int &numSamples) {
 
 bool XSonic::addFloatSamplesToInputBuffer(const float *samples,const int &numSamples) {
 
-    if(!numSamples) {
+    if(numSamples <= 0 || !samples) {
         return {};
     }
 
@@ -171,8 +175,8 @@ bool XSonic::addFloatSamplesToInputBuffer(const float *samples,const int &numSam
 
 bool XSonic::addShortSamplesToInputBuffer(const int16_t *samples,const int &numSamples) {
 
-    if(!numSamples) {
-        return true;
+    if(numSamples <= 0 || !samples) {
+        return {};
     }
 
     if(!enlargeInputBufferIfNeeded(numSamples)) {
@@ -190,8 +194,8 @@ bool XSonic::addShortSamplesToInputBuffer(const int16_t *samples,const int &numS
 
 bool XSonic::addUnsignedCharSamplesToInputBuffer(const uint8_t *samples,const int &numSamples) {
 
-    if(!numSamples) {
-        return true;
+    if(numSamples <= 0 || !samples) {
+        return {};
     }
 
     if(!enlargeInputBufferIfNeeded(numSamples)) {
@@ -230,6 +234,10 @@ void XSonic::removeInputSamples(const int &position) {
 
 bool XSonic::copyToOutput(const int16_t *samples,const int &numSamples) {
 
+    if (!samples || numSamples <= 0){
+        return {};
+    }
+
     if(!enlargeOutputBufferIfNeeded(numSamples)) {
         return {};
     }
@@ -263,6 +271,11 @@ int XSonic::copyInputToOutput(const int &position) {
 
 void XSonic::downSampleInput(const int16_t *samples,const int &skip)
 {
+
+    if (!samples || skip <= 0){
+        return;
+    }
+
     const auto numSamples{m_maxRequired / skip},
                 samplesPerValue{m_numChannels * skip};
 
@@ -805,9 +818,8 @@ void XSonic::Move_(XSonic *src) noexcept(true){
     m_outputBuffer = std::move(src->m_outputBuffer);
     m_pitchBuffer = std::move(src->m_pitchBuffer);
     m_downSampleBuffer = std::move(src->m_downSampleBuffer);
-    auto this_{static_cast<XSonic_data*>(this)};
-    auto src_{static_cast<XSonic_data*>(src)};
-    *this_ = *src_;
+    auto dst_{static_cast<XSonic_data*>(this)},
+        src_{static_cast<XSonic_data*>(src)};
+    *dst_ = *src_;
     *src_ = {};
-    //std::fill_n(reinterpret_cast<char *>(src_), sizeof(*src_),0);
 }

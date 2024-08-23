@@ -6,10 +6,10 @@
 #define XPLAY2_XAUDIOTHREAD_HPP
 
 #include "XDecodeThread.hpp"
-#include "XSonic.hpp"
 
 class XResample;
 class XAudioPlay;
+class XSonic;
 
 class XAudioThread : public XDecodeThread {
 
@@ -30,7 +30,7 @@ protected:
     QSharedPointer<XResample> m_resample;
     QMutex m_a_mux;
     //QWaitCondition m_a_cv;
-    XSonic m_xSonic;
+    QSharedPointer<XSonic> m_xSonic;
 };
 
 #endif

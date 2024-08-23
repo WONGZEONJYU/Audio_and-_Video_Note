@@ -8,6 +8,7 @@
 #include "XResample.hpp"
 #include "QXAudioPlay.hpp"
 #include "XAVCodecParameters.hpp"
+#include "XSonic.hpp"
 
 using namespace std;
 
@@ -35,7 +36,7 @@ void XAudioThread::Open(const XAVCodecParameters_sptr &p) noexcept(false) {
             if (!m_resample) {
                 CHECK_EXC(m_resample.reset(new XResample()),locker.unlock());
             }
-            m_xSonic = XSonic(p->Sample_rate(),p->Ch_layout()->nb_channels);
+            m_xSonic.reset(new XSonic(p->Sample_rate(),p->Ch_layout()->nb_channels));
         }
 
         m_resample->Open(p);
@@ -89,14 +90,14 @@ void XAudioThread::entry() noexcept(false) {
                               locker.unlock());
 #if 1
                     if (out_samples > 0) {
-                        static constexpr auto speed{1.3f};
-                        m_xSonic.sonicSetSpeed(speed);
-                        m_xSonic.sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
+                        static constexpr auto speed{0.5f};
+                        m_xSonic->sonicSetSpeed(speed);
+                        m_xSonic->sonicWriteShortToStream(reinterpret_cast<int16_t *>(resample_datum.data()),out_samples);
                         if (speed_datum.capacity() <= static_cast<int>(re_size / speed) * sizeof(int16_t)){
                             speed_datum.resize(static_cast<int>(re_size / speed) * sizeof(int16_t) + 2);
                         }
                         //qDebug() << speed_datum.capacity();
-                        sonic_size = m_xSonic.sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),
+                        sonic_size = m_xSonic->sonicReadShortFromStream(reinterpret_cast<int16_t*>(speed_datum.data()),
                                                                        static_cast<int>(out_samples / speed));
                         //qDebug() << sonic_size;
                         if (sonic_size > 0){

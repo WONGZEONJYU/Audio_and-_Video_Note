@@ -17,6 +17,7 @@ protected:
             m_numInputSamples{},m_numOutputSamples{},m_numPitchSamples{},m_minPeriod{},
             m_maxPeriod{},m_maxRequired{},m_remainingInputToCopy{},m_sampleRate{},
             m_prevPeriod{},m_prevMinDiff{};
+    bool m_is_init{};
 };
 
 class XSonic : protected XSonic_data {
@@ -161,7 +162,7 @@ public:
 /* Get the quality setting. */
     [[nodiscard]] int sonicGetQuality() const;
 /* Set the "quality".  Default 0 is virtually as good as 1, but very much faster. */
-    void sonicSetQuality(int quality);
+    void sonicSetQuality(const int &quality);
 /* Get the sample rate of the stream. */
     [[nodiscard]] int sonicGetSampleRate() const;
 /* Get the number of channels. */
@@ -170,6 +171,7 @@ public:
 protected:
     std::vector<int16_t> m_inputBuffer,m_outputBuffer,
                         m_pitchBuffer,m_downSampleBuffer;
+
 public:
     X_DISABLE_COPY(XSonic)
     explicit XSonic() = default;
@@ -177,31 +179,31 @@ public:
     XSonic(XSonic &&) noexcept(true);
     XSonic &operator=(XSonic &&) noexcept(true);
     virtual ~XSonic() = default;
-
 };
 
 /* This is a non-stream oriented interface to just change the speed of a sound
    sample.  It works in-place on the sample array, so there must be at least
    speed*numSamples available space in the array. Returns the new number of samples. */
 int sonicChangeFloatSpeed(float *samples,
-                                 const int &numSamples,
-                                 const float &speed,
-                                 const float &pitch,
-                                 const float &rate,
-                                 const float &volume,
-                                 const int &useChordPitch,
-                                 const int &sampleRate,
-                                 const int &numChannels);
+                          const int &numSamples,
+                          const float &speed = 1.0f,
+                          const float &pitch = 1.0f,
+                          const float &rate = 1.0f,
+                          const float &volume = 1.0f,
+                          const int &useChordPitch = 0,
+                          const int &sampleRate = 44100,
+                          const int &numChannels = 2);
+
 /* This is a non-stream oriented interface to just change the speed of a sound
    sample.  It works in-place on the sample array, so there must be at least
    speed*numSamples available space in the array. Returns the new number of samples. */
 int sonicChangeShortSpeed(int16_t *samples,
                           const int &numSamples,
-                          const float &speed,
-                          const float &pitch,
-                          const float &rate,
-                          const float &volume,
-                          const int &useChordPitch,
-                          const int &sampleRate,
-                          const int &numChannels);
+                          const float &speed = 1.0f,
+                          const float &pitch = 1.0f,
+                          const float &rate = 1.0f,
+                          const float &volume = 1.0f,
+                          const int &useChordPitch = 0,
+                          const int &sampleRate = 44100,
+                          const int &numChannels = 2);
 #endif

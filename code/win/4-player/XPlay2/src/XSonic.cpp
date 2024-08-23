@@ -21,7 +21,9 @@ XSonic &XSonic::operator=(XSonic &&obj) noexcept(true){
 }
 
 bool XSonic::Open(const int &sampleRate,const int &numChannels) {
-    return sonicCreateStream( sampleRate, numChannels);
+    const auto ret {sonicCreateStream( sampleRate, numChannels)};
+    m_is_init = ret;
+    return ret;
 }
 
 void XSonic::Close(){
@@ -66,11 +68,11 @@ void XSonic::sonicSetChordPitch(const int &useChordPitch){
     m_useChordPitch = useChordPitch;
 }
 
-int XSonic::sonicGetQuality() const{
+int XSonic::sonicGetQuality() const {
     return m_quality;
 }
 
-void XSonic::sonicSetQuality(int quality){
+void XSonic::sonicSetQuality(const int &quality) {
     m_quality = quality;
 }
 
@@ -78,7 +80,7 @@ float XSonic::sonicGetVolume() const{
     return m_volume;
 }
 
-void XSonic::sonicSetVolume(const float &volume){
+void XSonic::sonicSetVolume(const float &volume) {
     m_volume = volume;
 }
 
@@ -86,12 +88,16 @@ int XSonic::sonicGetSampleRate() const {
     return m_sampleRate;
 }
 
-int XSonic::sonicGetNumChannels() const{
+int XSonic::sonicGetNumChannels() const {
     return m_numChannels;
 }
 
 int XSonic::sonicReadFloatFromStream(float *samples,
                                      const int &maxSamples) {
+    if (!m_is_init){
+        return -1;
+    }
+
     auto numSamples {m_numOutputSamples};
     if(!numSamples) {
         return {};
@@ -128,6 +134,11 @@ int XSonic::sonicReadFloatFromStream(float *samples,
 
 int XSonic::sonicReadShortFromStream(int16_t *samples,
                                      const int &maxSamples) {
+
+    if (!m_is_init){
+        return -1;
+    }
+
     auto numSamples{m_numOutputSamples};
 
     if(!numSamples) {
@@ -158,6 +169,11 @@ int XSonic::sonicReadShortFromStream(int16_t *samples,
 
 int XSonic::sonicReadUnsignedCharFromStream(uint8_t *samples,
                                             const int &maxSamples) {
+
+    if (!m_is_init || !samples || maxSamples <= 0){
+        return -1;
+    }
+
     auto numSamples{m_numOutputSamples};
 
     if(!numSamples) {
@@ -218,7 +234,11 @@ bool XSonic::sonicFlushStream() {
 
     m_numInputSamples += 2 * maxRequired;
 
-    if(!sonicWriteShortToStream({},{})) {
+//    if(!sonicWriteShortToStream({},{})) { //这个逻辑感觉有点多余,直接调用processStreamInput进行处理
+//        return {};
+//    }
+
+    if (!processStreamInput()){
         return {};
     }
 
@@ -238,13 +258,24 @@ int XSonic::sonicSamplesAvailable() const{
 }
 
 bool XSonic::sonicWriteFloatToStream(const float *samples,const int &numSamples) {
+
+    if (!m_is_init || !samples || numSamples <= 0){
+        return {};
+    }
+
     if(!addFloatSamplesToInputBuffer(samples, numSamples)) {
         return {};
     }
+
     return processStreamInput();
 }
 
 bool XSonic::sonicWriteShortToStream(const int16_t *samples,const int &numSamples) {
+
+    if (!m_is_init || !samples || numSamples <= 0) {
+        return {};
+    }
+
     if(!addShortSamplesToInputBuffer( samples, numSamples)) {
         return {};
     }
@@ -252,6 +283,11 @@ bool XSonic::sonicWriteShortToStream(const int16_t *samples,const int &numSample
 }
 
 bool XSonic::sonicWriteUnsignedCharToStream(const uint8_t *samples,const int &numSamples) {
+
+    if (!m_is_init || !samples || numSamples <= 0) {
+        return {};
+    }
+
     if(!addUnsignedCharSamplesToInputBuffer(samples, numSamples)) {
         return {};
     }
@@ -267,6 +303,11 @@ int sonicChangeFloatSpeed(float *samples,
                           const int &useChordPitch,
                           const int &sampleRate,
                           const int &numChannels) {
+
+    if (!samples || numSamples <= 0){
+        return -1;
+    }
+
     XSonic xSonic;
     if (!xSonic.Open(sampleRate,numChannels)){
         return -1;
