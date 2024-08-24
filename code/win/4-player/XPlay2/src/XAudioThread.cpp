@@ -136,33 +136,19 @@ void XAudioThread::entry() noexcept(false) {
                 break;
             }
         }
-#if 0
-            if (Empty()){
-                msleep(1);
-                continue;
-            }
 
-            bool b;
-            CHECK_EXC(b = Send_Packet(Pop()));
-            if (b){
-                PopFront();
-            }
-#else
             if (!Send_Packet()){
                 msleep(1);
             }
-#endif
         }
 
-        m_audio_play.load()->Close();
-
     } catch (...) {
-        m_audio_play.load()->Close();
-        qDebug() << GET_STR(XAudioThread::) <<__func__ << "catch";
+        //qDebug() << GET_STR(XAudioThread::) <<__func__ << "catch";
         if (m_exceptionPtr){
             *m_exceptionPtr = current_exception();
         }
     }
+    m_audio_play.load()->Close();
 }
 
 void XAudioThread::Close() noexcept(true) {

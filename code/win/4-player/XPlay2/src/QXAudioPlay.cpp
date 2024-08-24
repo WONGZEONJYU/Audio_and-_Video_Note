@@ -80,7 +80,6 @@ void QXAudioPlay::Write(const uint8_t *data, const int64_t &data_size) noexcept(
     }else if (data_size != ret) {
         PRINT_ERR_TIPS(GET_STR(data_size != ret));
     } else{}
-
 }
 
 void QXAudioPlay::QtSetParent(void *p) noexcept(true){

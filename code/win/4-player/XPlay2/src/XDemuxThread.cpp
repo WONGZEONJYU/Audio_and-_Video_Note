@@ -95,7 +95,7 @@ void XDemuxThread::run() {
             /**
              * 用于进度条
              */
-            m_pts = m_at->Pts();
+            m_pts = m_at ? m_at->Pts() : m_vt->Pts();
 
             XAVPacket_sptr pkt;
             QMutexLocker locker(&m_mux);

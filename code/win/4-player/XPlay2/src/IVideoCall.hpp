@@ -15,8 +15,7 @@ class IVideoCall {
 public :
     /***
      * 初始化
-     * @param w
-     * @param h
+     * @param w,h
      */
     virtual void Init(const int &w,const int&h) noexcept(false) = 0;
     /***

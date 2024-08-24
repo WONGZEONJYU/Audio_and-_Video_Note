@@ -27,7 +27,7 @@ protected:
     std::atomic<IVideoCall*> m_call{};
     QMutex m_v_mux;
     std::atomic_bool m_has_audio{true};
-    std::atomic_int64_t m_last_pts{};
+    //std::atomic_int64_t m_last_pts{};
     //QWaitCondition m_v_cv;
 public:
     ~XVideoThread() override;

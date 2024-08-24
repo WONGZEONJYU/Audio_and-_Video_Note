@@ -33,6 +33,8 @@ void XVideoThread::entry() {
                     break;
                 }
 
+                m_pts = pts;
+
                 while (!m_is_Exit) {
                     const auto sync_pts {m_sync_pts.load()};
 
@@ -44,31 +46,17 @@ void XVideoThread::entry() {
                         }
                         m_call.load()->Repaint(vf);
                     }else{
-                        auto delay_ms{pts - m_last_pts};
-                        m_last_pts = pts;
-                        delay_ms = static_cast<int64_t>(static_cast<double >(delay_ms) / m_speed);
+                        const auto delay_ms{static_cast<unsigned long>(40.0 / m_speed)};
                         m_call.load()->Repaint(vf);
-                        //msleep(delay_ms);
+                        msleep(delay_ms);
                     }
                     break;
                 }
             }
-#if 0
-            if (Empty()) {
-                msleep(1);
-                continue;
-            }
 
-            bool b;
-            CHECK_EXC(b = Send_Packet(Pop()));
-            if (b){
-                PopFront();
-            }
-#else
             if (!Send_Packet()) {
                 msleep(1);
             }
-#endif
         }
     } catch (...) {
         qDebug() << __func__ << "catch";
@@ -131,5 +119,5 @@ void XVideoThread::SetPause(const bool &b) noexcept(true){
 
 void XVideoThread::Close() noexcept(true) {
     XDecodeThread::Close();
-    m_last_pts = 0;
+    //m_last_pts = 0;
 }
