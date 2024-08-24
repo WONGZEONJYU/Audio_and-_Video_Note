@@ -224,10 +224,16 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
     }else{
         const auto time_base {m_streams[packet->stream_index]->time_base};
         lock.unlock();
-        const auto pts{static_cast<double>(packet->pts)},
-                dst{static_cast<double>(packet->dts)};
-        packet->pts = static_cast<decltype(packet->pts)>(pts * 1000.0 * av_q2d(time_base));
-        packet->dts = static_cast<decltype(packet->dts)>(dst * 1000.0 * av_q2d(time_base));
+
+        if (AV_NOPTS_VALUE == packet->pts){
+            m_last_pts += 40;
+            packet->pts = m_last_pts;
+        }else{
+            const auto pts{static_cast<double>(packet->pts)},
+                    dst{static_cast<double>(packet->dts)};
+            packet->pts = static_cast<decltype(packet->pts)>(pts * 1000.0 * av_q2d(time_base));
+            packet->dts = static_cast<decltype(packet->dts)>(dst * 1000.0 * av_q2d(time_base));
+        }
     }
     return packet;
 }
@@ -250,7 +256,7 @@ void XDemux::DeConstruct() noexcept(true) {
     avformat_close_input(&m_av_fmt_ctx);
     m_streams = nullptr;
     m_Present_Video_st = m_Present_Audio_st = nullptr;
-    m_totalMS = m_nb_streams = 0;
+    m_last_pts = m_totalMS = m_nb_streams = 0;
     m_Present_Video_index = m_Present_Audio_index = -1;
 }
 
@@ -319,8 +325,10 @@ bool XDemux::Seek(const double &pos) noexcept(true) {
 
     FF_ERR_OUT(avformat_flush(m_av_fmt_ctx));
     int ret;
-    FF_ERR_OUT(ret = av_seek_frame(m_av_fmt_ctx,m_Present_Video_index,
-                                SeekPos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME));
+//    FF_ERR_OUT(ret = av_seek_frame(m_av_fmt_ctx,m_Present_Video_index,
+//                                SeekPos,AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME));
+
+    FF_ERR_OUT(ret = avformat_seek_file(m_av_fmt_ctx, m_Present_Video_index, INT64_MIN, SeekPos, INT64_MAX, AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME));
     return ret >= 0;
 }
 

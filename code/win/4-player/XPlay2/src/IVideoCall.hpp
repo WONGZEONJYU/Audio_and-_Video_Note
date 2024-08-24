@@ -8,7 +8,7 @@
 #include <memory>
 
 class XAVFrame;
-using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
+using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
 
 class IVideoCall {
 

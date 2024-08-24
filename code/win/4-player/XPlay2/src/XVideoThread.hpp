@@ -20,13 +20,14 @@ public:
      */
     virtual bool RepaintPts(const XAVPacket_sptr &,const int64_t &) noexcept(false);
     void SetPause(const bool &) noexcept(true) override;
-    virtual void HasAudio(const bool &b = true) noexcept(true){
+    virtual void HasAudio(const bool &b) noexcept(true){
         m_has_audio = b;
     }
 protected:
     std::atomic<IVideoCall*> m_call{};
     QMutex m_v_mux;
     std::atomic_bool m_has_audio{true};
+    std::atomic_int64_t m_last_pts{};
     //QWaitCondition m_v_cv;
 public:
     ~XVideoThread() override;

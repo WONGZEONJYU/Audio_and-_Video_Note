@@ -61,6 +61,9 @@ void XDemuxThread::Open(const QString &url,IVideoCall *call) noexcept(false) {
 
         m_at->Open(m_ac);
         m_vt->Open(m_vc,call);
+
+        m_vt->HasAudio(m_ac.operator bool());
+
         m_total_Ms = m_demux->totalMS();
         m_cv.wakeAll();
 
@@ -83,6 +86,7 @@ void XDemuxThread::run() {
 
             const auto a_index {m_demux->Present_Audio_Index()},
                     v_index {m_demux->Present_Video_Index()};
+
             /**
              * 音频获取到到pts给视频进行同步
              */
@@ -95,7 +99,7 @@ void XDemuxThread::run() {
 
             XAVPacket_sptr pkt;
             QMutexLocker locker(&m_mux);
-            CHECK_EXC(pkt = m_demux->Read()); //可能有异常
+            CHECK_EXC(pkt = m_demux->Read(),locker.unlock()); //可能有异常
             if (!pkt && !end){
                 end = true;
                 if (a_index >= 0){
@@ -169,6 +173,7 @@ void XDemuxThread::SetPause(const bool &b){
     if (m_at){
         m_at->SetPause(b);
     }
+
     if (m_vt){
         m_vt->SetPause(b);
     }
@@ -233,24 +238,30 @@ double XDemuxThread::Volume() const noexcept(true){
     return -1.0;
 }
 
-void XDemuxThread::SetSpeed(const float &speed) noexcept(true){
+void XDemuxThread::SetSpeed(float speed) noexcept(true){
     QMutexLocker locker(&m_mux);
-    if (!m_at){
+    if (!m_at || !m_vt){
         return;
     }
 
     if (speed <= 0.0f || speed >= 5.0f){
-        m_at->SetSpeed(1.0f);
-        return;
+        speed = 1.0f;
     }
 
     m_at->SetSpeed(speed);
+    m_vt->SetSpeed(speed);
 }
 
 float XDemuxThread::Speed() const noexcept(true){
+
     QMutexLocker locker(const_cast<QMutex*>(&m_mux));
     if (m_at){
         return m_at->Speed();
     }
+
+    if (m_vt){
+        return m_vt->Speed();
+    }
+
     return -1.0f;
 }

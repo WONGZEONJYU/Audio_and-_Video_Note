@@ -38,14 +38,18 @@ void XVideoThread::entry() {
 
                     if (m_has_audio){
                         if ( m_is_Pause || (0 < sync_pts && sync_pts < pts) ) {
-                            //qDebug() << "sync_pts: " << sync_pts;
+                            qDebug() << "sync_pts: " << sync_pts;
                             msleep(1);
                             continue;
                         }
+                        m_call.load()->Repaint(vf);
                     }else{
-
+                        auto delay_ms{pts - m_last_pts};
+                        m_last_pts = pts;
+                        delay_ms = static_cast<int64_t>(static_cast<double >(delay_ms) / m_speed);
+                        m_call.load()->Repaint(vf);
+                        //msleep(delay_ms);
                     }
-                    m_call.load()->Repaint(vf);
                     break;
                 }
             }
@@ -87,10 +91,13 @@ void XVideoThread::Open(const XAVCodecParameters_sptr &p, IVideoCall *call) noex
     }
 
     Clear();
+
     if (m_call != call){
         m_call = call;
     }
+
     m_call.load()->Init(p->Width(),p->Height());
+
     XDecodeThread::Open(p);
 }
 
@@ -124,4 +131,5 @@ void XVideoThread::SetPause(const bool &b) noexcept(true){
 
 void XVideoThread::Close() noexcept(true) {
     XDecodeThread::Close();
+    m_last_pts = 0;
 }

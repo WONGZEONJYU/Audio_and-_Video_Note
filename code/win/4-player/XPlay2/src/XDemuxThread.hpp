@@ -80,11 +80,12 @@ public:
     virtual void SetVolume(const double &) noexcept(true);
     [[nodiscard]] virtual double Volume() const noexcept(true);
 
-    virtual void SetSpeed(const float &speed) noexcept(true);
+    virtual void SetSpeed(float ) noexcept(true);
     [[nodiscard]] float Speed() const noexcept(true);
 
 protected:
     std::atomic_int64_t m_pts{},m_total_Ms{};
+
     std::atomic<std::exception_ptr*> m_ex_ptr{};
     std::atomic_bool m_is_Exit{},m_isPause{};
     QMutex m_mux;
@@ -107,6 +108,7 @@ protected:
      * 视频解码信息
      */
     XAVCodecParameters_sptr m_vc;
+
 
 public:
     ~XDemuxThread() override;

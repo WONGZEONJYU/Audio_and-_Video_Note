@@ -104,6 +104,7 @@ protected:
     std::atomic_int m_Present_Video_index{-1},
         m_Present_Audio_index{-1};
     std::atomic_int m_is_exit{};
+    std::atomic_int64_t m_last_pts{};
 private:
     static std::atomic_uint64_t sm_init_times;
     static std::mutex sm_mux;
