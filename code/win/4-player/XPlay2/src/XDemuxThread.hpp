@@ -16,6 +16,7 @@ class XAudioThread;
 class XVideoThread;
 class IVideoCall;
 class XAVCodecParameters;
+class XAVPacket;
 
 using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
 
@@ -24,6 +25,7 @@ Q_OBJECT
 
     void run() override;
     void DeConstruct() noexcept(true);
+    void Push_helper(std::shared_ptr<XAVPacket> &&) noexcept(false);
 public:
     explicit XDemuxThread(std::exception_ptr * = nullptr);
     /**
@@ -56,7 +58,7 @@ public:
     }
 
     /**
-     * 获取音频/ 视频的PTS,用于对外作用,比如用于进度条的显示
+     * 获取音频/视频的PTS,用于对外作用,比如用于进度条的显示(默认返回音频pts)
      * @return
      */
     [[nodiscard]] virtual int64_t Pts() const noexcept(true) {
@@ -65,9 +67,8 @@ public:
 
     /**
      * 暂停设置
-     * @param b
      */
-    virtual void SetPause(const bool &b);
+    virtual void SetPause(const bool &);
 
     /**
      * 获取当前是否为暂停状态
@@ -89,7 +90,7 @@ protected:
     std::atomic<std::exception_ptr*> m_ex_ptr{};
     std::atomic_bool m_is_Exit{},m_isPause{};
     QMutex m_mux;
-    QWaitCondition m_cv;
+    //QWaitCondition m_cv;
     QSharedPointer<XDemux> m_demux;
     //std::atomic<float> m_speed{};
     /**
@@ -108,7 +109,6 @@ protected:
      * 视频解码信息
      */
     XAVCodecParameters_sptr m_vc;
-
 
 public:
     ~XDemuxThread() override;

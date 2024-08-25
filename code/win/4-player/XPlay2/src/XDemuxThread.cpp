@@ -20,7 +20,7 @@ XDemuxThread::~XDemuxThread() {
 
 void XDemuxThread::DeConstruct() noexcept(true) {
     m_is_Exit = true;
-    m_cv.wakeAll();
+    //m_cv.wakeAll();
     m_at->Close();
     m_vt->Close();
     quit();
@@ -65,12 +65,63 @@ void XDemuxThread::Open(const QString &url,IVideoCall *call) noexcept(false) {
         m_vt->HasAudio(m_ac.operator bool());
 
         m_total_Ms = m_demux->totalMS();
-        m_cv.wakeAll();
+        //m_cv.wakeAll();
 
     } catch (...) {
         locker.unlock();
         throw;
     }
+}
+
+void XDemuxThread::Push_helper(XAVPacket_sptr &&pkt) noexcept(false){
+
+    bool is_flush{};
+    while (!m_is_Exit){
+
+        if (!pkt){ //已经读取不到数据,冲刷解码器
+            QMutexLocker locker(&m_mux);
+            const auto a_index {m_demux->Present_Audio_Index()},
+                    v_index {m_demux->Present_Video_Index()};
+
+            if (a_index >= 0 && !is_flush){
+                if (!m_at->Push(std::move(pkt))){
+                    locker.unlock();
+                    msleep(1);
+                    continue;
+                }
+                is_flush = true;
+            }
+
+            if (v_index >= 0){
+                if (!m_vt->Push(std::move(pkt))){
+                    locker.unlock();
+                    msleep(1);
+                    continue;
+                }
+            }
+        }else {
+            const auto index{pkt->stream_index};
+            QMutexLocker locker(&m_mux);
+            const auto a_index {m_demux->Present_Audio_Index()},
+                    v_index {m_demux->Present_Video_Index()};
+
+            if (a_index == index){
+                if (!m_at->Push(std::move(pkt))){
+                    locker.unlock();
+                    msleep(1);
+                    continue;
+                }
+            }else if (v_index == index){
+                if (!m_vt->Push(std::move(pkt))){
+                    locker.unlock();
+                    msleep(1);
+                    continue;
+                }
+            } else{}
+        }
+        break;
+    }
+    msleep(1);
 }
 
 void XDemuxThread::run() {
@@ -84,48 +135,26 @@ void XDemuxThread::run() {
                 continue;
             }
 
-            const auto a_index {m_demux->Present_Audio_Index()},
-                    v_index {m_demux->Present_Video_Index()};
-
-            /**
-             * 音频获取到到pts给视频进行同步
-             */
-            m_vt->Set_Sync_Pts(m_at->Pts());
-
-            /**
-             * 用于进度条
-             */
-            m_pts = m_at ? m_at->Pts() : m_vt->Pts();
-
             XAVPacket_sptr pkt;
-            QMutexLocker locker(&m_mux);
-            CHECK_EXC(pkt = m_demux->Read(),locker.unlock()); //可能有异常
+            {
+                QMutexLocker locker(&m_mux);
+                /* 音频获取到到pts给视频进行同步*/
+                m_vt->Set_Sync_Pts(m_at->Pts());
+                /*用于进度条*/
+                m_pts = m_at ? m_at->Pts() : m_vt->Pts();
+                CHECK_EXC(pkt = m_demux->Read(),locker.unlock()); //可能有异常
+            }
+
             if (!pkt && !end){
                 end = true;
-                if (a_index >= 0){
-                    m_at->Push({});
-                }
-                if (v_index >= 0){
-                    m_vt->Push({});
-                }
-                m_cv.wait(&m_mux,1);
+                Push_helper({});
             }else if (!pkt) {
-                m_cv.wait(&m_mux,1);
+                msleep(1);
             }else{
                 end = false;
-                const auto pkt_index {pkt->stream_index};
-                if (a_index == pkt_index){
-                    m_at->Push(std::move(pkt));
-                }else if (v_index == pkt_index){
-                    m_vt->Push(std::move(pkt));
-                } else{
-                    pkt.reset();
-                }
-                locker.unlock();
-                msleep(1);
+                Push_helper(std::move(pkt));
             }
         }
-
     } catch (...) {
         if (m_ex_ptr){
             *m_ex_ptr = std::current_exception();
@@ -242,10 +271,6 @@ void XDemuxThread::SetSpeed(float speed) noexcept(true){
     QMutexLocker locker(&m_mux);
     if (!m_at || !m_vt){
         return;
-    }
-
-    if (speed <= 0.0f || speed >= 5.0f){
-        speed = 1.0f;
     }
 
     m_at->SetSpeed(speed);

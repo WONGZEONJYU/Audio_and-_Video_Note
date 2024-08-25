@@ -39,26 +39,30 @@ void XPlay2Widget::DeConstruct() noexcept {
 }
 
 void XPlay2Widget::OpenFile() {
-    auto name {QFileDialog::getOpenFileName(this,QString::fromLocal8Bit("Select Media Files"))};
+
+    const auto name{QFileDialog::getOpenFileName(this,QString::fromLocal8Bit("Select Media Files"))};
     if (name.isEmpty()){
         return;
     }
+
     setWindowTitle(name);
+
     try {
-        m_ui->isPlay->setEnabled(false);
-        m_dmt->Open(name.toLocal8Bit(),m_ui->VideoWidget);
-        if (m_dmt->is_Pause()){
-            m_dmt->SetPause(false);
-        }
+        m_ui->isPlay->setEnabled(false); //先停用暂停按钮
+        m_dmt->Open(name.toLocal8Bit(),m_ui->VideoWidget); //打开文件
+        m_dmt->SetPause(false);
         SetPause(m_dmt->is_Pause());
-        m_ui->isPlay->setEnabled(true);
-        m_ui->PlayPos->setEnabled(true);
-        m_ui->Speed->setEnabled(true);
-        m_ui->Speed->setValue(1.0);
+
+        m_ui->isPlay->setEnabled(true); //启用暂停按钮
+        m_ui->PlayPos->setEnabled(true);//启用播放进度条
+        m_ui->Speed->setEnabled(true);//启用播放倍数设置
+        m_ui->Speed->setValue(1.0);//默认1倍
+        m_dmt->SetSpeed(1.0f);
         const auto max_v {static_cast<double>(m_ui->VolumeSlider->maximum())};
-        qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
+        //qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
         m_ui->VolumeSlider->setValue(static_cast<int>(m_dmt->Volume() < 0.0 ? m_ui->VolumeSlider->maximum() :
                                                       m_dmt->Volume() * max_v));
+        //获取当前音量,用于设置音量进度条
     } catch (const std::exception &e) {
         m_ui->isPlay->setEnabled(true);
         qDebug() << e.what();
@@ -66,6 +70,7 @@ void XPlay2Widget::OpenFile() {
 }
 
 void XPlay2Widget::OpenURL() {
+
     const auto url{QInputDialog::getText(this,"url","url")};
     if (url.isEmpty()){
         return;
@@ -76,24 +81,23 @@ void XPlay2Widget::OpenURL() {
         !url.startsWith("sdp:://") &&
         !url.startsWith("rtp://") &&
         !url.startsWith("udp://")) {
-        qDebug() << url;
+        qDebug() << GET_STR(error url: ) << url;
         return;
     }
 
     try {
-        m_ui->isPlay->setEnabled(false);
+        m_ui->isPlay->setEnabled(false); //停用暂停按钮
         m_dmt->Open(url.toLocal8Bit(),m_ui->VideoWidget);
-        if (m_dmt->is_Pause()){
-            m_dmt->SetPause(false);
-        }
+        m_dmt->SetPause(false);
         SetPause(m_dmt->is_Pause());
-        m_ui->isPlay->setEnabled(true);
-        m_ui->PlayPos->setEnabled(false);
-        m_ui->PlayPos->setValue(0);
-        m_ui->Speed->setEnabled(false);
-        m_dmt->SetSpeed(static_cast<float >(m_ui->Speed->value()));
-        const auto max_v {static_cast<double >(m_ui->VolumeSlider->maximum())};
-        qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
+        m_ui->isPlay->setEnabled(true); //启用暂停按钮
+        m_ui->PlayPos->setEnabled(false); //停用播放进度条
+        m_ui->PlayPos->setValue(0); //播放进度条归0
+        m_ui->Speed->setEnabled(false); //停用倍数设置
+        m_ui->Speed->setValue(1.0);//回归默认
+        m_dmt->SetSpeed(1.0f);
+        const auto max_v{static_cast<double >(m_ui->VolumeSlider->maximum())};
+        //qDebug() << "m_dmt->Volume() = " << m_dmt->Volume();
         m_ui->VolumeSlider->setValue(static_cast<int>(m_dmt->Volume() < 0.0 ? m_ui->VolumeSlider->maximum() :
                                                       m_dmt->Volume() * max_v));
     } catch (const std::exception &e) {
@@ -108,7 +112,7 @@ void XPlay2Widget::resizeEvent(QResizeEvent *event) {
     QWidget::resizeEvent(event);
 }
 
-void XPlay2Widget::mouseDoubleClickEvent(QMouseEvent *event) {
+void XPlay2Widget::mouseDoubleClickEvent(QMouseEvent *) {
     isFullScreen() ? showNormal(): showFullScreen();
 }
 

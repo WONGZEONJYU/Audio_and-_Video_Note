@@ -34,13 +34,14 @@ void XVideoThread::entry() {
                 }
 
                 m_pts = pts;
+                //qDebug() << GET_STR(video pts: ) << pts;
 
                 while (!m_is_Exit) {
                     const auto sync_pts {m_sync_pts.load()};
 
                     if (m_has_audio){
                         if ( m_is_Pause || (0 < sync_pts && sync_pts < pts) ) {
-                            qDebug() << "sync_pts: " << sync_pts;
+                            //qDebug() << "sync_pts: " << sync_pts;
                             msleep(1);
                             continue;
                         }

@@ -32,11 +32,13 @@ void XDecodeThread::Open(const XAVCodecParameters_sptr &p) {
     Create_Decode();
     Clear();
     m_decode->Open(p);
-    m_d_cv.wakeAll();
+    //m_d_cv.wakeAll();
 }
 
 void XDecodeThread::Clear() noexcept(true) {
     m_pts = m_sync_pts = 0;
+    m_speed = 1.0f;
+    m_is_Pause = true;
     if (m_decode){
         m_decode->Clear();
     }
@@ -56,7 +58,7 @@ void XDecodeThread::Close() noexcept(true) {
 
 void XDecodeThread::Exit_Thread() noexcept(true) {
     m_is_Exit = true;
-    m_d_cv.wakeAll();
+    //m_d_cv.wakeAll();
     quit();
     wait();
 }
@@ -65,19 +67,17 @@ void XDecodeThread::run() noexcept(false){
     entry();
 }
 
-void XDecodeThread::Push(XAVPacket_sptr &&pkt) noexcept(false) {
+bool XDecodeThread::Push(XAVPacket_sptr &&pkt) noexcept(false) {
     /**
      * pkt允许为空,用于冲刷解码器
      */
-    while (!m_is_Exit) {
-        QWriteLocker locker(&m_rw_mux);
-        if (m_Packets.size() < Max_List) {
-            m_Packets.emplaceBack(std::move(pkt));
-            m_d_cv.wakeAll();
-            break;
-        }
-        m_d_cv.wait(&m_rw_mux,1);
+    bool b{};
+    QWriteLocker locker(&m_rw_mux);
+    if (m_Packets.size() < Max_List){
+        m_Packets.emplaceBack(std::move(pkt));
+        b = !b;
     }
+    return b;
 }
 
 XAVPacket_sptr XDecodeThread::Pop() noexcept(false) {
@@ -94,7 +94,7 @@ void XDecodeThread::PopFront() noexcept(false) {
         return;
     }
     m_Packets.removeFirst();
-    m_d_cv.wakeAll();
+    //m_d_cv.wakeAll();
 }
 
 bool XDecodeThread::Empty() const noexcept(false){

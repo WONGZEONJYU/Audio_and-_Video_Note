@@ -226,8 +226,8 @@ XAVPacket_sptr XDemux::Read() noexcept(false) {
         lock.unlock();
 
         if (AV_NOPTS_VALUE == packet->pts){
-            m_last_pts += 40;
-            packet->pts = m_last_pts;
+//            m_last_pts += 40;
+//            packet->pts = m_last_pts;
         }else{
             const auto pts{static_cast<double>(packet->pts)},
                     dst{static_cast<double>(packet->dts)};
@@ -314,7 +314,7 @@ bool XDemux::Seek(const double &pos) noexcept(true) {
         return {};
     }
 
-    if (!m_Present_Video_st || m_Present_Video_index < 0){
+    if (!m_Present_Video_st || m_Present_Video_index < 0) {
         PRINT_ERR_TIPS(GET_STR(no video));
         return {};
     }

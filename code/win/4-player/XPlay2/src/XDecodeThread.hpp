@@ -100,9 +100,9 @@ public:
     }
 
     /**
-     * 插入一包未解码数据,失败则等待
+     * 插入一包未解码数据,失败返回false,成功返回true
      */
-    virtual void Push(XAVPacket_sptr &&) noexcept(false);
+    [[nodiscard]] virtual bool Push(XAVPacket_sptr &&) noexcept(false);
 
     /**
      * 被同步使用
@@ -133,10 +133,9 @@ public:
         return m_is_Pause;
     }
 
-    virtual void SetSpeed(const float &speed) noexcept(true) {
-        if (speed <= 0.0f || speed >= 5.0f){
-            m_speed = 1.0f;
-            return;
+    virtual void SetSpeed(float speed) noexcept(true) {
+        if (speed < 0.1f || speed > 5.0f){
+            speed = 1.0f;
         }
         m_speed = speed;
     }
@@ -152,7 +151,7 @@ protected:
     std::atomic<float> m_speed{1.0f};
 private:
     QQueue<XAVPacket_sptr> m_Packets;
-    QWaitCondition m_d_cv;
+    //QWaitCondition m_d_cv;
     QMutex m_d_mux;
     QReadWriteLock m_rw_mux;
     QSharedPointer<XDecode> m_decode;

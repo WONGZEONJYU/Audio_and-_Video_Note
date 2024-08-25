@@ -1,13 +1,11 @@
 //
 // Created by Administrator on 2024/7/30.
 //
-
 extern "C"{
 #include <libavcodec/avcodec.h>
 }
 
 #include "XAVCodecParameters.hpp"
-#include <iostream>
 #include <algorithm>
 
 void XAVCodecParameters::Reset(AVCodecParameters *obj) noexcept(true) {
