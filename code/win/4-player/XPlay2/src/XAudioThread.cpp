@@ -103,7 +103,7 @@ int XAudioThread::Speed_Change(std::vector<uint8_t> &in,
                 out_size *= m_Channels * m_Out_Sample_Format;
             }
         }
-    }else{
+    }else{ //正常倍速播放
         out_size = in_re_size;
         out = std::move(in);
     }
@@ -114,6 +114,7 @@ int XAudioThread::Speed_Change(std::vector<uint8_t> &in,
 void XAudioThread::entry() noexcept(false) {
 
     std::vector<uint8_t> resample_datum,speed_datum;
+
     try {
         m_audio_play.load()->Open();
 

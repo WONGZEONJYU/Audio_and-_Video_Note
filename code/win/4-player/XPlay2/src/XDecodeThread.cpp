@@ -12,6 +12,7 @@ QThread(),m_exceptionPtr{e} {
 
     try {
         Create_Decode();
+        m_Packets.reserve(Max_List);
     } catch (const std::exception &e) {
         qDebug() << e.what();
     }

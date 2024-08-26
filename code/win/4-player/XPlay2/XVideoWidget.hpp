@@ -111,7 +111,8 @@ Q_OBJECT
     void paintGL() override;
     void resizeGL(int , int ) override;
     void cleanup() noexcept(true);
-
+    void copy_y(const XAVFrame_sptr &);
+    void copy_uv(const XAVFrame_sptr &);
 public:
     explicit XVideoWidget(QWidget*  = nullptr);
     ~XVideoWidget() override;

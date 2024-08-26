@@ -144,8 +144,7 @@ void XVideoWidget::paintGL() {
         //V数据的长度 m_w * m_h / 4
         item->bind(i);
         item->setData(QOpenGLTexture::Red, QOpenGLTexture::UInt8,
-                      reinterpret_cast<const uint8_t *>(m_yuv_datum[i].data()));
-        ++i;
+                      reinterpret_cast<const uint8_t *>(m_yuv_datum[i++].data()));
     }
 
     GL_CHECK(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
@@ -233,23 +232,9 @@ void XVideoWidget::Init(const int &w,const int&h) noexcept(false) {
 
     /*分配纹理(材质)内存空间,并设置参数,并分配显存空间*/
     try {
-#if 0
-        if (w != m_w || h != m_h){
-            m_yuv_datum.clear();
-            m_yuv_datum.resize(3);
-
-            for (uint32_t i {};auto &item:m_yuv_datum) {
-                const auto _w{i ? w / 2 : w},_h {i ? h / 2 : h};
-                const auto len {_w * _h};
-                item.resize(len);
-                ++i;
-            }
-        }
-
-#else
         m_yuv_datum.clear();
         m_yuv_datum.resize(3);
-#endif
+
         m_textureYUV.clear(); //分配前，需要先释放
         m_textureYUV.resize(3);
 
@@ -312,59 +297,54 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
         }
 
         if (m_w != frame->linesize[0]){ //需对齐
-
-#if 1
-            for (auto &item:m_yuv_datum) {
-                item.clear();
-            }
-#endif
-
-            for(uint32_t i {};i < m_h;++i){
-                const auto src {reinterpret_cast<const char*>(frame->data[0] + frame->linesize[0] * i)};
-#if 0
-                auto dst {m_yuv_datum[0].data() + m_w * i};
-                std::copy_n(src,m_w.load(),dst);
-#else
-                m_yuv_datum[0].append(src,m_w);
-#endif
-            }
-
-            for (uint32_t i {}; i < m_half_h ; ++i) {
-                const auto src {reinterpret_cast<const char*>(frame->data[1] + frame->linesize[1] * i)};
-#if 0
-                auto dst {m_yuv_datum[1].data() + (m_w / 2) * i};
-                std::copy_n(src,m_w / 2,dst);
-#else
-                m_yuv_datum[1].append(src,m_half_w);
-#endif
-            }
-
-            for (uint32_t i {}; i < m_half_h ; ++i) {
-                const auto src {reinterpret_cast<const char*>(frame->data[2] + frame->linesize[2] * i)};
-#if 0
-                auto dst {m_yuv_datum[2].data() + (m_w / 2) * i};
-                std::copy_n(src,m_w / 2,dst);
-#else
-                m_yuv_datum[2].append(src,m_half_w);
-#endif
-            }
+            copy_y(frame);
+            copy_uv(frame);
         }else{ //无需对齐
+
             for (uint32_t i{};auto &item:m_yuv_datum) {
                 const auto len{ i ? m_half_w * m_half_h : m_w * m_h};
-                const auto src {reinterpret_cast<const char*>(frame->data[i])};
-                //auto begin_time {std::chrono::steady_clock::now()};
-#if 0
+                const auto src{reinterpret_cast<const char*>(frame->data[i++])};
+                if (item.capacity() <= len){
+                    item.clear();
+                    item.resize(len + (len >> 1));
+                }
                 std::copy_n(src,len,item.data());
-#else
-                item = std::move(QByteArray(src,len));
-#endif
-                //auto end_time {std::chrono::steady_clock::now()};
-                //qDebug() << std::chrono::duration<double,std::milli>(end_time - begin_time).count();
-
-                ++i;
             }
         }
     }
 
     update();
+}
+
+void XVideoWidget::copy_y(const XAVFrame_sptr &frame){
+
+    const auto len{m_h * frame->linesize[0]};
+    if (m_yuv_datum[0].capacity() <= len){
+        m_yuv_datum[0].clear();
+        m_yuv_datum[0].resize(len + (len >> 1));
+    }
+
+    for(uint32_t i{};i < m_h;++i){
+        const auto src{reinterpret_cast<const char*>(frame->data[0] + frame->linesize[0] * i)};
+        auto dst{m_yuv_datum[0].data() + m_w * i};
+        std::copy_n(src,m_w.load(),dst);
+    }
+}
+
+void XVideoWidget::copy_uv(const XAVFrame_sptr &frame){
+
+    for (auto n{1}; n <=2 ; ++n) {
+
+        const auto len{m_half_h * frame->linesize[n]};
+        if (m_yuv_datum[n].capacity() <= len) {
+            m_yuv_datum[n].clear();
+            m_yuv_datum[n].resize(len + (len >> 1));
+        }
+
+        for (uint32_t i{}; i < m_half_h ; ++i) {
+            const auto src{reinterpret_cast<const char*>(frame->data[n] + frame->linesize[n] * i)};
+            auto dst{m_yuv_datum[n].data() + m_half_w * i};
+            std::copy_n(src,m_half_w.load(),dst);
+        }
+    }
 }

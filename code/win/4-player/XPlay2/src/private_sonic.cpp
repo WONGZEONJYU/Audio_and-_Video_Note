@@ -481,7 +481,7 @@ bool XSonic::moveNewSamplesToPitchBuffer(const int &originalNumOutputSamples) {
         m_pitchBufferSize += (m_pitchBufferSize >> 1) + numSamples;
         m_pitchBuffer.clear();
         try {
-            m_pitchBuffer.resize(m_pitchBufferSize*numChannels);
+            CHECK_EXC(m_pitchBuffer.resize(m_pitchBufferSize * numChannels));
         } catch (const std::exception &e) {
             std::cerr << e.what() << "\n";
             return {};

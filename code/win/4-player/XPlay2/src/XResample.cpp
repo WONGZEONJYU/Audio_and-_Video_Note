@@ -11,8 +11,6 @@ extern "C"{
 #include "XAVFrame.hpp"
 #include <iostream>
 
-static inline constexpr auto speed_rate{2.0};
-
 void XResample::Open(const XAVCodecParameters_sptr &parm) {
 
     if (!parm){
