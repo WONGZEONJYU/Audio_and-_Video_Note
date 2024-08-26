@@ -1,10 +1,12 @@
 #include <QApplication>
 #include <QPushButton>
+#include "testrgb.hpp"
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-    QPushButton button("Hello world!", nullptr);
-    button.resize(200, 100);
-    button.show();
-    return QApplication::exec();
+    auto w{new TestRGB()};
+    w->show();
+    const auto r{QApplication::exec()};
+    delete w;
+    return r;
 }

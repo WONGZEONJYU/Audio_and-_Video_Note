@@ -44,7 +44,10 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
-add_executable(1_RGB_TEST main.cpp)
+add_executable(1_RGB_TEST main.cpp
+        testrgb.cpp
+        testrgb.hpp
+        testrgb.ui)
 target_link_libraries(1_RGB_TEST
         Qt::Core
         Qt::Gui
