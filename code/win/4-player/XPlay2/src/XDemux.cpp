@@ -79,7 +79,6 @@ void XDemux::Open(const string &url) noexcept(false){
         m_av_fmt_ctx->interrupt_callback.opaque = this;
         m_nb_streams = m_av_fmt_ctx->nb_streams;
         m_streams = m_av_fmt_ctx->streams;
-        m_av_fmt_ctx->iformat->name;
         if (!m_nb_streams || !m_streams) {
             throw runtime_error(GET_STR(no audio_stream and no video_stream!\n));
         }

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
+
 project(XPlay2)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -108,7 +109,7 @@ find_package(Qt6 COMPONENTS
         ${QT__LIB}
         REQUIRED)
 
-add_executable(XPlay2
+add_executable(${PROJECT_NAME}
         main.cpp
         XPlay2Widget.cpp
         XPlay2Widget.hpp
@@ -117,7 +118,7 @@ add_executable(XPlay2
         XVideoWidget.hpp
         ${SRC_CODE}
 )
-target_link_libraries(XPlay2
+target_link_libraries(${PROJECT_NAME}
         Qt::Core
         Qt::Gui
         Qt::Widgets
