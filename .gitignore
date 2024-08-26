@@ -41,8 +41,8 @@
 /code/mac/1-SDL/04-sdl-thread/bin/
 /code/mac/1-SDL/05-sdl-yuv/bin/
 /code/mac/1-SDL/06-sdl-pcm/bin/
-/code/XCJ/1.RGB_TEST/.idea
-/code/XCJ/1.RGB_TEST/cmake-*
+/code/XCJ/101.RGB_TEST/.idea
+/code/XCJ/101.RGB_TEST/cmake-*
 
 
 .DS_Store
