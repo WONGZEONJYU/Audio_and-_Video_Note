@@ -45,6 +45,8 @@
 /code/XCJ/101.RGB_TEST/cmake-*
 /code/XCJ/102.SDL_RGB/.idea
 /code/XCJ/102.SDL_RGB/cmake-*
+/code/XCJ/103.SDL_QT_RGB/.idea
+/code/XCJ/103.SDL_QT_RGB/cmake-*
 
 .DS_Store
 code/test_file/qsbxz.mp4
