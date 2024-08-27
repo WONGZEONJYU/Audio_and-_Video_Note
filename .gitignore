@@ -43,7 +43,8 @@
 /code/mac/1-SDL/06-sdl-pcm/bin/
 /code/XCJ/101.RGB_TEST/.idea
 /code/XCJ/101.RGB_TEST/cmake-*
-
+/code/XCJ/102.SDL_RGB/.idea
+/code/XCJ/102.SDL_RGB/cmake-*
 
 .DS_Store
 code/test_file/qsbxz.mp4
