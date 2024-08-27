@@ -31,11 +31,9 @@ private:
     SDL_Window *m_screen{};
     SDL_Renderer *m_renderer{};
     SDL_Texture *m_texture{};
-    int m_w{},m_h{};
+    int m_w{},m_h{},m_pix_size{4};
     uint32_t m_count{255},m_i{},m_rgb[3]{255};
-
     QVector<uint8_t> m_rgb_datum;
-
 };
 
 #endif

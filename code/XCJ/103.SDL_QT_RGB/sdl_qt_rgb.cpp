@@ -9,6 +9,8 @@
 #include <SDL.h>
 #include <QDebug>
 
+#undef main
+
 sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
         QWidget(parent), ui(new Ui::sdl_qt_rgb) {
 
@@ -19,6 +21,8 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
+    qDebug() << ui->label->winId();
+
     m_screen = SDL_CreateWindowFrom(reinterpret_cast<void*>(ui->label->winId()));
 
     m_renderer = SDL_CreateRenderer(m_screen,-1,SDL_RENDERER_ACCELERATED);
@@ -28,7 +32,7 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
                       SDL_TEXTUREACCESS_STREAMING,
                       m_w,m_h);
 
-    m_rgb_datum.resize(m_h * m_w * 4);
+    m_rgb_datum.resize(m_h * m_w * m_pix_size);
 
     startTimer(10);
 }
@@ -42,11 +46,6 @@ sdl_qt_rgb::~sdl_qt_rgb() {
 
 void sdl_qt_rgb::timerEvent(QTimerEvent *) {
 
-    if (SDL_RenderClear(m_renderer) < 0) { //清除渲染器
-        qDebug() << __LINE__ << ": " << SDL_GetError() << "\n";
-        return ;
-    }
-
     if (!(--m_count)) {
         m_count = 255;
         m_rgb[m_i++] = 0;
@@ -58,8 +57,8 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *) {
 
     const auto dst_{m_rgb_datum.data()};
     for (uint32_t h {}; h < m_h; ++h) {
-        const auto drift{ h * m_w * 4 };
-        for (uint32_t w {}; w < m_w * 4; w += 4) {
+        const auto drift{ h * m_w * m_pix_size };
+        for (uint32_t w {}; w < m_w * m_pix_size; w += m_pix_size) {
             dst_[drift + w] = m_rgb[2];       //B
             dst_[drift + w + 1] = m_rgb[1];   //G
             dst_[drift + w + 2] = m_rgb[0];   //R
@@ -67,13 +66,19 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *) {
         }
     }
 
-    if (SDL_UpdateTexture(m_texture, nullptr, dst_ ,m_w * 4) < 0) { //更新纹理
+    if (SDL_UpdateTexture(m_texture, nullptr, dst_ ,m_w * m_pix_size) < 0) { //更新纹理
         qDebug() << __LINE__ << ": " << SDL_GetError();
         return;
     }
 
+    if (SDL_RenderClear(m_renderer) < 0) { //清除渲染器
+        qDebug() << __LINE__ << ": " << SDL_GetError() << "\n";
+        return ;
+    }
+
     const auto pos{ui->label->pos()};
     const SDL_Rect rect{pos.x(),pos.y(),m_w,m_h};
+    //const SDL_Rect rect{0,0,m_w,m_h};
 
     if (SDL_RenderCopy(m_renderer,m_texture, nullptr, &rect) < 0) { //纹理数据拷贝到渲染器
         qDebug() << __LINE__ << ": " << SDL_GetError() << "\n";
