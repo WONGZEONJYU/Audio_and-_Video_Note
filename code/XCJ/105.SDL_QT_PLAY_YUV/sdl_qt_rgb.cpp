@@ -10,7 +10,6 @@
 #include <QMessageBox>
 #include <QImage>
 
-
 #undef main
 
 sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
@@ -36,7 +35,7 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     ui->label->resize(m_sdl_w,m_sdl_h);
 
     m_texture = SDL_CreateTexture(m_renderer,
-                      SDL_PIXELFORMAT_IYUV,
+                      SDL_PIXELFORMAT_IYUV, // /**< Planar mode: Y + U + V  (3 planes) */
                       SDL_TEXTUREACCESS_STREAMING,
                                   m_sdl_w,m_sdl_h);
 
