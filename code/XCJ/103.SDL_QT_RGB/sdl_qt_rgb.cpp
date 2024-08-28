@@ -21,8 +21,6 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
-    qDebug() << ui->label->winId();
-
     m_screen = SDL_CreateWindowFrom(reinterpret_cast<void*>(ui->label->winId()));
 
     m_renderer = SDL_CreateRenderer(m_screen,-1,SDL_RENDERER_ACCELERATED);
@@ -76,9 +74,12 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *) {
         return ;
     }
 
+#if WIN64
+    const SDL_Rect rect{0,0,m_w,m_h};
+#else
     const auto pos{ui->label->pos()};
     const SDL_Rect rect{pos.x(),pos.y(),m_w,m_h};
-    //const SDL_Rect rect{0,0,m_w,m_h};
+#endif
 
     if (SDL_RenderCopy(m_renderer,m_texture, nullptr, &rect) < 0) { //纹理数据拷贝到渲染器
         qDebug() << __LINE__ << ": " << SDL_GetError() << "\n";
