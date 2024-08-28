@@ -6,6 +6,7 @@
 #define INC_106_XVIDEO_VIEW_TEST_XVIDEO_VIEW_HPP
 
 #include <mutex>
+#include <atomic>
 
 class XVideoView {
 
@@ -50,9 +51,9 @@ public:
 
 protected:
     std::mutex m_mux;
-    int m_width{},m_height{};
-    Format m_fmt{RGBA};
-    void *m_winID{};
+    std::atomic_int m_width{},m_height{};
+    std::atomic<Format> m_fmt{RGBA};
+    std::atomic<void*> m_winID{};
 };
 
 #endif

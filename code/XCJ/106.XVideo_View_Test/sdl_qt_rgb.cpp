@@ -29,6 +29,7 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
 
     m_view = XVideoView::create();
     m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P,reinterpret_cast<void*>(ui->label->winId()));
+    //m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P, nullptr);
 
 //    m_screen = SDL_CreateWindowFrom(reinterpret_cast<void*>(ui->label->winId()));
 //    m_renderer = SDL_CreateRenderer(m_screen,-1,SDL_RENDERER_ACCELERATED);
@@ -43,7 +44,7 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
 
     m_yuv_datum.resize(m_sdl_w * m_sdl_h * m_pix_size,0);
 
-    startTimer(10);
+    //startTimer(10);
 }
 
 sdl_qt_rgb::~sdl_qt_rgb() {
@@ -57,15 +58,15 @@ sdl_qt_rgb::~sdl_qt_rgb() {
 
 void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
 
-    if (m_yuv_file.atEnd()){
-        killTimer(e->timerId());
-        QMessageBox::warning(this,"","yuv_file end!");
-        return;
-    }
+//    if (m_yuv_file.atEnd()){
+//        killTimer(e->timerId());
+//        QMessageBox::warning(this,"","yuv_file end!");
+//        return;
+//    }
 
-    const auto dst_{m_yuv_datum.data()};
+    //const auto dst_{m_yuv_datum.data()};
 
-    m_yuv_file.read(reinterpret_cast<char*>(dst_),static_cast<qint64>(m_sdl_w * m_sdl_h * 1.5));
+    //m_yuv_file.read(reinterpret_cast<char*>(dst_),static_cast<qint64>(m_sdl_w * m_sdl_h * 1.5));
     //读取YUV数据,一帧YUY数据是 m_sdl_w * m_sdl_h + m_sdl_w * m_sdl_h / 4  + m_sdl_w * m_sdl_h / 4
     // m_sdl_w * m_sdl_h + m_sdl_w/2 * m_sdl_h/2 + m_sdl_w/2 * m_sdl_h/2
     // 化简公式 m_sdl_w * m_sdl_h * 1.5
@@ -81,12 +82,12 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
 //        return ;
 //    }
 
-#if WIN64
-    const SDL_Rect rect{0,0,m_sdl_w,m_sdl_h};
-#else
-    const auto pos{ui->label->pos()};
-    const SDL_Rect rect{pos.x(),pos.y(),m_w,m_h};
-#endif
+//#if WIN64
+//    const SDL_Rect rect{0,0,m_sdl_w,m_sdl_h};
+//#else
+//    const auto pos{ui->label->pos()};
+//    const SDL_Rect rect{pos.x(),pos.y(),m_w,m_h};
+//#endif
 
 //    if (SDL_RenderCopy(m_renderer,m_texture, nullptr, &rect) < 0) { //纹理数据拷贝到渲染器
 //        QMessageBox::warning(this,QString::number(__LINE__),SDL_GetError());

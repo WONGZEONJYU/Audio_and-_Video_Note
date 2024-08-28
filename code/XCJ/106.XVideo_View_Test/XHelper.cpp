@@ -117,7 +117,7 @@ namespace XHelper {
 #ifdef HAVE_SDL2
     void sdl2_err_out(const std::string &func,const std::string &file,
                       const int &line) noexcept(true){
-        cerr << "SDL2 error: " <<  SDL_GetError() << " at " << file << " : " << line << " - for " << func;
+        cerr << "SDL2 error: " <<  SDL_GetError() << " at " << file << " : " << line << " - for " << func << "\n";
     }
 #endif
 

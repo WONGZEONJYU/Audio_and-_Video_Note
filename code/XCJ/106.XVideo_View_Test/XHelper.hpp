@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <iostream>
 
+
 #ifdef HAVE_FFMPEG
 struct AVFormatContext;
 struct AVPacket;
@@ -77,9 +78,25 @@ namespace XHelper {
 #endif
 
 #ifdef HAVE_SDL2
-#define SDL2_ERR_OUT(x) do{ \
-     x;                     \
-     XHelper::sdl2_err_out(#x,__FILE__, __LINE__);\
+
+#define SDL2_PTR_ERR_OUT(x,...) do{ \
+     if constexpr(std::is_pointer_v<std::remove_cv_t<decltype(x)>>){ \
+        auto _p_ {static_cast<const void * const>(x)};\
+        if(!_p_){\
+           XHelper::sdl2_err_out(#x,__FILE__, __LINE__);\
+           __VA_ARGS__;\
+        }\
+     }\
+}while(false)
+
+#define SDL2_INT_ERR_OUT(x,...) do{ \
+     if constexpr(std::is_integral_v<std::remove_cv_t<decltype(x)>>){ \
+        const auto _ret_{x};\
+        if(_ret_ < 0){\
+           XHelper::sdl2_err_out(#x,__FILE__, __LINE__);\
+           __VA_ARGS__;\
+        }\
+     }\
 }while(false)
 
 #endif
@@ -107,9 +124,10 @@ namespace XHelper {
 
 #define GET_STR(args) #args
 
-#define TRY_CATCH(x) do{ \
+#define TRY_CATCH(x,...) do{ \
        try{x;}catch(const std::exception &e){ \
-            std::cerr << e.what() << "\n";\
+            std::cerr << e.what() << "\n";    \
+            __VA_ARGS__;\
        }\
 }while(false)
 
