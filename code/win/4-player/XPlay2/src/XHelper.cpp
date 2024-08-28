@@ -23,6 +23,7 @@ using namespace std;
 
 namespace XHelper {
 #ifdef HAVE_FFMPEG
+
     string av_get_err(const int& error_num) noexcept(true) {
         constexpr auto ERROR_STRING_SIZE {1024};
         char err_buf[ERROR_STRING_SIZE]{};
@@ -92,6 +93,12 @@ namespace XHelper {
         }
     }
 
+    string channel_layout_describe(const AVChannelLayout &ch) noexcept(true) {
+        char describe[1024]{};
+        av_channel_layout_describe(&ch,describe, size(describe));
+        return describe;
+    }
+
 #endif
 
 #ifdef HAVE_OPENGL
@@ -103,12 +110,6 @@ namespace XHelper {
         }
     }
 #endif
-
-    string channel_layout_describe(const AVChannelLayout &ch) noexcept(true) {
-        char describe[1024]{};
-        av_channel_layout_describe(&ch,describe, size(describe));
-        return describe;
-    }
 
     void check_nullptr(const string &func,const string &file,
                        const int &line,const void *p) noexcept(false){

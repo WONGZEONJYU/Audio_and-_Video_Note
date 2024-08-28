@@ -1,7 +1,7 @@
 #include <QApplication>
 #include "sdl_qt_rgb.hpp"
 /**
- * 本测试代码用于视频截图设计参考
+ * 本测试代码用于视频合并画面设计和截图设计
  */
 
 int main(int argc, char *argv[]) {

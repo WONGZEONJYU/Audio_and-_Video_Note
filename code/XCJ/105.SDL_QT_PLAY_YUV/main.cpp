@@ -1,7 +1,7 @@
 #include <QApplication>
 #include "sdl_qt_rgb.hpp"
 /**
- * 本测试代码用于视频截图设计参考
+ * 本测试代码用于参考如何使用SDL播放YUV数据
  */
 
 int main(int argc, char *argv[]) {
