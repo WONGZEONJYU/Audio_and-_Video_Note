@@ -93,7 +93,6 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *) {
 
     --m_rgb[m_i];
 
-
     for (uint32_t h {}; h < m_sdl_h; ++h) {
         const auto drift{ h * m_sdl_w * m_pix_size };
         for (uint32_t w {}; w < m_sdl_w * m_pix_size; w += m_pix_size) {
