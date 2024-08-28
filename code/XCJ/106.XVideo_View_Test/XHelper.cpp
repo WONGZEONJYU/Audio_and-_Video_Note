@@ -15,7 +15,10 @@ extern "C"{
 #include <SDL_opengl.h>
 #endif
 
-#include <iostream>
+#ifdef HAVE_SDL2
+#include <SDL.h>
+#endif
+
 #include <fstream>
 #include <sstream>
 
@@ -108,6 +111,13 @@ namespace XHelper {
         if(GL_NO_ERROR != err) {
             cerr << "OpenGL error :" << err << " at " << fname << ":" << line << " - for " << stmt;
         }
+    }
+#endif
+
+#ifdef HAVE_SDL2
+    void sdl2_err_out(const std::string &func,const std::string &file,
+                      const int &line) noexcept(true){
+        cerr << "SDL2 error: " <<  SDL_GetError() << " at " << file << " : " << line << " - for " << func;
     }
 #endif
 

@@ -25,7 +25,7 @@ public:
      * @return
      */
 
-    static XVideoView *create(const RenderType &renderType);
+    static XVideoView *create(const RenderType &renderType = SDL);
 
     /**
      * 初始化渲染窗口 线程安全
@@ -45,6 +45,8 @@ public:
      * @return ture or false
      */
     virtual bool Draw(const void *datum,const int &line_size) = 0;
+
+    virtual ~XVideoView() = default;
 
 protected:
     std::mutex m_mux;

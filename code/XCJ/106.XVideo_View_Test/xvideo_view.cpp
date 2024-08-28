@@ -10,10 +10,7 @@ XVideoView *XVideoView::create(const XVideoView::RenderType &renderType) {
     switch (renderType) {
         case SDL:
             return new XSDL();
-            break;
         default:
-            break;
+            return {};
     }
-
-    return nullptr;
 }

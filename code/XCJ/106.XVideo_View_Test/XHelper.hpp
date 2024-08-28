@@ -6,6 +6,7 @@
 #include <atomic>
 #include <system_error>
 #include <type_traits>
+#include <iostream>
 
 #ifdef HAVE_FFMPEG
 struct AVFormatContext;
@@ -33,6 +34,11 @@ namespace XHelper {
 
 #ifdef HAVE_OPENGL
     void checkOpenGLError(const std::string & , const std::string & ,const int &) noexcept(true);
+#endif
+
+#ifdef HAVE_SDL2
+    void sdl2_err_out(const std::string &func,const std::string &file,
+                    const int &line) noexcept(true);
 #endif
 
     void check_nullptr(const std::string &func,const std::string &file,
@@ -70,6 +76,14 @@ namespace XHelper {
     } while (false)
 #endif
 
+#ifdef HAVE_SDL2
+#define SDL2_ERR_OUT(x) do{ \
+     x;                     \
+     XHelper::sdl2_err_out(#x,__FILE__, __LINE__);\
+}while(false)
+
+#endif
+
 #define CHECK_NULLPTR(x,...) do{ \
     const auto _p_ {x};\
     static_assert(std::is_pointer_v<std::remove_cv_t<decltype(_p_)>>,#x);\
@@ -93,6 +107,12 @@ namespace XHelper {
 
 #define GET_STR(args) #args
 
+#define TRY_CATCH(x) do{ \
+       try{x;}catch(const std::exception &e){ \
+            std::cerr << e.what() << "\n";\
+       }\
+}while(false)
+
 #define X_DISABLE_COPY(Class) \
     Class(const Class &) = delete;\
     Class &operator=(const Class &) = delete;
@@ -101,7 +121,6 @@ namespace XHelper {
     X_DISABLE_COPY(Class) \
     Class(Class &&) = delete; \
     Class &operator=(Class &&) = delete;
-
 
 template<typename F>
 struct Destroyer final{

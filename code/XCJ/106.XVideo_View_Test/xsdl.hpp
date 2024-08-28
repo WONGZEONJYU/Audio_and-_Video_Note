@@ -6,6 +6,7 @@
 #define INC_106_XVIDEO_VIEW_TEST_XSDL_HPP
 
 #include "xvideo_view.hpp"
+#include "XHelper.hpp"
 
 struct SDL_Window;
 struct SDL_Renderer;
@@ -31,6 +32,8 @@ public:
      * @return ture or false
      */
     bool Draw(const void *datum,const int &line_size) override;
+
+    ~XSDL() override;
 
 protected:
     SDL_Window *m_win{};

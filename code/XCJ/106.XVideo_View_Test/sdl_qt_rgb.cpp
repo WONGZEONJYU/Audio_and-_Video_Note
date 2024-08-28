@@ -9,6 +9,7 @@
 #include <SDL.h>
 #include <QMessageBox>
 #include <QImage>
+#include "xvideo_view.hpp"
 
 #undef main
 
@@ -26,18 +27,19 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     m_sdl_w = 400;
     m_sdl_h = 300;
 
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    m_view = XVideoView::create();
+    m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P,reinterpret_cast<void*>(ui->label->winId()));
 
-    m_screen = SDL_CreateWindowFrom(reinterpret_cast<void*>(ui->label->winId()));
-    m_renderer = SDL_CreateRenderer(m_screen,-1,SDL_RENDERER_ACCELERATED);
-
-    ui->label->move(0,0);
-    ui->label->resize(m_sdl_w,m_sdl_h);
-
-    m_texture = SDL_CreateTexture(m_renderer,
-                      SDL_PIXELFORMAT_IYUV, // /**< Planar mode: Y + U + V  (3 planes) */
-                      SDL_TEXTUREACCESS_STREAMING,
-                                  m_sdl_w,m_sdl_h);
+//    m_screen = SDL_CreateWindowFrom(reinterpret_cast<void*>(ui->label->winId()));
+//    m_renderer = SDL_CreateRenderer(m_screen,-1,SDL_RENDERER_ACCELERATED);
+//
+//    ui->label->move(0,0);
+//    ui->label->resize(m_sdl_w,m_sdl_h);
+//
+//    m_texture = SDL_CreateTexture(m_renderer,
+//                      SDL_PIXELFORMAT_IYUV, // /**< Planar mode: Y + U + V  (3 planes) */
+//                      SDL_TEXTUREACCESS_STREAMING,
+//                                  m_sdl_w,m_sdl_h);
 
     m_yuv_datum.resize(m_sdl_w * m_sdl_h * m_pix_size,0);
 
@@ -46,9 +48,10 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
 
 sdl_qt_rgb::~sdl_qt_rgb() {
     delete ui;
-    SDL_DestroyTexture(m_texture);
-    SDL_DestroyRenderer(m_renderer);
-    SDL_DestroyWindow(m_screen);
+//    SDL_DestroyTexture(m_texture);
+//    SDL_DestroyRenderer(m_renderer);
+//    SDL_DestroyWindow(m_screen);
+    delete m_view;
     m_yuv_file.close();
 }
 
@@ -68,15 +71,15 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
     // 化简公式 m_sdl_w * m_sdl_h * 1.5
     //此处不涉及行对齐问题,行对齐问题在后面有
 
-    if (SDL_UpdateTexture(m_texture, nullptr, dst_ ,m_sdl_w ) < 0) { //更新纹理
-        QMessageBox::warning(this,QString::number(__LINE__),SDL_GetError());
-        return;
-    }
-
-    if (SDL_RenderClear(m_renderer) < 0) { //清除渲染器
-        QMessageBox::warning(this,QString::number(__LINE__),SDL_GetError());
-        return ;
-    }
+//    if (SDL_UpdateTexture(m_texture, nullptr, dst_ ,m_sdl_w ) < 0) { //更新纹理
+//        QMessageBox::warning(this,QString::number(__LINE__),SDL_GetError());
+//        return;
+//    }
+//
+//    if (SDL_RenderClear(m_renderer) < 0) { //清除渲染器
+//        QMessageBox::warning(this,QString::number(__LINE__),SDL_GetError());
+//        return ;
+//    }
 
 #if WIN64
     const SDL_Rect rect{0,0,m_sdl_w,m_sdl_h};
@@ -85,10 +88,10 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
     const SDL_Rect rect{pos.x(),pos.y(),m_w,m_h};
 #endif
 
-    if (SDL_RenderCopy(m_renderer,m_texture, nullptr, &rect) < 0) { //纹理数据拷贝到渲染器
-        QMessageBox::warning(this,QString::number(__LINE__),SDL_GetError());
-        return ;
-    }
-
-    SDL_RenderPresent(m_renderer); //开始渲染
+//    if (SDL_RenderCopy(m_renderer,m_texture, nullptr, &rect) < 0) { //纹理数据拷贝到渲染器
+//        QMessageBox::warning(this,QString::number(__LINE__),SDL_GetError());
+//        return ;
+//    }
+//
+//    SDL_RenderPresent(m_renderer); //开始渲染
 }
