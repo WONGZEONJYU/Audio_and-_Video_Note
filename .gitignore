@@ -51,6 +51,8 @@
 /code/XCJ/104.SDL_QT_RGB_merge/.idea
 /code/XCJ/105.SDL_QT_PLAY_YUV/cmake-*
 /code/XCJ/105.SDL_QT_PLAY_YUV/.idea
+/code/XCJ/106.XVideo_View_Test/cmake-*
+/code/XCJ/106.XVideo_View_Test/.idea
 
 .DS_Store
 code/test_file/qsbxz.mp4
