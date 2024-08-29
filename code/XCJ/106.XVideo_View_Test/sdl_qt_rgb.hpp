@@ -22,7 +22,7 @@ class sdl_qt_rgb : public QWidget {
 Q_OBJECT
 
     void timerEvent(QTimerEvent *) override;
-
+    void resizeEvent(QResizeEvent *) override;
 public:
     explicit sdl_qt_rgb(QWidget * = nullptr);
     ~sdl_qt_rgb() override;
