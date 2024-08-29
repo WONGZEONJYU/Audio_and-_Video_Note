@@ -62,7 +62,9 @@ add_executable(${PROJECT_NAME} main.cpp
         xsdl.cpp
         xsdl.hpp
         XHelper.hpp
-        XHelper.cpp)
+        XHelper.cpp
+        XAVFrame.hpp
+        XAVFrame.cpp)
 
 target_link_libraries(${PROJECT_NAME}
         Qt::Core

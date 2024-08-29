@@ -6,11 +6,12 @@
 
 #include "sdl_qt_rgb.hpp"
 #include "ui_sdl_qt_rgb.h"
-#include <SDL.h>
 #include <QMessageBox>
 #include <QImage>
 #include <QResizeEvent>
 #include "xvideo_view.hpp"
+#include "XAVFrame.hpp"
+#include "XHelper.hpp"
 
 #undef main
 
@@ -34,8 +35,18 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     //m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P);
     m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P,reinterpret_cast<void*>(ui->label->winId()));
 
-    m_yuv_datum.resize(m_sdl_w * m_sdl_h * m_pix_size,0);
-    startTimer(10);
+    m_frame = new_XAVFrame();
+    m_frame->width = m_sdl_w;
+    m_frame->height = m_sdl_h;
+    m_frame->format = AV_PIX_FMT_YUV420P;
+
+    FF_ERR_OUT(av_frame_get_buffer(m_frame.get(),0),return);
+
+    qDebug() << GET_STR(m_frame->linesize[0] = ) << m_frame->linesize[0];
+    qDebug() << GET_STR(m_frame->linesize[1] = ) << m_frame->linesize[1];
+    qDebug() << GET_STR(m_frame->linesize[2] = ) << m_frame->linesize[2];
+
+    //startTimer(10);
 }
 
 sdl_qt_rgb::~sdl_qt_rgb() {
@@ -58,18 +69,24 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
         return;
     }
 
-    const auto dst_{m_yuv_datum.data()};
+    m_yuv_file.read(reinterpret_cast<char *>(m_frame->data[0]),m_sdl_w * m_sdl_h);
+    m_yuv_file.read(reinterpret_cast<char *>(m_frame->data[1]),m_sdl_w * m_sdl_h / 4);
+    m_yuv_file.read(reinterpret_cast<char *>(m_frame->data[2]),m_sdl_w * m_sdl_h / 4);
 
-    m_yuv_file.read(reinterpret_cast<char*>(dst_),
-                    static_cast<qint64>(m_sdl_w * m_sdl_h * 1.5));
+//    qDebug() << m_frame->data[0];
+//    qDebug() << m_frame->data[1];
+//    qDebug() << m_frame->data[2];
+
+//    m_yuv_file.read(reinterpret_cast<char*>(dst_),
+//                    static_cast<qint64>(m_sdl_w * m_sdl_h * 1.5));
     //读取YUV数据,一帧YUY数据是 m_sdl_w * m_sdl_h + m_sdl_w * m_sdl_h / 4  + m_sdl_w * m_sdl_h / 4
     // m_sdl_w * m_sdl_h + m_sdl_w/2 * m_sdl_h/2 + m_sdl_w/2 * m_sdl_h/2
     // 化简公式 m_sdl_w * m_sdl_h * 1.5
     //此处不涉及行对齐问题,行对齐问题在后面有
 
-    yuvMirror(dst_,m_sdl_w,m_sdl_h);
+    //yuvMirror(dst_,m_sdl_w,m_sdl_h);
 
-    m_view->Draw(dst_);
+    //m_view->Draw(dst_);
 }
 
 void sdl_qt_rgb::resizeEvent(QResizeEvent *e) {

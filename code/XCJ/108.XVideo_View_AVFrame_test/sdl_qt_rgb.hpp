@@ -17,6 +17,9 @@ struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Texture;
 class XVideoView;
+class XAVFrame;
+
+using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
 
 class sdl_qt_rgb : public QWidget {
 Q_OBJECT
@@ -30,12 +33,9 @@ public:
 private:
     Ui::sdl_qt_rgb *ui;
     XVideoView *m_view{};
-//    SDL_Window *m_screen{};
-//    SDL_Renderer *m_renderer{};
-//    SDL_Texture *m_texture{};
     int m_sdl_w{},m_sdl_h{},m_pix_size{2};
-    QVector<uint8_t> m_yuv_datum;
     QFile m_yuv_file;
+    XAVFrame_sptr m_frame;
 };
 
 #endif

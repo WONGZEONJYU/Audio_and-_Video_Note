@@ -1,7 +1,7 @@
 #include <QApplication>
 #include "sdl_qt_rgb.hpp"
 /**
- * 本测试代码用于参考播放部分的抽象设计
+ * 本测试代码对xvideo_view增加支持AVFrame的渲染
  */
 
 int main(int argc, char *argv[]) {

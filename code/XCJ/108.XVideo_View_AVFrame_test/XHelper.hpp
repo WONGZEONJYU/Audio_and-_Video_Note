@@ -64,8 +64,12 @@ namespace XHelper {
         XHelper::check_ff_func(#x,__FILE__,__LINE__,_err_code_);\
     }}while(false)
 
-    #define FF_ERR_OUT(x) do{ \
-        XHelper::ff_err_out(#x,__FILE__,__LINE__,x);\
+    #define FF_ERR_OUT(x,...) do{\
+        const auto _err_code_{x};\
+        if(_err_code_ < 0){\
+            XHelper::ff_err_out(#x,__FILE__,__LINE__,_err_code_);\
+            __VA_ARGS__;\
+        }\
     }while(false)
 
 #endif
