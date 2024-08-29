@@ -51,6 +51,16 @@ set(FFMPEG_LIBS
         SDL2
 )
 
+set(QT__LIB
+        Core
+        Gui
+        Widgets
+        OpenGL
+        OpenGLWidgets
+        Multimedia
+        Network
+)
+
 add_definitions(-D__STDC_CONSTANT_MACROS)
 add_definitions(-DHAVE_FFMPEG)
 add_definitions(-DHAVE_OPENGL)
@@ -94,15 +104,7 @@ set(SRC_CODE
         src/private_sonic.cpp
 )
 
-set(QT__LIB
-    Core
-    Gui
-    Widgets
-    OpenGL
-    OpenGLWidgets
-    Multimedia
-    Network
-)
+
 
 find_package(OpenGL REQUIRED)
 find_package(Qt6 COMPONENTS
