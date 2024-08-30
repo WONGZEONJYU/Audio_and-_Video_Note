@@ -6,7 +6,7 @@ using namespace std;
 using namespace chrono;
 using namespace this_thread;
 
-static inline int64_t Get_time_ms() {
+static int64_t Get_time_ms() {
     const auto now_{std::chrono::high_resolution_clock::now()};
     const auto now_ms{std::chrono::time_point_cast<std::chrono::milliseconds>(now_)};
     return now_ms.time_since_epoch().count();
@@ -14,10 +14,12 @@ static inline int64_t Get_time_ms() {
 
 static inline void MSleep(const uint64_t &ms){
     const auto begin{Get_time_ms()};
-    for (uint64_t i {}; i < ms; ++i) {
+    auto ms_{ms};
+    while (ms_--){
         sleep_for(1ms);
-        if (Get_time_ms() >= ms){
-            break;
+        const auto now{Get_time_ms()};
+        if (now - begin >= ms){
+            return;
         }
     }
 }
@@ -29,7 +31,7 @@ int main(const int argc,const char *argv[]) {
 
     while (true) {
         ++fps;
-        sleep_for(10ms);
+        MSleep(10);
         if (Get_time_ms() - begin > 1000) {
             cerr << "fps: " << fps << "\n";
             break;
@@ -37,6 +39,5 @@ int main(const int argc,const char *argv[]) {
     }
 
     cerr << "wait exit\n";
-    (void )getchar();
     return 0;
 }

@@ -104,8 +104,6 @@ set(SRC_CODE
         src/private_sonic.cpp
 )
 
-
-
 find_package(OpenGL REQUIRED)
 find_package(Qt6 COMPONENTS
         ${QT__LIB}
