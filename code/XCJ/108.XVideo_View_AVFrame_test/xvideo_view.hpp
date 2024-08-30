@@ -7,6 +7,10 @@
 
 #include <mutex>
 #include <atomic>
+#include <memory>
+
+class XAVFrame;
+using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
 
 class XVideoView {
 
@@ -50,6 +54,27 @@ public:
      * @return ture or false
      */
     virtual bool Draw(const void *datum,int line_size = 0) = 0;
+
+    /**
+     * 渲染YUV,线程安全
+     * @param y
+     * @param y_pitch
+     * @param u
+     * @param u_pitch
+     * @param v
+     * @param v_pitch
+     * @return ture or false
+     */
+    virtual bool Draw(const uint8_t *y,int y_pitch,
+                      const uint8_t *u,int u_pitch,
+                      const uint8_t *v,int v_pitch) = 0;
+
+    /**
+     * 渲染AVFrame,线程安全
+     * @param frame
+     * @return
+     */
+    virtual bool DrawFrame(const XAVFrame_sptr &frame);
 
     /**
      * 缩放设置

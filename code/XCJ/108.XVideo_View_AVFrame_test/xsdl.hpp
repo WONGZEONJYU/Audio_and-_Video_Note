@@ -44,6 +44,10 @@ protected:
      */
     bool Draw(const void *datum,int line_size) override;
 
+
+    bool Draw(const uint8_t *y,int y_pitch,
+              const uint8_t *u,int u_pitch,
+              const uint8_t *v,int v_pitch) override;
     /**
      * SDL自己创建的窗口是否退出
      * @return true or false

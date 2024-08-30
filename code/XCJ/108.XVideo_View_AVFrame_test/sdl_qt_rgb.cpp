@@ -40,13 +40,15 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     m_frame->height = m_sdl_h;
     m_frame->format = AV_PIX_FMT_YUV420P;
 
-    FF_ERR_OUT(av_frame_get_buffer(m_frame.get(),0),return);
+#if 0
+    //此方法不是一个好方法
+    m_frame->linesize[0] = m_sdl_w;
+    m_frame->linesize[1] = m_sdl_w / 2;
+    m_frame->linesize[2] = m_sdl_w / 2;
+#endif
+    FF_ERR_OUT(av_frame_get_buffer(m_frame.get(),1),return);
 
-    qDebug() << GET_STR(m_frame->linesize[0] = ) << m_frame->linesize[0];
-    qDebug() << GET_STR(m_frame->linesize[1] = ) << m_frame->linesize[1];
-    qDebug() << GET_STR(m_frame->linesize[2] = ) << m_frame->linesize[2];
-
-    //startTimer(10);
+    startTimer(10);
 }
 
 sdl_qt_rgb::~sdl_qt_rgb() {
@@ -73,26 +75,16 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
     m_yuv_file.read(reinterpret_cast<char *>(m_frame->data[1]),m_sdl_w * m_sdl_h / 4);
     m_yuv_file.read(reinterpret_cast<char *>(m_frame->data[2]),m_sdl_w * m_sdl_h / 4);
 
-//    qDebug() << m_frame->data[0];
-//    qDebug() << m_frame->data[1];
-//    qDebug() << m_frame->data[2];
-
-//    m_yuv_file.read(reinterpret_cast<char*>(dst_),
-//                    static_cast<qint64>(m_sdl_w * m_sdl_h * 1.5));
-    //读取YUV数据,一帧YUY数据是 m_sdl_w * m_sdl_h + m_sdl_w * m_sdl_h / 4  + m_sdl_w * m_sdl_h / 4
-    // m_sdl_w * m_sdl_h + m_sdl_w/2 * m_sdl_h/2 + m_sdl_w/2 * m_sdl_h/2
-    // 化简公式 m_sdl_w * m_sdl_h * 1.5
-    //此处不涉及行对齐问题,行对齐问题在后面有
-
-    //yuvMirror(dst_,m_sdl_w,m_sdl_h);
-
-    //m_view->Draw(dst_);
+    m_view->DrawFrame(m_frame);
 }
 
 void sdl_qt_rgb::resizeEvent(QResizeEvent *e) {
     ui->label->resize(size());
     ui->label->move({});
-    m_view->Scale(width(),height());
+    if (m_view){
+        m_view->Scale(width(),height());
+    }
+
     QWidget::resizeEvent(e);
 }
 

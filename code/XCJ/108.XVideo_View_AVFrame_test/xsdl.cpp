@@ -173,3 +173,46 @@ void XSDL::Scale(const int &w,const int &h) {
         XVideoView::Scale(w, h);
     }
 }
+
+bool XSDL::Draw(const uint8_t *y, int y_pitch,
+                const uint8_t *u, int u_pitch,
+                const uint8_t *v, int v_pitch) {
+
+    auto b {!y || !u || !v || y_pitch <= 0 || u_pitch <= 0 || v_pitch <= 0};
+
+    if (b){
+        PRINT_ERR_TIPS(GET_STR(Parameter error!));
+        return {};
+    }
+
+    b = !m_win || !m_renderer || !m_texture || m_width <= 0 || m_height <= 0;
+    if(b){
+        PRINT_ERR_TIPS(GET_STR(Uninitialized));
+        return {};
+    }
+
+    unique_lock locker(m_mux);
+
+    SDL2_INT_ERR_OUT(SDL_UpdateYUVTexture(m_texture,{},y,y_pitch,u,u_pitch,v,v_pitch),return {});
+
+    SDL2_INT_ERR_OUT(SDL_RenderClear(m_renderer),return {});
+
+    const SDL_Rect *p_rect{};
+    SDL_Rect rect{};
+    if (m_scale_w > 0 || m_scale_h > 0) {
+        rect.w = m_scale_w;
+        rect.h = m_scale_h;
+        p_rect = std::addressof(rect);
+    }
+
+    //SDL2_INT_ERR_OUT(SDL_RenderCopy(m_renderer,m_texture,nullptr,p_rect),return{});
+    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer,
+                                      m_texture,
+                                      {},p_rect,{},{},
+                                      SDL_FLIP_NONE ),return {});
+    //SDL2_INT_ERR_OUT(SDL_RenderCopyExF(m_renderer, m_texture, nullptr, reinterpret_cast<const SDL_FRect *>(p_rect), 0.0, nullptr, SDL_FLIP_NONE), return {});
+
+    SDL_RenderPresent(m_renderer); //开始渲染
+
+    return true;
+}
