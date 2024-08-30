@@ -21,6 +21,7 @@ extern "C"{
 
 #include <fstream>
 #include <sstream>
+#include <chrono>
 
 using namespace std;
 
@@ -149,5 +150,11 @@ namespace XHelper {
         err_msg << "error: at" << file << " : " << line <<
                 " -for " << func << " wrong reason: " << msg << '\n';
         cerr << err_msg.str();
+    }
+
+    int64_t Get_time_ms() {
+        const auto now_{std::chrono::high_resolution_clock::now()};
+        const auto now_ms{std::chrono::time_point_cast<std::chrono::milliseconds>(now_)};
+        return now_ms.time_since_epoch().count();
     }
 }

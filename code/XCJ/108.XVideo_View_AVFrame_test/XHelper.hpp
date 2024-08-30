@@ -54,6 +54,8 @@ namespace XHelper {
                         const int &line,const std::string &msg) noexcept(true);
 
     bool float_Compare(const float &,const float &,const float & = 1e-6);
+
+    int64_t Get_time_ms();
 }
 
 #ifdef HAVE_FFMPEG
