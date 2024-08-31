@@ -15,7 +15,7 @@ static int64_t Get_time_ms() {
 static inline void MSleep(const uint64_t &ms){
     const auto begin{Get_time_ms()};
     auto ms_{ms};
-    while (ms_--){
+    while (ms_--) {
         sleep_for(1ms);
         const auto now{Get_time_ms()};
         if (now - begin >= ms){
