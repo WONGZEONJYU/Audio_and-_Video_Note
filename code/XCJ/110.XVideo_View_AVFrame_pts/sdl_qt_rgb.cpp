@@ -29,9 +29,8 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     ui->setupUi(this);
     connect(this,&sdl_qt_rgb::ViewS, this,&sdl_qt_rgb::View,Qt::UniqueConnection);
 
-    m_view_fps = new QLabel(this);
-    m_view_fps->setText("100fps");
 
+    ui->view_fps->setText("fps: 25");
     m_SpinBox = new QSpinBox(this);
     m_SpinBox->move(200,0);
     m_SpinBox->setValue(25);
@@ -41,9 +40,8 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     m_sdl_h = 300;
 
     m_view = XVideoView::create();
-
-    //m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P);
-    m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P,reinterpret_cast<void*>(ui->label->winId()));
+    m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P,
+                 reinterpret_cast<void*>(ui->label->winId()));
 
     m_frame = new_XAVFrame();
     m_frame->width = m_sdl_w;
@@ -59,10 +57,10 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
 
     FF_ERR_OUT(av_frame_get_buffer(m_frame.get(),1),return);
     m_th = std::thread(&sdl_qt_rgb::Main, this);
-    //startTimer(10);
 }
 
 sdl_qt_rgb::~sdl_qt_rgb() {
+
     m_th_is_exit = true;
     m_th.join();
     delete ui;
@@ -72,6 +70,7 @@ sdl_qt_rgb::~sdl_qt_rgb() {
 
 void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
 
+#if 0
     if (m_yuv_file.atEnd()){
         killTimer(e->timerId());
         QMessageBox::warning(this,"","yuv_file end!");
@@ -89,6 +88,7 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
     m_yuv_file.read(reinterpret_cast<char *>(m_frame->data[2]),m_sdl_w * m_sdl_h / 4);
 
     m_view->DrawFrame(m_frame);
+#endif
 }
 
 void sdl_qt_rgb::resizeEvent(QResizeEvent *e) {
@@ -97,7 +97,6 @@ void sdl_qt_rgb::resizeEvent(QResizeEvent *e) {
     if (m_view){
         m_view->Scale(width(),height());
     }
-
     QWidget::resizeEvent(e);
 }
 
@@ -114,7 +113,11 @@ void sdl_qt_rgb::Main() {
 }
 
 void sdl_qt_rgb::View(){
-    //qDebug() << __func__ << QThread::currentThreadId();
+
+    if (m_th_is_exit){
+        return;
+    }
+
     if (m_yuv_file.atEnd()){
         m_yuv_file.seek(0);
         return;
@@ -133,6 +136,10 @@ void sdl_qt_rgb::View(){
 
     QStringList ss;
     ss << "fps: " << QString::number(m_view->view_fps());
-    m_view_fps->setText(ss.join(""));
+
+    ui->view_fps->setText(ss.join(""));
     m_fps = m_SpinBox->value();
+
+    ui->view_fps->update();
+    m_SpinBox->update();
 }

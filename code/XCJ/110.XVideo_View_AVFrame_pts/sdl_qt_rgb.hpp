@@ -44,7 +44,6 @@ private slots:
 private:
     Ui::sdl_qt_rgb *ui;
     XVideoView *m_view{};
-    QLabel *m_view_fps{};
     QSpinBox *m_SpinBox{};
     int m_sdl_w{},m_sdl_h{},
     m_pix_size{2},m_fps{25};

@@ -20,6 +20,7 @@ class Ui_sdl_qt_rgb
 {
 public:
     QLabel *label;
+    QLabel *view_fps;
 
     void setupUi(QWidget *sdl_qt_rgb)
     {
@@ -28,7 +29,10 @@ public:
         sdl_qt_rgb->resize(800, 600);
         label = new QLabel(sdl_qt_rgb);
         label->setObjectName("label");
-        label->setGeometry(QRect(60, 40, 691, 521));
+        label->setGeometry(QRect(40, 50, 691, 521));
+        view_fps = new QLabel(sdl_qt_rgb);
+        view_fps->setObjectName("view_fps");
+        view_fps->setGeometry(QRect(270, 20, 58, 16));
 
         retranslateUi(sdl_qt_rgb);
 
@@ -39,6 +43,7 @@ public:
     {
         sdl_qt_rgb->setWindowTitle(QCoreApplication::translate("sdl_qt_rgb", "sdl_qt_rgb", nullptr));
         label->setText(QCoreApplication::translate("sdl_qt_rgb", "TextLabel", nullptr));
+        view_fps->setText(QCoreApplication::translate("sdl_qt_rgb", "TextLabel", nullptr));
     } // retranslateUi
 
 };

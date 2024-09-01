@@ -55,6 +55,8 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt,void *winID) {
     }
 
     SDL2_PTR_ERR_OUT(m_renderer = SDL_CreateRenderer(m_win,-1,SDL_RENDERER_ACCELERATED),return {});
+    SDL2_INT_ERR_OUT(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND),return {});
+    SDL2_INT_ERR_OUT(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0),return {}); // 设置透明背景
 
     auto pix_fmt{SDL_PIXELFORMAT_RGBA8888};
 
@@ -206,10 +208,7 @@ bool XSDL::Draw(const uint8_t *y, int y_pitch,
     }
 
     //SDL2_INT_ERR_OUT(SDL_RenderCopy(m_renderer,m_texture,nullptr,p_rect),return{});
-    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer,
-                                      m_texture,
-                                      {},p_rect,{},{},
-                                      SDL_FLIP_NONE ),return {});
+    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer,m_texture,{},p_rect,{},{},SDL_FLIP_NONE ),return {});
     //SDL2_INT_ERR_OUT(SDL_RenderCopyExF(m_renderer, m_texture, nullptr, reinterpret_cast<const SDL_FRect *>(p_rect), 0.0, nullptr, SDL_FLIP_NONE), return {});
 
     SDL_RenderPresent(m_renderer); //开始渲染
