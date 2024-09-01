@@ -13,6 +13,7 @@ static inline bool sdl_init(){
     if (!is_init){
         static mutex mux;
         unique_lock locker(mux);
+        SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
         SDL2_INT_ERR_OUT(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO),return {});
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
         //设置缩放算法,解决锯齿问题,采用双线性插值算法
@@ -52,11 +53,12 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt,void *winID) {
                                                                        m_height,
                                                                        SDL_WINDOW_RESIZABLE |
                                                                        SDL_WINDOW_OPENGL),return {});
+        //SDL_SetWindowOpacity(m_win, 1.0f); // 设置 SDL 窗口半透明
     }
 
     SDL2_PTR_ERR_OUT(m_renderer = SDL_CreateRenderer(m_win,-1,SDL_RENDERER_ACCELERATED),return {});
     SDL2_INT_ERR_OUT(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND),return {});
-    SDL2_INT_ERR_OUT(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0),return {}); // 设置透明背景
+    SDL2_INT_ERR_OUT(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255),return {}); // 设置透明背景
 
     auto pix_fmt{SDL_PIXELFORMAT_RGBA8888};
 
@@ -114,20 +116,23 @@ bool XSDL::Draw(const void *datum, int line_size) {
         return {};
     }
 
-    SDL2_INT_ERR_OUT(SDL_UpdateTexture(m_texture,nullptr,datum,line_size),return {});
+    SDL2_INT_ERR_OUT(SDL_UpdateTexture(m_texture,{},datum,line_size),return {});
 
     SDL2_INT_ERR_OUT(SDL_RenderClear(m_renderer),return {});
 
     const SDL_Rect *p_rect{};
     SDL_Rect rect{};
     if (m_scale_w > 0 || m_scale_h > 0) {
+        std::cerr << m_scale_w << " " << m_scale_h << "\n";
+        rect.x = 100;
+        rect.y = 100;
         rect.w = m_scale_w;
         rect.h = m_scale_h;
         p_rect = std::addressof(rect);
     }
 
     //SDL2_INT_ERR_OUT(SDL_RenderCopy(m_renderer,m_texture,nullptr,p_rect),return{});
-    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer, m_texture, nullptr, p_rect, 0.0, nullptr, SDL_FLIP_NONE ),return {});
+    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer, m_texture, {}, p_rect, {}, {}, SDL_FLIP_NONE ),return {});
     //SDL2_INT_ERR_OUT(SDL_RenderCopyExF(m_renderer, m_texture, nullptr, reinterpret_cast<const SDL_FRect *>(p_rect), 0.0, nullptr, SDL_FLIP_NONE), return {});
 
     SDL_RenderPresent(m_renderer); //开始渲染
@@ -196,7 +201,6 @@ bool XSDL::Draw(const uint8_t *y, int y_pitch,
     unique_lock locker(m_mux);
 
     SDL2_INT_ERR_OUT(SDL_UpdateYUVTexture(m_texture,{},y,y_pitch,u,u_pitch,v,v_pitch),return {});
-
     SDL2_INT_ERR_OUT(SDL_RenderClear(m_renderer),return {});
 
     const SDL_Rect *p_rect{};
@@ -208,7 +212,7 @@ bool XSDL::Draw(const uint8_t *y, int y_pitch,
     }
 
     //SDL2_INT_ERR_OUT(SDL_RenderCopy(m_renderer,m_texture,nullptr,p_rect),return{});
-    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer,m_texture,{},p_rect,{},{},SDL_FLIP_NONE ),return {});
+    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer,m_texture,{},p_rect,{},{},SDL_FLIP_NONE),return {});
     //SDL2_INT_ERR_OUT(SDL_RenderCopyExF(m_renderer, m_texture, nullptr, reinterpret_cast<const SDL_FRect *>(p_rect), 0.0, nullptr, SDL_FLIP_NONE), return {});
 
     SDL_RenderPresent(m_renderer); //开始渲染

@@ -29,8 +29,9 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     ui->setupUi(this);
     connect(this,&sdl_qt_rgb::ViewS, this,&sdl_qt_rgb::View,Qt::UniqueConnection);
 
-
     ui->view_fps->setText("fps: 25");
+
+
     m_SpinBox = new QSpinBox(this);
     m_SpinBox->move(200,0);
     m_SpinBox->setValue(25);
@@ -41,7 +42,7 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
 
     m_view = XVideoView::create();
     m_view->Init(m_sdl_w,m_sdl_h,XVideoView::YUV420P,
-                 reinterpret_cast<void*>(ui->label->winId()));
+                 reinterpret_cast<void*>(ui->widget->winId()));
 
     m_frame = new_XAVFrame();
     m_frame->width = m_sdl_w;
@@ -92,8 +93,8 @@ void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
 }
 
 void sdl_qt_rgb::resizeEvent(QResizeEvent *e) {
-    ui->label->resize(size());
-    ui->label->move({});
+    ui->widget->resize(size());
+    ui->widget->move({});
     if (m_view){
         m_view->Scale(width(),height());
     }
@@ -140,6 +141,6 @@ void sdl_qt_rgb::View(){
     ui->view_fps->setText(ss.join(""));
     m_fps = m_SpinBox->value();
 
-    ui->view_fps->update();
-    m_SpinBox->update();
+    ui->view_fps->raise();//macOS窗口层次问题
+    m_SpinBox->raise();//macOS窗口层次问题
 }

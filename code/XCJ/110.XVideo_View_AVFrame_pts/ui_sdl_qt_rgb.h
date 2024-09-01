@@ -19,20 +19,20 @@ QT_BEGIN_NAMESPACE
 class Ui_sdl_qt_rgb
 {
 public:
-    QLabel *label;
     QLabel *view_fps;
+    QWidget *widget;
 
     void setupUi(QWidget *sdl_qt_rgb)
     {
         if (sdl_qt_rgb->objectName().isEmpty())
             sdl_qt_rgb->setObjectName("sdl_qt_rgb");
         sdl_qt_rgb->resize(800, 600);
-        label = new QLabel(sdl_qt_rgb);
-        label->setObjectName("label");
-        label->setGeometry(QRect(40, 50, 691, 521));
         view_fps = new QLabel(sdl_qt_rgb);
         view_fps->setObjectName("view_fps");
-        view_fps->setGeometry(QRect(270, 20, 58, 16));
+        view_fps->setGeometry(QRect(10, 0, 61, 31));
+        widget = new QWidget(sdl_qt_rgb);
+        widget->setObjectName("widget");
+        widget->setGeometry(QRect(80, 60, 631, 471));
 
         retranslateUi(sdl_qt_rgb);
 
@@ -42,7 +42,6 @@ public:
     void retranslateUi(QWidget *sdl_qt_rgb)
     {
         sdl_qt_rgb->setWindowTitle(QCoreApplication::translate("sdl_qt_rgb", "sdl_qt_rgb", nullptr));
-        label->setText(QCoreApplication::translate("sdl_qt_rgb", "TextLabel", nullptr));
         view_fps->setText(QCoreApplication::translate("sdl_qt_rgb", "TextLabel", nullptr));
     } // retranslateUi
 
