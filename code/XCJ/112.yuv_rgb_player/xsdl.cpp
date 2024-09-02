@@ -26,7 +26,7 @@ static inline bool sdl_init(){
     return is_init;
 }
 
-bool XSDL::Init(const int &w,const int &h,const Format &fmt,void *winID) {
+bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
 
     if (w <= 0 || h <= 0){
         PRINT_ERR_TIPS("const int &w,const int &h error!");
@@ -38,7 +38,6 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt,void *winID) {
     m_width = w;
     m_height = h;
     m_fmt = fmt;
-    m_winID = winID;
 
     unique_lock locker(m_mux);
 
@@ -50,7 +49,7 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt,void *winID) {
     }
 
     if (!m_win){ //窗口不能重复创建
-        SDL2_PTR_ERR_OUT(m_win = winID ? SDL_CreateWindowFrom(winID) : SDL_CreateWindow("",
+        SDL2_PTR_ERR_OUT(m_win = m_winID ? SDL_CreateWindowFrom(m_winID) : SDL_CreateWindow("",
                                                                        SDL_WINDOWPOS_CENTERED,
                                                                        SDL_WINDOWPOS_CENTERED,
                                                                        m_width,

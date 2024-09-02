@@ -8,6 +8,7 @@
 #include <mutex>
 #include <atomic>
 #include <memory>
+#include <fstream>
 #include "XHelper.hpp"
 
 class XAVFrame;
@@ -15,11 +16,14 @@ using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
 
 class XVideoView {
 
+    void calc_fps();
+
 public:
     enum Format : int{
         RGBA = 0,
         ARGB,
         YUV420P,
+        BGRA,
     };
     enum RenderType{
         SDL = 0,
@@ -37,10 +41,9 @@ public:
      * @param w 窗口宽度
      * @param h 窗口高度
      * @param fmt 绘制的像素格式
-     * @param winID 窗口句柄,如果为nullptr,创新新窗口
      * @return true or false
      */
-    virtual bool Init(const int &w,const int &h,const Format &fmt = RGBA,void *winID = nullptr) = 0;
+    virtual bool Init(const int &w,const int &h,const Format &fmt = RGBA) = 0;
 
     /**
      * 清理所有申请的资源,包括关闭窗口
@@ -93,7 +96,20 @@ public:
         return m_view_fps;
     };
 
-    void calc_fps();
+    /**
+     * 打开文件
+     * @param file_path
+     * @return ture or false
+     */
+    bool Open(const std::string &file_path);
+
+    /**
+     * 设置窗口句柄
+     * @param win_id
+     */
+    void Set_Win_ID(void *win_id){
+        m_winID = win_id;
+    }
 
 protected:
     std::mutex m_mux;
@@ -104,6 +120,10 @@ protected:
 
     std::atomic<Format> m_fmt{RGBA};
     std::atomic<void*> m_winID{};
+
+private:
+    std::ifstream m_ifs;
+
 
 public:
     static int64_t Get_time_ms();

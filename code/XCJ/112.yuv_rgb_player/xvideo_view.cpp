@@ -7,6 +7,8 @@
 #include "XAVFrame.hpp"
 #include <thread>
 
+using namespace std;
+
 XVideoView *XVideoView::create(const XVideoView::RenderType &renderType) {
     switch (renderType) {
         case SDL:
@@ -66,4 +68,19 @@ int64_t XVideoView::Get_time_ms(){
     const auto now_{std::chrono::high_resolution_clock::now()};
     const auto now_ms{std::chrono::time_point_cast<std::chrono::milliseconds>(now_)};
     return now_ms.time_since_epoch().count();
+}
+
+bool XVideoView::Open(const std::string &file_path) {
+
+    if (m_ifs.is_open()){
+        m_ifs.close();
+    }
+
+    m_ifs.open(file_path,ios::binary);
+    if (!m_ifs){
+        PRINT_ERR_TIPS(GET_STR(open file error!));
+        return {};
+    }
+    
+    return true;
 }

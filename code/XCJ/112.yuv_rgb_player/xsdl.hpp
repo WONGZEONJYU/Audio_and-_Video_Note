@@ -28,7 +28,7 @@ protected:
      * @param winID 窗口句柄,如果为nullptr,创新新窗口
      * @return true or false
      */
-    bool Init(const int &w,const int &h,const Format &fmt,void *winID) override;
+    bool Init(const int &w,const int &h,const Format &fmt) override;
 
     /**
     * 清理所有申请的资源,包括关闭窗口

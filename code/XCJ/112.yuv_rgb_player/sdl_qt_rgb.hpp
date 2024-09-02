@@ -10,6 +10,7 @@
 #include <QFile>
 #include <thread>
 
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class sdl_qt_rgb; }
 QT_END_NAMESPACE
@@ -45,6 +46,7 @@ private:
     Ui::sdl_qt_rgb *ui;
     std::thread m_th;
     std::atomic_bool m_th_is_exit{};
+    QVector<XVideoView *> m_views;
 };
 
 #endif
