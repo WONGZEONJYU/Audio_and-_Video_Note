@@ -15,8 +15,12 @@ static inline bool sdl_init(){
         unique_lock locker(mux);
         SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
         SDL2_INT_ERR_OUT(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO),return {});
-        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1");
-        //设置缩放算法,解决锯齿问题,采用双线性插值算法
+        if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1") < SDL_FALSE){
+            //设置缩放算法,解决锯齿问题,采用双线性插值算法
+            std::cerr << __FILE__ << "," << __LINE__ << ",SDL error at " << SDL_GetError() << "- form " <<
+            __func__ << "\n";
+            return {};
+        }
         is_init = true;
     }
     return is_init;
@@ -53,7 +57,7 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt,void *winID) {
                                                                        m_height,
                                                                        SDL_WINDOW_RESIZABLE |
                                                                        SDL_WINDOW_OPENGL),return {});
-        //SDL_SetWindowOpacity(m_win, 1.0f); // 设置 SDL 窗口半透明
+        //SDL_SetWindowOpacity(m_win, 0.5f); // 设置 SDL 窗口半透明
     }
 
     SDL2_PTR_ERR_OUT(m_renderer = SDL_CreateRenderer(m_win,-1,SDL_RENDERER_ACCELERATED),return {});
@@ -124,8 +128,6 @@ bool XSDL::Draw(const void *datum, int line_size) {
     SDL_Rect rect{};
     if (m_scale_w > 0 || m_scale_h > 0) {
         std::cerr << m_scale_w << " " << m_scale_h << "\n";
-        rect.x = 100;
-        rect.y = 100;
         rect.w = m_scale_w;
         rect.h = m_scale_h;
         p_rect = std::addressof(rect);

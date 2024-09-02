@@ -30,7 +30,7 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     connect(this,&sdl_qt_rgb::ViewS, this,&sdl_qt_rgb::View,Qt::UniqueConnection);
 
     ui->view_fps->setText("fps: 25");
-
+    ui->view_fps->raise();
 
     m_SpinBox = new QSpinBox(this);
     m_SpinBox->move(200,0);
@@ -141,6 +141,8 @@ void sdl_qt_rgb::View(){
     ui->view_fps->setText(ss.join(""));
     m_fps = m_SpinBox->value();
 
+#if MACOS
     ui->view_fps->raise();//macOS窗口层次问题
     m_SpinBox->raise();//macOS窗口层次问题
+#endif
 }
