@@ -198,16 +198,16 @@ bool XSDL::Start_Rendering() {
     SDL2_INT_ERR_OUT(SDL_RenderClear(m_renderer),return {});
     //清理渲染器
 #if 1
-//    SDL_Rect rect{};
-//    const SDL_Rect *p_rect{};
-//    if (m_scale_w > 0 || m_scale_h > 0) { //更改纹理宽高
-//        rect.w = m_scale_w;
-//        rect.h = m_scale_h;
-//        p_rect = std::addressof(rect);
-//    }
+    SDL_Rect rect{};
+    const SDL_Rect *p_rect{};
+    if (m_scale_w > 0 || m_scale_h > 0) { //更改纹理宽高
+        rect.w = m_scale_w;
+        rect.h = m_scale_h;
+        p_rect = std::addressof(rect);
+    }
 
-    const SDL_Rect rect{.x = m_x,.y = m_y,.w = m_scale_w,.h = m_scale_h};
-    const SDL_Rect *p_rect{std::addressof(rect)};
+    //const SDL_Rect rect{.x = m_x,.y = m_y,.w = m_scale_w,.h = m_scale_h};
+    //const SDL_Rect *p_rect{std::addressof(rect)};
 
     SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer,m_texture,{},p_rect,{},{},SDL_FLIP_NONE),return {});
     //拷贝纹理数据到渲染器
