@@ -93,6 +93,16 @@ public:
     }
 
     /**
+     * 设置Render位置
+     * @param x
+     * @param y
+     */
+    virtual void SetPos(const int &x,const int &y){
+        m_x = x;
+        m_y = y;
+    }
+
+    /**
      * 窗口退出
      * @return ture or false
      */
@@ -132,6 +142,7 @@ protected:
     std::mutex m_mux;
     std::atomic_int64_t m_begin_time{};
     std::atomic_int m_width{},m_height{},
+                m_x{},m_y{},
                 m_scale_w{},m_scale_h{},
                 m_count{},m_render_fps{},
                 m_pixel_Byte_size{4};;

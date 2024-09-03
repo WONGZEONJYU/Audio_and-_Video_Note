@@ -16,6 +16,27 @@
 
 #undef main
 
+#if MACOS
+extern "C" void setMetalViewFrame(void *winId, int x,int y,int width, int height);
+
+void adjustMetalViewFrame(QWidget *qtWidget) {
+    void *winId = reinterpret_cast<void *>(qtWidget->winId());
+    setMetalViewFrame(winId, qtWidget->x(),qtWidget->y(),qtWidget->width(), qtWidget->height());
+}
+
+// YourCppFile.cpp
+extern "C" void addMetalViewToParent(void *parentWinId, void *metalWinId);
+
+void integrateMetalViewWithQt(QWidget *parentWidget, QWidget *metalWidget) {
+    void *parentWinId = reinterpret_cast<void *>(parentWidget->winId());
+    void *metalWinId = reinterpret_cast<void *>(metalWidget->winId());
+
+    // 调用封装的 Objective-C++ 函数
+    addMetalViewToParent(parentWinId, metalWinId);
+}
+
+#endif
+
 sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
         QWidget(parent), ui(new Ui::sdl_qt_rgb) {
 
@@ -25,6 +46,12 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     m_views.push_back(XVideoView::create());
     m_views[0]->Set_Win_ID(reinterpret_cast<void *>(ui->video1->winId()));
     m_views[1]->Set_Win_ID(reinterpret_cast<void *>(ui->video2->winId()));
+#if MACOS
+    adjustMetalViewFrame(ui->video1);
+    adjustMetalViewFrame(ui->video2);
+    integrateMetalViewWithQt(this, ui->video1);
+    integrateMetalViewWithQt(this,ui->video2);
+#endif
     m_th = std::thread(&sdl_qt_rgb::Main, this);
 }
 
@@ -85,6 +112,16 @@ void sdl_qt_rgb::View() {
 #if MACOS
     ui->view_fps1->raise();
     ui->view_fps2->raise();
+    ui->height1->raise();
+    ui->height2->raise();
+    ui->open1->raise();
+    ui->open2->raise();
+    ui->set_fps1->raise();
+    ui->set_fps2->raise();
+    ui->pix1->raise();
+    ui->pix2->raise();
+    ui->width1->raise();
+    ui->width2->raise();
 #endif
 }
 

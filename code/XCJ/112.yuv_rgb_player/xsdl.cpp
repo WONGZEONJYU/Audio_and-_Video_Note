@@ -187,9 +187,10 @@ bool XSDL::Is_Exit_Window() const {
 }
 
 void XSDL::Scale(const int &w,const int &h) {
-    if (m_winID){
-        XVideoView::Scale(w, h);
-    }
+//    if (m_winID){
+//        XVideoView::Scale(w, h);
+//    }
+    XVideoView::Scale(w, h);
 }
 
 bool XSDL::Start_Rendering() {
@@ -204,6 +205,7 @@ bool XSDL::Start_Rendering() {
         rect.h = m_scale_h;
         p_rect = std::addressof(rect);
     }
+
     SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer,m_texture,{},p_rect,{},{},SDL_FLIP_NONE),return {});
     //拷贝纹理数据到渲染器
 #else
