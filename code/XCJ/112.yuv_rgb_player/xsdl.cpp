@@ -14,6 +14,8 @@ static inline bool sdl_init(){
         unique_lock locker(mux);
         SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
         SDL2_INT_ERR_OUT(SDL_Init(SDL_INIT_VIDEO ),return {});
+        //direct3d
+        //SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d");
         if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1") < SDL_FALSE){
             //设置缩放算法,解决锯齿问题,采用双线性插值算法
             PRINT_ERR_TIPS(SDL_GetError());
