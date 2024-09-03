@@ -9,7 +9,7 @@
 #include <QMessageBox>
 #include <QResizeEvent>
 #include "xvideo_view.hpp"
-#include "XAVFrame.hpp"
+
 #include "XHelper.hpp"
 #include <QStringList>
 #include <QFileDialog>
@@ -20,7 +20,7 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
         QWidget(parent), ui(new Ui::sdl_qt_rgb) {
 
     ui->setupUi(this);
-    (void )connect(this,&sdl_qt_rgb::ViewS, this,&sdl_qt_rgb::View,Qt::UniqueConnection);
+    connect(this,&sdl_qt_rgb::ViewS,this,&sdl_qt_rgb::View,Qt::UniqueConnection);
     m_views.push_back(XVideoView::create());
     m_views.push_back(XVideoView::create());
     m_views[0]->Set_Win_ID(reinterpret_cast<void *>(ui->video1->winId()));
@@ -41,23 +41,51 @@ sdl_qt_rgb::~sdl_qt_rgb() {
 }
 
 void sdl_qt_rgb::timerEvent(QTimerEvent *e) {
-
 }
 
 void sdl_qt_rgb::resizeEvent(QResizeEvent *e) {
-
     QWidget::resizeEvent(e);
 }
 
 void sdl_qt_rgb::Main() {
     while (!m_th_is_exit){
         ViewS();
-        XHelper::MSleep(1);
+        XVideoView::MSleep(10);
     }
 }
 
-void sdl_qt_rgb::View(){
+void sdl_qt_rgb::View() {
+    //主线程调用本函数
+    static QLabel* const fps_s[]{ui->view_fps1,ui->view_fps2};
 
+    static int64_t last_pts[32]{},fps_arr[std::size(last_pts)]{};
+
+    fps_arr[0] = ui->set_fps1->value();
+    fps_arr[1] = ui->set_fps2->value();
+
+    for (uint32_t i{};i < m_views.size();++i) {
+
+        const auto ms{1000LL / fps_arr[i]},
+                    curr_time{XVideoView::Get_time_ms()};
+
+        if (curr_time - last_pts[i] < ms) {
+            continue;
+        }
+        last_pts[i] = curr_time;
+
+        auto item{m_views[i]};
+        auto frame{item->Read()};
+        if (frame) {
+            item->DrawFrame(frame);
+            QStringList ss(GET_STR(FPS: ) + QString::number(item->Render_Fps()));
+            fps_s[i]->setText(ss.join(GET_STR()));
+        }
+    }
+
+#if MACOS
+    ui->view_fps1->raise();
+    ui->view_fps2->raise();
+#endif
 }
 
 void sdl_qt_rgb::Open1() {
@@ -80,10 +108,11 @@ void sdl_qt_rgb::Open(const int &index){
 
     auto view{m_views[index]};
     //打开文件
-    if (!view->Open(file_name.toStdString())){
+    if (!view->Open(file_name.toLocal8Bit().toStdString())){
         qDebug() << "open file error!";
         return;
     }
+
     qDebug() << file_name.toLocal8Bit();
 
     int w{},h{};
@@ -112,9 +141,10 @@ void sdl_qt_rgb::Open(const int &index){
         fmt = XVideoView::ARGB;
     } else if (GET_STR(BGRA) == pix){
         fmt = XVideoView::BGRA;
-    } else{}
+    } else if (GET_STR(RGB24) == pix){
+        fmt = XVideoView::RGB24;
+    }else{}
 
-    //初始化窗口和材质
+    //初始化窗口和纹理
     view->Init(w,h,fmt);
-
 }

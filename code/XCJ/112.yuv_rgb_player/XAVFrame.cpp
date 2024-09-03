@@ -39,7 +39,12 @@ XAVFrame::~XAVFrame() {
     av_frame_unref(this);
 }
 
-XAVFrame_sptr new_XAVFrame() noexcept(false){
+bool XAVFrame::Get_Buffer(const int &align) {
+    FF_ERR_OUT(av_frame_get_buffer(this,align),return {});
+    return true;
+}
+
+XAVFrame_sptr new_XAVFrame() noexcept(false) {
     XAVFrame_sptr obj;
     CHECK_EXC(obj = std::make_shared<XAVFrame>());
     return obj;

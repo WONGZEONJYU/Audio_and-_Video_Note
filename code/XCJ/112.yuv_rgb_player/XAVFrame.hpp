@@ -19,6 +19,7 @@ public:
      */
     XAVFrame(const XAVFrame &);
     XAVFrame(XAVFrame &&) noexcept(true);
+
     /**
      * 引用计数+1
      * @return XAVFrame&
@@ -26,6 +27,16 @@ public:
     XAVFrame& operator=(const XAVFrame &);
     XAVFrame& operator=(XAVFrame && ) noexcept(true);
     ~XAVFrame();
+
+    /**
+     * 调用前,请先填写相关成员参数
+     * 视频:填写width , height , format
+     * 音频: format , ch_layout.nb_channels , nb_samples , sample_rate
+     * 音频/视频 公共参数 linesize[]数组
+     * @param align
+     * @return true or false
+     */
+    bool Get_Buffer(const int &align);
 };
 
 using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;

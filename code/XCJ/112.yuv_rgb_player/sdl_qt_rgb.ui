@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>993</width>
-    <height>559</height>
+    <width>972</width>
+    <height>517</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
     <string notr="true">background-color: rgb(4, 0, 255);</string>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>Video1</string>
    </property>
   </widget>
   <widget class="QLabel" name="video2">
@@ -42,7 +42,7 @@
     <string notr="true">background-color: rgb(61, 255, 0);</string>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>Video2</string>
    </property>
   </widget>
   <widget class="QLabel" name="view_fps2">
@@ -58,27 +58,27 @@
     <string notr="true">color: rgb(255, 0, 0);</string>
    </property>
    <property name="text">
-    <string>FPS: 25</string>
+    <string>FPS: 0</string>
    </property>
   </widget>
   <widget class="QPushButton" name="open1">
    <property name="geometry">
     <rect>
-     <x>360</x>
-     <y>390</y>
+     <x>130</x>
+     <y>380</y>
      <width>111</width>
-     <height>41</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Open</string>
+    <string>Open1</string>
    </property>
   </widget>
   <widget class="QComboBox" name="pix1">
    <property name="geometry">
     <rect>
-     <x>42</x>
-     <y>400</y>
+     <x>10</x>
+     <y>380</y>
      <width>111</width>
      <height>32</height>
     </rect>
@@ -103,12 +103,17 @@
      <string>BGRA</string>
     </property>
    </item>
+   <item>
+    <property name="text">
+     <string>RGB24</string>
+    </property>
+   </item>
   </widget>
   <widget class="QSpinBox" name="width1">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>430</y>
+     <x>10</x>
+     <y>420</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -126,8 +131,8 @@
   <widget class="QSpinBox" name="height1">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>460</y>
+     <x>10</x>
+     <y>450</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -145,8 +150,8 @@
   <widget class="QSpinBox" name="set_fps1">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>490</y>
+     <x>10</x>
+     <y>480</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -165,7 +170,7 @@
    <property name="geometry">
     <rect>
      <x>530</x>
-     <y>400</y>
+     <y>380</y>
      <width>103</width>
      <height>32</height>
     </rect>
@@ -190,12 +195,17 @@
      <string>BGRA</string>
     </property>
    </item>
+   <item>
+    <property name="text">
+     <string>RGB24</string>
+    </property>
+   </item>
   </widget>
   <widget class="QSpinBox" name="width2">
    <property name="geometry">
     <rect>
-     <x>540</x>
-     <y>440</y>
+     <x>530</x>
+     <y>420</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -213,8 +223,8 @@
   <widget class="QSpinBox" name="height2">
    <property name="geometry">
     <rect>
-     <x>540</x>
-     <y>470</y>
+     <x>530</x>
+     <y>450</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -232,21 +242,21 @@
   <widget class="QPushButton" name="open2">
    <property name="geometry">
     <rect>
-     <x>840</x>
+     <x>650</x>
      <y>380</y>
      <width>111</width>
-     <height>41</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
-    <string>Open</string>
+    <string>Open2</string>
    </property>
   </widget>
   <widget class="QSpinBox" name="set_fps2">
    <property name="geometry">
     <rect>
-     <x>540</x>
-     <y>500</y>
+     <x>530</x>
+     <y>480</y>
      <width>91</width>
      <height>22</height>
     </rect>
@@ -274,7 +284,7 @@
     <string notr="true">color: rgb(255, 0, 0);</string>
    </property>
    <property name="text">
-    <string>FPS: 25</string>
+    <string>FPS: 0</string>
    </property>
   </widget>
  </widget>

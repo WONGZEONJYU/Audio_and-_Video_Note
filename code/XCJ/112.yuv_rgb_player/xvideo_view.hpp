@@ -19,13 +19,15 @@ class XVideoView {
     void calc_fps();
 
 public:
-    enum Format : int{
-        RGBA = 0,
-        ARGB,
-        YUV420P,
-        BGRA,
+    enum Format : int {
+        YUV420P = 0,
+        RGB24 = 2,
+        ARGB = 25,
+        RGBA = 26,
+        BGRA = 28,
     };
-    enum RenderType{
+
+    enum RenderType : int {
         SDL = 0,
     };
 
@@ -74,7 +76,7 @@ public:
                       const uint8_t *v,int v_pitch) = 0;
 
     /**
-     * 渲染AVFrame,线程安全
+     * 渲染AVFrame,线程安全,与ffmpeg接口有关
      * @param frame
      * @return
      */
@@ -90,10 +92,18 @@ public:
         m_scale_h = h;
     }
 
+    /**
+     * 窗口退出
+     * @return ture or false
+     */
     [[nodiscard]] virtual bool Is_Exit_Window() const = 0;
 
-    [[nodiscard]] virtual int view_fps() const {
-        return m_view_fps;
+    /**
+     * 返回当前播放帧率
+     * @return 当前播放帧率
+     */
+    [[nodiscard]] virtual int Render_Fps() const {
+        return m_render_fps;
     };
 
     /**
@@ -101,13 +111,20 @@ public:
      * @param file_path
      * @return ture or false
      */
-    bool Open(const std::string &file_path);
+    virtual bool Open(const std::string &file_path);
+
+    /**
+     * 读取一帧数据,并维护AVFrame空间,
+     * 每次调用会覆盖上一次数据
+     * @return XAVFrame_sptr
+     */
+    virtual XAVFrame_sptr Read();
 
     /**
      * 设置窗口句柄
      * @param win_id
      */
-    void Set_Win_ID(void *win_id){
+    virtual void Set_Win_ID(void *win_id){
         m_winID = win_id;
     }
 
@@ -116,14 +133,14 @@ protected:
     std::atomic_int64_t m_begin_time{};
     std::atomic_int m_width{},m_height{},
                 m_scale_w{},m_scale_h{},
-                m_count{},m_view_fps{};
+                m_count{},m_render_fps{},
+                m_pixel_Byte_size{4};;
 
     std::atomic<Format> m_fmt{RGBA};
     std::atomic<void*> m_winID{};
-
 private:
     std::ifstream m_ifs;
-
+    XAVFrame_sptr m_frame;
 
 public:
     static int64_t Get_time_ms();
