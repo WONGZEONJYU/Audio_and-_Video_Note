@@ -8,7 +8,6 @@
 #include <type_traits>
 #include <iostream>
 
-
 #ifdef HAVE_FFMPEG
 struct AVFormatContext;
 struct AVPacket;
