@@ -55,7 +55,6 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
                                                                        m_width,m_height,
                                                                        SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL),return {});
 
-        m_sdl_gtx = SDL_GL_CreateContext(m_win);
         //SDL_SetWindowOpacity(m_win, 0.5f); // 设置 SDL 窗口半透明
     }
 

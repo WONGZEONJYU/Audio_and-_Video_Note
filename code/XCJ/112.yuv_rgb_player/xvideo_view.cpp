@@ -94,7 +94,7 @@ XAVFrame_sptr XVideoView::Read() {
     auto b {m_width <= 0 || m_height <= 0 || m_fmt < 0 || !m_ifs};
 
     if (b) { //参数打开失败
-        PRINT_ERR_TIPS(GET_STR(m_width <= 0 || m_height <= 0 || m_fmt < 0));
+        //PRINT_ERR_TIPS(GET_STR(m_width <= 0 || m_height <= 0 || m_fmt < 0));
         return {};
     }
 

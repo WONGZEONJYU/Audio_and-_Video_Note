@@ -44,15 +44,10 @@ sdl_qt_rgb::sdl_qt_rgb(QWidget *parent) :
     connect(this,&sdl_qt_rgb::ViewS,this,&sdl_qt_rgb::View,Qt::UniqueConnection);
     m_views.push_back(XVideoView::create());
     m_views.push_back(XVideoView::create());
-
+#ifndef MACOS
     m_views[0]->Set_Win_ID(reinterpret_cast<void *>(ui->video1->winId()));
     m_views[1]->Set_Win_ID(reinterpret_cast<void *>(ui->video2->winId()));
-
-    m_views[0]->SetPos(ui->video1->x(),ui->video1->y());
-    m_views[1]->SetPos(ui->video2->x(),ui->video2->y());
-
-    m_views[0]->Scale(ui->video1->width(),ui->video1->height());
-    m_views[1]->Scale(ui->video2->width(),ui->video2->height());
+#endif
 
 #if MACOS
     adjustMetalViewFrame(ui->video1);
