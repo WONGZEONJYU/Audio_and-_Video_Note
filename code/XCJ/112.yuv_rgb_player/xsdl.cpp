@@ -54,6 +54,8 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
                                                                        SDL_WINDOWPOS_CENTERED,
                                                                        m_width,m_height,
                                                                        SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL),return {});
+
+        m_sdl_gtx = SDL_GL_CreateContext(m_win);
         //SDL_SetWindowOpacity(m_win, 0.5f); // 设置 SDL 窗口半透明
     }
 
@@ -85,6 +87,7 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
             break;
         default:
             break;
+            SDL_GLContext
     }
 
     SDL2_PTR_ERR_OUT(m_texture = SDL_CreateTexture(m_renderer,

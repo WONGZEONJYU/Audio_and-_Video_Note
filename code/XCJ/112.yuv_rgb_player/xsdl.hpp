@@ -76,6 +76,7 @@ protected:
     SDL_Window *m_win{};
     SDL_Renderer *m_renderer{};
     SDL_Texture *m_texture{};
+    void *m_sdl_gtx{};
 
 public:
     explicit XSDL() = default;
