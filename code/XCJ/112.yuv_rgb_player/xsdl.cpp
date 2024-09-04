@@ -87,7 +87,6 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
             break;
         default:
             break;
-            SDL_GLContext
     }
 
     SDL2_PTR_ERR_OUT(m_texture = SDL_CreateTexture(m_renderer,
