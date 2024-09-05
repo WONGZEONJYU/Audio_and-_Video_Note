@@ -20,7 +20,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
-    add_definitions(-D__STDC_CONSTANT_MACROS)
+
     #set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.4.2/macos")
     set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.2/macos")
     include_directories(/usr/local/ffmpeg/include)
@@ -61,3 +61,4 @@ add_executable(${PROJECT_NAME} main.cpp
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)
+add_definitions(-D__STDC_CONSTANT_MACROS)
