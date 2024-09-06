@@ -123,7 +123,6 @@ int main(const int argc,const char *argv[]) {
         codec_ctx->rc_buffer_size = br * 2;
     }
 #endif
-
     //4.打开编码器
     FF_ERR_OUT(avcodec_open2(codec_ctx,codec,{}),return -1);
 
@@ -132,7 +131,7 @@ int main(const int argc,const char *argv[]) {
     frame->width = codec_ctx->width;
     frame->height = codec_ctx->height;
     frame->format = codec_ctx->pix_fmt;
-    FF_ERR_OUT(frame->Get_Buffer(0),return -1);
+    FF_ERR_OUT(frame->Get_Buffer(),return -1);
 
     //6.创建AVPacket对象
     TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return -1);

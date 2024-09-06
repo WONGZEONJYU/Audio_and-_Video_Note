@@ -36,7 +36,7 @@ public:
      * @param align
      * @return true or false
      */
-    bool Get_Buffer(const int &align);
+    bool Get_Buffer(const int &align = 0);
 };
 
 using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
