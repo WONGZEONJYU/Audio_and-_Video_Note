@@ -116,7 +116,6 @@ int main(const int argc,const char *argv[]) {
     FF_ERR_OUT(av_opt_set_int(codec_ctx->priv_data,CRF::m_name,CRF(23),0));
 
     //约束编码和恒定速率因子是配合使用的
-
     //约束编码(VBV) Constrained Encoding(VBV)
     {
         FF_ERR_OUT(av_opt_set_int(codec_ctx->priv_data,CRF::m_name,CRF(23),0));
@@ -125,6 +124,13 @@ int main(const int argc,const char *argv[]) {
         codec_ctx->rc_buffer_size = br * 2;
     }
 #endif
+
+#if 1
+    //图像组,一组包含一个IDR SPS PPS 其它是P帧和B帧(B帧需要设置才会有)
+    codec_ctx->gop_size = 6;
+
+#endif
+
     //4.打开编码器
     FF_ERR_OUT(avcodec_open2(codec_ctx,codec,{}),return -1);
 
@@ -203,20 +209,27 @@ int main(const int argc,const char *argv[]) {
     }
 
     std::cerr << "\nencode success!\n\n";
-
     return 0;
 }
 
 static void write_file(std::ofstream &ofs,const XAVPacket_sptr &packet) {
 
+    //std::cerr << "flush: " << packet.get()->size << "\t";
     //分析NALU
     //一个AVPacket中包含多个NALU 以0x00000001间隔,多个是以0x000001间隔
     // 0x00000001[NAL_HEAD],0x00000001是start code
     //[NAL_HEAD]
     //一个字节 orbidden_bit(1bit),nal_reference_bit(2bit)(优先级),nal_unit_type(5bit)
     auto nal_head{*(packet->data + 4)}; //去掉 00 00 00 01
-    auto nal_unit_type {nal_head & 0x1f};
+    auto nal_unit_type{nal_head & 0x1f}; //取后5bit 000 11111
     std::cerr << GET_STR(nal_unit_type :) << nal_unit_type << "\n";
-    std::cerr << "flush: " << packet.get()->size << "\t";
+
+    for (int i {4}; i < packet->size - 4; ++i) { //一个data中有多条nalu
+        const auto b_{!packet->data[i] && !packet->data[i + 1] && 0x01 == packet->data[i + 2]};
+        if (b_) {
+            nal_unit_type = packet->data[i + 3] & 0x1f;
+            std::cerr << "(" << nal_unit_type << ")" << " ";
+        }
+    }
     ofs.write(reinterpret_cast<const char *>(packet->data),packet->size);
 }
