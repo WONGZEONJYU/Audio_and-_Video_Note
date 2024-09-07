@@ -16,52 +16,52 @@ protected:
 static inline constexpr struct ULTRAFAST final : PRESET {
     inline constexpr ULTRAFAST() = default;
     static inline constexpr auto second{PARAMETERS(ultrafast)};
-}ultrafast{};
+}ultrafast_{};
 
 static inline constexpr struct SUPERFAST final : PRESET {
     inline constexpr SUPERFAST() = default;
     static inline constexpr auto second{PARAMETERS(superfast)};
-}superfast{};
+}superfast_{};
 
 static inline constexpr struct VERYFAST final : PRESET{
     inline constexpr VERYFAST() = default;
     static inline constexpr auto second{PARAMETERS(veryfast)};
-}veryfast{};
+}veryfast_{};
 
 static inline constexpr struct FASTER final : PRESET{
     inline constexpr FASTER() = default;
     static inline constexpr auto second{PARAMETERS(faster)};
-}faster{};
+}faster_{};
 
 static inline constexpr struct FAST final : PRESET{
     inline constexpr FAST() = default;
     static inline constexpr auto second{PARAMETERS(fast)};
-}fast{};
+}fast_{};
 
 static inline constexpr struct MEDIUM final : PRESET{
     inline constexpr MEDIUM() = default;
     static inline constexpr auto second{PARAMETERS(medium)};
-}medium{};
+}medium_{};
 
 static inline constexpr struct SLOW final : PRESET{
     inline constexpr SLOW() = default;
     static inline constexpr auto second{PARAMETERS(slow)};
-}slow{};
+}slow_{};
 
 static inline constexpr struct SLOWER final : PRESET{
     inline constexpr SLOWER() = default;
     static inline constexpr auto second{PARAMETERS(slower)};
-}slower{};
+}slower_{};
 
 static inline constexpr struct VERYSLOW final : PRESET{
     inline constexpr VERYSLOW() = default;
     static inline constexpr auto second{PARAMETERS(veryslow)};
-}veryslow{};
+}veryslow_{};
 
 static inline constexpr struct PLACEBO final : PRESET{
     inline constexpr PLACEBO() = default;
     static inline constexpr auto second{PARAMETERS(placebo)};
-}placebo{};
+}placebo_{};
 
 struct TUNE {
     static inline constexpr auto first{PARAMETERS(tune)};
@@ -72,42 +72,42 @@ protected:
 static inline constexpr struct FILM final : TUNE{
     inline constexpr FILM() = default;
     static inline constexpr auto second{PARAMETERS(film)};
-}film{};
+}film_{};
 
 static inline constexpr struct ANIMATION final : TUNE{
     inline constexpr ANIMATION() = default;
     static inline constexpr auto second{PARAMETERS(animation)};
-}animation{};
+}animation_{};
 
 static inline constexpr struct GRAIN final : TUNE{
     inline constexpr GRAIN() = default;
     static inline constexpr auto second{PARAMETERS(grain)};
-}grain{};
+}grain_{};
 
 static inline constexpr struct STILLIMAGE final : TUNE {
     inline constexpr STILLIMAGE() = default;
     static inline constexpr auto second{PARAMETERS(stillimage)};
-}stillimage{};
+}stillimage_{};
 
 static inline constexpr struct PSNR final : TUNE{
     inline constexpr PSNR() = default;
     static inline constexpr auto second{PARAMETERS(psnr)};
-}psnr{};
+}psnr_{};
 
 static inline constexpr struct SSIM final : TUNE {
     inline constexpr SSIM() = default;
     static inline constexpr auto second{PARAMETERS(ssim)};
-}ssim{};
+}ssim_{};
 
 static inline constexpr struct FASTDECODE final : TUNE{
     inline constexpr FASTDECODE() = default;
     static inline constexpr auto second{PARAMETERS(fastdecode)};
-} fastdecode{};
+} fastdecode_{};
 
 static inline constexpr struct ZEROLATENCY final : TUNE{
     inline constexpr ZEROLATENCY() = default;
     static inline constexpr auto second{PARAMETERS(zerolatency)};
-}zerolatency{};
+}zerolatency_{};
 
 struct PROFILE {
     static inline constexpr auto first{PARAMETERS(profile)};
@@ -118,12 +118,12 @@ protected:
 static inline constexpr struct BASELINE final : PROFILE{
     inline constexpr BASELINE() = default;
     static inline constexpr auto second{PARAMETERS(baseline)};
-}baseline{};
+}baseline_{};
 
 static inline constexpr struct EXTENDED final :PROFILE{
     inline constexpr EXTENDED() = default;
     static inline constexpr auto second{PARAMETERS(extended)};
-}extended{};
+}extended_{};
 
 static inline constexpr struct MAIN final : PROFILE{
     inline constexpr MAIN() = default;
@@ -133,11 +133,11 @@ static inline constexpr struct MAIN final : PROFILE{
 static inline constexpr struct HIGH final :PROFILE{
     inline constexpr HIGH() = default;
     static inline constexpr auto second{PARAMETERS(high)};
-}high{};
+}high_{};
 
 struct QP final {
     static inline constexpr auto m_name{PARAMETERS(qp)};
-    explicit inline constexpr QP(const long long &v):m_value{v}{}
+    inline constexpr QP(const long long &v):m_value{v}{}
     inline constexpr operator auto() const{return m_value;}
     [[nodiscard]] inline constexpr auto value() const{return m_value;}
 private:
@@ -153,11 +153,11 @@ protected:
 static inline constexpr struct CBR final : NAL_HRD{
     static inline constexpr auto second{PARAMETERS(cbr)};
     inline constexpr CBR() = default;
-}cbr{};
+}cbr_{};
 
 struct CRF final {
     static inline constexpr auto m_name{PARAMETERS(crf)};
-    inline constexpr explicit CRF(const long long &v):m_value{v}{}
+    inline constexpr CRF(const long long &v):m_value{v}{}
     inline constexpr operator auto (){return m_value;}
     [[nodiscard]] inline constexpr auto value() const{return m_value;}
 private:

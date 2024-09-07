@@ -36,15 +36,10 @@ int main(const int argc,const char *argv[]) {
         PRINT_ERR_TIPS(GET_STR(no parameters Use default parameters h265));
     }
 
-    XAVFrame_sptr frame;
-    XAVPacket_sptr packet;
-    AVCodecContext *codec_ctx{};
     std::ofstream ofs(file_name,std::ios::binary | std::ios::trunc);
 
     const Destroyer d([&]{
-        avcodec_free_context(&codec_ctx);
-        frame.reset();
-        packet.reset();
+
         ofs.close();
     });
 
@@ -53,10 +48,51 @@ int main(const int argc,const char *argv[]) {
         return -1;
     }
 
-    codec_ctx = XEncode::Create(codecId);
+    auto codec_ctx{XEncode::Create(codecId)};
+    codec_ctx->width = 800;
+    codec_ctx->height = 600;
+    XEncode en;
+    en.set_codec_ctx(codec_ctx);
+    en.Set_CRF(18);
+    en.Open();
 
+    auto frame{en.Alloc_AVFrame()};
+    if (!frame){
+        return -1;
+    }
 
+    int count{};
+    for(int i{};i < 500;++i) {
+        //Y
+        for (int y{}; y < codec_ctx->height; ++y) {
+            for (int x{}; x < codec_ctx->width; ++x) {
+                frame->data[0][y * frame->linesize[0] + x] = x + y + i * 3;
+            }
+        }
+        //UV
+        for (int y {}; y < codec_ctx->height / 2; ++y) {
+            for (int x {}; x < codec_ctx->width / 2; ++x) {
+                frame->data[1][ y * frame->linesize[1] + x] = 128 + y + i * 2;
+                frame->data[2][ y * frame->linesize[2] + x] = 64 + y + i * 5;
+            }
+        }
 
+        frame->pts = i;
+        //发送未压缩的帧进入编码器
+        auto pkt{en.Encode(frame)};
+        if (pkt){
+            ++count;
+            write_file(ofs,pkt);
+        }
+    }
+
+    auto packets{en.Flush()};
+    for (auto &item : packets) {
+        ++count;
+        write_file(ofs,item);
+    }
+
+    std::cerr << GET_STR(\ncount: ) << count << "\n";
 
 # if 0
     //1.查找编码器
@@ -215,7 +251,6 @@ int main(const int argc,const char *argv[]) {
     }
 #endif
     std::cerr << "\nencode success!\n\n";
-
     return 0;
 }
 
