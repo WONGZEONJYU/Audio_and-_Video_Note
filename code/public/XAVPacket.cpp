@@ -13,6 +13,10 @@ XAVPacket::XAVPacket() : AVPacket() {
     av_packet_unref(this);
 }
 
+XAVPacket::XAVPacket(AVPacket &packet) : AVPacket() {
+    av_packet_move_ref(this,std::addressof(packet));
+}
+
 XAVPacket::XAVPacket(const XAVPacket &obj) : XAVPacket(){
     av_packet_ref(this,std::addressof(obj));
 }
@@ -46,6 +50,13 @@ XAVPacket::~XAVPacket() {
 bool XAVPacket::Make_Writable() {
     FF_ERR_OUT(av_packet_make_writable(this),return {});
     return true;
+}
+
+void XAVPacket::Reset(AVPacket *packet) {
+    av_packet_unref(this);
+    if (packet){
+        av_packet_move_ref(this,packet);
+    }
 }
 
 XAVPacket_sptr new_XAVPacket() noexcept(false) {

@@ -23,12 +23,6 @@ public:
      * av_frame_move_ref
      * @param frame
      */
-    explicit XAVFrame(AVFrame *frame);
-
-    /**
-     * 同上
-     * @param frame
-     */
     explicit XAVFrame(AVFrame &frame);
 
     /**
