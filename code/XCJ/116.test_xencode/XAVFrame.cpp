@@ -13,6 +13,18 @@ XAVFrame::XAVFrame(const XAVFrame &obj) :XAVFrame() {
     av_frame_ref(this,std::addressof(obj));
 }
 
+XAVFrame::XAVFrame(AVFrame *frame) : AVFrame() {
+    if (!frame) {
+        PRINT_ERR_TIPS(GET_STR("frame is empty,Creates an empty object!"));
+        return;
+    }
+    av_frame_move_ref(this,frame);
+}
+
+XAVFrame::XAVFrame(AVFrame &frame) : AVFrame() {
+    av_frame_move_ref(this,std::addressof(frame));
+}
+
 XAVFrame::XAVFrame(XAVFrame &&obj) noexcept(true) : XAVFrame(){
     av_frame_move_ref(this,std::addressof(obj));
 }
@@ -42,6 +54,17 @@ XAVFrame::~XAVFrame() {
 bool XAVFrame::Get_Buffer(const int &align) {
     FF_ERR_OUT(av_frame_get_buffer(this,align),return {});
     return true;
+}
+
+bool XAVFrame::Make_Writable() {
+    FF_ERR_OUT(av_frame_make_writable(this),return {});
+    return true;
+}
+
+void XAVFrame::Reset(AVFrame *frame) {
+    av_frame_unref(this);
+
+    av_frame_move_ref(this,frame);
 }
 
 XAVFrame_sptr new_XAVFrame() noexcept(false) {

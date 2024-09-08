@@ -43,6 +43,11 @@ XAVPacket::~XAVPacket() {
     av_packet_unref(this);
 }
 
+bool XAVPacket::Make_Writable() {
+    FF_ERR_OUT(av_packet_make_writable(this),return {});
+    return true;
+}
+
 XAVPacket_sptr new_XAVPacket() noexcept(false) {
     XAVPacket_sptr obj;
     CHECK_EXC(obj = std::make_shared<XAVPacket>());

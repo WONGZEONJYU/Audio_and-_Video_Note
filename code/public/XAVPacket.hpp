@@ -25,6 +25,13 @@ public:
     XAVPacket& operator=(const XAVPacket &);
     XAVPacket& operator=(XAVPacket &&) noexcept;
     ~XAVPacket();
+
+    /**
+     * 为给定数据包描述的数据创建可写引用,尽可能避免数据复制
+     * @return true or false
+     */
+    bool Make_Writable();
+
 };
 
 using XAVPacket_sptr = typename std::shared_ptr<XAVPacket>;
