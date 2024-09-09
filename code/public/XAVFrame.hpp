@@ -14,16 +14,17 @@ class XAVFrame final : public AVFrame {
 
 public:
     XAVFrame();
+
     /**
-     * 把AVFrame的成员变量(并非AVFrame对象本身)转移到XAVFrame进行管理
-     * 如果被接管的AVFrame对象本身是通过av_frame_alloc()申请的
-     * 被接管后,需用户自行调用av_frame_free()进行释放
-     * 不会影响被接管的数据
-     * 在C++工程不建议直接使用AVFrame,建议采用本类进行管理,减少内存泄漏
-     * av_frame_move_ref
+     * 拷贝AVFrame对象,引用计数+1
      * @param frame
      */
-    explicit XAVFrame(AVFrame &frame);
+    explicit XAVFrame(const AVFrame &frame);
+    /**
+     * 同上
+     * @param frame
+     */
+    explicit XAVFrame(const AVFrame *frame);
 
     /**
      * 拷贝并非真拷贝,而是引用计数+1
@@ -75,12 +76,7 @@ public:
     bool Make_Writable();
 
     /**
-     * 释放本对象所管理的AVFrame
-     * 如果传入AVFrame,则本对象接管AVFrame的成员变量
-     * 被接管的AVFrame如果是通过av_frame_alloc()申请的,
-     * 则被接管后,需用户自行调用av_frame_free()进行释放
-     * 不会对被接管的数据有任何影响
-     * tips:在C++工程尽量使用XAVFrame管理AVFrame
+     * 释放本对象数据,如果frame不为空,则拷贝AVFrame,引用计数+1
      * @param frame
      */
     void Reset(AVFrame *frame = nullptr);

@@ -9,21 +9,25 @@ XAVFrame::XAVFrame() : AVFrame() {
     av_frame_unref(this);
 }
 
-XAVFrame::XAVFrame(AVFrame &frame) : AVFrame() {
-    av_frame_move_ref(this,std::addressof(frame));
+XAVFrame::XAVFrame(const AVFrame &frame) : AVFrame() {
+    av_frame_ref(this,std::addressof(frame));
+}
+
+XAVFrame::XAVFrame(const AVFrame *frame) : AVFrame() {
+    av_frame_ref(this,frame);
 }
 
 XAVFrame::XAVFrame(const XAVFrame &obj) :XAVFrame() {
     av_frame_ref(this,std::addressof(obj));
 }
 
-XAVFrame::XAVFrame(XAVFrame &&obj) noexcept(true) : XAVFrame(){
+XAVFrame::XAVFrame(XAVFrame &&obj) noexcept(true) :XAVFrame() {
     av_frame_move_ref(this,std::addressof(obj));
 }
 
 XAVFrame &XAVFrame::operator=(const XAVFrame &obj) {
     auto obj_{std::addressof(obj)};
-    if (this != obj_){
+    if (this != obj_) {
         av_frame_unref(this);//先释放自身的再调用av_frame_ref
         av_frame_ref(this,obj_);
     }
@@ -32,7 +36,7 @@ XAVFrame &XAVFrame::operator=(const XAVFrame &obj) {
 
 XAVFrame &XAVFrame::operator=(XAVFrame &&obj) noexcept(true) {
     auto obj_{std::addressof(obj)};
-    if (this != obj_){
+    if (this != obj_) {
         av_frame_unref(this);//先释放自身再调用av_frame_move_ref
         av_frame_move_ref(this,obj_);
     }

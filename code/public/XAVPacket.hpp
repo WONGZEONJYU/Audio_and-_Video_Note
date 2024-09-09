@@ -13,13 +13,18 @@ extern "C"{
 class XAVPacket final : public AVPacket {
 public:
     XAVPacket();
+
     /**
-     * 把AVPacket对象(并非AVPacket对象本身)成员变量移动到XAVPacket进行管理
-     * 如果AVPacket对象是通过av_packet_alloc()申请的,移动后,需用户手动调用av_packet_free()清理
-     * 不会对移动后到数据产生任何影响
+     * 对AVPacket拷贝,引用计数+1,AVPacket对象本身由用户自行管理
      * @param packet
      */
-    explicit XAVPacket(AVPacket &packet);
+    explicit XAVPacket(const AVPacket &packet);
+
+    /**
+     * 同上
+     * @param packet
+     */
+    explicit XAVPacket(const AVPacket *packet);
 
     /**
      * 引用计数+1
@@ -41,7 +46,8 @@ public:
     bool Make_Writable();
 
     /**
-     *
+     * 释放对象本身数据,如果packet不为nullptr
+     * 则对AVPacket引用计数+1
      * @param packet
      */
     void Reset(AVPacket *packet = nullptr);
