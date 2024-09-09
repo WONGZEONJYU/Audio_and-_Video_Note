@@ -11,7 +11,7 @@ struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Texture;
 
-class XSDL : public XVideoView{
+class XSDL : public XVideoView {
 
     /**
      * 销毁资源
@@ -44,7 +44,6 @@ protected:
      * @return ture or false
      */
     bool Draw(const void *datum,int line_size) override;
-
 
     /**
      * 渲染YUV,线程安全

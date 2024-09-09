@@ -189,9 +189,6 @@ bool XSDL::Is_Exit_Window() const {
 }
 
 void XSDL::Scale(const int &w,const int &h) {
-//    if (m_winID){
-//        XVideoView::Scale(w, h);
-//    }
     XVideoView::Scale(w, h);
 }
 
