@@ -26,11 +26,6 @@ public:
      */
     XAVPackets Flush();
 
-
-private:
-    AVCodecContext *m_codec_ctx{};
-    std::mutex m_mux;
-
 public:
     explicit XEncode() = default;
     ~XEncode() override = default;

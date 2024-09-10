@@ -20,41 +20,26 @@ return {};}
 XAVPacket_sptr XEncode::Encode(const XAVFrame_sptr &frame) {
 
     CHECK_CODEC_CTX
-    auto ret{avcodec_send_frame(m_codec_ctx,frame.get())};
-    if (0 != ret || AVERROR(EAGAIN) != ret ){
+    const auto ret{avcodec_send_frame(m_codec_ctx,frame.get())};
+    if (0 != ret || AVERROR(EAGAIN) != ret){
         FF_ERR_OUT(ret,return {});
     }
 
-    XAVPacket_sptr pkt;
-    TRY_CATCH(CHECK_EXC(pkt = new_XAVPacket()),return {});
-    ret = avcodec_receive_packet(m_codec_ctx,pkt.get());
-    if (ret < 0){
-        FF_ERR_OUT(ret,pkt.reset());
-    }
-    return pkt;
+    XAVPacket_sptr packet;
+    TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return {});
+    FF_ERR_OUT(avcodec_receive_packet(m_codec_ctx,packet.get()),packet.reset());
+    return packet;
 }
 
 XAVPackets XEncode::Flush() {
     CHECK_CODEC_CTX
-
-    auto ret{avcodec_send_frame(m_codec_ctx,{})};
-    if (ret < 0){
-        FF_ERR_OUT(ret,return {});
-    }
-
+    FF_ERR_OUT(avcodec_send_frame(m_codec_ctx,{}),return {});
     std::vector<XAVPacket_sptr> packets;
-
-    while (ret >= 0){
-        XAVPacket_sptr pkt;
-        TRY_CATCH(CHECK_EXC(pkt = new_XAVPacket()),return {});
-        ret = avcodec_receive_packet(m_codec_ctx,pkt.get());
-        if (ret < 0) {
-            FF_ERR_OUT(ret);
-            break;
-        }
-        packets.push_back(std::move(pkt));
+    while (true){
+        XAVPacket_sptr packet;
+        TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return packets);
+        FF_ERR_OUT(avcodec_receive_packet(m_codec_ctx,packet.get()),return packets);
+        packets.push_back(std::move(packet));
     }
-
-    return packets;
 }
 
