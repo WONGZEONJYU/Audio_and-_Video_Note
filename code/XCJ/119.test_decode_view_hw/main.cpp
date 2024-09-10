@@ -17,7 +17,7 @@ static void Decode(AVCodecContext *ctx,const XAVPacket_sptr &pkt,XAVFrame_sptr &
 
 int main() {
 
-    ifstream ifs("test2.h264",ios::binary);
+    ifstream ifs("test_1080.h264",ios::binary);
     AVCodecContext *codec_ctx{};
     AVCodecParserContext *parser_ctx{};
     XVideoView* view{};
@@ -58,8 +58,11 @@ int main() {
         PRINT_ERR_TIPS(GET_STR(avcodec_alloc_context3 failed!));
         return -1;
     }
-
+#if MACOS
+    const auto hw_type{AV_HWDEVICE_TYPE_VIDEOTOOLBOX};
+#else
     const auto hw_type{AV_HWDEVICE_TYPE_DXVA2};
+#endif
     /**
      * 列出所有支持的硬件加速方式
      */
@@ -206,5 +209,10 @@ static void Decode(AVCodecContext *ctx,
          * 显示一帧画面
          */
         view->DrawFrame(frame);
+#if MACOS
+        if (view->Is_Exit_Window()){
+            return;
+        }
+#endif
     }
 }
