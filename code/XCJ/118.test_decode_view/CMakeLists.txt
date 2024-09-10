@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.29)
-project(117_test_decode)
+project(118.test_decode_view)
 
 set(CMAKE_CXX_STANDARD 26)
 
