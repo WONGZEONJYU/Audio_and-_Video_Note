@@ -15,9 +15,14 @@ extern "C"{
 using namespace std;
 static void Decode(AVCodecContext *ctx,const XAVPacket_sptr &pkt,XAVFrame_sptr &frame,int64_t &begin,int &count,XVideoView *);
 
-int main() {
+int main(const int argc,const char *argv[]) {
 
-    ifstream ifs("test_1080.h264",ios::binary);
+    if (argc < 2){
+        PRINT_ERR_TIPS(GET_STR(argv miss!\n));
+        return -1;
+    }
+
+    ifstream ifs(argv[1],ios::binary);
     AVCodecContext *codec_ctx{};
     AVCodecParserContext *parser_ctx{};
     XVideoView* view{};
@@ -35,7 +40,7 @@ int main() {
     TRY_CATCH(CHECK_EXC(view = XVideoView::create()),return -1);
 
     if (!ifs) {
-        PRINT_ERR_TIPS(GET_STR(test.h264 open failed!));
+        PRINT_ERR_TIPS(GET_STR(h264_file open failed!));
         return -1;
     }
 
