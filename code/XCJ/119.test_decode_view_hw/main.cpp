@@ -50,6 +50,16 @@ int main() {
         return -1;
     }
 
+    for (int i {};;++i) {
+        auto config{avcodec_get_hw_config(codec,i)};
+        if (!config){
+            break;
+        }
+        if (config->device_type){
+            cerr << av_hwdevice_get_type_name(config->device_type) << "\n";
+        }
+    }
+    return 0;
     /**
      * 分配解码器上下文
      */
