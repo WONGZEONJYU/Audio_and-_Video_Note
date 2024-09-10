@@ -21,7 +21,7 @@ XVideoView *XVideoView::create(const XVideoView::RenderType &renderType) {
 void XVideoView::calc_fps() {
     static constexpr auto TIME_MS{1000LL};
     ++m_count;
-    if (m_begin_time <= 0){
+    if (m_begin_time <= 0LL){
         m_begin_time = Get_time_ms(); //更新时间
     } else if (Get_time_ms() - m_begin_time >= TIME_MS){
         m_render_fps = m_count.load();

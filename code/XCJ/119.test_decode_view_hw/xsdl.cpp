@@ -13,7 +13,7 @@ static inline bool sdl_init(){
         static mutex mux;
         unique_lock locker(mux);
         SDL_LogSetAllPriority(SDL_LOG_PRIORITY_VERBOSE);
-        SDL2_INT_ERR_OUT(SDL_Init(SDL_INIT_VIDEO ),return {});
+        SDL2_INT_ERR_OUT(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO),return {});
         //direct3d
         //SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d");
         if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1") < SDL_FALSE){
@@ -59,8 +59,9 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
     }
 
     SDL2_PTR_ERR_OUT(m_renderer = SDL_CreateRenderer(m_win,-1,SDL_RENDERER_ACCELERATED),//使用硬件渲染,如有不支持,可以替换
-                     return {});
-    //创建渲染器
+                     return {}); //创建渲染器
+
+
     SDL2_INT_ERR_OUT(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND),return {});
     SDL2_INT_ERR_OUT(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255),return {}); // 设置透明背景
 
@@ -90,12 +91,12 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
 
     SDL2_PTR_ERR_OUT(m_texture = SDL_CreateTexture(m_renderer,
                                                    pix_fmt,
-                                                   SDL_TEXTUREACCESS_STREAMING,
+                                                   SDL_TEXTUREACCESS_STREAMING, //纹理需频繁改变,带锁
                                                    m_width,m_height),return {});
     return true;
 }
 
-bool XSDL::Draw(const void *datum, int line_size) {
+bool XSDL::Draw(const void *datum,int line_size) {
 
     if (!datum) {
         PRINT_ERR_TIPS(GET_STR(datum is nullptr));
