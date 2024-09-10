@@ -9,6 +9,7 @@
 #include <atomic>
 #include <memory>
 #include <fstream>
+#include <vector>
 #include "XHelper.hpp"
 
 class XAVFrame;
@@ -22,6 +23,7 @@ public:
     enum Format : int {
         YUV420P = 0,
         RGB24 = 2,
+        NV12 = 23,
         ARGB = 25,
         RGBA = 26,
         BGRA = 28,
@@ -152,7 +154,7 @@ protected:
 private:
     std::ifstream m_ifs;
     XAVFrame_sptr m_frame;
-
+    std::pmr::vector<uint8_t> m_cache;
 public:
     static int64_t Get_time_ms();
     static void MSleep(const uint64_t &);

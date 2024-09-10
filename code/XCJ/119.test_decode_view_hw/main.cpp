@@ -13,7 +13,12 @@ extern "C"{
 #include "xvideo_view.hpp"
 
 using namespace std;
-static void Decode(AVCodecContext *ctx,const XAVPacket_sptr &pkt,XAVFrame_sptr &frame,int64_t &begin,int &count,XVideoView *);
+static bool Decode(AVCodecContext *ctx,
+                   const XAVPacket_sptr &pkt,
+                   XAVFrame_sptr &frame,
+                   XAVFrame_sptr &hw_frame,
+                   int64_t &begin,
+                   int &count,XVideoView *);
 
 int main(const int argc,const char *argv[]) {
 
@@ -28,6 +33,7 @@ int main(const int argc,const char *argv[]) {
     XVideoView* view{};
 
     const Destroyer d([&]{
+        cerr << "Destroyer\n";
         avcodec_free_context(&codec_ctx);
         av_parser_close(parser_ctx);
         ifs.close();
@@ -82,7 +88,7 @@ int main(const int argc,const char *argv[]) {
     }
     AVBufferRef *hw_ctx{};
     FF_ERR_OUT(av_hwdevice_ctx_create(&hw_ctx,hw_type,{},{},{}),return -1);
-    //codec_ctx->hw_device_ctx = av_buffer_ref(hw_ctx);
+    codec_ctx->hw_device_ctx = av_buffer_ref(hw_ctx);
 
     /**
      * 设置解码器线程数
@@ -93,7 +99,6 @@ int main(const int argc,const char *argv[]) {
      * 打开解码器
      */
     FF_CHECK_ERR(avcodec_open2(codec_ctx,codec,nullptr),return -1);
-
     /**
      * 初始化解析器
      */
@@ -108,8 +113,10 @@ int main(const int argc,const char *argv[]) {
 
     XAVPacket_sptr packet;
     XAVFrame_sptr frame;
+    XAVFrame_sptr hw_frame;
     TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return -1);
     TRY_CATCH(CHECK_EXC(frame = new_XAVFrame()),return -1);
+    TRY_CATCH(CHECK_EXC(hw_frame = new_XAVFrame()),return -1);
 
     int count{};
     auto begin{XVideoView::Get_time_ms()};
@@ -139,7 +146,9 @@ int main(const int argc,const char *argv[]) {
                 /**
                  * 解码
                  */
-                Decode(codec_ctx,packet,frame,begin,count,view);
+                if (Decode(codec_ctx,packet,frame,hw_frame,begin,count,view)) {
+                    return 0;
+                }
             }
         }
     }
@@ -158,7 +167,7 @@ int main(const int argc,const char *argv[]) {
             /**
              * 冲刷解码器,把缓存的帧全部读取出来
              */
-            Decode(codec_ctx, {}, frame, begin, count, view);
+            Decode(codec_ctx, {}, frame,hw_frame,begin, count, view);
         }
     }
 
@@ -167,12 +176,14 @@ int main(const int argc,const char *argv[]) {
     return 0;
 }
 
-static void Decode(AVCodecContext *ctx,
+static bool Decode(AVCodecContext *ctx,
                    const XAVPacket_sptr &pkt,
                    XAVFrame_sptr &frame,
+                   XAVFrame_sptr &hw_frame,
                    int64_t &begin,
                    int &count,
                    XVideoView *view){
+
     static bool is_view_init{};
 
     /**
@@ -180,7 +191,7 @@ static void Decode(AVCodecContext *ctx,
      */
     auto ret{avcodec_send_packet(ctx,pkt.get())};
     if (0 != ret || AVERROR(EAGAIN) != ret) {
-        FF_ERR_OUT(ret, return);
+        FF_ERR_OUT(ret, return {});
     }
 
     while (true) {
@@ -188,12 +199,17 @@ static void Decode(AVCodecContext *ctx,
          * 读取解码后的帧
          */
         if (avcodec_receive_frame(ctx,frame.get()) < 0) {
-            return;
+            return false;
+        }
+
+        auto p_frame{frame};
+        if (ctx->hw_device_ctx){
+            FF_ERR_OUT(av_hwframe_transfer_data(hw_frame.get(),frame.get(),0), return {});
+            p_frame = hw_frame;
         }
 
         ++count;
-//        cerr << av_get_pix_fmt_name(static_cast<AVPixelFormat>(frame->format)) <<
-//                " width: " << frame->width << " height: " << frame->height << "\n";
+        cerr << av_get_pix_fmt_name(static_cast<AVPixelFormat>(p_frame->format)) << "\n";
 
         const auto curr_time{XVideoView::Get_time_ms()};
         if (curr_time - begin >= 1000LL) {
@@ -207,17 +223,15 @@ static void Decode(AVCodecContext *ctx,
              * 用第一帧来初始化显示
              */
             is_view_init = true;
-            view->Init(frame->width,frame->height,static_cast<XVideoView::Format>(frame->format));
+            view->Init(p_frame->width,p_frame->height,static_cast<XVideoView::Format>(p_frame->format));
         }
 
         /**
          * 显示一帧画面
          */
-        view->DrawFrame(frame);
-#if MACOS
+        view->DrawFrame(p_frame);
         if (view->Is_Exit_Window()){
-            return;
+            return true;
         }
-#endif
     }
 }

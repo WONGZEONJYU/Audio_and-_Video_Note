@@ -16,7 +16,7 @@ static inline bool sdl_init(){
         SDL2_INT_ERR_OUT(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO),return {});
         //direct3d
         //SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d");
-        if (SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1") < SDL_FALSE){
+        if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1")){
             //设置缩放算法,解决锯齿问题,采用双线性插值算法
             PRINT_ERR_TIPS(SDL_GetError());
             return {};
@@ -85,6 +85,9 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
             pix_fmt = SDL_PIXELFORMAT_RGB24;
             m_pixel_Byte_size = 3;
             break;
+        case NV12:
+            pix_fmt = SDL_PIXELFORMAT_NV12;
+            m_pixel_Byte_size = 1;
         default:
             break;
     }
@@ -122,6 +125,7 @@ bool XSDL::Draw(const void *datum,int line_size) {
                 line_size = m_width * 4;
                 break;
             case YUV420P:
+            case NV12:
                 line_size = m_width;
                 break;
             default:

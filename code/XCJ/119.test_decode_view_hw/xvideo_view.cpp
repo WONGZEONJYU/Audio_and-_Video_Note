@@ -6,6 +6,8 @@
 #include "xsdl.hpp"
 #include "XAVFrame.hpp"
 #include <thread>
+#include <algorithm>
+
 
 using namespace std;
 
@@ -45,6 +47,40 @@ bool XVideoView::DrawFrame(const XAVFrame_sptr &frame) {
             return Draw(frame->data[0],frame->linesize[0],
                         frame->data[1],frame->linesize[1],
                         frame->data[2],frame->linesize[2]);
+        case AV_PIX_FMT_NV12: {
+
+            if (!m_cache.capacity()) {
+                m_cache.resize(4096 * 2160 * 1.5,0);
+            }
+
+            auto line_size{frame->width};
+            const auto cache_{m_cache.data()};
+
+            if (frame->width == frame->linesize[0]) {
+                auto src_{frame->data[0]},
+                    dst_{cache_};
+                const auto cp_y_size{frame->linesize[0] * frame->height};
+                copy_n(src_,cp_y_size,dst_); //Y
+                src_ = frame->data[1];
+                dst_+= cp_y_size;
+                const auto cp_uv_size {frame->linesize[1] * frame->height / 2};
+                copy_n(src_,cp_uv_size,dst_) ; //UV
+            }else {
+                for (int i {}; i < frame->height; ++i) { //Y
+                    const auto src_ {frame->data[0] + frame->linesize[0] * i},
+                            dst_{cache_ + frame->width * i};
+                    copy_n(src_,frame->width,dst_);
+                }
+
+                const auto uv_start{cache_ + frame->width * frame->height};
+                for (int i {}; i < frame->height / 2; ++i) { //UV
+                    const auto src_{frame->data[1] + frame->linesize[1] * i},
+                            dst_{uv_start + frame->width * i};
+                    copy_n(src_,frame->width,dst_);
+                }
+            }
+            return Draw(m_cache.data(),line_size);
+        }
         case AV_PIX_FMT_BGRA:
         case AV_PIX_FMT_RGBA:
         case AV_PIX_FMT_ARGB:
@@ -143,7 +179,7 @@ XAVFrame_sptr XVideoView::Read() {
             m_ifs.read(reinterpret_cast<char *>(m_frame->data[i]),read_size);
         }
     } else { //只适合交错模式
-        const auto read_size{ m_frame->linesize[0] * m_height};
+        const auto read_size{m_frame->linesize[0] * m_height};
         m_ifs.read(reinterpret_cast<char *>(m_frame->data[0]),read_size);
     }
 
