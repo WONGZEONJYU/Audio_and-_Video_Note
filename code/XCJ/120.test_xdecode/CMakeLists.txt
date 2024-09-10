@@ -59,7 +59,8 @@ add_executable(${PROJECT_NAME} main.cpp
         XAVPacket.cpp
         XHelper.cpp
         xsdl.cpp
-        xvideo_view.cpp)
+        xvideo_view.cpp
+        xencode.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)

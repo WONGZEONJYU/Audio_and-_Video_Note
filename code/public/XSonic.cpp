@@ -1,4 +1,4 @@
-#include "XSonic.hpp"
+#include "xsonic.hpp"
 #include <algorithm>
 #include <iostream>
 

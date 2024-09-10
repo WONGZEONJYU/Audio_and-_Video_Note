@@ -1,7 +1,7 @@
 #ifndef SONIC_HPP
 #define SONIC_HPP
 
-#include "XHelper.hpp"
+#include "xhelper.hpp"
 #include <vector>
 
 class XSonic_data{

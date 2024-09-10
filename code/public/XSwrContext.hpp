@@ -3,7 +3,7 @@
 #define SWRCONTEXT_T_H
 
 #include <memory>
-#include "XHelper.hpp"
+#include "xhelper.hpp"
 
 enum AVSampleFormat;
 struct AVChannelLayout;

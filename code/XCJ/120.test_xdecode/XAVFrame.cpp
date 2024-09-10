@@ -2,8 +2,8 @@
 // Created by Administrator on 2024/7/29.
 //
 
-#include "XAVFrame.hpp"
-#include "XHelper.hpp"
+#include "xavframe.hpp"
+#include "xhelper.hpp"
 
 XAVFrame::XAVFrame() : AVFrame() {
     av_frame_unref(this);

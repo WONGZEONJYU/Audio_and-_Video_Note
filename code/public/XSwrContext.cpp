@@ -3,7 +3,7 @@ extern "C"{
 #include <libavutil/opt.h>
 }
 
-#include "XSwrContext.hpp"
+#include "xswrcontext.hpp"
 
 void XSwrContext::Construct() noexcept(false) {
     CHECK_NULLPTR(m_swr_ctx = swr_alloc());

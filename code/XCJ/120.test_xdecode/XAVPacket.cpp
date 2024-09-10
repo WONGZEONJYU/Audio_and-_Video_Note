@@ -6,8 +6,8 @@ extern "C" {
 #include <libavutil/avutil.h>
 }
 
-#include "XAVPacket.hpp"
-#include "XHelper.hpp"
+#include "xavpacket.hpp"
+#include "xhelper.hpp"
 
 XAVPacket::XAVPacket() : AVPacket() {
     av_packet_unref(this);

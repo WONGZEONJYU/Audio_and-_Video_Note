@@ -4,10 +4,9 @@
 
 #include "xvideo_view.hpp"
 #include "xsdl.hpp"
-#include "XAVFrame.hpp"
+#include "xavframe.hpp"
 #include <thread>
 #include <algorithm>
-
 
 using namespace std;
 

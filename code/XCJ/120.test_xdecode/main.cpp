@@ -7,9 +7,9 @@ extern "C"{
 #include <fstream>
 #include <vector>
 #include <thread>
-#include "XAVPacket.hpp"
-#include "XAVFrame.hpp"
-#include "XHelper.hpp"
+#include "xavpacket.hpp"
+#include "xavframe.hpp"
+#include "xhelper.hpp"
 #include "xvideo_view.hpp"
 
 using namespace std;

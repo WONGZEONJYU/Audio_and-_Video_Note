@@ -2,7 +2,7 @@
 // Created by Administrator on 2024/7/11.
 //
 
-#include "XSwsContext.hpp"
+#include "xswscontext.hpp"
 
 XSwsContext::XSwsContext(const int &srcW,const int &srcH,
                          const AVPixelFormat &srcFormat,

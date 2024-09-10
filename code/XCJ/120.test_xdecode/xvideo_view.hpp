@@ -10,7 +10,7 @@
 #include <memory>
 #include <fstream>
 #include <vector>
-#include "XHelper.hpp"
+#include "xhelper.hpp"
 
 class XAVFrame;
 using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;

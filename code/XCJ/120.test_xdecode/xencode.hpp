@@ -9,7 +9,8 @@
 #include <mutex>
 #include <string>
 #include <vector>
-#include "Encode_Params.hpp"
+#include <memory>
+#include "encode_params.hpp"
 
 struct AVCodecContext;
 class XAVFrame;

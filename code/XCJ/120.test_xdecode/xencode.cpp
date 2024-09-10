@@ -8,8 +8,8 @@ extern "C"{
 
 #include "xencode.hpp"
 #include <thread>
-#include "XAVFrame.hpp"
-#include "XAVPacket.hpp"
+#include "xavframe.hpp"
+#include "xavpacket.hpp"
 
 #define CHECK_CODEC_CTX \
 std::unique_lock locker(m_mux);\

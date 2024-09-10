@@ -10,7 +10,7 @@ extern "C"{
 }
 
 #include <memory>
-#include "XHelper.hpp"
+#include "xhelper.hpp"
 
 class XSwsContext;
 using XSwsContext_sptr = std::shared_ptr<XSwsContext>;
