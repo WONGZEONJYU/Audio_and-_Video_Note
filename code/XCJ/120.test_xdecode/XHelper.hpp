@@ -126,7 +126,6 @@ namespace XHelper {
 
 #define GET_STR(args) #args
 
-
 #define TRY_CATCH(x,...) do{ \
        try{x;}catch(const std::exception &e){ \
             std::cerr << e.what() << "\n";    \
