@@ -74,7 +74,7 @@ int main() {
     }
     AVBufferRef *hw_ctx{};
     FF_ERR_OUT(av_hwdevice_ctx_create(&hw_ctx,hw_type,{},{},{}),return -1);
-    codec_ctx->hw_device_ctx = av_buffer_ref(hw_ctx);
+    //codec_ctx->hw_device_ctx = av_buffer_ref(hw_ctx);
 
     /**
      * 设置解码器线程数
@@ -114,10 +114,6 @@ int main() {
         if (ifs.eof()){
             ifs.clear();
             ifs.seekg(0,ios::beg);
-        }
-
-        if (view->Is_Exit_Window()){
-            return 0;
         }
 
         while (read_size) {
@@ -203,12 +199,12 @@ static void Decode(AVCodecContext *ctx,
              * 用第一帧来初始化显示
              */
             is_view_init = true;
-            //view->Init(frame->width,frame->height,static_cast<XVideoView::Format>(frame->format));
+            view->Init(frame->width,frame->height,static_cast<XVideoView::Format>(frame->format));
         }
 
         /**
          * 显示一帧画面
          */
-        //view->DrawFrame(frame);
+        view->DrawFrame(frame);
     }
 }
