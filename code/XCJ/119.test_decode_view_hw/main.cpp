@@ -17,7 +17,7 @@ static void Decode(AVCodecContext *ctx,const XAVPacket_sptr &pkt,XAVFrame_sptr &
 
 int main() {
 
-    ifstream ifs("test.h264",ios::binary);
+    ifstream ifs("test2.h264",ios::binary);
     AVCodecContext *codec_ctx{};
     AVCodecParserContext *parser_ctx{};
     XVideoView* view{};
@@ -50,16 +50,6 @@ int main() {
         return -1;
     }
 
-    for (int i {};;++i) {
-        auto config{avcodec_get_hw_config(codec,i)};
-        if (!config){
-            break;
-        }
-        if (config->device_type){
-            cerr << av_hwdevice_get_type_name(config->device_type) << "\n";
-        }
-    }
-    return 0;
     /**
      * 分配解码器上下文
      */
@@ -68,6 +58,23 @@ int main() {
         PRINT_ERR_TIPS(GET_STR(avcodec_alloc_context3 failed!));
         return -1;
     }
+
+    const auto hw_type{AV_HWDEVICE_TYPE_DXVA2};
+    /**
+     * 列出所有支持的硬件加速方式
+     */
+    for (int i {};;++i) {
+        auto config{avcodec_get_hw_config(codec,i)};
+        if (!config) {
+            break;
+        }
+        if (config->device_type){
+            cerr << av_hwdevice_get_type_name(config->device_type) << "\n";
+        }
+    }
+    AVBufferRef *hw_ctx{};
+    FF_ERR_OUT(av_hwdevice_ctx_create(&hw_ctx,hw_type,{},{},{}),return -1);
+    codec_ctx->hw_device_ctx = av_buffer_ref(hw_ctx);
 
     /**
      * 设置解码器线程数
@@ -104,6 +111,15 @@ int main() {
         ifs.read(reinterpret_cast<char *>(in_buffer),static_cast<long long>(read_data.capacity()));
         auto read_size {ifs.gcount()};
 
+        if (ifs.eof()){
+            ifs.clear();
+            ifs.seekg(0,ios::beg);
+        }
+
+        if (view->Is_Exit_Window()){
+            return 0;
+        }
+
         while (read_size) {
             /**
              * 解析H264裸流
@@ -114,7 +130,7 @@ int main() {
                                                    AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0)};
             read_size -= parser_len;
             in_buffer += parser_len;
-            if (packet->size){
+            if (packet->size) {
                 //cerr << "packet.size = " << packet->size << "\t";
                 /**
                  * 解码
@@ -143,7 +159,7 @@ int main() {
     }
 
     std::cerr << "\n\nparser and decode success!\n";
-    getchar();
+
     return 0;
 }
 
@@ -176,8 +192,8 @@ static void Decode(AVCodecContext *ctx,
 //                " width: " << frame->width << " height: " << frame->height << "\n";
 
         const auto curr_time{XVideoView::Get_time_ms()};
-        if (curr_time - begin >= 100LL) {
-            std::cerr << "fps :" << count * 10 << "\n";
+        if (curr_time - begin >= 1000LL) {
+            std::cerr << "fps :" << count << "\n";
             count = 0;
             begin = curr_time;
         }
@@ -187,12 +203,12 @@ static void Decode(AVCodecContext *ctx,
              * 用第一帧来初始化显示
              */
             is_view_init = true;
-            view->Init(frame->width,frame->height,static_cast<XVideoView::Format>(frame->format));
+            //view->Init(frame->width,frame->height,static_cast<XVideoView::Format>(frame->format));
         }
 
         /**
          * 显示一帧画面
          */
-        view->DrawFrame(frame);
+        //view->DrawFrame(frame);
     }
 }
