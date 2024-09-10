@@ -7,6 +7,7 @@ extern "C"{
 #include <fstream>
 #include <vector>
 #include <thread>
+#include "xdecode.hpp"
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
 #include "xhelper.hpp"
@@ -28,13 +29,11 @@ int main(const int argc,const char *argv[]) {
     }
 
     ifstream ifs(argv[1],ios::binary);
-    AVCodecContext *codec_ctx{};
     AVCodecParserContext *parser_ctx{};
     XVideoView* view{};
 
     const Destroyer d([&]{
         cerr << "Destroyer\n";
-        avcodec_free_context(&codec_ctx);
         av_parser_close(parser_ctx);
         ifs.close();
         delete view;
@@ -49,56 +48,14 @@ int main(const int argc,const char *argv[]) {
         PRINT_ERR_TIPS(GET_STR(h264_file open failed!));
         return -1;
     }
+    const auto codec_id {AV_CODEC_ID_H264};
 
-    const auto codec_id{AV_CODEC_ID_H264};
 
-    /**
-     * 查找解码器
-     */
-    auto codec{avcodec_find_decoder(codec_id)};
-    if (!codec){
-        PRINT_ERR_TIPS(GET_STR(codec not found!));
-        return -1;
-    }
-
-    /**
-     * 分配解码器上下文
-     */
-    codec_ctx = avcodec_alloc_context3(codec);
-    if (!codec_ctx) {
-        PRINT_ERR_TIPS(GET_STR(avcodec_alloc_context3 failed!));
-        return -1;
-    }
-#if MACOS
-    const auto hw_type{AV_HWDEVICE_TYPE_VIDEOTOOLBOX};
-#else
-    const auto hw_type{AV_HWDEVICE_TYPE_DXVA2};
-#endif
-    /**
-     * 列出所有支持的硬件加速方式
-     */
-    for (int i {};;++i) {
-        auto config{avcodec_get_hw_config(codec,i)};
-        if (!config) {
-            break;
-        }
-        if (config->device_type){
-            cerr << av_hwdevice_get_type_name(config->device_type) << "\n";
-        }
-    }
-    AVBufferRef *hw_ctx{};
-    FF_ERR_OUT(av_hwdevice_ctx_create(&hw_ctx,hw_type,{},{},{}),return -1);
-    codec_ctx->hw_device_ctx = av_buffer_ref(hw_ctx);
-
-    /**
-     * 设置解码器线程数
-     */
-    codec_ctx->thread_count = static_cast<int>(thread::hardware_concurrency());
-
-    /**
-     * 打开解码器
-     */
-    FF_CHECK_ERR(avcodec_open2(codec_ctx,codec,nullptr),return -1);
+    XDecode de;
+    auto c{XCodec::Create(codec_id,false)};
+    de.set_codec_ctx(c);
+    de.Open();
+    de.InitHw(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
     /**
      * 初始化解析器
      */
@@ -120,6 +77,8 @@ int main(const int argc,const char *argv[]) {
 
     int count{};
     auto begin{XVideoView::Get_time_ms()};
+    bool is_view_init{};
+
     while (!ifs.eof()) {
 
         auto in_buffer{read_data.data()};
@@ -135,7 +94,7 @@ int main(const int argc,const char *argv[]) {
             /**
              * 解析H264裸流
              */
-            const auto parser_len{av_parser_parse2(parser_ctx, codec_ctx,
+            const auto parser_len{av_parser_parse2(parser_ctx, c,
                                                    &packet->data, &packet->size,
                                                    in_buffer, static_cast<int>(read_size),
                                                    AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0)};
@@ -143,10 +102,27 @@ int main(const int argc,const char *argv[]) {
             in_buffer += parser_len;
             if (packet->size) {
                 //cerr << "packet.size = " << packet->size << "\t";
-                /**
-                 * 解码
-                 */
-                if (Decode(codec_ctx,packet,frame,hw_frame,begin,count,view)) {
+                while (de.Receive(frame)){
+                    if (!is_view_init){
+                        is_view_init = true;
+                        view->Init(frame->width,frame->height,static_cast<XVideoView::Format>(frame->format));
+                    }
+                    view->DrawFrame(frame);
+                    ++count;
+                    const auto curr_time{XVideoView::Get_time_ms()};
+                    if (curr_time - begin >= 10LL) {
+                        std::cerr << "fps :" << count * 100<< "\n";
+                        count = 0;
+                        begin = curr_time;
+                    }
+                    cerr << av_get_pix_fmt_name(static_cast<AVPixelFormat>(frame->format)) << "\n";
+                }
+
+                if (!de.Send(packet)){
+                    break;
+                }
+
+                if (view->Is_Exit_Window()){
                     return 0;
                 }
             }
@@ -157,7 +133,7 @@ int main(const int argc,const char *argv[]) {
         /**
          * 冲刷解析器,把缓存全部读取出来
          */
-        av_parser_parse2(parser_ctx, codec_ctx,
+        av_parser_parse2(parser_ctx, c,
                          &packet->data, &packet->size,
                          nullptr, 0, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
 
@@ -167,15 +143,17 @@ int main(const int argc,const char *argv[]) {
             /**
              * 冲刷解码器,把缓存的帧全部读取出来
              */
-            Decode(codec_ctx, {}, frame,hw_frame,begin, count, view);
+
         }
     }
+
 
     std::cerr << "\n\nparser and decode success!\n";
 
     return 0;
 }
 
+#if 0
 static bool Decode(AVCodecContext *ctx,
                    const XAVPacket_sptr &pkt,
                    XAVFrame_sptr &frame,
@@ -235,3 +213,5 @@ static bool Decode(AVCodecContext *ctx,
         }
     }
 }
+
+#endif

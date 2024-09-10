@@ -11,7 +11,7 @@ extern "C"{
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
 
-#define CHECK_CODEC_CTX \
+#define CHECK_CODEC_CTX() \
 std::unique_lock locker(m_mux);\
 if (!m_codec_ctx){\
 PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
@@ -22,7 +22,7 @@ bool XDecode::Send(const XAVPacket_sptr &packet) {
         PRINT_ERR_TIPS(GET_STR(packet is empty!));
         return {};
     }
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX()
     FF_ERR_OUT(avcodec_send_packet(m_codec_ctx,packet.get()),return {});
     return true;
 }
@@ -32,13 +32,13 @@ bool XDecode::Receive(XAVFrame_sptr &frame) {
         PRINT_ERR_TIPS(GET_STR(frame is empty!));
         return {};
     }
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX()
     FF_ERR_OUT(avcodec_receive_frame(m_codec_ctx,frame.get()),return {});
     return true;
 }
 
 XAVFrames XDecode::Flush() {
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX()
     FF_ERR_OUT(avcodec_send_packet(m_codec_ctx,{}),return {});
     XAVFrames frames;
     while (true) {
@@ -47,4 +47,16 @@ XAVFrames XDecode::Flush() {
         FF_ERR_OUT(avcodec_receive_frame(m_codec_ctx,frame.get()),return frames);
         frames.push_back(std::move(frame));
     }
+}
+
+bool XDecode::InitHw(const int &type) {
+
+    CHECK_CODEC_CTX()
+    const auto hw_type{static_cast<AVHWDeviceType>(type)};
+    AVBufferRef *hw_device_ctx{}; //硬件加速
+    FF_ERR_OUT(av_hwdevice_ctx_create(&hw_device_ctx,hw_type,{},{},0),return {});
+    m_codec_ctx->hw_device_ctx = av_buffer_ref(hw_device_ctx);
+    //m_codec_ctx->hw_device_ctx = hw_device_ctx;
+    std::cerr << "Hardware Acceleration: " << av_hwdevice_get_type_name(hw_type) << "\n";
+    return true;
 }

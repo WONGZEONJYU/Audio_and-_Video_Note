@@ -22,7 +22,7 @@ public:
 
     /**
      * 冲刷编码器
-     * @return std::vector<XAVPacket_sptr>
+     * @return XAVPackets or empty
      */
     XAVPackets Flush();
 

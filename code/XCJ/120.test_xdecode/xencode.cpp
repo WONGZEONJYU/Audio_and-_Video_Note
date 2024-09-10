@@ -11,7 +11,7 @@ extern "C"{
 #include "xavframe.hpp"
 #include "xavpacket.hpp"
 
-#define CHECK_CODEC_CTX \
+#define CHECK_CODEC_CTX() \
 std::unique_lock locker(m_mux);\
 if (!m_codec_ctx){\
 PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
@@ -19,7 +19,7 @@ return {};}
 
 XAVPacket_sptr XEncode::Encode(const XAVFrame_sptr &frame) {
 
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX()
     const auto ret{avcodec_send_frame(m_codec_ctx,frame.get())};
     if (0 != ret || AVERROR(EAGAIN) != ret){
         FF_ERR_OUT(ret,return {});
@@ -32,7 +32,7 @@ XAVPacket_sptr XEncode::Encode(const XAVFrame_sptr &frame) {
 }
 
 XAVPackets XEncode::Flush() {
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX()
     FF_ERR_OUT(avcodec_send_frame(m_codec_ctx,{}),return {});
     std::vector<XAVPacket_sptr> packets;
     while (true){
