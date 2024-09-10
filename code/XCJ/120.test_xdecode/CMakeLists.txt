@@ -55,12 +55,16 @@ set(FFMPEG_LIBS
 )
 
 add_executable(${PROJECT_NAME} main.cpp
-        XAVFrame.cpp
-        XAVPacket.cpp
-        XHelper.cpp
+        xavframe.cpp
+        xavpacket.cpp
+        xhelper.cpp
         xsdl.cpp
         xvideo_view.cpp
-        xencode.cpp)
+        xencode.cpp
+        xcodec.cpp
+        xcodec.hpp
+        xdecode.cpp
+        xdecode.hpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)
