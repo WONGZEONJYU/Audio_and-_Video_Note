@@ -88,7 +88,7 @@ namespace XHelper {
 
     void ff_err_out(const string &func,const string &file,
                     const int &line,const int &err_code) noexcept(true){
-        if (err_code < 0){
+        if (AVERROR(EAGAIN) != err_code && err_code < 0){
             stringstream err_msg;
             err_msg << "ffmpeg error: " << err_code <<
                     " at " << file << " : " << line <<

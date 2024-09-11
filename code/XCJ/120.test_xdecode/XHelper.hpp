@@ -95,7 +95,7 @@ namespace XHelper {
 }while(false)
 
 #define SDL2_INT_ERR_OUT(x,...) do{ \
-    const auto _ret_{x};\
+    const auto _ret_{x};            \
     if(_ret_ < 0){\
        XHelper::sdl2_err_out(#x,__FILE__, __LINE__);\
        __VA_ARGS__;\

@@ -50,12 +50,12 @@ int main(const int argc,const char *argv[]) {
     }
     const auto codec_id {AV_CODEC_ID_H264};
 
-
     XDecode de;
     auto c{XCodec::Create(codec_id,false)};
     de.set_codec_ctx(c);
+    de.InitHw();
     de.Open();
-    de.InitHw(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
+
     /**
      * 初始化解析器
      */
@@ -70,10 +70,10 @@ int main(const int argc,const char *argv[]) {
 
     XAVPacket_sptr packet;
     XAVFrame_sptr frame;
-    XAVFrame_sptr hw_frame;
+    //XAVFrame_sptr hw_frame;
     TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return -1);
     TRY_CATCH(CHECK_EXC(frame = new_XAVFrame()),return -1);
-    TRY_CATCH(CHECK_EXC(hw_frame = new_XAVFrame()),return -1);
+    //TRY_CATCH(CHECK_EXC(hw_frame = new_XAVFrame()),return -1);
 
     int count{};
     auto begin{XVideoView::Get_time_ms()};
@@ -85,10 +85,10 @@ int main(const int argc,const char *argv[]) {
         ifs.read(reinterpret_cast<char *>(in_buffer),static_cast<long long>(read_data.capacity()));
         auto read_size {ifs.gcount()};
 
-        if (ifs.eof()){
-            ifs.clear();
-            ifs.seekg(0,ios::beg);
-        }
+//        if (ifs.eof()){
+//            ifs.clear();
+//            ifs.seekg(0,ios::beg);
+//        }
 
         while (read_size) {
             /**
@@ -143,12 +143,29 @@ int main(const int argc,const char *argv[]) {
             /**
              * 冲刷解码器,把缓存的帧全部读取出来
              */
+            if (!de.Send(packet)){
+                return -1;
+            }
 
+            while (de.Receive(frame)){
+                view->DrawFrame(frame);
+                ++count;
+                const auto curr_time{XVideoView::Get_time_ms()};
+                if (curr_time - begin >= 10LL) {
+                    std::cerr << "fps :" << count * 100<< "\n";
+                    count = 0;
+                    begin = curr_time;
+                }
+                cerr << av_get_pix_fmt_name(static_cast<AVPixelFormat>(frame->format)) << "\n";
+            }
         }
+
+        auto frames{de.Flush()};
+        for (auto &item : frames) {
+            view->DrawFrame(item);
+        }
+        std::cerr << "\n\nparser and decode success!\n";
     }
-
-
-    std::cerr << "\n\nparser and decode success!\n";
 
     return 0;
 }
