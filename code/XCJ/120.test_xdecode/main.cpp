@@ -23,7 +23,7 @@ static bool Decode(AVCodecContext *ctx,
 
 int main(const int argc,const char *argv[]) {
 
-    if (argc < 2){
+    if (argc < 2) {
         PRINT_ERR_TIPS(GET_STR(argv miss!\n));
         return -1;
     }
@@ -53,7 +53,7 @@ int main(const int argc,const char *argv[]) {
     XDecode de;
     auto c{XCodec::Create(codec_id,false)};
     de.set_codec_ctx(c);
-    de.InitHw();
+    //de.InitHw();
     de.Open();
 
     /**
@@ -70,10 +70,8 @@ int main(const int argc,const char *argv[]) {
 
     XAVPacket_sptr packet;
     XAVFrame_sptr frame;
-    //XAVFrame_sptr hw_frame;
     TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return -1);
     TRY_CATCH(CHECK_EXC(frame = new_XAVFrame()),return -1);
-    //TRY_CATCH(CHECK_EXC(hw_frame = new_XAVFrame()),return -1);
 
     int count{};
     auto begin{XVideoView::Get_time_ms()};
