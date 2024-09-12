@@ -5,16 +5,16 @@
 #include "xswscontext.hpp"
 
 XSwsContext::XSwsContext(const int &srcW,const int &srcH,
-                         const AVPixelFormat &srcFormat,
+                         const int &srcFormat,
                          const int &dstW,const int &dstH,
-                         const AVPixelFormat &dstFormat,
+                         const int &dstFormat,
                          const int &flags,
                          SwsFilter *srcFilter,SwsFilter *dstFilter,
                          const double *param) noexcept(true):
                          m_src_filter{srcFilter},
                          m_dst_filter{dstFilter},
-                         m_sws{sws_getCachedContext({},srcW,srcH,srcFormat,
-                             dstW,dstH,dstFormat,flags,
+                         m_sws{sws_getCachedContext({},srcW,srcH,static_cast<AVPixelFormat>(srcFormat),
+                             dstW,dstH,static_cast<AVPixelFormat>(dstFormat),flags,
                              srcFilter,dstFilter,param)}{
 }
 
@@ -47,13 +47,15 @@ XSwsContext::~XSwsContext() {
 }
 
 void XSwsContext::reinit(const int &srcW,const int &srcH,
-                         const AVPixelFormat &srcFormat,
+                         const int &srcFormat,
                          const int &dstW,const int &dstH,
-                         const AVPixelFormat &dstFormat,
+                         const int &dstFormat,
                          const int &flags,
                          SwsFilter *srcFilter,SwsFilter *dstFilter,
                          const double * param) noexcept(false) {
-    CHECK_NULLPTR(m_sws = sws_getCachedContext(m_sws,srcW,srcH,srcFormat,dstW,dstH,dstFormat,
+    CHECK_NULLPTR(m_sws = sws_getCachedContext(m_sws,srcW,srcH,
+                                               static_cast<AVPixelFormat>(srcFormat),
+                                               dstW,dstH,static_cast<AVPixelFormat>(dstFormat),
                                                flags,srcFilter,dstFilter,param));
 }
 
@@ -64,9 +66,9 @@ XSwsContext_sptr newXSwsContext(){
 }
 
 XSwsContext_sptr newXSwsContext(const int &srcW,const int &srcH,
-                                const AVPixelFormat &srcFormat,
+                                const int &srcFormat,
                                 const int &dstW,const int &dstH,
-                                const AVPixelFormat &dstFormat,
+                                const int &dstFormat,
                                 const int &flags,
                                 SwsFilter *srcFilter,SwsFilter *dstFilter,
                                 const double *param)  noexcept(false){

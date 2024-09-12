@@ -112,7 +112,8 @@ public:
 
     /**
      * 分配AVFrame对象
-     * @return XAVFrame_sptr or nullptr
+     * @param one_frame_size 获取分配大小
+     * @return
      */
     [[nodiscard]] XAVFrame_sptr CreateFrame();
 

@@ -19,18 +19,18 @@ class XSwsContext final {
 
     friend XSwsContext_sptr newXSwsContext();
     friend XSwsContext_sptr newXSwsContext(const int &,const int &,
-                                        const AVPixelFormat &,
+                                        const int &,
                                         const int &,const int &,
-                                        const AVPixelFormat &,
+                                        const int &,
                                         const int &,
                                         SwsFilter *,SwsFilter *,
                                         const double *) noexcept(false);
 
     explicit XSwsContext() = default;
     explicit XSwsContext(const int &srcW,const int &srcH,
-                         const AVPixelFormat &srcFormat,
+                         const int &srcFormat,
                          const int &dstW,const int &dstH,
-                         const AVPixelFormat &dstFormat,
+                         const int &dstFormat,
                          const int &flags,
                          SwsFilter *srcFilter,SwsFilter *dstFilter,
                          const double *param) noexcept(true);
@@ -47,10 +47,10 @@ public:
 
     void reinit(const int &srcW,
                 const int &srcH,
-                const AVPixelFormat &srcFormat,
+                const int &srcFormat,
                 const int &dstW,
                 const int &dstH,
-                const AVPixelFormat &dstFormat,
+                const int &dstFormat,
                 const int &flags = SWS_BILINEAR,
                 SwsFilter *srcFilter = {},
                 SwsFilter *dstFilter = {},
@@ -68,10 +68,10 @@ public:
 XSwsContext_sptr newXSwsContext();
 XSwsContext_sptr newXSwsContext(const int &srcW,
                                 const int &srcH,
-                                const AVPixelFormat &srcFormat,
+                                const int &srcFormat,
                                 const int &dstW,
                                 const int &dstH,
-                                const AVPixelFormat &dstFormat,
+                                const int &dstFormat,
                                 const int &flags = SWS_BILINEAR,
                                 SwsFilter *srcFilter = nullptr,
                                 SwsFilter *dstFilter = nullptr,

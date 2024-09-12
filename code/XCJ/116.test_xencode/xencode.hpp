@@ -9,6 +9,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
+#include <memory>
 #include "Encode_Params.hpp"
 
 struct AVCodecContext;

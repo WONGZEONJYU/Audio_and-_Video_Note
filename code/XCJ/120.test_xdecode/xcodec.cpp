@@ -26,6 +26,7 @@ AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
         //1.查找编码器
         codec = avcodec_find_encoder(static_cast<AVCodecID>(codec_id));
     } else{
+        //查找解码器
         codec = avcodec_find_decoder(static_cast<AVCodecID>(codec_id));
     }
 

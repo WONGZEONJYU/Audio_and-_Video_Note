@@ -64,7 +64,8 @@ add_executable(${PROJECT_NAME} main.cpp
         xcodec.cpp
         xcodec.hpp
         xdecode.cpp
-        xdecode.hpp)
+        xdecode.hpp
+        xswscontext.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)

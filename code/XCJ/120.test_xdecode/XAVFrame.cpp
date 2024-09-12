@@ -4,6 +4,10 @@
 
 #include "xavframe.hpp"
 #include "xhelper.hpp"
+extern "C"{
+#include <libavutil/imgutils.h>
+#include <libavutil/samplefmt.h>
+}
 
 XAVFrame::XAVFrame() : AVFrame() {
     av_frame_unref(this);
@@ -64,8 +68,30 @@ void XAVFrame::Reset(AVFrame *frame) {
     }
 }
 
+int XAVFrame::Image_Fill_Arrays(const uint8_t *src,const int &fmt,
+                                const int &w, const int &h,
+                                const int &align) {
+    int ret;
+    FF_ERR_OUT(ret = av_image_fill_arrays(data,linesize,src,static_cast<AVPixelFormat>(fmt),w,h,align),return ret);
+    return ret;
+}
+
+int XAVFrame::Samples_Fill_Arrays(const uint8_t *src,
+                                  const int &nb_channels,
+                                  const int &nb_samples,
+                                  const int &sample_fmt,
+                                    const int &align) {
+    int ret;
+    FF_ERR_OUT(ret = av_samples_fill_arrays(data,linesize,
+                                            src,
+                                            nb_channels,nb_samples,
+                                            static_cast<AVSampleFormat>(sample_fmt),align),return ret);
+    return ret;
+}
+
 XAVFrame_sptr new_XAVFrame() noexcept(false) {
     XAVFrame_sptr obj;
     CHECK_EXC(obj = std::make_shared<XAVFrame>());
     return obj;
 }
+

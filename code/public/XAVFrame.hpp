@@ -76,6 +76,24 @@ public:
     bool Make_Writable();
 
     /**
+     * 图像帧填充
+     * @param src
+     * @param fmt
+     * @param w
+     * @param h
+     * @param align
+     * @return
+     */
+    int Image_Fill_Arrays(const uint8_t *src,
+                          const int &fmt,
+                          const int &w,
+                          const int &h,
+                          const int &align = 0);
+
+    int Samples_Fill_Arrays(const uint8_t *src,const int &nb_channels,const int &nb_samples,
+                            const int &sample_fmt,const int &align = 0);
+
+    /**
      * 释放本对象数据,如果frame不为空,则拷贝AVFrame,引用计数+1
      * @param frame
      */
