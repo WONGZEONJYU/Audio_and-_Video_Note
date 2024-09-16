@@ -201,7 +201,7 @@ int main(const int argc,const char *argv[]) {
         PRINT_ERR_TIPS(GET_STR(outfile open failed!));
     }
 
-    const auto codec_id {AV_CODEC_ID_H264};
+    const auto codec_id{AV_CODEC_ID_H264};
 
     XDecode de;
     auto c{XCodec::Create(codec_id,false)};
