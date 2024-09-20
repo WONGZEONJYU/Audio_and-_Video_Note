@@ -53,7 +53,12 @@ xhelper.hpp
 xavframe.cpp
 xavframe.hpp
 xavpacket.cpp
-xavpacket.hpp)
+xavpacket.hpp
+        xcodec.cpp
+        xdecode.cpp
+        xencode.cpp
+        xsdl.cpp
+        xvideo_view.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)
