@@ -47,7 +47,7 @@ set(FFMPEG_LIBS
         SDL2
 )
 
-add_executable(121_test_demux main.cpp
+add_executable(${PROJECT_NAME} main.cpp
         xhelper.cpp
 xhelper.hpp
 xavframe.cpp
