@@ -47,7 +47,9 @@ set(FFMPEG_LIBS
         SDL2
 )
 
-add_executable(121_test_demux main.cpp)
+add_executable(121_test_demux main.cpp
+        xhelper.cpp
+xhelper.hpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)
