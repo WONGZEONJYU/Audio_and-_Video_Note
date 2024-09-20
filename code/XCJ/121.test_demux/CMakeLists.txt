@@ -49,7 +49,11 @@ set(FFMPEG_LIBS
 
 add_executable(121_test_demux main.cpp
         xhelper.cpp
-xhelper.hpp)
+xhelper.hpp
+xavframe.cpp
+xavframe.hpp
+xavpacket.cpp
+xavpacket.hpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)
