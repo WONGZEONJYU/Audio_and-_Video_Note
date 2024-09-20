@@ -9,7 +9,6 @@
 
 using XAVFrames = typename std::vector<XAVFrame_sptr>;
 
-
 class XDecode : public XCodec {
 
 public:

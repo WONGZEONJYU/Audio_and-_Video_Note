@@ -106,5 +106,3 @@ XCodec::~XCodec() {
     std::unique_lock locker(m_mux);
     avcodec_free_context(&m_codec_ctx);
 }
-
-
