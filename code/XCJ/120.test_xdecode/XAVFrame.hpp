@@ -90,11 +90,8 @@ public:
                           const int &h,
                           const int &align = 0);
 
-    int Samples_Fill_Arrays(const uint8_t *src,
-                            const int &nb_channels,
-                            const int &nb_samples,
-                            const int &sample_fmt,
-                            const int &align = 0);
+    int Samples_Fill_Arrays(const uint8_t *src,const int &nb_channels,const int &nb_samples,
+                            const int &sample_fmt,const int &align = 0);
 
     /**
      * 释放本对象数据,如果frame不为空,则拷贝AVFrame,引用计数+1
