@@ -13,8 +13,8 @@ struct AVFormatContext;
 struct AVCodecParameters;
 
 struct XRational {
-    int num; ///< Numerator
-    int den; ///< Denominator
+    int num{1}; ///< Numerator
+    int den{1}; ///< Denominator
 };
 
 class XFormat {
@@ -70,8 +70,6 @@ protected:
 
 protected:
     explicit XFormat();
-
-public:
     virtual ~XFormat();
     X_DISABLE_COPY_MOVE(XFormat)
 };

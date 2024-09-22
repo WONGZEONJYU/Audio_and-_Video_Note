@@ -2,19 +2,24 @@
 // Created by wong on 2024/9/21.
 //
 
+#define check_ctx \
+std::unique_lock locker(m_mux);do{\
+if(!m_fmt_ctx) { \
+PRINT_ERR_TIPS(GET_STR(ctx is empty)); \
+return {};}}while(false)
+
 extern "C"{
 #include <libavformat/avformat.h>
 }
 #include "xdemux.hpp"
 #include "xavpacket.hpp"
 
-#define check_ctx \
-std::unique_lock locker(m_mux); \
-if(!m_fmt_ctx) { \
-PRINT_ERR_TIPS(GET_STR(ctx is empty)); \
-return {};}
-
 AVFormatContext *XDemux::Open(const std::string &url) {
+
+    if (url.empty()){
+        PRINT_ERR_TIPS(GET_STR(url is empty!));
+        return {};
+    }
 
     AVFormatContext *c{};
     FF_ERR_OUT(avformat_open_input(&c,url.c_str(), nullptr, nullptr),return {});

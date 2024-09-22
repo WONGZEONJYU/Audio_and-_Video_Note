@@ -9,22 +9,14 @@ extern "C"{
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
 #include "xdemux.hpp"
+#include "xmux.hpp"
 
 using namespace std::chrono;
 using namespace std::this_thread;
 
 int main(const int argc,const char *argv[]) {
 
-    AVFormatContext *ic{},*ec{};
 
-    const Destroyer d([&]{
-        avformat_close_input(&ic);
-        if (ec){
-            avio_closep(&ec->pb);
-            avformat_free_context(ec);
-            ec = nullptr;
-        }
-    });
 ////////////////////////////////////////////////////////打开媒体///////////////////////////////////////////////////////////////
     constexpr auto url{"v1080.mp4"};
     XDemux demux;
@@ -35,42 +27,29 @@ int main(const int argc,const char *argv[]) {
 
 //////////////////////////////////////////////////////////封装输出媒体文件/////////////////////////////////////////////////////////////////////////////
     const auto out_url{GET_STR(out.mp4)};
-    /**
-     * 创建输出文件,并创建上下文
-     */
-    FF_ERR_OUT(avformat_alloc_output_context2(&ec, nullptr, nullptr,out_url),return -1);
-    auto mvs{avformat_new_stream(ec, nullptr)};
-    auto mas{avformat_new_stream(ec, nullptr)};
-    if (!mvs || !mas){
-        return -1;
-    }
 
-    /**
-     * 打开文件IO
-     */
-    FF_ERR_OUT(avio_open(&ec->pb,out_url,AVIO_FLAG_WRITE),return -1);
+    XMux mux;
+    auto mux_c{XMux::Open(out_url)};
+    mux.set_fmt_ctx(mux_c);
+    const auto mvs{mux_c->streams[mux.video_index()]};
+    const auto mas{mux_c->streams[mux.audio_index()]};
 
     /**
      * 拷贝音视频流信息
      */
+    if (demux.video_index() >= 0){
+        mvs->time_base.den = demux.video_timebase().den;
+        mvs->time_base.num = demux.video_timebase().num;
+        demux.CopyParm(demux.video_index(),mvs->codecpar);
+    }
 
-    demux.CopyParm(demux.video_index(),mvs->codecpar);
-    mvs->time_base.den = demux.video_timebase().den;
-    mvs->time_base.num = demux.video_timebase().num;
+    if (demux.audio_index() >= 0){
+        demux.CopyParm(demux.audio_index(),mas->codecpar);
+        mas->time_base.den = demux.audio_timebase().den;
+        mas->time_base.num = demux.audio_timebase().num;
+    }
 
-    demux.CopyParm(demux.audio_index(),mas->codecpar);
-    mas->time_base.den = demux.audio_timebase().den;
-    mas->time_base.num = demux.audio_timebase().num;
-
-    /**
-     * 写入媒体文件头部信息
-     */
-    FF_ERR_OUT(avformat_write_header(ec, nullptr),return -1);
-
-    /**
-     * 打印输出媒体文件的信息
-     */
-    av_dump_format(ec,0,out_url,1);
+    mux.WriteHead();
 #if 0
     //截取10 ~ 20秒之间的音视频 取多不取少
     //假定 9 11秒有关键帧 我们取第9秒
@@ -147,12 +126,13 @@ int main(const int argc,const char *argv[]) {
          * 交错写入文件
          */
 #endif
-        FF_ERR_OUT(av_interleaved_write_frame(ec,packet.get()),return -1);
+        //FF_ERR_OUT(av_interleaved_write_frame(ec,packet.get()),return -1);
+        mux.Write(packet.get());
         packet->Reset();
     }
     /**
      * 写入文件尾部信息
      */
-    FF_ERR_OUT(av_write_trailer(ec),return -1);
+    mux.WriteEnd();
     return 0;
 }

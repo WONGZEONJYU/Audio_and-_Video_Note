@@ -2,16 +2,16 @@
 // Created by wong on 2024/9/21.
 //
 
+#define check_ctx \
+std::unique_lock locker(m_mux);do{\
+if(!m_fmt_ctx) { \
+PRINT_ERR_TIPS(GET_STR(ctx is empty)); \
+return {};}}while(false)
+
 extern "C"{
 #include <libavformat/avformat.h>
 }
 #include "xformat.hpp"
-
-#define check_ctx \
-std::unique_lock locker(m_mux); \
-if(!m_fmt_ctx) { \
-PRINT_ERR_TIPS(GET_STR(ctx is empty)); \
-return {};}
 
 XFormat::XFormat(){
     m_video_timebase.store({1,25});
@@ -37,18 +37,22 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
     std::unique_lock locker(m_mux);
     destroy();
     m_fmt_ctx = ctx;
-    if (m_fmt_ctx) {
-        for (int i {}; i < m_fmt_ctx->nb_streams; ++i) {
-            const auto stream{m_fmt_ctx->streams[i]};
-            const auto codecpar{stream->codecpar};
-            if (AVMEDIA_TYPE_VIDEO == codecpar->codec_type){
-                m_video_index = i;
-                m_video_timebase.store({stream->time_base.num,stream->time_base.den});
-            } else if (AVMEDIA_TYPE_AUDIO == codecpar->codec_type){
-                m_audio_index = i;
-                m_audio_timebase.store({stream->time_base.num,stream->time_base.den});
-            } else{}
-        }
+    if (!m_fmt_ctx){
+        return;
+    }
+    m_audio_index = m_video_index = -1;
+    m_video_timebase.store({1,25});
+    m_audio_timebase.store({1,44100});
+    for (int i {}; i < m_fmt_ctx->nb_streams; ++i) {
+        const auto stream{m_fmt_ctx->streams[i]};
+        const auto type{stream->codecpar->codec_type};
+        if (AVMEDIA_TYPE_VIDEO == type){
+            m_video_index = i;
+            m_video_timebase.store({stream->time_base.num,stream->time_base.den});
+        } else if (AVMEDIA_TYPE_AUDIO == type){
+            m_audio_index = i;
+            m_audio_timebase.store({stream->time_base.num,stream->time_base.den});
+        } else{}
     }
 }
 
@@ -57,7 +61,7 @@ bool XFormat::CopyParm(const int &stream_index,AVCodecParameters *dst) {
         PRINT_ERR_TIPS(GET_STR(dst is empty));
         return {};
     }
-    check_ctx
+    check_ctx;
     if (stream_index < 0 || stream_index >= m_fmt_ctx->nb_streams){
         PRINT_ERR_TIPS(GET_STR(stream_index not in range));
         return {};
