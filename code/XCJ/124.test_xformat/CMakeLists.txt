@@ -62,7 +62,9 @@ xavpacket.hpp
         xformat.cpp
         xformat.hpp
         xdemux.cpp
-        xdemux.hpp)
+        xdemux.hpp
+        xmux.cpp
+        xmux.hpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)
