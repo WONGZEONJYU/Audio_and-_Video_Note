@@ -7,9 +7,9 @@ extern "C"{
 #include <fstream>
 #include <vector>
 #include <thread>
-#include "XAVPacket.hpp"
-#include "XAVFrame.hpp"
-#include "XHelper.hpp"
+#include "xavframe.hpp"
+#include "xavpacket.hpp"
+#include "xhelper.hpp"
 #include "xvideo_view.hpp"
 
 using namespace std;
@@ -229,7 +229,7 @@ static bool Decode(AVCodecContext *ctx,
         /**
          * 显示一帧画面
          */
-        view->DrawFrame(p_frame);
+        view->DrawFrame(*p_frame);
         if (view->Is_Exit_Window()){
             return true;
         }

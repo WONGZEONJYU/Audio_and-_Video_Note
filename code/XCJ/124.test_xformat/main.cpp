@@ -15,8 +15,7 @@ using namespace std::chrono;
 using namespace std::this_thread;
 
 int main(const int argc,const char *argv[]) {
-
-
+    
 ////////////////////////////////////////////////////////打开媒体///////////////////////////////////////////////////////////////
     constexpr auto url{"v1080.mp4"};
     XDemux demux;
@@ -80,7 +79,7 @@ int main(const int argc,const char *argv[]) {
 
     auto packet{new_XAVPacket()};
     while (true){
-        if (!demux.Read(packet.get())){
+        if (!demux.Read(packet.get())) {
             break;
         }
 #if 0
@@ -128,7 +127,6 @@ int main(const int argc,const char *argv[]) {
 #endif
         //FF_ERR_OUT(av_interleaved_write_frame(ec,packet.get()),return -1);
         mux.Write(packet.get());
-        packet->Reset();
     }
     /**
      * 写入文件尾部信息

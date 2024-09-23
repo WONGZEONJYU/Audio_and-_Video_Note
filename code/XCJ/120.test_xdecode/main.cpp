@@ -12,7 +12,6 @@ extern "C"{
 #include "xencode.hpp"
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
-#include "xhelper.hpp"
 #include "xvideo_view.hpp"
 #include "xswscontext.hpp"
 
@@ -45,7 +44,7 @@ int main(const int argc,const char *argv[]) {
         PRINT_ERR_TIPS(GET_STR(h264_file open failed!));
         return -1;
     }
-    const auto codec_id {AV_CODEC_ID_H264};
+    const auto codec_id{AV_CODEC_ID_H264};
 
     XDecode de;
     auto c{XCodec::Create(codec_id,false)};

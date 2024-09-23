@@ -55,9 +55,9 @@ set(FFMPEG_LIBS
 )
 
 add_executable(${PROJECT_NAME} main.cpp
-        XAVFrame.cpp
-        XAVPacket.cpp
-        XHelper.cpp
+        xavframe.cpp
+        xavpacket.cpp
+        xhelper.cpp
         xsdl.cpp
         xvideo_view.cpp)
 

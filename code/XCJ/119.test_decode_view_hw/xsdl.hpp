@@ -55,9 +55,21 @@ protected:
      * @param v_pitch
      * @return ture or false
      */
-    bool Draw(const uint8_t *y,int y_pitch,
-              const uint8_t *u,int u_pitch,
-              const uint8_t *v,int v_pitch) override;
+    bool Draw(const uint8_t *y,const int &y_pitch,
+              const uint8_t *u,const int &u_pitch,
+              const uint8_t *v,const int &v_pitch) override;
+
+    /**
+     * 渲染NV12,线程安全
+     * @param y
+     * @param y_pitch
+     * @param uv
+     * @param uv_v_pitch
+     * @return
+     */
+    bool Draw(const uint8_t *y,const int &y_pitch,
+              const uint8_t *uv,const int &uv_pitch) override;
+
     /**
      * SDL自己创建的窗口是否退出
      * @return true or false
