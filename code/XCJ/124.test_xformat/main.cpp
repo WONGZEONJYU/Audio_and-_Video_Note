@@ -15,7 +15,7 @@ using namespace std::chrono;
 using namespace std::this_thread;
 
 int main(const int argc,const char *argv[]) {
-    
+
 ////////////////////////////////////////////////////////打开媒体///////////////////////////////////////////////////////////////
     constexpr auto url{"v1080.mp4"};
     XDemux demux;
