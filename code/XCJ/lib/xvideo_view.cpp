@@ -7,8 +7,36 @@
 #include "xavframe.hpp"
 #include <thread>
 
-
 using namespace std;
+
+void XVideoView::merge_nv12(uint8_t *const cache_,const XAVFrame &frame){
+
+    const auto half_height{frame.height >> 1}; //frame.height / 2
+
+    if (frame.width == frame.linesize[0]) { //无需对齐
+        auto src_{frame.data[0]},dst_{cache_};
+        const auto cp_y_size{frame.linesize[0] * frame.height};
+        copy_n(src_,cp_y_size,dst_); //Y
+        src_ = frame.data[1];
+        dst_+= cp_y_size;
+        const auto cp_uv_size {frame.linesize[1] * half_height};
+        copy_n(src_,cp_uv_size,dst_) ; //UV
+    }else { //有对齐情况
+        for (int i {}; i < frame.height; ++i) { //Y
+            const auto src_ {frame.data[0] + frame.linesize[0] * i},
+                    dst_{cache_ + frame.width * i};
+            copy_n(src_,frame.width,dst_);
+        }
+
+        const auto uv_start{cache_ + frame.width * frame.height};
+
+        for (int i {}; i < half_height; ++i) { //UV
+            const auto src_{frame.data[1] + frame.linesize[1] * i},
+                    dst_{uv_start + frame.width * i};
+            copy_n(src_,frame.width,dst_);
+        }
+    }
+}
 
 XVideoView *XVideoView::create(const XVideoView::RenderType &renderType) {
     switch (renderType) {
@@ -31,9 +59,9 @@ void XVideoView::calc_fps() {
     } else{}
 }
 
-bool XVideoView::DrawFrame(const XAVFrame *frame) {
+bool XVideoView::DrawFrame(const XAVFrame &frame) {
 
-    const auto b {!frame || !frame->data[0] || !frame->width || !frame->height};
+    const auto b {!frame.data[0] || !frame.width || !frame.height};
     if (b) {
         PRINT_ERR_TIPS(GET_STR(Non-video frames));
         return {};
@@ -41,51 +69,29 @@ bool XVideoView::DrawFrame(const XAVFrame *frame) {
 
     calc_fps();
 
-    switch (frame->format) {
+    switch (frame.format) {
         case AV_PIX_FMT_YUV420P:
-            return Draw(frame->data[0],frame->linesize[0],
-                        frame->data[1],frame->linesize[1],
-                        frame->data[2],frame->linesize[2]);
+            return Draw(frame.data[0],frame.linesize[0],
+                        frame.data[1],frame.linesize[1],
+                        frame.data[2],frame.linesize[2]);
         case AV_PIX_FMT_NV12: {
-
-            if (!m_cache.capacity()) {
-                constexpr auto CACHE_SIZE{4096 * 2160 * 1.5};
-                m_cache.resize(CACHE_SIZE,0);
+#if 1
+            return Draw(frame.data[0],frame.linesize[0],
+                        frame.data[1],frame.linesize[1]);
+#else
+            const auto cache_size{static_cast<uint64_t>(frame.width * frame.height * 1.5)};
+            if (m_cache.capacity() <= cache_size) {
+                m_cache.resize(cache_size + (cache_size >> 1),0);
             }
-
-            auto line_size{frame->width};
-            const auto cache_{m_cache.data()};
-
-            if (frame->width == frame->linesize[0]) {
-                auto src_{frame->data[0]},
-                    dst_{cache_};
-                const auto cp_y_size{frame->linesize[0] * frame->height};
-                copy_n(src_,cp_y_size,dst_); //Y
-                src_ = frame->data[1];
-                dst_+= cp_y_size;
-                const auto cp_uv_size {frame->linesize[1] * frame->height / 2};
-                copy_n(src_,cp_uv_size,dst_) ; //UV
-            }else {
-                for (int i {}; i < frame->height; ++i) { //Y
-                    const auto src_ {frame->data[0] + frame->linesize[0] * i},
-                            dst_{cache_ + frame->width * i};
-                    copy_n(src_,frame->width,dst_);
-                }
-
-                const auto uv_start{cache_ + frame->width * frame->height};
-                for (int i {}; i < frame->height / 2; ++i) { //UV
-                    const auto src_{frame->data[1] + frame->linesize[1] * i},
-                            dst_{uv_start + frame->width * i};
-                    copy_n(src_,frame->width,dst_);
-                }
-            }
-            return Draw(m_cache.data(),line_size);
+            merge_nv12(m_cache.data(),frame);
+            return Draw(m_cache.data(),frame.width);
+#endif
         }
         case AV_PIX_FMT_BGRA:
         case AV_PIX_FMT_RGBA:
         case AV_PIX_FMT_ARGB:
         case AV_PIX_FMT_RGB24:
-            return Draw(frame->data[0],frame->linesize[0]);
+            return Draw(frame.data[0],frame.linesize[0]);
         default:
             PRINT_ERR_TIPS(GET_STR(The current pixel format is not supported));
             return {};

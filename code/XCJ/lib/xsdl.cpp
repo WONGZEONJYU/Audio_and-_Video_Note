@@ -139,11 +139,11 @@ bool XSDL::Draw(const void *datum,int line_size) {
     return Start_Rendering();
 }
 
-bool XSDL::Draw(const uint8_t *y, int y_pitch,
-                const uint8_t *u, int u_pitch,
-                const uint8_t *v, int v_pitch) {
+bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
+                const uint8_t *u,const int & u_pitch,
+                const uint8_t *v,const int & v_pitch) {
 
-    auto b {!y || !u || !v || y_pitch <= 0 || u_pitch <= 0 || v_pitch <= 0};
+    const auto b{!y || !u || !v || y_pitch <= 0 || u_pitch <= 0 || v_pitch <= 0};
     if (b){ //输入参数有误
         PRINT_ERR_TIPS(GET_STR(Parameter error!));
         return {};
@@ -157,6 +157,25 @@ bool XSDL::Draw(const uint8_t *y, int y_pitch,
 
     SDL2_INT_ERR_OUT(SDL_UpdateYUVTexture(m_texture,{},y,y_pitch,u,u_pitch,v,v_pitch),return {});
     //更新YUV到纹理
+
+    return Start_Rendering();
+}
+
+bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
+          const uint8_t *uv,const int &uv_pitch) {
+
+    const auto b{!y || !uv || y_pitch <= 0 || uv_pitch <= 0};
+    if (b){
+        PRINT_ERR_TIPS(GET_STR(Parameter error!));
+        return {};
+    }
+
+    if(!check_init()) { //SDL初始化检查
+        return {};
+    }
+
+    unique_lock locker(m_mux);
+    SDL2_INT_ERR_OUT(SDL_UpdateNVTexture(m_texture,{},y,y_pitch,uv,uv_pitch),return {});
 
     return Start_Rendering();
 }

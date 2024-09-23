@@ -18,6 +18,7 @@ using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
 class XVideoView {
 
     void calc_fps();
+    static void merge_nv12(uint8_t *,const XAVFrame &);
 
 public:
     enum Format : int {
@@ -73,16 +74,27 @@ public:
      * @param v_pitch
      * @return ture or false
      */
-    virtual bool Draw(const uint8_t *y,int y_pitch,
-                      const uint8_t *u,int u_pitch,
-                      const uint8_t *v,int v_pitch) = 0;
+    virtual bool Draw(const uint8_t *y,const int &y_pitch,
+                      const uint8_t *u,const int &u_pitch,
+                      const uint8_t *v,const int &v_pitch) = 0;
+
+    /**
+     * 渲染NV12,线程安全
+     * @param y
+     * @param y_pitch
+     * @param uv
+     * @param uv_pitch
+     * @return
+     */
+    virtual bool Draw(const uint8_t *y,const int &y_pitch,
+                      const uint8_t *uv,const int &uv_pitch) = 0;
 
     /**
      * 渲染AVFrame,线程安全,与ffmpeg接口有关
      * @param frame
      * @return
      */
-    virtual bool DrawFrame(const XAVFrame *frame);
+    virtual bool DrawFrame(const XAVFrame &frame);
 
     /**
      * 缩放设置
