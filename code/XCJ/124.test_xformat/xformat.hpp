@@ -11,10 +11,11 @@
 
 struct AVFormatContext;
 struct AVCodecParameters;
+class XAVPacket;
 
-struct XRational {
-    int num{1}; ///< Numerator
-    int den{1}; ///< Denominator
+struct XRational final {
+    int num{1}, ///< Numerator
+        den{1}; ///< Denominator
 };
 
 class XFormat {
@@ -51,13 +52,22 @@ public:
      * 获取视频流时间基准
      * @return XRational
      */
-    [[nodiscard]] auto video_timebase() const{return m_video_timebase.load();}
+    [[nodiscard]] auto video_timebase() const{return m_video_timebase;}
 
     /**
      * 获取音频流时间基准
      * @return XRational
      */
-    [[nodiscard]] auto audio_timebase() const{return m_audio_timebase.load();}
+    [[nodiscard]] auto audio_timebase() const{return m_audio_timebase;}
+
+    /**
+     *
+     * @param packet
+     * @param offset_pts
+     * @param time_base
+     * @return
+     */
+    bool RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const XRational &time_base);
 
 protected:
     std::mutex m_mux;
@@ -65,11 +75,11 @@ protected:
     std::atomic_int m_audio_index{-1},
         m_video_index{-1};
 
-    std::atomic<XRational> m_video_timebase,
-        m_audio_timebase;
+    XRational m_video_timebase{1,25},
+                m_audio_timebase{1,44100};
 
 protected:
-    explicit XFormat();
+    explicit XFormat() = default;
     virtual ~XFormat();
     X_DISABLE_COPY_MOVE(XFormat)
 };

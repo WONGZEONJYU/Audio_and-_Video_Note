@@ -12,11 +12,7 @@ extern "C"{
 #include <libavformat/avformat.h>
 }
 #include "xformat.hpp"
-
-XFormat::XFormat(){
-    m_video_timebase.store({1,25});
-    m_audio_timebase.store({1,44100});
-}
+#include "xavpacket.hpp"
 
 void XFormat::destroy() {
     if (m_fmt_ctx){
@@ -41,17 +37,19 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
         return;
     }
     m_audio_index = m_video_index = -1;
-    m_video_timebase.store({1,25});
-    m_audio_timebase.store({1,44100});
+    m_video_timebase = {1,25};
+    m_audio_timebase = {1,44100};
     for (int i {}; i < m_fmt_ctx->nb_streams; ++i) {
         const auto stream{m_fmt_ctx->streams[i]};
         const auto type{stream->codecpar->codec_type};
         if (AVMEDIA_TYPE_VIDEO == type){
             m_video_index = i;
-            m_video_timebase.store({stream->time_base.num,stream->time_base.den});
+            m_video_timebase.num = stream->time_base.num;
+            m_video_timebase.den = stream->time_base.den;
         } else if (AVMEDIA_TYPE_AUDIO == type){
             m_audio_index = i;
-            m_audio_timebase.store({stream->time_base.num,stream->time_base.den});
+            m_audio_timebase.num = stream->time_base.num;
+            m_audio_timebase.den = stream->time_base.den;
         } else{}
     }
 }
@@ -68,6 +66,22 @@ bool XFormat::CopyParm(const int &stream_index,AVCodecParameters *dst) {
     }
 
     FF_ERR_OUT(avcodec_parameters_copy(dst,m_fmt_ctx->streams[stream_index]->codecpar),return {});
+    return true;
+}
+
+bool XFormat::RescaleTime(XAVPacket &packet, const int64_t &offset_pts, const XRational &time_base) {
+
+    check_ctx;
+    const auto out_stream{m_fmt_ctx->streams[packet.stream_index]};
+    const AVRational in_time_base{time_base.num,time_base.den};
+    packet.pts = av_rescale_q_rnd(packet.pts - offset_pts,in_time_base,out_stream->time_base,
+                                  static_cast<AVRounding>(AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+
+    packet.dts = av_rescale_q_rnd(packet.dts - offset_pts,in_time_base,out_stream->time_base,
+                                  static_cast<AVRounding>(AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+
+    packet.duration = av_rescale_q(packet.duration,in_time_base,out_stream->time_base);
+    packet.pos = -1;
     return true;
 }
 

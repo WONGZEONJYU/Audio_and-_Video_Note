@@ -28,13 +28,21 @@ AVFormatContext *XDemux::Open(const std::string &url) {
     return c;
 }
 
-bool XDemux::Read(XAVPacket *packet) {
+bool XDemux::Read(XAVPacket &packet) {
 
-    if (!packet){
-        PRINT_ERR_TIPS(GET_STR(packet is empty));
+    check_ctx;
+    FF_ERR_OUT(av_read_frame(m_fmt_ctx,&packet),return {});
+    return true;
+}
+
+bool XDemux::Seek(const int64_t &pts,const int &stream_index) {
+
+    if (stream_index < 0 || pts <= 0) {
+        PRINT_ERR_TIPS(GET_STR(params error!));
         return {};
     }
     check_ctx;
-    FF_ERR_OUT(av_read_frame(m_fmt_ctx,packet),return {});
+    FF_ERR_OUT(av_seek_frame(m_fmt_ctx,stream_index,pts,
+                             AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD),return {});
     return true;
 }

@@ -19,7 +19,9 @@ public:
      * @param packet
      * @return ture or false
      */
-    bool Read(XAVPacket *packet);
+    bool Read(XAVPacket &packet);
+
+    bool Seek(const int64_t &pts,const int &stream_index);
 public:
     explicit XDemux() = default;
     X_DISABLE_COPY_MOVE(XDemux)

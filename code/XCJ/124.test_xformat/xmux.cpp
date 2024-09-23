@@ -47,13 +47,9 @@ bool XMux::WriteHead(){
     return true;
 }
 
-bool XMux::Write(XAVPacket *packet){
-    if (!packet){
-        PRINT_ERR_TIPS(GET_STR(packet is empty!));
-        return {};
-    }
+bool XMux::Write(XAVPacket &packet){
     check_ctx;
-    FF_ERR_OUT(av_interleaved_write_frame(m_fmt_ctx,packet),return {});
+    FF_ERR_OUT(av_interleaved_write_frame(m_fmt_ctx,&packet),return {});
     return true;
 }
 
@@ -63,3 +59,5 @@ bool XMux::WriteEnd(){
     FF_ERR_OUT(av_write_trailer(m_fmt_ctx),return {});
     return true;
 }
+
+

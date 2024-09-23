@@ -25,7 +25,7 @@ public:
      * @param packet
      * @return ture or false
      */
-    bool Write(XAVPacket *packet);
+    bool Write(XAVPacket &packet);
 
     /**
      * 写入尾部信息
