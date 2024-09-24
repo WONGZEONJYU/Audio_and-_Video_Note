@@ -17,22 +17,22 @@ if (!m_codec_ctx){\
 PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
 return {};}
 
-XAVPacket_sptr XEncode::Encode(const XAVFrame *frame) {
-
-    if (!frame){
-        PRINT_ERR_TIPS(GET_STR(frame is empty));
-        return {};
-    }
+XAVPacket_sptr XEncode::Encode(const XAVFrame &frame) {
 
     CHECK_CODEC_CTX()
-    const auto ret{avcodec_send_frame(m_codec_ctx,frame)};
+    const auto ret{avcodec_send_frame(m_codec_ctx,&frame)};
     if (0 != ret || AVERROR(EAGAIN) != ret){
         FF_ERR_OUT(ret,return {});
     }
 
     XAVPacket_sptr packet;
     TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return {});
-    FF_ERR_OUT(avcodec_receive_packet(m_codec_ctx,packet.get()),packet.reset());
+    const auto receive_packet_res{avcodec_receive_packet(m_codec_ctx,packet.get())};
+    if (AVERROR(EAGAIN) == receive_packet_res){
+        packet.reset();
+        return {};
+    }
+    FF_ERR_OUT(receive_packet_res,packet.reset());
     return packet;
 }
 

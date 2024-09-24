@@ -18,7 +18,7 @@ public:
      * @param frame
      * @return XAVPacket_sptr or nullptr
      */
-    XAVPacket_sptr Encode(const XAVFrame *frame);
+    XAVPacket_sptr Encode(const XAVFrame &frame);
 
     /**
      * 冲刷编码器

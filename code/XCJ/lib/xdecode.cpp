@@ -13,38 +13,36 @@ extern "C"{
 
 #define CHECK_CODEC_CTX() \
 std::unique_lock locker(m_mux);\
-if (!m_codec_ctx){\
+do{if (!m_codec_ctx){\
 PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
-return {};}
+return {};}}while(false)
 
-bool XDecode::Send(const XAVPacket* packet) {
-    if (!packet){
-        PRINT_ERR_TIPS(GET_STR(packet is empty!));
-        return {};
-    }
-    CHECK_CODEC_CTX()
-    FF_ERR_OUT(avcodec_send_packet(m_codec_ctx,packet),return {});
+bool XDecode::Send(const XAVPacket& packet) {
+    CHECK_CODEC_CTX();
+    FF_ERR_OUT(avcodec_send_packet(m_codec_ctx,&packet),return {});
     return true;
 }
 
-bool XDecode::Receive(XAVFrame *frame) {
-    if (!frame){
-        PRINT_ERR_TIPS(GET_STR(frame is empty!));
+bool XDecode::Receive(XAVFrame &frame) {
+
+    CHECK_CODEC_CTX();
+    const auto avcodec_receive_res{avcodec_receive_frame(m_codec_ctx,&frame)};
+    if (AVERROR(EAGAIN) == avcodec_receive_res){
         return {};
     }
-    CHECK_CODEC_CTX()
-    FF_ERR_OUT(avcodec_receive_frame(m_codec_ctx,frame),return {});
+    FF_ERR_OUT(avcodec_receive_res,return {});
+
     if(m_codec_ctx->hw_device_ctx) {
         XAVFrame_sptr hw_frame;
         TRY_CATCH(CHECK_EXC(hw_frame = new_XAVFrame()),return {});
-        FF_ERR_OUT(av_hwframe_transfer_data(hw_frame.get(),frame,0), return {});
-        frame->Reset(hw_frame.get());
+        FF_ERR_OUT(av_hwframe_transfer_data(hw_frame.get(),&frame,0), return {});
+        frame.Reset(hw_frame.get());
     }
     return true;
 }
 
 XAVFrames XDecode::Flush() {
-    CHECK_CODEC_CTX()
+    CHECK_CODEC_CTX();
     FF_ERR_OUT(avcodec_send_packet(m_codec_ctx,{}),return {});
     XAVFrames frames;
     while (true) {
@@ -63,9 +61,9 @@ XAVFrames XDecode::Flush() {
 
 bool XDecode::InitHw(const int &type) {
 
-    CHECK_CODEC_CTX()
+    CHECK_CODEC_CTX();
 
-    if(avcodec_is_open(m_codec_ctx)){
+    if(avcodec_is_open(m_codec_ctx)) {
         PRINT_ERR_TIPS(GET_STR(Please set before opening the decoder!));
         return {};
     }

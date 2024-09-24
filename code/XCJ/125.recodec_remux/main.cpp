@@ -8,6 +8,9 @@ extern "C"{
 #include "xdemux.hpp"
 #include "xmux.hpp"
 #include "xavpacket.hpp"
+#include "xavframe.hpp"
+#include "xdecode.hpp"
+#include "xencode.hpp"
 
 using namespace std::chrono;
 using namespace std::this_thread;
@@ -15,7 +18,7 @@ using namespace std::this_thread;
 int main(const int argc,const char *argv[]) {
 
     std::string usage{"124.test_xformat in_file out_file start_time(sec) end_time(sec)\n"};
-    usage += "such as : 124.test_xformat in_file.mp4 out_file.mp4 10 20\n";
+    usage += "such as : 124.test_xformat in_file.mp4 out_file.mp4 10 20 400 300\n";
     std::cerr << usage;
 
     if (argc < 3){
@@ -33,6 +36,12 @@ int main(const int argc,const char *argv[]) {
         end_sec = std::atoi(argv[4]);
     }
 
+    int video_width{},video_height{};
+    if (argc > 6){
+        video_width = std::atoi(argv[5]);
+        video_height = std::atoi(argv[6]);
+    }
+
 ////////////////////////////////////////////////////////打开媒体///////////////////////////////////////////////////////////////
     //constexpr auto url{GET_STR("v1080.mp4")};
     XDemux demux;
@@ -41,8 +50,31 @@ int main(const int argc,const char *argv[]) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////视频解码器/////////////////////////////////////////////////////
+    XDecode decode;
+    auto decode_c{XDecode::Create(demux.codec_id(),false)};
+    demux.CopyParm(demux.video_index(),decode_c);
+    decode.set_codec_ctx(decode_c);
+    decode.Open();
+    auto frame{decode.CreateFrame()};
+
+    if (demux.video_index() >= 0){
+        if (video_width <= 0){
+            video_width = demux_c->streams[demux.video_index()]->codecpar->width;
+        }
+        if (video_height <= 0){
+            video_height = demux_c->streams[demux.video_index()]->codecpar->height;
+        }
+    }
+
+    XEncode encode;
+    auto encode_c{XEncode::Create(AV_CODEC_ID_H265, true)};
+    encode_c->width = video_width;
+    encode_c->height = video_height;
+    encode.set_codec_ctx(encode_c);
+    encode.Open();
+
 //////////////////////////////////////////////////////////封装输出媒体文件/////////////////////////////////////////////////////////////////////////////
-    //constexpr auto out_url{GET_STR(out.mp4)};
     XMux mux;
     auto mux_c{XMux::Open(out_file)};
     mux.set_fmt_ctx(mux_c);
@@ -53,7 +85,8 @@ int main(const int argc,const char *argv[]) {
      * 拷贝音视频流信息
      */
     if (demux.video_index() >= 0){
-        demux.CopyParm(demux.video_index(),mvs->codecpar);
+        //demux.CopyParm(demux.video_index(),mvs->codecpar);
+        avcodec_parameters_from_context(mvs->codecpar,encode_c);
         mvs->time_base.den = demux.video_timebase().den;
         mvs->time_base.num = demux.video_timebase().num;
     }
@@ -67,7 +100,7 @@ int main(const int argc,const char *argv[]) {
     mux.WriteHead();
 
     int64_t video_begin_pts{},audio_begin_pts{},video_end_pts{};
-    if (begin_sec > 0) {
+    {
         if (demux.video_index() >= 0 && demux.video_timebase().num > 0){
             // pts = sec / time_base
             // pts = sec / (num / den) = sec * (den / num)
@@ -111,29 +144,40 @@ int main(const int argc,const char *argv[]) {
                              AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD),return -1);
 #endif
 
-    auto packet{new_XAVPacket()};
+    XAVPacket packet;
     int video_count{},audio_count{};
     double total_sec{};
     while (true) {
-        if (!demux.Read(*packet)) {
+        if (!demux.Read(packet)) {
             break;
         }
 
         if (video_end_pts > 0 &&
-            packet->stream_index == demux.video_index() &&
-            packet->pts > video_end_pts) {
+            packet.stream_index == demux.video_index() &&
+            packet.pts > video_end_pts) {
             break;
         }
 
-        if (demux.video_index() == packet->stream_index){
-            mux.RescaleTime(*packet,video_begin_pts,demux.video_timebase());
+        if (demux.video_index() == packet.stream_index){
+            mux.RescaleTime(packet,video_begin_pts,demux.video_timebase());
+            if (decode.Send(packet)){
+                while (decode.Receive(*frame)) {
+                    //std::cerr << frame->pts << "\t";
+                    auto epkt{encode.Encode(*frame)};
+                    if (epkt){
+                        mux.Write(*epkt);
+                    }
+                }
+            }
+
             ++video_count;
             if (demux.video_timebase().den > 0){
-                total_sec += static_cast<double >(packet->duration) * (static_cast<double >(demux.video_timebase().num) / static_cast<double >(demux.video_timebase().den));
+                total_sec += static_cast<double >(packet.duration) * (static_cast<double >(demux.video_timebase().num) / static_cast<double >(demux.video_timebase().den));
             }
-        }else if (demux.audio_index() == packet->stream_index){
-            mux.RescaleTime(*packet,audio_begin_pts,demux.audio_timebase());
+        }else if (demux.audio_index() == packet.stream_index){
+            mux.RescaleTime(packet,audio_begin_pts,demux.audio_timebase());
             ++audio_count;
+            mux.Write(packet);
         } else{}
 
 #if 0
@@ -179,8 +223,22 @@ int main(const int argc,const char *argv[]) {
          * 交错写入文件
          */
 #endif
-        mux.Write(*packet);
+        packet.Reset();
     }
+
+    auto frames{decode.Flush()};
+    for (auto &f:frames) {
+        auto epkt{encode.Encode(*f)};
+        if (epkt){
+            mux.Write(*epkt);
+        }
+    }
+
+    auto pkts{encode.Flush()};
+    for (auto &p:pkts) {
+        mux.Write(*p);
+    }
+
     /**
      * 写入文件尾部信息
      */

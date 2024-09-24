@@ -17,14 +17,14 @@ public:
      * @param packet
      * @return true or false
      */
-    bool Send(const XAVPacket *packet);
+    bool Send(const XAVPacket &packet);
 
     /**
      * 从解码器接收解码后到帧,需循环读取
      * @param frame
      * @return true or false
      */
-    bool Receive(XAVFrame *frame);
+    bool Receive(XAVFrame &frame);
 
     /**
      * 冲刷解码器,把缓冲的帧全部读取出来
