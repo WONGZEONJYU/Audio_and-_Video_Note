@@ -65,7 +65,7 @@ public:
      * @param packet
      * @param offset_pts
      * @param time_base
-     * @return
+     * @return ture or false
      */
     bool RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const XRational &time_base);
 
