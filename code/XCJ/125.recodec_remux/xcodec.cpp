@@ -14,9 +14,9 @@ extern "C"{
 
 #define CHECK_CODEC_CTX \
 std::unique_lock locker(m_mux);\
-if (!m_codec_ctx){\
+do{if (!m_codec_ctx){\
 PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
-return {};}
+return {};}}while(false)
 
 AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
 
@@ -26,7 +26,7 @@ AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
         //1.查找编码器
         codec = avcodec_find_encoder(static_cast<AVCodecID>(codec_id));
     } else{
-        //查找解码器
+        //1.查找解码器
         codec = avcodec_find_decoder(static_cast<AVCodecID>(codec_id));
     }
 
@@ -63,14 +63,14 @@ PRINT_ERR_TIPS(GET_STR((encode is open,Invalid parameter setting\n)));} \
 }while(false)
 
 bool XCodec::SetOpt(const std::string &key,const std::string &val){
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX;
     CHECK_ENCODE_OPEN;
     FF_ERR_OUT(av_opt_set(m_codec_ctx->priv_data,key.c_str(),val.c_str(),0),return {});
     return true;
 }
 
 bool XCodec::SetOpt(const std::string &key,const int64_t &val){
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX;
     CHECK_ENCODE_OPEN;
     FF_ERR_OUT(av_opt_set_int(m_codec_ctx->priv_data,key.c_str(),val,0),return {});
     return true;
@@ -85,14 +85,14 @@ bool XCodec::Set_CRF(const CRF &crf){
 }
 
 bool XCodec::Open() {
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX;
     FF_ERR_OUT(avcodec_open2(m_codec_ctx,{},{}),return {});
     return true;
 }
 
 XAVFrame_sptr XCodec::CreateFrame(){
 
-    CHECK_CODEC_CTX
+    CHECK_CODEC_CTX;
     XAVFrame_sptr frame;
     TRY_CATCH(CHECK_EXC(frame = new_XAVFrame()),return {});
     frame->width = m_codec_ctx->width;
