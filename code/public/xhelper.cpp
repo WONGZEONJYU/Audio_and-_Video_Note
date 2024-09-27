@@ -170,6 +170,20 @@ namespace XHelper {
             }
         }
     }
+
+    void xlog(const std::string &func,
+              const std::string &file,
+              const int &line,
+              const std::string &msg,
+              const int &level) {
+        stringstream log_ss;
+        log_ss << GET_STR(log level : ) << " " << level << " msg : " << (func + " : " + file + " : ") << line << " : " << msg;
+        if (XLOG_TYPE_DEBUG == level || level == XLOG_TYPE_INFO){
+            cout << log_ss.str() << "\n" << flush;
+        } else{
+            cerr << log_ss.str() << "\n";
+        }
+    }
 }
 
 static void yuvMirror(uint8_t* yuv,const int &w, const int &h) {

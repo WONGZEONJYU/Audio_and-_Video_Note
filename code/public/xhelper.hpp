@@ -15,6 +15,13 @@ struct AVFilterGraph;
 struct AVChannelLayout;
 #endif
 
+enum XLogLevel{
+    XLOG_TYPE_DEBUG,
+    XLOG_TYPE_INFO,
+    XLOG_TYPE_ERROR,
+    XLOG_TYPE_FATAL,
+};
+
 namespace XHelper {
 #ifdef HAVE_FFMPEG
     std::string av_get_err(const int&) noexcept(true);
@@ -57,7 +64,18 @@ namespace XHelper {
     int64_t Get_time_ms();
 
     void MSleep(const uint64_t &);
+
+    void xlog(const std::string &func,
+              const std::string &file,
+              const int &line,
+              const std::string &msg,
+              const int &level = XLOG_TYPE_DEBUG);
 }
+
+#define LOGDEBUG(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg))
+#define LOGDINFO(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_INFO)
+#define LOGERROR(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_ERROR)
+#define LOGFATAL(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_FATAL)
 
 #ifdef HAVE_FFMPEG
     #define FF_CHECK_ERR(x,...) do{\
