@@ -3632,7 +3632,7 @@ static int decode_interrupt_cb(void *ctx)
 {
     static int64_t s_pre_time = 0;
     auto cur_time  {av_gettime_relative() / 1000};
-    //fprintf(stderr,"decode_interrupt_cb interval: %lldms",cur_time-s_pre_time);
+    fprintf(stderr,"decode_interrupt_cb interval: %lldms",cur_time-s_pre_time);
     s_pre_time = cur_time;
     VideoState *is = static_cast<decltype(is)>(ctx);
     return is->abort_request;
@@ -4992,3 +4992,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+//2_audio.mp4 -ast 0

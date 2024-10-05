@@ -32,5 +32,4 @@ class XTools {
 
 };
 
-
-#endif //INC_126_RTSP_DEMUX_THREAD_XTOOLS_HPP
+#endif

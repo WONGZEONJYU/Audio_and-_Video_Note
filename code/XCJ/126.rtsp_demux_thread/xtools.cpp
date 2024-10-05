@@ -35,3 +35,5 @@ void XThread::Stop() {
 XThread::~XThread() {
     _stop_();
 }
+
+

@@ -61,7 +61,7 @@ namespace XHelper {
 
     bool float_Compare(const float &,const float &,const float & = 1e-6);
 
-    int64_t Get_time_ms();
+    uint64_t Get_time_ms();
 
     void MSleep(const uint64_t &);
 

@@ -1,27 +1,24 @@
 #include <iostream>
 #include "xtools.hpp"
+#include "xdemuxtask.hpp"
 
-class TestThread : public XThread{
+//rtmp://liteavapp.qcloud.com/live/liteavdemoplayerstreamid
 
-public:
-    void Main() override{
-        LOGDEBUG(GET_STR(Main() begin));
-        while (!m_is_exit){
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+#define CAM1 \
+"rtsp://admin:123456@10.0.0.123/stream0"
+
+int main(const int argc,const char *argv[]) {
+
+    XDemuxTask det;
+
+    while (true){
+        if (det.Open(CAM1)){
+            break;
         }
-        LOGDEBUG(GET_STR(Main() end));
+        XHelper::MSleep(100);
     }
 
-};
-
-
-int main(const int argc,const char *argv[]){
-
-    TestThread tt;
-    tt.Start();
-    std::this_thread::sleep_for(std::chrono::seconds(3));
-    tt.Stop();
-
+    det.Start();
     getchar();
     return 0;
 }

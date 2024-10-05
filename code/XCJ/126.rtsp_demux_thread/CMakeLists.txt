@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.29)
 project(126.rtsp_demux_thread)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 23)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(/opt/homebrew/opt/llvm/include)
 
@@ -67,7 +67,9 @@ add_executable(${PROJECT_NAME} main.cpp
         xmux.cpp
         xmux.hpp
         xtools.cpp
-        xtools.hpp)
+        xtools.hpp
+        xdemuxtask.cpp
+        xdemuxtask.hpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)

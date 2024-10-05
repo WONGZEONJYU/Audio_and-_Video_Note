@@ -22,8 +22,20 @@ AVFormatContext *XDemux::Open(const std::string &url) {
     }
 
     AVFormatContext *c{};
-    FF_ERR_OUT(avformat_open_input(&c,url.c_str(), nullptr, nullptr),return {});
-    FF_ERR_OUT(avformat_find_stream_info(c, nullptr),return {});
+    AVDictionary *opts{};
+    bool need_free{};
+
+    Destroyer d([&]{
+        av_dict_free(&opts);
+        if (need_free){
+            avformat_close_input(&c);
+        }
+    });
+
+    //FF_ERR_OUT(av_dict_set(&opts, GET_STR(rtsp_transport), GET_STR(tcp),0),return {});
+    FF_ERR_OUT(av_dict_set(&opts, GET_STR(timeout),GET_STR(1000000),0),return {});
+    FF_ERR_OUT(avformat_open_input(&c,url.c_str(), nullptr, &opts),return {});
+    FF_ERR_OUT(avformat_find_stream_info(c, nullptr),need_free = true;return {});
     av_dump_format(c,0,url.c_str(),0);
     return c;
 }
@@ -32,6 +44,7 @@ bool XDemux::Read(XAVPacket &packet) {
 
     check_ctx;
     FF_ERR_OUT(av_read_frame(m_fmt_ctx,&packet),return {});
+    m_last_time = XHelper::Get_time_ms();
     return true;
 }
 

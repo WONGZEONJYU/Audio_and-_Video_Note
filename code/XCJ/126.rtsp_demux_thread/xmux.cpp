@@ -20,22 +20,30 @@ AVFormatContext *XMux::Open(const std::string &url) {
         return {};
     }
 
+    bool need_free{};
     AVFormatContext *c{};
+
+    Destroyer d([&]{
+        if (need_free){
+            avformat_free_context(c);
+        }
+    });
+
     FF_ERR_OUT(avformat_alloc_output_context2(&c, nullptr, nullptr,url.c_str()),
                return {});
 
     AVStream *vs,*as;
 
     TRY_CATCH(CHECK_NULLPTR(vs = avformat_new_stream(c, nullptr)),
-              avformat_free_context(c);return {});
+              need_free = true;return {});
     vs->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
 
     TRY_CATCH(CHECK_NULLPTR(as = avformat_new_stream(c, nullptr)),
-              avformat_free_context(c);return {});
+              need_free = true;return {});
     as->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
 
     FF_ERR_OUT(avio_open(&c->pb,url.c_str(),AVIO_FLAG_WRITE),
-               avformat_free_context(c);return {});
+               need_free = true;return {});
 
     return c;
 }

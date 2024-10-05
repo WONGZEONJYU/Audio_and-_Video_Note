@@ -31,8 +31,18 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
     destroy();
     m_fmt_ctx = ctx;
     if (!m_fmt_ctx){
+        m_is_connected = false;
         return;
     }
+
+    m_is_connected = true;
+    m_last_time = XHelper::Get_time_ms();
+
+    if (m_time_out_ms > 0){
+        const AVIOInterruptCB cb {Time_out_callback, this};
+        m_fmt_ctx->interrupt_callback = cb;
+    }
+
     m_audio_index = m_video_index = -1;
     m_video_timebase = {1,25};
     m_audio_timebase = {1,44100};
@@ -52,13 +62,11 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
     }
 }
 
-
 #define check_ctx \
 std::unique_lock locker(m_mux);do{\
 if(!m_fmt_ctx) { \
 PRINT_ERR_TIPS(GET_STR(ctx is empty)); \
 return {};}}while(false)
-
 
 bool XFormat::CopyParm(const int &stream_index,AVCodecParameters *dst) {
     if (!dst){
@@ -109,4 +117,29 @@ bool XFormat::RescaleTime(XAVPacket &packet, const int64_t &offset_pts, const XR
 XFormat::~XFormat() {
     std::unique_lock locker(m_mux);
     destroy();
+}
+
+int XFormat::Time_out_callback(void *const arg) {
+    const auto this_{static_cast<XFormat*>(arg)};
+    const auto b{this_->IsTimeout()};
+    //std::cerr << __func__  << " : " << std::boolalpha << b << "\n";
+    return b;
+}
+
+bool XFormat::set_timeout_ms(const uint64_t &ms) {
+    m_time_out_ms = ms;
+    check_ctx;
+    const AVIOInterruptCB cb{Time_out_callback,this};
+    m_fmt_ctx->interrupt_callback = cb;
+    return true;
+}
+
+bool XFormat::IsTimeout() {
+    const auto curr_time{XHelper::Get_time_ms()};
+    if (curr_time - m_last_time > m_time_out_ms) {
+        m_is_connected = false;
+        m_last_time = curr_time;
+        return true;
+    }
+    return {};
 }
