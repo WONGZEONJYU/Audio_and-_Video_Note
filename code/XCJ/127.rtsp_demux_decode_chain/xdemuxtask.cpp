@@ -38,6 +38,7 @@ void XDemuxTask::Main() {
             continue;
         }
         std::cout << GET_STR(.);
+        Next(pkt);
         std::this_thread::sleep_for(1ms);
     }
 }
