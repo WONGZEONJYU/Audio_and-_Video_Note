@@ -69,7 +69,9 @@ add_executable(${PROJECT_NAME} main.cpp
         xtools.cpp
         xtools.hpp
         xdemuxtask.cpp
-        xdemuxtask.hpp)
+        xdemuxtask.hpp
+        xavcodec_parameters.cpp
+        xavcodec_parameters.hpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)

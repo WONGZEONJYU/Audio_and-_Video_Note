@@ -5,7 +5,7 @@ extern "C"{
 #include <libavcodec/avcodec.h>
 }
 
-#include "XAVCodecParameters.hpp"
+#include "xavcodec_parameters.hpp"
 #include <algorithm>
 
 void XAVCodecParameters::Reset(AVCodecParameters *obj) noexcept(true) {

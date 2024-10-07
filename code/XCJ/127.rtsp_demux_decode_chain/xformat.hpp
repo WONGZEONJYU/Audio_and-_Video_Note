@@ -13,6 +13,9 @@ struct AVFormatContext;
 struct AVCodecParameters;
 struct AVCodecContext;
 class XAVPacket;
+class XAVCodecParameters;
+
+using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
 
 struct XRational final {
     int num{1}, ///< Numerator
@@ -40,6 +43,7 @@ public:
 
     bool CopyParm(const int &stream_index,AVCodecContext *dst);
 
+    XAVCodecParameters_sptr CopyVideoParm() ;
     /**
      * 获取视频流index
      * @return index
