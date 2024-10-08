@@ -388,9 +388,8 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch/
 > 
 > #3
 > make -j28
-> 
-> #make install
-> 
+> #4
+> make install
 > ```
 
 ### 6.4.7 下载和编译ffmpeg
