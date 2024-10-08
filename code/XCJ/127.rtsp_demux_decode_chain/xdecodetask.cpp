@@ -5,15 +5,17 @@
 #include "xdecodetask.h"
 #include "xcodec_parameters.hpp"
 #include "xdecode.hpp"
+#include "xavpacket.hpp"
 
 void XDecodeTask::Main() {
 
-    while (!m_is_exit) {
-
-    }
 }
 
 void XDecodeTask::Do(XAVPacket &pkt) {
+    std::cout << "#";
+    auto pktsp = new_XAVPacket();
+    *pktsp = std::move(pkt);
+    std::cout << pktsp->stream_index << "\n";
 
 }
 

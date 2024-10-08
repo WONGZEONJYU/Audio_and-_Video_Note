@@ -13,7 +13,7 @@ class XDemuxTask : public XThread{
     void Main() override;
 public:
     bool Open(const std::string &url,const uint64_t &time_out = 1000);
-
+    auto CopyVideoParm(){return m_demux.CopyVideoParm();}
 private:
     XDemux m_demux;
     std::string m_url;

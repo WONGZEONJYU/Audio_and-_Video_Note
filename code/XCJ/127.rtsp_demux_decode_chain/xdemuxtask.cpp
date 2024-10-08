@@ -27,7 +27,7 @@ bool XDemuxTask::Open(const std::string &url, const uint64_t &time_out) {
 void XDemuxTask::Main() {
 
     XAVPacket pkt;
-    while (!m_is_exit){
+    while (!m_is_exit) {
         if (!m_demux.Read(pkt)){
             std::cout << GET_STR(-);
             if (!m_demux.is_connected()){

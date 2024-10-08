@@ -2,8 +2,9 @@
 // Created by wong on 2024/9/26.
 //
 
-#include "xtools.hpp"
 #include <sstream>
+#include "xtools.hpp"
+#include "xavpacket.hpp"
 
 void XThread::_stop_() {
 
@@ -34,4 +35,38 @@ void XThread::Stop() {
 
 XThread::~XThread() {
     _stop_();
+}
+
+XAVPacket_sptr XAVPacketList::Pop() {
+    std::unique_lock locker(m_mux);
+    if (m_packets.empty()){
+        return {};
+    }
+    auto re{m_packets.front()};
+    m_packets.pop_front();
+    return re;
+}
+
+void XAVPacketList::Push(XAVPacket_sptr &&pkt) {
+    std::unique_lock locker(m_mux);
+    m_packets.push_back(std::move(pkt));
+
+    //超出空间,清理数据,到关键帧位置
+    if (m_packets.size() > max_packets){
+
+        //如果第一帧是关键帧,清理后直接退出
+        if (m_packets.front()->flags & AV_PKT_FLAG_KEY) {
+            m_packets.pop_front();
+            return;
+        }
+        //第一帧为非关键帧,则清理整个GOP
+        while (!m_packets.empty()){
+
+            if (m_packets.front()->flags & AV_PKT_FLAG_KEY){
+                //清理到直到下一组GOP出现才退出
+                return;
+            }
+            m_packets.pop_front();
+        }
+    }
 }
