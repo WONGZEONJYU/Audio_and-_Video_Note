@@ -126,19 +126,16 @@ XCodecParameters::~XCodecParameters() {
     Reset(this);
 }
 
-XCodecParameters_sp new_XCodecParameters() noexcept(false) {
     XCodecParameters_sp obj;
     CHECK_EXC(obj = std::make_shared<XCodecParameters>());
     return obj;
 }
 
-XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const AVRational &tb) noexcept(false) {
     XCodecParameters_sp obj;
     CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb));
     return obj;
 }
 
-XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const AVRational &tb) noexcept(false){
     XCodecParameters_sp obj;
     CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb));
     return obj;

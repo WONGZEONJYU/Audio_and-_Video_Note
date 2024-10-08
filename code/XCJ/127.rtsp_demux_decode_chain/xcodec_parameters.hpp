@@ -76,8 +76,5 @@ private:
     AVRational m_time_base{1,1};
 };
 
-XCodecParameters_sp new_XCodecParameters() noexcept(false);
-XCodecParameters_sp new_XCodecParameters(const AVCodecContext *,const AVRational & = {1,1}) noexcept(false);
-XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *,const AVRational & = {1,1}) noexcept(false);
 
 #endif
