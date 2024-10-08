@@ -339,7 +339,61 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch/
 > make install
 > ```
 
-### 6.4.5 下载和编译ffmpeg
+### 6.4.5 下载和编译libx265
+
+1. 下载
+
+> [[x265下载地址]](https://www.x265.org/downloads/) 选择最新版就Ok
+
+2. 编译
+
+> ```bash
+> x.x代表x265的版本号,根据自己下载的版本号进行调整
+> #1
+> #先修改x265_x.x\build\msys-cl下的make-Makefiles-64bit.sh
+> #把target_processor='amd64'改成target_processor='x64'
+> #然后在target_processor='x64'上方添加
+> INSTALL_DIR="./../../../build/"
+> #用于nmake install
+> #2
+> cd x265_x.x/build/msys-cl
+> #3
+> sh make-Makefiles-64bit.sh
+> #4
+> make -j28
+> #5
+> nmake install
+> ```
+
+### 6.4.6 下载和编译SDL2
+
+1. 下载
+
+> ```bash
+> #https://github.com/libsdl-org/SDL
+> #下载最新版
+> SDL2-2.30.8.tar.gz linux下用
+> SDL2-2.30.8.zip windows下用
+> ```
+
+2. 编译
+
+> ```bash
+> #1
+> cd SDL2-xxx
+> 
+> #2
+> ./configure --enable-static --enable-shared --prefix=/home/ubuntu/Libs/SDL2/build
+> #--prefix可自行修改
+> 
+> #3
+> make -j28
+> 
+> #make install
+> 
+> ```
+
+### 6.4.7 下载和编译ffmpeg
 
 1. 下载ffmpeg
 
@@ -351,8 +405,9 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch/
 > cd ffmpeg
 > #查看版本
 > git branch -a
-> # 选择4.2版本
+> # 选择4.2版本,如果可以建议用新版本,例如目前最新是7.1
 > git checkout remotes/origin/release/4.2
+> git checkout remotes/origin/release/7.1
 > ```
 
 ```tex
@@ -364,33 +419,38 @@ Server = http://mirrors.ustc.edu.cn/msys2/msys/$arch/
 在/home/xxx/ffmpeg/ffmpeg 下建立 `build_ffmpeg.sh`
 
 > ```bash
-> ./configure \
->     --prefix=/home/xxx/ffmpeg/build/libffmepg \
->     --arch=x86_64 \
->     --enable-shared \
->     --enable-gpl \
->     --enable-libfdk-aac \
->     --enable-nonfree \
->     --enable-libvpx \
->     --enable-libx264 \
->     --enable-libmp3lame \
->     --extra-cflags="-I/home/xxx/ffmpeg/build/libfdk-aac/include" \
->     --extra-ldflags="-L/home/xxx/ffmpeg/build/libfdk-aac/lib" \
->     --extra-cflags="-I/home/xxx/ffmpeg/build/libvpx/include" \
->     --extra-ldflags="-L/home/xxx/build/libvpx/lib" \
->     --extra-cflags="-I/home/xxx/build/libx264/include" \
->     --extra-ldflags="-L/home/xxx/build/libx264/lib" \
->     --extra-cflags="-I/home/xxx/build/libmp3lame/include" \
->     --extra-ldflags="-L/home/xxx/build/libmp3lame/lib"
+> sh build_ffmpeg.sh
 > ```
 
 > ```bash
-> #1
-> sh build_ffmpeg.sh
-> #2
-> make -j16
+> ./configure \
+>  --prefix=/home/xxx/ffmpeg/build/libffmepg \
+>  --arch=x86_64 \
+>  --enable-shared \
+>  --enable-gpl \
+>  --enable-libfdk-aac \
+>  --enable-nonfree \
+>  --enable-libvpx \
+>  --enable-libx264 \
+>  --enable-libx265 \
+>  --enable-libmp3lame \
+>  --enable-sdl2 \
+>  --extra-cflags="-I/home/xxx/ffmpeg/build/libfdk-aac/include" \
+>  --extra-ldflags="-L/home/xxx/ffmpeg/build/libfdk-aac/lib" \
+>  --extra-cflags="-I/home/xxx/ffmpeg/build/libvpx/include" \
+>  --extra-ldflags="-L/home/xxx/ffmpeg/build/libvpx/lib" \
+>  --extra-cflags="-I/home/xxx/ffmpeg/build/libx264/include" \
+>  --extra-ldflags="-L/home/xxx/ffmpeg/build/libx264/lib" \
+>  --extra-cflags="-I/home/xxx/ffmpeg/build/libx265/include" \
+>  --extra-ldflags="-L/home/xxx/ffmpeg/build/libx265/lib" \
+>  --extra-cflags="-I/home/xxx/ffmpeg/build/libmp3lame/include" \
+>  --extra-ldflags="-L/home/xxx/ffmpeg/build/libmp3lame/lib" \
+>  --extra-cflags="-I/home/xxx/ffmpeg/build/SDL2/include" \
+>  --extra-ldflags="-L/home/xxx/ffmpeg/build/SDL2/lib"
+> 
 > #j16代表使用多少个线程编译,看自己电脑情况而定
-> #3
+> make -j16
+> 
 > make install
 > ```
 
