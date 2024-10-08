@@ -1,7 +1,3 @@
-//
-// Created by wong on 2024/9/26.
-//
-
 #ifndef INC_126_RTSP_DEMUX_THREAD_XTOOLS_HPP
 #define INC_126_RTSP_DEMUX_THREAD_XTOOLS_HPP
 

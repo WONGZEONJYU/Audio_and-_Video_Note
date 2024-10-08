@@ -10,7 +10,7 @@ extern "C"{
 
 #include "xformat.hpp"
 #include "xavpacket.hpp"
-#include "xavcodec_parameters.hpp"
+#include "xcodec_parameters.hpp"
 
 void XFormat::destroy() {
     if (m_fmt_ctx){
@@ -99,7 +99,7 @@ bool XFormat::CopyParm(const int &stream_index,AVCodecContext *dst){
     return true;
 }
 
-XAVCodecParameters_sptr XFormat::CopyVideoParm() {
+XCodecParameters_sp XFormat::CopyVideoParm() {
     check_ctx;
     const auto index{m_video_index.load()};
     if (index < 0){
@@ -107,9 +107,9 @@ XAVCodecParameters_sptr XFormat::CopyVideoParm() {
         return {};
     }
 
-    XAVCodecParameters_sptr re;
+    XCodecParameters_sp re;
     const auto video_st{m_fmt_ctx->streams[index]};
-    TRY_CATCH(CHECK_EXC(re = new_XAVCodecParameters(video_st->codecpar,video_st->time_base)),return {});
+    TRY_CATCH(CHECK_EXC(re = new_XCodecParameters(video_st->codecpar,video_st->time_base)),return {});
     return re;
 }
 
