@@ -15,7 +15,7 @@ extern "C"{
 
 struct AVCodecContext;
 class XCodecParameters;
-using XCodecParameters_sp = typename std::shared_ptr<XCodecParameters>;
+using XCodecParameters_sp = std::shared_ptr<XCodecParameters>;
 
 class XCodecParameters final : AVCodecParameters {
     static void Reset(AVCodecParameters *) noexcept(true);
@@ -76,5 +76,9 @@ private:
     AVRational m_time_base{1,1};
 };
 
+XCodecParameters_sp new_XCodecParameters();
+XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const AVRational &tb = {1,1});
+XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const AVRational &tb = {1,1});
 
 #endif
+
