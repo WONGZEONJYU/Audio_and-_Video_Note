@@ -14,7 +14,7 @@ bool XDemuxTask::Open(const std::string &url, const uint64_t &time_out) {
     m_url = url;
     m_timeout_ms = time_out;
     m_demux.set_fmt_ctx({});
-    auto c{XDemux::Open(url)};
+    const auto c{XDemux::Open(url)};
     if (!c){
         return {};
     }

@@ -35,12 +35,10 @@ public:
     }
 
     /**
-     * 执行任务
-     * @param pkt
+     * 执行任务,用户如有需要则自行继承
+     * @param XAVPacket &
      */
-    virtual void Do(XAVPacket &pkt){
-        (void )pkt;
-    };
+    virtual void Do(XAVPacket &){}
 
 protected:
     std::atomic_bool m_is_exit{};
