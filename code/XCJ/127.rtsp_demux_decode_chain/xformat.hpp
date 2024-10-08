@@ -8,14 +8,15 @@
 #include "xhelper.hpp"
 #include <mutex>
 #include <atomic>
+#include <memory>
 
 struct AVFormatContext;
 struct AVCodecParameters;
 struct AVCodecContext;
 class XAVPacket;
-class XAVCodecParameters;
+class XCodecParameters;
 
-using XAVCodecParameters_sptr = typename std::shared_ptr<XAVCodecParameters>;
+using XCodecParameters_sp = typename std::shared_ptr<XCodecParameters>;
 
 struct XRational final {
     int num{1}, ///< Numerator
@@ -43,7 +44,7 @@ public:
 
     bool CopyParm(const int &stream_index,AVCodecContext *dst);
 
-    XAVCodecParameters_sptr CopyVideoParm() ;
+    XCodecParameters_sp CopyVideoParm() ;
     /**
      * 获取视频流index
      * @return index

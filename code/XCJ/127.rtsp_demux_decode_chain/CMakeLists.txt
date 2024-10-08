@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.29)
 project(127.rtsp_demux_decode_chain)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(/opt/homebrew/opt/llvm/include)
@@ -9,12 +9,12 @@ include_directories(/opt/homebrew/opt/llvm/include)
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_definitions(-DWINDOWS)
     #set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
-    set(CMAKE_PREFIX_PATH "C:/Qt6/6.7.2/mingw_64/")
-    include_directories(c:/ffmepg-7.1/include)
-    include_directories(c:/SDL2-2.28.5-VC/include)
+    set(CMAKE_PREFIX_PATH "C:/Qt6/6.7.3/mingw_64/")
+    include_directories(C:/libffmepg/include)
+    include_directories(C:/SDL2/include/SDL2)
 
-    link_directories(c:/ffmepg-7.1/bin)
-    link_directories(c:/SDL2-2.28.5-VC/lib/x64)
+    link_directories(C:/libffmepg/bin)
+    link_directories(C:/SDL2/bin)
     set(MM_FILE)
     set(Vulkan_INCLUDE_DIR "C:/VulkanSDK/1.3.290.0/Include")
     set(Vulkan_LIBRARY "C:/VulkanSDK/1.3.290.0/Lib/vulkan-1.lib")
@@ -70,8 +70,8 @@ add_executable(${PROJECT_NAME} main.cpp
         xtools.hpp
         xdemuxtask.cpp
         xdemuxtask.hpp
-        xavcodec_parameters.cpp
-        xavcodec_parameters.hpp)
+        xcodec_parameters.cpp
+        xcodec_parameters.hpp)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS})
 add_definitions(-DHAVE_FFMPEG)
