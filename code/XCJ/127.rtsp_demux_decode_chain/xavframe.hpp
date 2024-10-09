@@ -97,11 +97,25 @@ public:
      * 释放本对象数据,如果frame不为空,则拷贝AVFrame,引用计数+1
      * @param frame
      */
-    void Reset(AVFrame *frame = nullptr);
+    void Reset(const AVFrame *frame = nullptr);
+
+    /**
+     * 与Reset功能相同
+     * @param frame
+     */
+    void Ref_fromAVFrame(const AVFrame *frame);
+    void Ref_fromAVFrame(const AVFrame &frame);
+
+    /**
+     * 转移AVFrame的引用计数,被转移后的AVFrame谨慎使用
+     * @param frame
+     */
+    void Move_fromAVFrame(AVFrame *frame);
+    void Move_fromAVFrame(AVFrame &&frame);
 
 };
 
-using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
+using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
 XAVFrame_sptr new_XAVFrame() noexcept(false);
 
 #endif

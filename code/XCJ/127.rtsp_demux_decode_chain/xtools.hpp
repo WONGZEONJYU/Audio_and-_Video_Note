@@ -4,6 +4,7 @@
 #include <thread>
 #include <mutex>
 #include <list>
+#include <memory>
 #include "xhelper.hpp"
 
 class XAVPacket;

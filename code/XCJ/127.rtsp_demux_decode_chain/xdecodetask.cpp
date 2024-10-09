@@ -15,8 +15,11 @@ void XDecodeTask::Do(XAVPacket &pkt) {
     std::cout << "#";
     auto pktsp = new_XAVPacket();
     *pktsp = std::move(pkt);
-    std::cout << pktsp->stream_index << "\n";
 
+    if (0 == pktsp->stream_index) {
+        std::cout << GET_STR(pktsp->size :) << pktsp->size << "\n";
+        std::cout << GET_STR(pkt.pts :) << pkt.pts << "\n";
+    }
 }
 
 bool XDecodeTask::Open(const XCodecParameters &parms) {
