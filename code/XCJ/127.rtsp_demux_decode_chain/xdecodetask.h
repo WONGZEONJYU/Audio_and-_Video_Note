@@ -12,8 +12,9 @@
 
 class XAVPacket;
 class XCodecParameters;
+class XAVFrame;
 
-using XAVPacket_sptr = std::shared_ptr<XAVPacket>;
+using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
 
 class XDecodeTask : public XThread{
 
@@ -29,10 +30,10 @@ public:
     bool Open(const XCodecParameters &parms);
 
 private:
-    std::list<XAVPacket_sptr> m_packets;
+    XAVPacketList m_pkt_list;
     XDecode m_decode;
     std::mutex m_mutex;
-
+    XAVFrame_sptr m_frame;
 public:
     explicit XDecodeTask() = default;
     X_DISABLE_COPY_MOVE(XDecodeTask)

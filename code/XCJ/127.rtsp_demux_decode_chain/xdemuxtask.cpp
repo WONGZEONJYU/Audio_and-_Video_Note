@@ -33,7 +33,6 @@ void XDemuxTask::Main() {
             if (!m_demux.is_connected()){
                 Open(m_url,m_timeout_ms);
             }
-
             std::this_thread::sleep_for(1ms);
             continue;
         }

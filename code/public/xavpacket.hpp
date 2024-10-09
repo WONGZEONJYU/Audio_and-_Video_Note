@@ -50,8 +50,21 @@ public:
      * 则对AVPacket引用计数+1
      * @param packet
      */
-    void Reset(AVPacket *packet = nullptr);
+    void Reset(const AVPacket *packet = nullptr);
 
+    /**
+     * 与Reset功能相同
+     * @param packet
+     */
+    void Ref_fromAVPacket(const AVPacket *packet);
+    void Ref_fromAVPacket(const AVPacket &packet);
+
+    /**
+     * 转移AVPacket的引用计数,被转移后的AVPacket谨慎使用
+     * @param packet
+     */
+    void Move_FromAVPacket(AVPacket *packet);
+    void Move_FromAVPacket(AVPacket &&packet);
 };
 
 using XAVPacket_sptr = typename std::shared_ptr<XAVPacket>;

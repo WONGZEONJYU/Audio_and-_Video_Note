@@ -61,11 +61,33 @@ bool XAVFrame::Make_Writable() {
     return true;
 }
 
-void XAVFrame::Reset(AVFrame *frame) {
+void XAVFrame::Reset(const AVFrame *frame) {
     av_frame_unref(this);
     if (frame){
+        av_frame_ref(this,frame);
+    }
+}
+
+void XAVFrame::Ref_fromAVFrame(const AVFrame *frame) {
+    if (frame) {
+        av_frame_unref(this);
+        av_frame_ref(this,frame);
+    }
+}
+
+void XAVFrame::Ref_fromAVFrame(const AVFrame &frame) {
+    Ref_fromAVFrame(std::addressof(frame));
+}
+
+void XAVFrame::Move_fromAVFrame(AVFrame *frame) {
+    if (frame) {
+        av_frame_unref(this);
         av_frame_move_ref(this,frame);
     }
+}
+
+void XAVFrame::Move_fromAVFrame(AVFrame &&frame) {
+    Move_fromAVFrame(std::addressof(frame));
 }
 
 int XAVFrame::Image_Fill_Arrays(const uint8_t *src,const int &fmt,

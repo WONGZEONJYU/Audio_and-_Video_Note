@@ -56,11 +56,33 @@ bool XAVPacket::Make_Writable() {
     return true;
 }
 
-void XAVPacket::Reset(AVPacket *packet) {
+void XAVPacket::Reset(const AVPacket *packet) {
     av_packet_unref(this);
     if (packet) {
         av_packet_ref(this,packet);
     }
+}
+
+void XAVPacket::Ref_fromAVPacket(const AVPacket *packet) {
+    if (packet) {
+        av_packet_unref(this);
+        av_packet_ref(this,packet);
+    }
+}
+
+void XAVPacket::Ref_fromAVPacket(const AVPacket &packet) {
+    Ref_fromAVPacket(std::addressof(packet));
+}
+
+void XAVPacket::Move_FromAVPacket(AVPacket *packet) {
+    if (packet) {
+        av_packet_unref(this);
+        av_packet_move_ref(this,packet);
+    }
+}
+
+void XAVPacket::Move_FromAVPacket(AVPacket &&packet) {
+    Move_FromAVPacket(std::addressof(packet));
 }
 
 XAVPacket_sptr new_XAVPacket() noexcept(false) {
@@ -68,3 +90,5 @@ XAVPacket_sptr new_XAVPacket() noexcept(false) {
     CHECK_EXC(obj = std::make_shared<XAVPacket>());
     return obj;
 }
+
+
