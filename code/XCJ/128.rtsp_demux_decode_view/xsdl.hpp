@@ -7,10 +7,6 @@
 
 #include "xvideo_view.hpp"
 
-struct SDL_Window;
-struct SDL_Renderer;
-struct SDL_Texture;
-
 class XSDL : public XVideoView {
 
     /**
