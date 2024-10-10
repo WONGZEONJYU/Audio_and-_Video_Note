@@ -12,11 +12,6 @@
 #include "xhelper.hpp"
 
 struct AVCodecContext;
-class XAVFrame;
-class XAVPacket;
-
-using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
-using XAVPacket_sptr = typename std::shared_ptr<XAVPacket>;
 
 class XCodec {
 
@@ -115,18 +110,14 @@ public:
      * @param one_frame_size 获取分配大小
      * @return
      */
-    [[nodiscard]] XAVFrame_sptr CreateFrame();
+    [[nodiscard]] XAVFrame_sp CreateFrame();
 
 protected:
     std::mutex m_mux;
     AVCodecContext *m_codec_ctx{};
-
-protected:
     explicit XCodec() = default;
-
-public:
-    X_DISABLE_COPY_MOVE(XCodec)
     virtual ~XCodec();
+    X_DISABLE_COPY_MOVE(XCodec)
 };
 
 #endif

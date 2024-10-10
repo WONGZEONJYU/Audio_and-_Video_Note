@@ -3,7 +3,7 @@
 //
 
 #include "xavframe.hpp"
-#include "xhelper.hpp"
+
 extern "C"{
 #include <libavutil/imgutils.h>
 #include <libavutil/samplefmt.h>
@@ -111,9 +111,20 @@ int XAVFrame::Samples_Fill_Arrays(const uint8_t *src,
     return ret;
 }
 
-XAVFrame_sptr new_XAVFrame() noexcept(false) {
-    XAVFrame_sptr obj;
-    CHECK_EXC(obj = std::make_shared<XAVFrame>());
+XAVFrame_sp new_XAVFrame() noexcept(true) {
+    XAVFrame_sp obj;
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XAVFrame>()),return {});
     return obj;
 }
 
+XAVFrame_sp new_XAVFrame(const AVFrame &frame) noexcept(true) {
+    XAVFrame_sp obj;
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XAVFrame>(frame)),return {});
+    return obj;
+}
+
+XAVFrame_sp new_XAVFrame(const AVFrame *frame) noexcept(true) {
+    XAVFrame_sp obj;
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XAVFrame>(frame)),return {});
+    return obj;
+}

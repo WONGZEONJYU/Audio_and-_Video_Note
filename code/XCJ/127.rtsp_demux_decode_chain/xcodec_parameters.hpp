@@ -13,8 +13,6 @@ extern "C"{
 #include <string>
 #include "xhelper.hpp"
 
-struct AVCodecContext;
-class XCodecParameters;
 using XCodecParameters_sp = std::shared_ptr<XCodecParameters>;
 
 class XCodecParameters final : AVCodecParameters {

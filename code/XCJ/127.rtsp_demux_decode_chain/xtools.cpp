@@ -37,7 +37,7 @@ XThread::~XThread() {
     _stop_();
 }
 
-XAVPacket_sptr XAVPacketList::Pop() {
+XAVPacket_sp XAVPacketList::Pop() {
     std::unique_lock locker(m_mux);
     if (m_packets.empty()){
         return {};
@@ -47,7 +47,7 @@ XAVPacket_sptr XAVPacketList::Pop() {
     return re;
 }
 
-void XAVPacketList::Push(XAVPacket_sptr &&pkt) {
+void XAVPacketList::Push(XAVPacket_sp &&pkt) {
     std::unique_lock locker(m_mux);
     m_packets.push_back(std::move(pkt));
 

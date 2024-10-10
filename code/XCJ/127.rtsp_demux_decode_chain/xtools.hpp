@@ -7,8 +7,9 @@
 #include <memory>
 #include "xhelper.hpp"
 
-class XAVPacket;
-using XAVPacket_sptr = std::shared_ptr<XAVPacket>;
+class XTools {
+
+};
 
 class XThread {
     virtual void Main() = 0;
@@ -59,17 +60,13 @@ protected:
     X_DISABLE_COPY_MOVE(XThread)
 };
 
-class XTools {
-
-};
-
 class XAVPacketList{
     static inline constexpr auto max_packets{100};
 public:
-    XAVPacket_sptr Pop();
-    void Push(XAVPacket_sptr &&);
+    XAVPacket_sp Pop();
+    void Push(XAVPacket_sp &&);
 private:
-    std::list<XAVPacket_sptr> m_packets;
+    std::list<XAVPacket_sp> m_packets;
     std::mutex m_mux;
 public:
     explicit XAVPacketList() = default;

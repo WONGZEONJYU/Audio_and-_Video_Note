@@ -7,7 +7,6 @@ extern "C" {
 }
 
 #include "xavpacket.hpp"
-#include "xhelper.hpp"
 
 XAVPacket::XAVPacket() : AVPacket() {
     av_packet_unref(this);
@@ -85,10 +84,20 @@ void XAVPacket::Move_FromAVPacket(AVPacket &&packet) {
     Move_FromAVPacket(std::addressof(packet));
 }
 
-XAVPacket_sptr new_XAVPacket() noexcept(false) {
-    XAVPacket_sptr obj;
-    CHECK_EXC(obj = std::make_shared<XAVPacket>());
+XAVPacket_sp new_XAVPacket() noexcept(true) {
+    XAVPacket_sp obj;
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XAVPacket>()),return {});
     return obj;
 }
 
+XAVPacket_sp new_XAVPacket(const AVPacket &packet) noexcept(true) {
+    XAVPacket_sp obj;
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XAVPacket>(packet)),return {});
+    return obj;
+}
 
+XAVPacket_sp new_XAVPacket(const AVPacket *packet) noexcept(true) {
+    XAVPacket_sp obj;
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XAVPacket>(packet)),return {});
+    return obj;
+}

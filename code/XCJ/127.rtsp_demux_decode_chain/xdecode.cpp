@@ -2,12 +2,13 @@
 // Created by Administrator on 2024/9/10.
 //
 
-#include "xdecode.hpp"
+
 
 extern "C"{
 #include <libavcodec/avcodec.h>
 }
 
+#include "xdecode.hpp"
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
 
@@ -33,7 +34,7 @@ bool XDecode::Receive(XAVFrame &frame) {
     FF_ERR_OUT(avcodec_receive_res,return {});
 
     if(m_codec_ctx->hw_device_ctx) {
-        XAVFrame_sptr hw_frame;
+        XAVFrame_sp hw_frame;
         TRY_CATCH(CHECK_EXC(hw_frame = new_XAVFrame()),return {});
         FF_ERR_OUT(av_hwframe_transfer_data(hw_frame.get(),&frame,0), return {});
         frame.Reset(hw_frame.get());
@@ -46,11 +47,11 @@ XAVFrames XDecode::Flush() {
     FF_ERR_OUT(avcodec_send_packet(m_codec_ctx,{}),return {});
     XAVFrames frames;
     while (true) {
-        XAVFrame_sptr frame;
+        XAVFrame_sp frame;
         TRY_CATCH(CHECK_EXC(frame = new_XAVFrame()),return frames);
         FF_ERR_OUT(avcodec_receive_frame(m_codec_ctx,frame.get()),return frames);
         if (m_codec_ctx->hw_device_ctx){
-            XAVFrame_sptr hw_frame;
+            XAVFrame_sp hw_frame;
             TRY_CATCH(CHECK_EXC(hw_frame = new_XAVFrame()),return frames);
             FF_ERR_OUT(av_hwframe_transfer_data(hw_frame.get(),frame.get(),0), return frames);
             frame = std::move(hw_frame);

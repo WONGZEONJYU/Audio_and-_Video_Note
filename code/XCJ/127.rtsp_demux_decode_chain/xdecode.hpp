@@ -7,7 +7,7 @@
 
 #include "xcodec.hpp"
 
-using XAVFrames = typename std::vector<XAVFrame_sptr>;
+using XAVFrames = std::vector<XAVFrame_sp>;
 
 class XDecode : public XCodec {
 
@@ -39,7 +39,6 @@ public:
      */
     bool InitHw(const int &type = 4);
 
-public:
     explicit XDecode() = default;
     ~XDecode() override = default;
     X_DISABLE_COPY_MOVE(XDecode)

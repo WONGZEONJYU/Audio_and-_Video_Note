@@ -3,6 +3,7 @@
 #define XHELPER_H
 
 #include <string>
+#include <memory>
 #include <atomic>
 #include <system_error>
 #include <type_traits>
@@ -13,6 +14,12 @@ struct AVFormatContext;
 struct AVPacket;
 struct AVFilterGraph;
 struct AVChannelLayout;
+class XAVPacket;
+class XAVFrame;
+class XCodecParameters;
+using XAVPacket_sp = std::shared_ptr<XAVPacket>;
+using XAVFrame_sp = std::shared_ptr<XAVFrame>;
+struct AVCodecContext;
 #endif
 
 enum XLogLevel{
@@ -184,18 +191,18 @@ private:
 template<typename F1,typename F2>
 struct XRAII final {
     X_DISABLE_COPY(XRAII)
-    inline explicit XRAII(F1 &&f1,F2 &&f2) : m_f2(std::move(f2)){
+    explicit XRAII(F1 &&f1,F2 &&f2) : m_f2(std::move(f2)){
         f1();
     }
 
-    inline void destroy(){
+    void destroy(){
         if (!m_is_destroy){
             m_is_destroy = true;
             m_f2();
         }
     }
 
-    inline ~XRAII(){
+    ~XRAII(){
         destroy();
     }
 

@@ -14,7 +14,7 @@ int main(const int argc,const char *argv[]) {
     XDemuxTask demuxTask;
 
     while (true){
-        if (demuxTask.Open(CAM01)){
+        if (demuxTask.Open(CAM02)){
             break;
         }
         XHelper::MSleep(100);

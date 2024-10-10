@@ -9,6 +9,7 @@ extern "C"{
 #include <libavcodec/packet.h>
 }
 #include <memory>
+#include "xhelper.hpp"
 
 class XAVPacket final : public AVPacket {
 public:
@@ -53,7 +54,7 @@ public:
     void Reset(const AVPacket *packet = nullptr);
 
     /**
-     * 与Reset功能相同
+     * 对AVPacket进行引用计数+1,如果packet == null,则不做任何操作
      * @param packet
      */
     void Ref_fromAVPacket(const AVPacket *packet);
@@ -61,13 +62,15 @@ public:
 
     /**
      * 转移AVPacket的引用计数,被转移后的AVPacket谨慎使用
+     * packet == null,不做任何动作
      * @param packet
      */
     void Move_FromAVPacket(AVPacket *packet);
     void Move_FromAVPacket(AVPacket &&packet);
 };
 
-using XAVPacket_sptr = typename std::shared_ptr<XAVPacket>;
-XAVPacket_sptr new_XAVPacket() noexcept(false);
+XAVPacket_sp new_XAVPacket() noexcept(true);
+XAVPacket_sp new_XAVPacket(const AVPacket &packet) noexcept(true);
+XAVPacket_sp new_XAVPacket(const AVPacket *packet) noexcept(true);
 
 #endif

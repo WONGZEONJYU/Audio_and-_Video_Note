@@ -7,7 +7,7 @@
 
 #include "xcodec.hpp"
 
-using XAVPackets = typename std::vector<XAVPacket_sptr>;
+using XAVPackets = std::vector<XAVPacket_sp>;
 
 class XEncode : public XCodec {
 
@@ -18,7 +18,7 @@ public:
      * @param frame
      * @return XAVPacket_sptr or nullptr
      */
-    XAVPacket_sptr Encode(const XAVFrame &frame);
+    XAVPacket_sp Encode(const XAVFrame &frame);
 
     /**
      * 冲刷编码器

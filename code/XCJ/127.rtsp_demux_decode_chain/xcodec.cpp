@@ -2,13 +2,14 @@
 // Created by Administrator on 2024/9/10.
 //
 
-#include "xcodec.hpp"
+
 extern "C"{
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
 }
 
 #include <thread>
+#include "xcodec.hpp"
 #include "xavframe.hpp"
 #include "xavpacket.hpp"
 
@@ -90,10 +91,10 @@ bool XCodec::Open() {
     return true;
 }
 
-XAVFrame_sptr XCodec::CreateFrame(){
+XAVFrame_sp XCodec::CreateFrame(){
 
     CHECK_CODEC_CTX;
-    XAVFrame_sptr frame;
+    XAVFrame_sp frame;
     TRY_CATCH(CHECK_EXC(frame = new_XAVFrame()),return {});
     frame->width = m_codec_ctx->width;
     frame->height = m_codec_ctx->height;
