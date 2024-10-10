@@ -2,10 +2,10 @@
 // Created by Administrator on 2024/8/28.
 //
 
+#include <thread>
 #include "xvideo_view.hpp"
 #include "xsdl.hpp"
 #include "xavframe.hpp"
-#include <thread>
 
 using namespace std;
 
@@ -131,7 +131,7 @@ bool XVideoView::Open(const std::string &file_path) {
     return true;
 }
 
-XAVFrame_sptr XVideoView::Read() {
+XAVFrame_sp XVideoView::Read() {
 
     auto b {m_width <= 0 || m_height <= 0 || m_fmt < 0 || !m_ifs};
 
