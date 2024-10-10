@@ -6,14 +6,9 @@
 #define INC_106_XVIDEO_VIEW_TEST_XVIDEO_VIEW_HPP
 
 #include <mutex>
-#include <atomic>
-#include <memory>
 #include <fstream>
 #include <vector>
 #include "xhelper.hpp"
-
-class XAVFrame;
-using XAVFrame_sptr = typename std::shared_ptr<XAVFrame>;
 
 class XVideoView {
 
@@ -142,7 +137,7 @@ public:
      * 每次调用会覆盖上一次数据
      * @return XAVFrame_sptr
      */
-    virtual XAVFrame_sptr Read();
+    virtual XAVFrame_sp Read();
 
     /**
      * 设置窗口句柄
@@ -165,7 +160,7 @@ protected:
     std::atomic<void*> m_winID{};
 private:
     std::ifstream m_ifs;
-    XAVFrame_sptr m_frame;
+    XAVFrame_sp m_frame;
     std::pmr::vector<uint8_t> m_cache;
 public:
     static int64_t Get_time_ms();
