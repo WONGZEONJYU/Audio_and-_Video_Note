@@ -22,6 +22,12 @@ using XAVFrame_sp = std::shared_ptr<XAVFrame>;
 struct AVCodecContext;
 #endif
 
+#if HAVE_SDL2
+struct SDL_Window;
+struct SDL_Renderer;
+struct SDL_Texture;
+#endif
+
 enum XLogLevel{
     XLOG_TYPE_DEBUG,
     XLOG_TYPE_INFO,
