@@ -9,6 +9,7 @@ extern "C"{
 #include <libavutil/frame.h>
 }
 #include <memory>
+#include "xhelper.hpp"
 
 class XAVFrame final : public AVFrame {
 
@@ -100,7 +101,7 @@ public:
     void Reset(const AVFrame *frame = nullptr);
 
     /**
-     * 与Reset功能相同
+     * 对AVFrame进行引用计数+1,如果frame == null,则不做任何操作
      * @param frame
      */
     void Ref_fromAVFrame(const AVFrame *frame);
@@ -115,7 +116,8 @@ public:
 
 };
 
-using XAVFrame_sptr = std::shared_ptr<XAVFrame>;
-XAVFrame_sptr new_XAVFrame() noexcept(false);
+XAVFrame_sp new_XAVFrame() noexcept(true);
+XAVFrame_sp new_XAVFrame(const AVFrame &frame) noexcept(true);
+XAVFrame_sp new_XAVFrame(const AVFrame *frame) noexcept(true);
 
 #endif
