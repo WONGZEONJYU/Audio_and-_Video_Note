@@ -13,10 +13,6 @@ extern "C"{
 #include <string>
 #include "xhelper.hpp"
 
-struct AVCodecContext;
-class XCodecParameters;
-using XCodecParameters_sp = std::shared_ptr<XCodecParameters>;
-
 class XCodecParameters final : AVCodecParameters {
     static void Reset(AVCodecParameters *) noexcept(true);
     void Move(XCodecParameters *) noexcept(true);
@@ -46,7 +42,11 @@ public:
         return &ch_layout;
     }
 
-    [[nodiscard]] auto Sample_Format() const noexcept(true){
+    [[nodiscard]] auto Audio_sample_format() const noexcept(true){
+        return format;
+    }
+
+    [[nodiscard]] auto Video_pixel_format() const noexcept(true){
         return format;
     }
 

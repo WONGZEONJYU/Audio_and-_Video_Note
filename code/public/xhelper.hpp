@@ -17,6 +17,7 @@ struct AVChannelLayout;
 class XAVPacket;
 class XAVFrame;
 class XCodecParameters;
+using XCodecParameters_sp = std::shared_ptr<XCodecParameters>;
 using XAVPacket_sp = std::shared_ptr<XAVPacket>;
 using XAVFrame_sp = std::shared_ptr<XAVFrame>;
 struct AVCodecContext;

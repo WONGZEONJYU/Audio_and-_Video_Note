@@ -46,6 +46,13 @@ public:
     virtual bool Init(const int &w,const int &h,const Format &fmt = RGBA) = 0;
 
     /**
+     * 初始化渲染窗口 线程安全 可多次调用
+     * @param parameters
+     * @return true or false
+     */
+    virtual bool Init(const XCodecParameters &parameters);
+
+    /**
      * 清理所有申请的资源,包括关闭窗口
      */
     virtual void Close() = 0;

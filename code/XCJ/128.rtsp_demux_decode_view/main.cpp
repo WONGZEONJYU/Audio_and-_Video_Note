@@ -2,6 +2,7 @@
 #include "xtools.hpp"
 #include "xdemuxtask.hpp"
 #include "xdecodetask.h"
+#include "xvideo_view.hpp"
 
 //rtmp://liteavapp.qcloud.com/live/liteavdemoplayerstreamid
 
@@ -20,6 +21,9 @@ int main(const int argc,const char *argv[]) {
     }
 
     auto parm{demuxTask.CopyVideoParm()};
+    auto view{XVideoView::create()};
+    view->Init(*parm);
+
     XDecodeTask decodeTask;
 
     if (!decodeTask.Open(*parm)){
@@ -30,6 +34,12 @@ int main(const int argc,const char *argv[]) {
         decodeTask.Start();
     }
 
-    getchar();
+    while (true){
+        if(view->Is_Exit_Window()){
+            break;
+        }
+    }
+    //getchar();
+    delete view;
     return 0;
 }

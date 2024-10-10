@@ -6,6 +6,7 @@
 #include "xvideo_view.hpp"
 #include "xsdl.hpp"
 #include "xavframe.hpp"
+#include "xcodec_parameters.hpp"
 
 using namespace std;
 
@@ -47,6 +48,21 @@ XVideoView *XVideoView::create(const XVideoView::RenderType &renderType) {
     }
 }
 
+bool XVideoView::Init(const XCodecParameters &parm){
+    
+    auto fmt{parm.Video_pixel_format()};
+    switch (fmt) {
+        case AV_PIX_FMT_YUV420P:
+        case AV_PIX_FMT_YUVJ420P:
+            fmt = YUV420P;
+            break;
+        default:
+            break;
+    }
+    
+    return Init(parm.Width(),parm.Height(),static_cast<Format>(fmt));
+}
+
 void XVideoView::calc_fps() {
     static constexpr auto TIME_MS{1000LL};
     ++m_count;
@@ -71,6 +87,7 @@ bool XVideoView::DrawFrame(const XAVFrame &frame) {
 
     switch (frame.format) {
         case AV_PIX_FMT_YUV420P:
+        case AV_PIX_FMT_YUVJ420P:
             return Draw(frame.data[0],frame.linesize[0],
                         frame.data[1],frame.linesize[1],
                         frame.data[2],frame.linesize[2]);
