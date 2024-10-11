@@ -65,6 +65,7 @@ class XAVPacketList{
 public:
     XAVPacket_sp Pop();
     void Push(XAVPacket_sp &&);
+    void Push(XAVPacket_sp &);
 private:
     std::list<XAVPacket_sp> m_packets;
     std::mutex m_mux;

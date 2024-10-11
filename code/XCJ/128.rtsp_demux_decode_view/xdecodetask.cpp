@@ -18,7 +18,7 @@ void XDecodeTask::Do(XAVPacket &pkt) {
     }
     auto pkt_{new_XAVPacket()};
     *pkt_ = std::move(pkt);
-    m_pkt_list.Push(std::move(pkt_));
+    m_pkt_list.Push(pkt_);
 }
 
 void XDecodeTask::Main() {
@@ -46,12 +46,11 @@ void XDecodeTask::Main() {
             std::unique_lock locker(m_mutex);
             if (m_decode.Receive(*m_frame)){
                 std::cout << "@";
+                m_need_view_ = true;
             }
         }
-
         sleep_for(1ms);
     }
-
 }
 
 bool XDecodeTask::Open(const XCodecParameters &parms) {
@@ -72,4 +71,14 @@ bool XDecodeTask::Open(const XCodecParameters &parms) {
     }
     LOGDINFO(GET_STR(Open codec success!));
     return true;
+}
+
+XAVFrame_sp XDecodeTask::CopyFrame() {
+    std::unique_lock locker(m_mutex);
+    if (!m_need_view_ || !m_frame || !m_frame->buf[0]) {
+        return {};
+    }
+    auto f{new_XAVFrame(*m_frame)};
+    m_need_view_ = false;
+    return f;
 }

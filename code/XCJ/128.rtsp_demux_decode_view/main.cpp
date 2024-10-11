@@ -14,7 +14,7 @@ int main(const int argc,const char *argv[]) {
     XDemuxTask demuxTask;
 
     while (true){
-        if (demuxTask.Open(CAM01)){
+        if (demuxTask.Open(CAM02)){
             break;
         }
         XHelper::MSleep(100);
@@ -35,6 +35,15 @@ int main(const int argc,const char *argv[]) {
     }
 
     while (true){
+
+        auto f{decodeTask.CopyFrame()};
+        if (!f) {
+            XHelper::MSleep(1);
+            continue;
+        }
+
+        view->DrawFrame(*f);
+
         if(view->Is_Exit_Window()){
             break;
         }

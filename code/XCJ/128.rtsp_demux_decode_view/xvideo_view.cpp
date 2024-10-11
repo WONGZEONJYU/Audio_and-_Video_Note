@@ -7,6 +7,7 @@
 #include "xsdl.hpp"
 #include "xavframe.hpp"
 #include "xcodec_parameters.hpp"
+#include <algorithm>
 
 using namespace std;
 

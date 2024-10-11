@@ -70,3 +70,7 @@ void XAVPacketList::Push(XAVPacket_sp &&pkt) {
         }
     }
 }
+
+void XAVPacketList::Push(XAVPacket_sp &pkt) {
+    Push(std::move(pkt));
+}
