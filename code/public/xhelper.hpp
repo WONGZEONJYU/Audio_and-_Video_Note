@@ -14,6 +14,7 @@ struct AVFormatContext;
 struct AVPacket;
 struct AVFilterGraph;
 struct AVChannelLayout;
+struct AVRational;
 class XAVPacket;
 class XAVFrame;
 class XCodecParameters;
@@ -64,6 +65,9 @@ namespace XHelper {
 
     void check_nullptr(const std::string &func,const std::string &file,
                        const int &line,const void *p) noexcept(false);
+
+    bool is_nullptr(const std::string &func,const std::string &file,
+                    const int &line,const void *p) noexcept(true);
 
     void check_EXC(const std::string &func,const std::string &file,
                    const int &line,const std::exception &e) noexcept(false);
@@ -144,6 +148,14 @@ namespace XHelper {
     }catch(...){\
         __VA_ARGS__;\
         throw;\
+    }\
+}while(false)
+
+#define IS_NULLPTR(x,...) do{ \
+    const auto _p_ {x};           \
+    static_assert(std::is_pointer_v<std::remove_cv_t<decltype(_p_)>>,#x); \
+    if(!XHelper::is_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_))){ \
+        __VA_ARGS__;\
     }\
 }while(false)
 

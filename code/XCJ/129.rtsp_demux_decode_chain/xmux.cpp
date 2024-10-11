@@ -12,8 +12,11 @@ extern "C"{
 }
 #include "xmux.hpp"
 #include "xavpacket.hpp"
+#include "xcodec_parameters.hpp"
 
-AVFormatContext *XMux::Open(const std::string &url) {
+AVFormatContext *XMux::Open(const std::string &url,
+                            const XCodecParameters *video_parm,
+                            const XCodecParameters *audio_parm) {
 
     if (url.empty()){
         PRINT_ERR_TIPS(GET_STR(url is empty!));
@@ -22,6 +25,7 @@ AVFormatContext *XMux::Open(const std::string &url) {
 
     bool need_free{};
     AVFormatContext *c{};
+    AVStream *vs{},*as{};
 
     Destroyer d([&]{
         if (need_free){
@@ -32,15 +36,15 @@ AVFormatContext *XMux::Open(const std::string &url) {
     FF_ERR_OUT(avformat_alloc_output_context2(&c, nullptr, nullptr,url.c_str()),
                return {});
 
-    AVStream *vs,*as;
+    if (video_parm){
+        IS_NULLPTR(vs = avformat_new_stream(c, nullptr),need_free = true;return {};);
+        video_parm->to_AVCodecParameters(vs->codecpar);
+    }
 
-    TRY_CATCH(CHECK_NULLPTR(vs = avformat_new_stream(c, nullptr)),
-              need_free = true;return {});
-    vs->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
-
-    TRY_CATCH(CHECK_NULLPTR(as = avformat_new_stream(c, nullptr)),
-              need_free = true;return {});
-    as->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+    if (audio_parm){
+        IS_NULLPTR(as = avformat_new_stream(c, nullptr),need_free = true;return {});
+        audio_parm->to_AVCodecParameters(as->codecpar);
+    }
 
     FF_ERR_OUT(avio_open(&c->pb,url.c_str(),AVIO_FLAG_WRITE),
                need_free = true;return {});

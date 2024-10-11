@@ -133,6 +133,18 @@ namespace XHelper {
         }
     }
 
+    bool is_nullptr(const string &func,const string &file,
+                    const int &line,const void *p) noexcept(true){
+        if (!p){
+            stringstream err_msg;
+            err_msg << "error: at " << file << " : " << line <<
+                    " -for " << func << " is nullptr\n";
+            cerr << err_msg.str();
+            return {};
+        }
+        return true;
+    }
+
     void check_EXC(const string &func,const string &file,
                    const int &line,const exception &e) noexcept(false){
         stringstream err_msg;

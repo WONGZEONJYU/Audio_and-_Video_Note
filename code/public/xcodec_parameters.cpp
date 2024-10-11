@@ -91,28 +91,40 @@ XCodecParameters& XCodecParameters::operator=(XCodecParameters &&obj) noexcept(t
     return *this;
 }
 
-void XCodecParameters::from_AVFormatContext(const AVCodecParameters *src) noexcept(false) {
+bool XCodecParameters::from_AVFormatContext(const AVCodecParameters *src) noexcept(true) {
     if (!src){
         PRINT_ERR_TIPS(GET_STR(src is nullptr));
-        return;
+        return {};
     }
-    FF_CHECK_ERR(avcodec_parameters_copy(this, src));
+    FF_ERR_OUT(avcodec_parameters_copy(this, src),return {});
+    return true;
 }
 
-void XCodecParameters::from_context(const AVCodecContext *src)  noexcept(false) {
-    if (!src){
-        PRINT_ERR_TIPS(GET_STR(src is nullptr));
-        return;
-    }
-    FF_CHECK_ERR(avcodec_parameters_from_context(this,src));
-}
-
-void XCodecParameters::to_context(AVCodecContext *dst) const noexcept(false) {
+bool XCodecParameters::to_AVCodecParameters(AVCodecParameters *dst) const noexcept(true){
     if (!dst){
         PRINT_ERR_TIPS(GET_STR(dst is nullptr));
-        return;
+        return {};
     }
-    FF_CHECK_ERR(avcodec_parameters_to_context(dst,this));
+    FF_ERR_OUT(avcodec_parameters_copy(dst,this),return {});
+    return true;
+}
+
+bool XCodecParameters::from_context(const AVCodecContext *src)  noexcept(true) {
+    if (!src){
+        PRINT_ERR_TIPS(GET_STR(src is nullptr));
+        return {};
+    }
+    FF_ERR_OUT(avcodec_parameters_from_context(this,src),return {});
+    return true;
+}
+
+bool XCodecParameters::to_context(AVCodecContext *dst) const noexcept(true) {
+    if (!dst){
+        PRINT_ERR_TIPS(GET_STR(dst is nullptr));
+        return {};
+    }
+    FF_ERR_OUT(avcodec_parameters_to_context(dst,this),return {});
+    return true;
 }
 
 std::string XCodecParameters::Codec_name() const noexcept(true) {

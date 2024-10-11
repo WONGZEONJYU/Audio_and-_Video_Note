@@ -14,13 +14,16 @@ int main(const int argc,const char *argv[]) {
     XDemuxTask demuxTask;
 
     while (true){
-        if (demuxTask.Open(CAM02)){
+        if (demuxTask.Open(CAM01)){
             break;
         }
         XHelper::MSleep(100);
     }
 
     auto parm{demuxTask.CopyVideoParm()};
+
+
+
     getchar();
     return 0;
 }

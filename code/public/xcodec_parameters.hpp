@@ -25,9 +25,11 @@ public:
     XCodecParameters& operator=(const XCodecParameters &) noexcept(false);
     XCodecParameters& operator=(XCodecParameters &&) noexcept(true);
 
-    void from_AVFormatContext(const AVCodecParameters *)  noexcept(false);
-    void from_context(const AVCodecContext *)  noexcept(false);
-    void to_context(AVCodecContext *) const noexcept(false);
+    bool from_AVFormatContext(const AVCodecParameters *)  noexcept(true);
+    bool to_AVCodecParameters(AVCodecParameters *) const noexcept(true);
+    bool from_context(const AVCodecContext *)  noexcept(true);
+    bool to_context(AVCodecContext *) const noexcept(true);
+
     [[nodiscard]] auto MediaType() const noexcept(true){
         return codec_type;
     }

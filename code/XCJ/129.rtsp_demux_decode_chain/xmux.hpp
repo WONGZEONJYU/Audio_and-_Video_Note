@@ -12,7 +12,9 @@ class XAVPacket;
 class XMux : public XFormat{
 
 public:
-    static AVFormatContext *Open(const std::string &url);
+    static AVFormatContext *Open(const std::string &url,
+                                 const XCodecParameters *video_parm = nullptr,
+                                 const XCodecParameters *audio_parm = nullptr);
 
     /**
      * 写入头部信息
