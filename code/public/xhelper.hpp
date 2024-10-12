@@ -165,6 +165,15 @@ namespace XHelper {
     }\
 }while(false)
 
+#define IS_SMART_NULLPTR(x,...) do{ \
+    const auto _smart_ptr_{x};\
+    const auto _p_{_smart_ptr_.operator->()};\
+    static_assert(std::is_pointer_v<std::remove_cv_t<decltype(_p_)>>,#x); \
+    if(!XHelper::is_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_))){ \
+        __VA_ARGS__;\
+    }\
+}while(false)
+
 #define CHECK_EXC(x,...)do{ \
     try{x;}catch(const std::exception &e){ \
     __VA_ARGS__;\
