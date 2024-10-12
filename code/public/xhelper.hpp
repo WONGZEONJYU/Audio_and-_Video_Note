@@ -18,10 +18,16 @@ struct AVRational;
 class XAVPacket;
 class XAVFrame;
 class XCodecParameters;
+struct AVCodecParameters;
 using XCodecParameters_sp = std::shared_ptr<XCodecParameters>;
 using XAVPacket_sp = std::shared_ptr<XAVPacket>;
 using XAVFrame_sp = std::shared_ptr<XAVFrame>;
 struct AVCodecContext;
+struct XRational {
+    int num{1}, ///< Numerator
+    den{1}; ///< Denominator
+};
+
 #endif
 
 #if HAVE_SDL2
