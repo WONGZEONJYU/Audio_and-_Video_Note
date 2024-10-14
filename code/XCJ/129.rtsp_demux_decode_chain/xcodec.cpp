@@ -1,8 +1,3 @@
-//
-// Created by Administrator on 2024/9/10.
-//
-
-
 extern "C"{
 #include <libavcodec/avcodec.h>
 #include <libavutil/opt.h>
@@ -11,17 +6,10 @@ extern "C"{
 #include <thread>
 #include "xcodec.hpp"
 #include "xavframe.hpp"
-#include "xavpacket.hpp"
-
-#define CHECK_CODEC_CTX \
-std::unique_lock locker(m_mux);\
-do{if (!m_codec_ctx){\
-PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
-return {};}}while(false)
 
 AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
 
-    const AVCodec * codec {};
+    const AVCodec *codec{};
 
     if (is_encode){
         //1.查找编码器
@@ -37,10 +25,8 @@ AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
     }
 
     //2.分配编解码器上下文
-    auto codec_ctx{avcodec_alloc_context3(codec)};
-    if (!codec_ctx){
-        return {};
-    }
+    AVCodecContext *codec_ctx{};
+    IS_NULLPTR(codec_ctx = avcodec_alloc_context3(codec),return {});
 
     //3.设置参数,解码
     codec_ctx->time_base = {1,25};
@@ -51,29 +37,29 @@ AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
 }
 
 void XCodec::set_codec_ctx(AVCodecContext *ctx) {
-    std::unique_lock locker(m_mux);
-    if (m_codec_ctx){
-        avcodec_free_context(&m_codec_ctx);
+    std::unique_lock locker(m_mux_);
+    if (m_codec_ctx_){
+        avcodec_free_context(&m_codec_ctx_);
     }
-    m_codec_ctx = ctx;
+    m_codec_ctx_ = ctx;
 }
 
-#define CHECK_ENCODE_OPEN do{ \
-if (avcodec_is_open(m_codec_ctx)){\
+#define CHECK_ENCODE_OPEN() do{ \
+if (avcodec_is_open(m_codec_ctx_)){\
 PRINT_ERR_TIPS(GET_STR((encode is open,Invalid parameter setting\n)));} \
 }while(false)
 
 bool XCodec::SetOpt(const std::string &key,const std::string &val){
-    CHECK_CODEC_CTX;
-    CHECK_ENCODE_OPEN;
-    FF_ERR_OUT(av_opt_set(m_codec_ctx->priv_data,key.c_str(),val.c_str(),0),return {});
+    CHECK_CODEC_CTX();
+    CHECK_ENCODE_OPEN();
+    FF_ERR_OUT(av_opt_set(m_codec_ctx_->priv_data,key.c_str(),val.c_str(),0),return {});
     return true;
 }
 
 bool XCodec::SetOpt(const std::string &key,const int64_t &val){
-    CHECK_CODEC_CTX;
-    CHECK_ENCODE_OPEN;
-    FF_ERR_OUT(av_opt_set_int(m_codec_ctx->priv_data,key.c_str(),val,0),return {});
+    CHECK_CODEC_CTX();
+    CHECK_ENCODE_OPEN();
+    FF_ERR_OUT(av_opt_set_int(m_codec_ctx_->priv_data,key.c_str(),val,0),return {});
     return true;
 }
 
@@ -86,24 +72,29 @@ bool XCodec::Set_CRF(const CRF &crf){
 }
 
 bool XCodec::Open() {
-    CHECK_CODEC_CTX;
-    FF_ERR_OUT(avcodec_open2(m_codec_ctx,{},{}),return {});
+    CHECK_CODEC_CTX();
+    FF_ERR_OUT(avcodec_open2(m_codec_ctx_,{},{}),
+               avcodec_free_context(&m_codec_ctx_);return {});
     return true;
 }
 
-XAVFrame_sp XCodec::CreateFrame(){
+XAVFrame_sp XCodec::CreateFrame() const{
 
-    CHECK_CODEC_CTX;
+    CHECK_CODEC_CTX();
     XAVFrame_sp frame;
-    TRY_CATCH(CHECK_EXC(frame = new_XAVFrame()),return {});
-    frame->width = m_codec_ctx->width;
-    frame->height = m_codec_ctx->height;
-    frame->format = m_codec_ctx->pix_fmt;
+    IS_SMART_NULLPTR(frame = new_XAVFrame(),return {});
+    frame->width = m_codec_ctx_->width;
+    frame->height = m_codec_ctx_->height;
+    frame->format = m_codec_ctx_->pix_fmt;
     FF_ERR_OUT(frame->Get_Buffer(),frame.reset(); return {});
     return frame;
 }
 
+void XCodec::destroy(){
+    std::unique_lock locker(m_mux_);
+    avcodec_free_context(&m_codec_ctx_);
+}
+
 XCodec::~XCodec() {
-    std::unique_lock locker(m_mux);
-    avcodec_free_context(&m_codec_ctx);
+    destroy();
 }

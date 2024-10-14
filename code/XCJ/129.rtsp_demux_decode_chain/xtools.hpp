@@ -24,7 +24,7 @@ public:
      */
     void set_next(XThread *xt){
         //std::unique_lock locker(m_mux);
-        m_next = xt;
+        m_next_ = xt;
     }
 
     /**
@@ -33,8 +33,8 @@ public:
      */
     virtual void Next(XAVPacket &pkt){
         //std::unique_lock locker(m_mux);
-        if (m_next){
-            m_next.load()->Do(pkt);
+        if (m_next_){
+            m_next_.load()->Do(pkt);
         }
     }
 
@@ -45,14 +45,14 @@ public:
     virtual void Do(XAVPacket &){}
 
 protected:
-    std::atomic_bool m_is_exit{};
+    std::atomic_bool m_is_exit_{};
 
 private:
-    std::thread m_th;
-    std::mutex m_mux;
-    std::atomic_int m_index{};
+    std::thread m_th_;
+    std::mutex m_mux_;
+    std::atomic_int m_index_{};
     //XThread *m_next{};
-    std::atomic<XThread*> m_next;
+    std::atomic<XThread*> m_next_;
 
 protected:
     explicit XThread() = default;
@@ -66,9 +66,11 @@ public:
     XAVPacket_sp Pop();
     void Push(XAVPacket_sp &&);
     void Push(XAVPacket_sp &);
+    void Push(XAVPacket &);
+    void Push(XAVPacket &&);
 private:
-    std::list<XAVPacket_sp> m_packets;
-    std::mutex m_mux;
+    std::list<XAVPacket_sp> m_packets_;
+    std::mutex m_mux_;
 public:
     explicit XAVPacketList() = default;
     X_DISABLE_COPY_MOVE(XAVPacketList)

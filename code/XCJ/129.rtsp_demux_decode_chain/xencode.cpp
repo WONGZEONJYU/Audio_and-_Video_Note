@@ -6,44 +6,36 @@ extern "C"{
 #include <libavutil/opt.h>
 }
 
-#include <thread>
 #include "xencode.hpp"
 #include "xavframe.hpp"
 #include "xavpacket.hpp"
 
-#define CHECK_CODEC_CTX() \
-std::unique_lock locker(m_mux);\
-if (!m_codec_ctx){\
-PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
-return {};}
+XAVPacket_sp XEncode::Encode(const XAVFrame &frame) const{
 
-XAVPacket_sp XEncode::Encode(const XAVFrame &frame) {
-
-    CHECK_CODEC_CTX()
-    const auto ret{avcodec_send_frame(m_codec_ctx,&frame)};
+    CHECK_CODEC_CTX();
+    const auto ret{avcodec_send_frame(m_codec_ctx_,&frame)};
     if (0 != ret || AVERROR(EAGAIN) != ret){
         FF_ERR_OUT(ret,return {});
     }
 
     XAVPacket_sp packet;
-    TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return {});
-    const auto receive_packet_res{avcodec_receive_packet(m_codec_ctx,packet.get())};
+    IS_SMART_NULLPTR(packet = new_XAVPacket(),return {});
+    const auto receive_packet_res{avcodec_receive_packet(m_codec_ctx_,packet.get())};
     if (AVERROR(EAGAIN) == receive_packet_res){
-        packet.reset();
         return {};
     }
-    FF_ERR_OUT(receive_packet_res,packet.reset());
+    FF_ERR_OUT(receive_packet_res,return {});
     return packet;
 }
 
-XAVPackets XEncode::Flush() {
-    CHECK_CODEC_CTX()
-    FF_ERR_OUT(avcodec_send_frame(m_codec_ctx,{}),return {});
-    std::vector<XAVPacket_sp> packets;
+XAVPackets XEncode::Flush() const{
+    CHECK_CODEC_CTX();
+    FF_ERR_OUT(avcodec_send_frame(m_codec_ctx_,{}),return {});
+    XAVPackets packets;
     while (true){
         XAVPacket_sp packet;
-        TRY_CATCH(CHECK_EXC(packet = new_XAVPacket()),return packets);
-        FF_ERR_OUT(avcodec_receive_packet(m_codec_ctx,packet.get()),return packets);
+        IS_SMART_NULLPTR(packet = new_XAVPacket(),return packets);
+        FF_ERR_OUT(avcodec_receive_packet(m_codec_ctx_,packet.get()),return packets);
         packets.push_back(std::move(packet));
     }
 }

@@ -13,11 +13,12 @@ class XDemuxTask : public XThread{
     void Main() override;
 public:
     bool Open(const std::string &url,const uint64_t &time_out = 1000);
-    auto CopyVideoParm(){return m_demux.CopyVideoParm();}
+    auto CopyVideoParm() const{return m_demux_.CopyVideoParm();}
+    auto CopyAudioParm() const{return m_demux_.CopyAudioParm();}
 private:
-    XDemux m_demux;
-    std::string m_url;
-    uint64_t m_timeout_ms{};
+    XDemux m_demux_;
+    std::string m_url_;
+    uint64_t m_timeout_ms_{};
 public:
     explicit XDemuxTask() = default;
     X_DISABLE_COPY_MOVE(XDemuxTask)

@@ -7,7 +7,7 @@
 
 #include "xcodec.hpp"
 
-using XAVFrames = std::vector<XAVFrame_sp>;
+using XAVFrames = std::pmr::vector<XAVFrame_sp>;
 
 class XDecode : public XCodec {
 
@@ -17,20 +17,20 @@ public:
      * @param packet
      * @return true or false
      */
-    bool Send(const XAVPacket &packet);
+    [[nodiscard]] bool Send(const XAVPacket &packet) const;
 
     /**
      * 从解码器接收解码后到帧,需循环读取
      * @param frame
      * @return true or false
      */
-    bool Receive(XAVFrame &frame);
+    [[nodiscard]] bool Receive(XAVFrame &frame) const;
 
     /**
      * 冲刷解码器,把缓冲的帧全部读取出来
      * @return XAVFrames or empty
      */
-    XAVFrames Flush();
+    [[nodiscard]] XAVFrames Flush() const;
 
     /**
      * 初始化硬解码

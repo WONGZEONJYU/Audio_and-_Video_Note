@@ -5,16 +5,13 @@
 #ifndef INC_120_TEST_XDECODE_XCODEC_HPP
 #define INC_120_TEST_XDECODE_XCODEC_HPP
 
-#include <memory>
-#include <vector>
 #include <mutex>
 #include "encode_params.hpp"
 #include "xhelper.hpp"
 
-struct AVCodecContext;
-
 class XCodec {
 
+    void destroy();
 public:
     /**
      * 创建编解码上下文
@@ -110,14 +107,22 @@ public:
      * @param one_frame_size 获取分配大小
      * @return
      */
-    [[nodiscard]] XAVFrame_sp CreateFrame();
+    [[nodiscard]] XAVFrame_sp CreateFrame() const;
 
 protected:
-    std::mutex m_mux;
-    AVCodecContext *m_codec_ctx{};
+    std::mutex m_mux_;
+    AVCodecContext *m_codec_ctx_{};
     explicit XCodec() = default;
     virtual ~XCodec();
     X_DISABLE_COPY_MOVE(XCodec)
+
+
+#define CHECK_CODEC_CTX() \
+std::unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));\
+do{if (!m_codec_ctx_){\
+PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
+return {};}}while(false)
+
 };
 
 #endif

@@ -141,18 +141,18 @@ XCodecParameters::~XCodecParameters() {
 
 XCodecParameters_sp new_XCodecParameters(){
     XCodecParameters_sp obj;
-    CHECK_EXC(obj = std::make_shared<XCodecParameters>());
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XCodecParameters>()),return {});
     return obj;
 }
 
 XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const AVRational &tb){
     XCodecParameters_sp obj;
-    CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb));
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb)),return {});
     return obj;
 }
 
 XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const AVRational &tb){
     XCodecParameters_sp obj;
-    CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb));
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb)),return {});
     return obj;
 }

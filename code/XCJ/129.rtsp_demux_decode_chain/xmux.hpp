@@ -7,14 +7,21 @@
 
 #include "xformat.hpp"
 
-class XAVPacket;
-
 class XMux : public XFormat{
+
+    void destroy();
 
 public:
     static AVFormatContext *Open(const std::string &url,
-                                 const XCodecParameters *video_parm = nullptr,
-                                 const XCodecParameters *audio_parm = nullptr);
+                                 const XCodecParameters_sp &video_parm = {},
+                                 const XCodecParameters_sp &audio_parm = {});
+
+    /**
+     * 音视频时间基准参数
+     * @param tb
+     */
+    void set_video_time_base(const AVRational *tb);
+    void set_audio_time_base(const AVRational *tb);
 
     /**
      * 写入头部信息
@@ -35,11 +42,14 @@ public:
      */
     bool WriteEnd();
 
+private:
+    AVRational *m_src_video_time_base_{},
+                *m_src_audio_time_base_{};
+
 public:
     explicit XMux() = default;
+    ~XMux() override;
     X_DISABLE_COPY_MOVE(XMux)
-
 };
-
 
 #endif

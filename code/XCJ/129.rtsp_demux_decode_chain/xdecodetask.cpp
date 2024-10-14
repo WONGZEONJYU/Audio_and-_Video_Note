@@ -18,33 +18,33 @@ void XDecodeTask::Do(XAVPacket &pkt) {
     }
     auto pkt_{new_XAVPacket()};
     *pkt_ = std::move(pkt);
-    m_pkt_list.Push(pkt_);
+    m_pkt_list_.Push(pkt_);
 }
 
 void XDecodeTask::Main() {
 
     {
-        std::unique_lock locker(m_mutex);
-        if (!m_frame){
-            m_frame = new_XAVFrame();
+        std::unique_lock locker(m_mutex_);
+        if (!m_frame_){
+            m_frame_ = new_XAVFrame();
         }
     }
 
-    while (!m_is_exit){
-        auto pkt{m_pkt_list.Pop()};
+    while (!m_is_exit_){
+        auto pkt{m_pkt_list_.Pop()};
         if (!pkt){
             sleep_for(1ms);
             continue;
         }
 
-        if (!m_decode.Send(*pkt)) {
+        if (!m_decode_.Send(*pkt)) {
             sleep_for(1ms);
             continue;
         }
 
         {
-            std::unique_lock locker(m_mutex);
-            if (m_decode.Receive(*m_frame)){
+            std::unique_lock locker(m_mutex_);
+            if (m_decode_.Receive(*m_frame_)){
                 std::cout << "@";
                 m_need_view_ = true;
             }
@@ -53,19 +53,19 @@ void XDecodeTask::Main() {
     }
 }
 
-bool XDecodeTask::Open(const XCodecParameters &parms) {
+bool XDecodeTask::Open(const XCodecParameters_sp &parm) {
 
-    const auto c{XDecode::Create(parms.Codec_id(),false)};
+    const auto c{XDecode::Create(parm->Codec_id(),false)};
 
     if (!c) {
         LOGERROR(GET_STR(Decode::Create failed!));
         return {};
     }
 
-    parms.to_context(c);
-    std::unique_lock locker(m_mutex);
-    m_decode.set_codec_ctx(c);
-    if (!m_decode.Open()) {
+    parm->to_context(c);
+    std::unique_lock locker(m_mutex_);
+    m_decode_.set_codec_ctx(c);
+    if (!m_decode_.Open()) {
         LOGERROR(GET_STR(Decode::Open failed!));
         return {};
     }
@@ -74,11 +74,11 @@ bool XDecodeTask::Open(const XCodecParameters &parms) {
 }
 
 XAVFrame_sp XDecodeTask::CopyFrame() {
-    std::unique_lock locker(m_mutex);
-    if (!m_need_view_ || !m_frame || !m_frame->buf[0]) {
+    std::unique_lock locker(m_mutex_);
+    if (!m_need_view_ || !m_frame_ || !m_frame_->buf[0]) {
         return {};
     }
-    auto f{new_XAVFrame(*m_frame)};
+    auto f{new_XAVFrame(*m_frame_)};
     m_need_view_ = false;
     return f;
 }

@@ -7,7 +7,7 @@
 
 #include "xcodec.hpp"
 
-using XAVPackets = std::vector<XAVPacket_sp>;
+using XAVPackets = std::pmr::vector<XAVPacket_sp>;
 
 class XEncode : public XCodec {
 
@@ -18,13 +18,13 @@ public:
      * @param frame
      * @return XAVPacket_sptr or nullptr
      */
-    XAVPacket_sp Encode(const XAVFrame &frame);
+    [[nodiscard]] XAVPacket_sp Encode(const XAVFrame &frame) const;
 
     /**
      * 冲刷编码器
      * @return XAVPackets or empty
      */
-    XAVPackets Flush();
+    [[nodiscard]] XAVPackets Flush() const;
 
 public:
     explicit XEncode() = default;

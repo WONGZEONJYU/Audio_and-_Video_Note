@@ -18,10 +18,16 @@ struct AVRational;
 class XAVPacket;
 class XAVFrame;
 class XCodecParameters;
+struct AVCodecParameters;
 using XCodecParameters_sp = std::shared_ptr<XCodecParameters>;
 using XAVPacket_sp = std::shared_ptr<XAVPacket>;
 using XAVFrame_sp = std::shared_ptr<XAVFrame>;
 struct AVCodecContext;
+struct XRational {
+    int num{1}, ///< Numerator
+    den{1}; ///< Denominator
+};
+
 #endif
 
 #if HAVE_SDL2
@@ -153,6 +159,15 @@ namespace XHelper {
 
 #define IS_NULLPTR(x,...) do{ \
     const auto _p_ {x};           \
+    static_assert(std::is_pointer_v<std::remove_cv_t<decltype(_p_)>>,#x); \
+    if(!XHelper::is_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_))){ \
+        __VA_ARGS__;\
+    }\
+}while(false)
+
+#define IS_SMART_NULLPTR(x,...) do{ \
+    const auto _smart_ptr_{x};\
+    const auto _p_{_smart_ptr_.operator->()};\
     static_assert(std::is_pointer_v<std::remove_cv_t<decltype(_p_)>>,#x); \
     if(!XHelper::is_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_))){ \
         __VA_ARGS__;\

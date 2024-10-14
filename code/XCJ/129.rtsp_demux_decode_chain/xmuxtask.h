@@ -10,16 +10,16 @@
 
 class XMuxTask : public XThread {
     void Main() override;
+    void Do(XAVPacket &) override;
 public:
     bool Open(const std::string &url,
-        const XCodecParameters *video_parm = nullptr,
-        const AVRational *video_tb = nullptr,
-        const XCodecParameters *audio_parm = nullptr,
-        const AVRational *audio_tb = nullptr);
+        const XCodecParameters_sp &video_parm = {},
+        const XCodecParameters_sp &audio_parm = {});
 
 private:
     std::mutex m_mux_;
     XMux m_xmux_;
+    XAVPacketList m_pkts_;
 
 public:
     explicit  XMuxTask() = default;

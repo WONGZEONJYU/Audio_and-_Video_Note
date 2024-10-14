@@ -1,16 +1,7 @@
-//
-// Created by wong on 2024/9/21.
-//
-
-#define check_ctx \
-std::unique_lock locker(m_mux);do{\
-if(!m_fmt_ctx) { \
-PRINT_ERR_TIPS(GET_STR(ctx is empty)); \
-return {};}}while(false)
-
 extern "C"{
 #include <libavformat/avformat.h>
 }
+
 #include "xdemux.hpp"
 #include "xavpacket.hpp"
 
@@ -25,7 +16,7 @@ AVFormatContext *XDemux::Open(const std::string &url) {
     AVDictionary *opts{};
     bool need_free{};
 
-    Destroyer d([&]{
+    const Destroyer d([&]{
         av_dict_free(&opts);
         if (need_free){
             avformat_close_input(&c);
@@ -41,10 +32,10 @@ AVFormatContext *XDemux::Open(const std::string &url) {
 }
 
 bool XDemux::Read(XAVPacket &packet) {
-
-    check_ctx;
-    FF_ERR_OUT(av_read_frame(m_fmt_ctx,&packet),return {});
-    m_last_time = XHelper::Get_time_ms();
+    
+    check_fmt_ctx();
+    FF_ERR_OUT(av_read_frame(m_fmt_ctx_,&packet),return {});
+    m_last_time_ = XHelper::Get_time_ms();
     return true;
 }
 
@@ -54,8 +45,8 @@ bool XDemux::Seek(const int64_t &pts,const int &stream_index) {
         PRINT_ERR_TIPS(GET_STR(params error!));
         return {};
     }
-    check_ctx;
-    FF_ERR_OUT(av_seek_frame(m_fmt_ctx,stream_index,pts,
+    check_fmt_ctx();
+    FF_ERR_OUT(av_seek_frame(m_fmt_ctx_,stream_index,pts,
                              AVSEEK_FLAG_FRAME | AVSEEK_FLAG_BACKWARD),return {});
     return true;
 }
