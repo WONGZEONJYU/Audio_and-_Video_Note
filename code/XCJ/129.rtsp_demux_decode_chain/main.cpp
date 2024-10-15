@@ -13,7 +13,7 @@ int main(const int argc,const char *argv[]) {
     XDemuxTask demuxTask;
 
     while (true){
-        if (demuxTask.Open(CAM02)){
+        if (demuxTask.Open(CAM01)){
             break;
         }
         XHelper::MSleep(100);
@@ -23,11 +23,17 @@ int main(const int argc,const char *argv[]) {
     auto aparm{demuxTask.CopyAudioParm()};
 
     XMuxTask muxTask;
-    muxTask.Open("rtsp_out.mp4",vparm,aparm);
+    muxTask.Open("rtsp_out1.mp4",vparm,aparm);
     demuxTask.set_next(&muxTask);
     demuxTask.Start();
+
     muxTask.Start();
     XHelper::MSleep(5000);
+    muxTask.Stop();
+
+    muxTask.Open("rtsp_out2.mp4",vparm,aparm);
+    muxTask.Start();
+    XHelper::MSleep(2*5000);
     muxTask.Stop();
 
     getchar();

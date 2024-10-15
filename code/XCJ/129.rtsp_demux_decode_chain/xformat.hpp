@@ -66,7 +66,8 @@ public:
      * @param time_base
      * @return ture or false
      */
-    bool RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const XRational &time_base);
+    bool RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const AVRational &time_base) const;
+    bool RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const XRational &time_base) const;
 
     /**
      * 获取编码/解码器id

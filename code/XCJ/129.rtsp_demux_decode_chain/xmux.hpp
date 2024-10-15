@@ -45,7 +45,8 @@ public:
 private:
     AVRational *m_src_video_time_base_{},
                 *m_src_audio_time_base_{};
-
+    std::atomic_int64_t m_src_begin_video_pts_{-1},
+            m_src_begin_audio_pts_{-1};
 public:
     explicit XMux() = default;
     ~XMux() override;

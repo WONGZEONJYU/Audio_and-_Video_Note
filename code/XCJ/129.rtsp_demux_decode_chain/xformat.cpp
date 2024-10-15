@@ -118,20 +118,30 @@ XCodecParameters_sp XFormat::CopyAudioParm() const{
     return new_XCodecParameters(audio_st->codecpar,audio_st->time_base);
 }
 
-bool XFormat::RescaleTime(XAVPacket &packet, const int64_t &offset_pts, const XRational &time_base) {
+bool XFormat::RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const AVRational &time_base) const{
 
+    if (!packet.data){
+        return {};
+    }
     check_fmt_ctx();
     const auto out_stream{m_fmt_ctx_->streams[packet.stream_index]};
-    const AVRational in_time_base{time_base.num,time_base.den};
-    packet.pts = av_rescale_q_rnd(packet.pts - offset_pts,in_time_base,out_stream->time_base,
+
+    packet.pts = av_rescale_q_rnd(packet.pts - offset_pts,time_base,
+                                  out_stream->time_base,
                                   static_cast<AVRounding>(AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
 
-    packet.dts = av_rescale_q_rnd(packet.dts - offset_pts,in_time_base,out_stream->time_base,
+    packet.dts = av_rescale_q_rnd(packet.dts - offset_pts,time_base,
+                                  out_stream->time_base,
                                   static_cast<AVRounding>(AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
 
-    packet.duration = av_rescale_q(packet.duration,in_time_base,out_stream->time_base);
+    packet.duration = av_rescale_q(packet.duration,time_base,out_stream->time_base);
     packet.pos = -1;
     return true;
+}
+
+bool XFormat::RescaleTime(XAVPacket &packet, const int64_t &offset_pts, const XRational &time_base) const{
+    const AVRational in_time_base{time_base.num,time_base.den};
+    return RescaleTime(packet,offset_pts,in_time_base);
 }
 
 void XFormat::destroy() {

@@ -69,11 +69,39 @@ bool XMux::WriteHead(){
     check_fmt_ctx();
     FF_ERR_OUT(avformat_write_header(m_fmt_ctx_, nullptr),return {});
     av_dump_format(m_fmt_ctx_,0, m_fmt_ctx_->url,1);
+    m_src_begin_video_pts_ = -1;
+    m_src_begin_audio_pts_ = -1;
     return true;
 }
 
 bool XMux::Write(XAVPacket &packet){
+    if (!packet.data){
+        return {};
+    }
     check_fmt_ctx();
+
+    //没读取到pts 重构考虑通过duration计算
+    if (AV_NOPTS_VALUE == packet.pts){
+        packet.pts = 0;
+        packet.dts = 0;
+    }
+
+    if (m_video_index_ == packet.stream_index){
+        if (m_src_begin_video_pts_ < 0){
+            m_src_begin_video_pts_ = packet.pts;
+        }
+        locker.unlock();
+        RescaleTime(packet,m_src_begin_video_pts_,*m_src_video_time_base_);
+        locker.lock();
+    } else if (m_audio_index_ == packet.stream_index){
+        if (m_src_begin_audio_pts_ < 0){
+            m_src_begin_audio_pts_ = packet.pts;
+        }
+        locker.unlock();
+        RescaleTime(packet,m_src_begin_audio_pts_,*m_src_audio_time_base_);
+        locker.lock();
+    }else{}
+    std::cout << packet.pts << std::flush;
     FF_ERR_OUT(av_interleaved_write_frame(m_fmt_ctx_,&packet),return {});
     return true;
 }
