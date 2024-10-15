@@ -6,6 +6,7 @@
 #define INC_116_TEST_XENCODE_XENCODE_HPP
 
 #include "xcodec.hpp"
+#include <vector>
 
 using XAVPackets = std::pmr::vector<XAVPacket_sp>;
 
