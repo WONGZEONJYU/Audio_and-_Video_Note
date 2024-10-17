@@ -64,7 +64,7 @@ bool XCodec::SetOpt(const std::string &key,const int64_t &val){
 }
 
 bool XCodec::Set_Qp(const QP &qp){
-    return SetOpt(QP::m_name,qp);
+    return SetOpt(QP::m_name,qp.value());
 }
 
 bool XCodec::Set_CRF(const CRF &crf){
@@ -86,7 +86,9 @@ XAVFrame_sp XCodec::CreateFrame() const{
     frame->width = m_codec_ctx_->width;
     frame->height = m_codec_ctx_->height;
     frame->format = m_codec_ctx_->pix_fmt;
-    FF_ERR_OUT(frame->Get_Buffer(),frame.reset(); return {});
+    if (!frame->Get_Buffer()) {
+        frame.reset();
+    }
     return frame;
 }
 

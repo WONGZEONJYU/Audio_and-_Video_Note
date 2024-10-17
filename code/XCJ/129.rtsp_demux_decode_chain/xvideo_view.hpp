@@ -5,9 +5,6 @@
 #ifndef INC_106_XVIDEO_VIEW_TEST_XVIDEO_VIEW_HPP
 #define INC_106_XVIDEO_VIEW_TEST_XVIDEO_VIEW_HPP
 
-#include <mutex>
-#include <fstream>
-#include <vector>
 #include "xhelper.hpp"
 
 class XVideoView {

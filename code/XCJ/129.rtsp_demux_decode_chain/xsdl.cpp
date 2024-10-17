@@ -1,7 +1,3 @@
-//
-// Created by Administrator on 2024/8/28.
-//
-
 #include "xsdl.hpp"
 #include <SDL.h>
 
@@ -49,7 +45,7 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
     }
 
     if (!m_win) { //窗口不能重复创建
-        SDL2_PTR_ERR_OUT(m_win = m_winID ? SDL_CreateWindowFrom(m_winID) : SDL_CreateWindow(GET_STR(),
+        SDL2_PTR_ERR_OUT(m_win = m_winID ? SDL_CreateWindowFrom(m_winID) : SDL_CreateWindow(GET_STR(""),
                                                                        SDL_WINDOWPOS_CENTERED,
                                                                        SDL_WINDOWPOS_CENTERED,
                                                                        m_width,m_height,

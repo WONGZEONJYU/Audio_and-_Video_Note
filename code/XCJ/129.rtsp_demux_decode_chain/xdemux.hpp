@@ -1,7 +1,3 @@
-//
-// Created by wong on 2024/9/21.
-//
-
 #ifndef INC_124_TEST_XFORMAT_XDEMUX_HPP
 #define INC_124_TEST_XFORMAT_XDEMUX_HPP
 
@@ -22,7 +18,7 @@ public:
     bool Read(XAVPacket &packet);
 
     bool Seek(const int64_t &pts,const int &stream_index);
-public:
+
     explicit XDemux() = default;
     X_DISABLE_COPY_MOVE(XDemux)
 };

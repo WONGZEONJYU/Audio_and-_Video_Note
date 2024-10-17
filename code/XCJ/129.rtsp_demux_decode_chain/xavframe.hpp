@@ -1,14 +1,10 @@
-//
-// Created by Administrator on 2024/7/29.
-//
-
 #ifndef XPLAY2_XAVFRAME_HPP
 #define XPLAY2_XAVFRAME_HPP
 
 extern "C"{
 #include <libavutil/frame.h>
 }
-#include <memory>
+
 #include "xhelper.hpp"
 
 class XAVFrame final : public AVFrame {

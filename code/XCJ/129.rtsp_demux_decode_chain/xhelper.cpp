@@ -1,4 +1,3 @@
-
 #include "xhelper.hpp"
 
 #ifdef HAVE_FFMPEG

@@ -1,7 +1,3 @@
-//
-// Created by Administrator on 2024/8/28.
-//
-
 #ifndef INC_106_XVIDEO_VIEW_TEST_XSDL_HPP
 #define INC_106_XVIDEO_VIEW_TEST_XSDL_HPP
 

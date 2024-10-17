@@ -2,9 +2,6 @@
 #define INC_126_RTSP_DEMUX_THREAD_XTOOLS_HPP
 
 #include <thread>
-#include <mutex>
-#include <list>
-#include <memory>
 #include "xhelper.hpp"
 
 class XTools {

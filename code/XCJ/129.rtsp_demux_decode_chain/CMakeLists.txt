@@ -3,17 +3,17 @@ project(129.rtsp_demux_decode_chain)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(/opt/homebrew/opt/llvm/include)
-
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_definitions(-DWINDOWS)
     #set(CMAKE_PREFIX_PATH "C:/Qt6/6.4.2/mingw_64/")
     set(CMAKE_PREFIX_PATH "C:/Qt6/6.7.3/mingw_64/")
     include_directories(C:/libffmepg/include)
-    include_directories(C:/SDL2/include/SDL2)
+    #include_directories(C:/SDL2/include/SDL2)
+    include_directories(C:/SDL2-2.30.8/include)
 
     link_directories(C:/libffmepg/bin)
-    link_directories(C:/SDL2/bin)
+    #link_directories(C:/SDL2/bin)
+    link_directories(C:/SDL2-2.30.8/lib/x64)
     set(MM_FILE)
     set(Vulkan_INCLUDE_DIR "C:/VulkanSDK/1.3.290.0/Include")
     set(Vulkan_LIBRARY "C:/VulkanSDK/1.3.290.0/Lib/vulkan-1.lib")
@@ -22,7 +22,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
-
+    include_directories(/opt/homebrew/opt/llvm/include)
     #set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.4.2/macos")
     set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.7.2/macos")
     include_directories(/usr/local/ffmpeg/include)

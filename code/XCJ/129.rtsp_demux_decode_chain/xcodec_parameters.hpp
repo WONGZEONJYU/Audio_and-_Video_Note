@@ -9,8 +9,6 @@ extern "C"{
 #include <libavcodec/codec_par.h>
 }
 
-#include <memory>
-#include <string>
 #include "xhelper.hpp"
 
 class XCodecParameters final : AVCodecParameters {

@@ -1,11 +1,6 @@
-//
-// Created by Administrator on 2024/9/10.
-//
-
 #ifndef INC_120_TEST_XDECODE_XCODEC_HPP
 #define INC_120_TEST_XDECODE_XCODEC_HPP
 
-#include <mutex>
 #include "encode_params.hpp"
 #include "xhelper.hpp"
 

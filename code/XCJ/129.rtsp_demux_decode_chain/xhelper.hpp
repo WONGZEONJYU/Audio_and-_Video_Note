@@ -5,6 +5,11 @@
 #include <string>
 #include <memory>
 #include <atomic>
+#include <vector>
+#include <list>
+#include <mutex>
+#include <fstream>
+#include <algorithm>
 #include <system_error>
 #include <type_traits>
 #include <iostream>

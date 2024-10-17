@@ -1,11 +1,6 @@
-//
-// Created by Fy-WONG on 2024/10/8.
-//
-
 #ifndef XDECODETASK_H
 #define XDECODETASK_H
 
-#include <list>
 #include "xtools.hpp"
 #include "xdecode.hpp"
 

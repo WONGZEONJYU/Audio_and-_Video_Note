@@ -135,15 +135,6 @@ static inline constexpr struct HIGH final :PROFILE{
     static inline constexpr auto second{PARAMETERS(high)};
 }high_{};
 
-struct QP final {
-    static inline constexpr auto m_name{PARAMETERS(qp)};
-    inline constexpr QP(const long long &v):m_value{v}{}
-    inline constexpr operator auto() const{return m_value;}
-    [[nodiscard]] inline constexpr auto value() const{return m_value;}
-private:
-    long long m_value{};
-};
-
 struct NAL_HRD {
     static inline constexpr auto first{PARAMETERS(nal-hrd)};
 protected:
@@ -155,13 +146,23 @@ static inline constexpr struct CBR final : NAL_HRD{
     inline constexpr CBR() = default;
 }cbr_{};
 
-struct CRF final {
+struct QP_CRF_Base {
+    [[nodiscard]] inline constexpr auto value() const{return m_value_;}
+protected:
+    inline constexpr explicit QP_CRF_Base(const long long &v):m_value_(v){}
+    long long m_value_{};
+};
+
+struct QP final : QP_CRF_Base {
+    static constexpr auto m_name{PARAMETERS(qp)};
+    inline constexpr explicit QP(const long long &v):QP_CRF_Base(v){}
+    inline constexpr explicit operator auto() const{return m_value_;}
+};
+
+struct CRF final : QP_CRF_Base {
     static inline constexpr auto m_name{PARAMETERS(crf)};
-    inline constexpr CRF(const long long &v):m_value{v}{}
-    inline constexpr operator auto (){return m_value;}
-    [[nodiscard]] inline constexpr auto value() const{return m_value;}
-private:
-    long long m_value{};
+    inline constexpr explicit CRF(const long long &v):QP_CRF_Base(v){}
+    inline constexpr explicit operator auto() const {return m_value_;}
 };
 
 #endif

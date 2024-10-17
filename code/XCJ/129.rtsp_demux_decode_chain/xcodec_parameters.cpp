@@ -1,13 +1,8 @@
-//
-// Created by Administrator on 2024/7/30.
-//
 extern "C"{
 #include <libavcodec/avcodec.h>
 }
 
-#include <algorithm>
 #include "xcodec_parameters.hpp"
-
 
 void XCodecParameters::Reset(AVCodecParameters *obj) noexcept(true) {
     av_freep(&obj->extradata);

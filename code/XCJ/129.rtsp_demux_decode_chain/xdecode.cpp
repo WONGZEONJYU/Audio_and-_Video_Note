@@ -1,7 +1,3 @@
-//
-// Created by Administrator on 2024/9/10.
-//
-
 extern "C"{
 #include <libavcodec/avcodec.h>
 }

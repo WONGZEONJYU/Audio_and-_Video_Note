@@ -1,14 +1,10 @@
-//
-// Created by Administrator on 2024/7/29.
-//
-
 #ifndef XPLAY2_XAVPACKET_HPP
 #define XPLAY2_XAVPACKET_HPP
 
 extern "C"{
 #include <libavcodec/packet.h>
 }
-#include <memory>
+
 #include "xhelper.hpp"
 
 class XAVPacket final : public AVPacket {

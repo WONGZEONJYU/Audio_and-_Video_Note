@@ -1,11 +1,6 @@
-//
-// Created by wong on 2024/9/21.
-//
-
 #ifndef INC_124_TEST_XFORMAT_XFORMAT_HPP
 #define INC_124_TEST_XFORMAT_XFORMAT_HPP
 
-#include <mutex>
 #include "xhelper.hpp"
 
 class XFormat {
