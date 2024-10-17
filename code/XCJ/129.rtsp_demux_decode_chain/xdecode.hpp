@@ -30,7 +30,7 @@ public:
 
     /**
      * 初始化硬解码
-     * @param type
+     * @param type 参考AVHWDeviceType
      * @return
      */
     bool InitHw(const int &type = 4);

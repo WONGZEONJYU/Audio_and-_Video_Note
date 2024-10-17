@@ -10,7 +10,7 @@
 struct PRESET {
     static inline constexpr auto first{PARAMETERS(preset)};
 protected:
-    constexpr PRESET() = default;
+    inline constexpr PRESET() = default;
 };
 
 static inline constexpr struct ULTRAFAST final : PRESET {

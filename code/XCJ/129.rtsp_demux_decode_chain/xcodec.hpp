@@ -1,5 +1,5 @@
-#ifndef INC_120_TEST_XDECODE_XCODEC_HPP
-#define INC_120_TEST_XDECODE_XCODEC_HPP
+#ifndef XCODEC_HPP_
+#define XCODEC_HPP_
 
 #include "encode_params.hpp"
 #include "xhelper.hpp"
@@ -30,8 +30,8 @@ public:
      * @return ture or false
      */
 
-    bool SetOpt(const std::string &key,const std::string &val);
-    bool SetOpt(const std::string &key,const int64_t &val);
+    [[nodiscard]] bool SetOpt(const std::string &key,const std::string &val) const;
+    [[nodiscard]] bool SetOpt(const std::string &key,const int64_t &val) const;
 
     /**
      * 设置Preset参数,线程安全
@@ -71,7 +71,9 @@ public:
      * @param qp
      * @return ture or false
      */
-    bool Set_Qp(const QP &qp);
+    [[nodiscard]] bool Set_Qp(const QP &qp) const {
+       return SetOpt(QP::m_name,qp.value());
+    }
 
     /**
      * 设置NAL_HRD,线程安全
@@ -89,20 +91,23 @@ public:
      * @param crf
      * @return ture or false
      */
-    bool Set_CRF(const CRF &crf);
+    [[nodiscard]] bool Set_CRF(const CRF &crf) const {
+      return SetOpt(CRF::m_name,crf.value());
+    }
 
     /**
      * 打开编码器,线程安全
      * @return ture or false
      */
-    bool Open();
+    [[nodiscard]] bool Open();
 
     /**
-     * 分配AVFrame对象
-     * @param one_frame_size 获取分配大小
+     * 获取一帧
+     * @param align 对齐
+     * @param
      * @return
      */
-    [[nodiscard]] XAVFrame_sp CreateFrame() const;
+    [[nodiscard]] XAVFrame_sp CreateFrame(const int &align) const;
 
 protected:
     std::mutex m_mux_;
@@ -111,12 +116,16 @@ protected:
     virtual ~XCodec();
     X_DISABLE_COPY_MOVE(XCodec)
 
-
 #define CHECK_CODEC_CTX() \
 std::unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));\
 do{if (!m_codec_ctx_){\
 PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
 return {};}}while(false)
+
+#define CHECK_ENCODE_OPEN() do{ \
+if (avcodec_is_open(m_codec_ctx_)){\
+PRINT_ERR_TIPS(GET_STR((encode is open,Invalid parameter setting\n)));} \
+}while(false)
 
 };
 

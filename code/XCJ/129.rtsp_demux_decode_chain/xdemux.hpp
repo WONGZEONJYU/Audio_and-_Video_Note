@@ -17,6 +17,12 @@ public:
      */
     bool Read(XAVPacket &packet);
 
+    /**
+     * Seek音视频帧
+     * @param pts
+     * @param stream_index
+     * @return
+     */
     bool Seek(const int64_t &pts,const int &stream_index);
 
     explicit XDemux() = default;

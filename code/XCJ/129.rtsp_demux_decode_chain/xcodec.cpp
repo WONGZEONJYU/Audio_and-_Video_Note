@@ -3,7 +3,6 @@ extern "C"{
 #include <libavutil/opt.h>
 }
 
-#include <thread>
 #include "xcodec.hpp"
 #include "xavframe.hpp"
 
@@ -44,31 +43,18 @@ void XCodec::set_codec_ctx(AVCodecContext *ctx) {
     m_codec_ctx_ = ctx;
 }
 
-#define CHECK_ENCODE_OPEN() do{ \
-if (avcodec_is_open(m_codec_ctx_)){\
-PRINT_ERR_TIPS(GET_STR((encode is open,Invalid parameter setting\n)));} \
-}while(false)
-
-bool XCodec::SetOpt(const std::string &key,const std::string &val){
+bool XCodec::SetOpt(const std::string &key,const std::string &val) const{
     CHECK_CODEC_CTX();
     CHECK_ENCODE_OPEN();
     FF_ERR_OUT(av_opt_set(m_codec_ctx_->priv_data,key.c_str(),val.c_str(),0),return {});
     return true;
 }
 
-bool XCodec::SetOpt(const std::string &key,const int64_t &val){
+bool XCodec::SetOpt(const std::string &key,const int64_t &val) const {
     CHECK_CODEC_CTX();
     CHECK_ENCODE_OPEN();
     FF_ERR_OUT(av_opt_set_int(m_codec_ctx_->priv_data,key.c_str(),val,0),return {});
     return true;
-}
-
-bool XCodec::Set_Qp(const QP &qp){
-    return SetOpt(QP::m_name,qp.value());
-}
-
-bool XCodec::Set_CRF(const CRF &crf){
-    return SetOpt(CRF::m_name,crf.value());
 }
 
 bool XCodec::Open() {
@@ -78,7 +64,7 @@ bool XCodec::Open() {
     return true;
 }
 
-XAVFrame_sp XCodec::CreateFrame() const{
+XAVFrame_sp XCodec::CreateFrame(const int &align) const{
 
     CHECK_CODEC_CTX();
     XAVFrame_sp frame;
@@ -86,7 +72,7 @@ XAVFrame_sp XCodec::CreateFrame() const{
     frame->width = m_codec_ctx_->width;
     frame->height = m_codec_ctx_->height;
     frame->format = m_codec_ctx_->pix_fmt;
-    if (!frame->Get_Buffer()) {
+    if (!frame->Get_Buffer(align)) {
         frame.reset();
     }
     return frame;

@@ -1,5 +1,5 @@
-#ifndef INC_116_TEST_XENCODE_XENCODE_HPP
-#define INC_116_TEST_XENCODE_XENCODE_HPP
+#ifndef XENCODEC_HPP_
+#define XENCODEC_HPP_
 
 #include "xcodec.hpp"
 
