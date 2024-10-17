@@ -18,10 +18,10 @@ public:
     bool Read(XAVPacket &packet);
 
     /**
-     * Seek音视频帧
+     * Seek音视频帧,一般都是Seek视频帧
      * @param pts
      * @param stream_index
-     * @return
+     * @return ture or false
      */
     bool Seek(const int64_t &pts,const int &stream_index);
 

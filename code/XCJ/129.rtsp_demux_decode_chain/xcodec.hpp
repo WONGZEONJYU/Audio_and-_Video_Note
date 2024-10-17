@@ -102,7 +102,7 @@ public:
     [[nodiscard]] bool Open();
 
     /**
-     * 获取一帧
+     * 获取一个已经分配好符合当前音视频帧空间的一个frame
      * @param align 对齐
      * @param
      * @return

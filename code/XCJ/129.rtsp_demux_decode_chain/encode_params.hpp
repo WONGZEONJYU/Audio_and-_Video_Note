@@ -1,7 +1,3 @@
-//
-// Created by Administrator on 2024/4/26.
-//
-
 #ifndef INC_15_MP4_MUXER_H264_ENCODE_PARAMS_HPP
 #define INC_15_MP4_MUXER_H264_ENCODE_PARAMS_HPP
 

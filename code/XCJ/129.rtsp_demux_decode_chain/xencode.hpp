@@ -3,7 +3,7 @@
 
 #include "xcodec.hpp"
 
-using XAVPackets = std::pmr::vector<XAVPacket_sp>;
+using XAVPackets = std::vector<XAVPacket_sp>;
 
 class XEncode : public XCodec {
 

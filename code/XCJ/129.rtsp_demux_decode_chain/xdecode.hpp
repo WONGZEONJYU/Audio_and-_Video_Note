@@ -3,7 +3,7 @@
 
 #include "xcodec.hpp"
 
-using XAVFrames = std::pmr::vector<XAVFrame_sp>;
+using XAVFrames = std::vector<XAVFrame_sp>;
 
 class XDecode : public XCodec {
 
@@ -36,7 +36,7 @@ public:
     bool InitHw(const int &type = 4);
 
     explicit XDecode() = default;
-    ~XDecode() override = default;
+
     X_DISABLE_COPY_MOVE(XDecode)
 };
 

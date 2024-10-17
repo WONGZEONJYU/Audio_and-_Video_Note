@@ -16,7 +16,7 @@ AVFormatContext *XDemux::Open(const std::string &url) {
     AVDictionary *opts{};
     bool need_free{};
 
-    const Destroyer d([&]{
+    const Destroyer d([&c,&opts,&need_free]{
         av_dict_free(&opts);
         if (need_free){
             avformat_close_input(&c);

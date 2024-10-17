@@ -1,9 +1,5 @@
-//
-// Created by Administrator on 2024/8/28.
-//
-
-#ifndef INC_106_XVIDEO_VIEW_TEST_XVIDEO_VIEW_HPP
-#define INC_106_XVIDEO_VIEW_TEST_XVIDEO_VIEW_HPP
+#ifndef XVIDEO_VIEW_HPP_
+#define XVIDEO_VIEW_HPP_
 
 #include "xhelper.hpp"
 
@@ -13,12 +9,16 @@ class XVideoView {
     static void merge_nv12(uint8_t *,const XAVFrame &);
 
 public:
+    //数值与ffmpeg定义一样,详情参考pixfmt.h中的 enum AVPixelFormat
     enum Format : int {
         YUV420P = 0,
         RGB24 = 2,
+        BGR24 = 3,
         NV12 = 23,
+        NV21 = 24,
         ARGB = 25,
         RGBA = 26,
+        ABGR = 27,
         BGRA = 28,
     };
 
@@ -40,14 +40,14 @@ public:
      * @param fmt 绘制的像素格式
      * @return true or false
      */
-    virtual bool Init(const int &w,const int &h,const Format &fmt = RGBA) = 0;
+    virtual bool Init(const int &w,const int &h,const Format &fmt = RGBA,const std::string & = "") = 0;
 
     /**
      * 初始化渲染窗口 线程安全 可多次调用
      * @param parameters
      * @return true or false
      */
-    virtual bool Init(const XCodecParameters &parameters);
+    virtual bool Init(const XCodecParameters &parameters,const std::string & = "");
 
     /**
      * 清理所有申请的资源,包括关闭窗口
@@ -101,8 +101,8 @@ public:
      * @param h
      */
     virtual void Scale(const int &w,const int &h){
-        m_scale_w = w;
-        m_scale_h = h;
+        m_scale_w_ = w;
+        m_scale_h_ = h;
     }
 
     /**
@@ -111,8 +111,8 @@ public:
      * @param y
      */
     virtual void SetPos(const int &x,const int &y){
-        m_x = x;
-        m_y = y;
+        m_x_ = x;
+        m_y_ = y;
     }
 
     /**
@@ -126,7 +126,7 @@ public:
      * @return 当前播放帧率
      */
     [[nodiscard]] virtual int Render_Fps() const {
-        return m_render_fps;
+        return m_render_fps_;
     };
 
     /**
@@ -141,31 +141,31 @@ public:
      * 每次调用会覆盖上一次数据
      * @return XAVFrame_sptr
      */
-    virtual XAVFrame_sp Read();
+    [[nodiscard]] virtual XAVFrame_sp Read();
 
     /**
      * 设置窗口句柄
      * @param win_id
      */
     virtual void Set_Win_ID(void *win_id){
-        m_winID = win_id;
+        m_winID_ = win_id;
     }
 
 protected:
-    std::mutex m_mux;
-    std::atomic_int64_t m_begin_time{};
-    std::atomic_int m_width{},m_height{},
-                m_x{},m_y{},
-                m_scale_w{},m_scale_h{},
-                m_count{},m_render_fps{},
-                m_pixel_Byte_size{4};;
+    std::mutex m_mux_;
+    std::atomic_int64_t m_begin_time_{};
+    std::atomic_int m_width_{},m_height_{},
+                m_x_{},m_y_{},
+                m_scale_w_{},m_scale_h_{},
+                m_count_{},m_render_fps_{},
+                m_pixel_Byte_size_{4};
 
-    std::atomic<Format> m_fmt{RGBA};
-    std::atomic<void*> m_winID{};
+    std::atomic<Format> m_fmt_{RGBA};
+    std::atomic<void*> m_winID_{};
 private:
-    std::ifstream m_ifs;
-    XAVFrame_sp m_frame;
-    std::pmr::vector<uint8_t> m_cache;
+    std::ifstream m_ifs_;
+    XAVFrame_sp m_frame_;
+    std::vector<uint8_t> m_cache_;
 public:
     static int64_t Get_time_ms();
     static void MSleep(const uint64_t &);

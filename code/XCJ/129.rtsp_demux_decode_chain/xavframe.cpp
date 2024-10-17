@@ -94,7 +94,7 @@ int XAVFrame::Image_Fill_Arrays(const uint8_t *src,const int &fmt,
                                 const int &w, const int &h,
                                 const int &align) {
     int ret;
-    FF_ERR_OUT(ret = av_image_fill_arrays(data,linesize,src,static_cast<AVPixelFormat>(fmt),w,h,align),return ret);
+    FF_ERR_OUT(ret = av_image_fill_arrays(data,linesize,src,static_cast<AVPixelFormat>(fmt),w,h,align));
     return ret;
 }
 
@@ -107,7 +107,7 @@ int XAVFrame::Samples_Fill_Arrays(const uint8_t *src,
     FF_ERR_OUT(ret = av_samples_fill_arrays(data,linesize,
                                             src,
                                             nb_channels,nb_samples,
-                                            static_cast<AVSampleFormat>(sample_fmt),align),return ret);
+                                            static_cast<AVSampleFormat>(sample_fmt),align));
     return ret;
 }
 

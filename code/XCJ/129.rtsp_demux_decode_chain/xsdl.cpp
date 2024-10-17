@@ -3,7 +3,7 @@
 
 using namespace std;
 
-static inline bool sdl_init(){
+static inline bool sdl_init() {
     static atomic_bool is_init{};
     if (!is_init){
         static mutex mux;
@@ -22,47 +22,49 @@ static inline bool sdl_init(){
     return is_init;
 }
 
-bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
+bool XSDL::Init(const int &w,const int &h,const Format &fmt,const string &win_title) {
 
     if (w <= 0 || h <= 0){
         PRINT_ERR_TIPS("const int &w,const int &h error!");
         return {};
     }
 
-    sdl_init();
-
-    m_width = w;
-    m_height = h;
-    m_fmt = fmt;
-
-    unique_lock locker(m_mux);
-
-    if (m_texture){
-        SDL_DestroyTexture(m_texture);
-    }
-    if (m_renderer){
-        SDL_DestroyRenderer(m_renderer);
+    if (!sdl_init()){
+        return {};
     }
 
-    if (!m_win) { //窗口不能重复创建
-        SDL2_PTR_ERR_OUT(m_win = m_winID ? SDL_CreateWindowFrom(m_winID) : SDL_CreateWindow(GET_STR(""),
+    m_width_ = w;
+    m_height_ = h;
+    m_fmt_ = fmt;
+
+    unique_lock locker(m_mux_);
+
+    if (m_texture_){
+        SDL_DestroyTexture(m_texture_);
+    }
+
+    if (m_renderer_){
+        SDL_DestroyRenderer(m_renderer_);
+    }
+
+    if (!m_win_) { //窗口不能重复创建
+        SDL2_PTR_ERR_OUT(m_win_ = m_winID_ ? SDL_CreateWindowFrom(m_winID_) : SDL_CreateWindow(win_title.c_str(),
                                                                        SDL_WINDOWPOS_CENTERED,
                                                                        SDL_WINDOWPOS_CENTERED,
-                                                                       m_width,m_height,
+                                                                       m_width_,m_height_,
                                                                        SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL),return {});
 
-        //SDL_SetWindowOpacity(m_win, 0.5f); // 设置 SDL 窗口半透明
+        //SDL_SetWindowOpacity(m_win_, 0.5f); // 设置 SDL 窗口半透明
     }
 
-    SDL2_PTR_ERR_OUT(m_renderer = SDL_CreateRenderer(m_win,-1,SDL_RENDERER_ACCELERATED),//使用硬件渲染,如有不支持,可以替换
+    SDL2_PTR_ERR_OUT(m_renderer_ = SDL_CreateRenderer(m_win_,-1,SDL_RENDERER_ACCELERATED),//使用硬件渲染,如有不支持,可以替换
                      return {}); //创建渲染器
 
-
-    SDL2_INT_ERR_OUT(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND),return {});
-    SDL2_INT_ERR_OUT(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255),return {}); // 设置透明背景
+    SDL2_INT_ERR_OUT(SDL_SetRenderDrawBlendMode(m_renderer_, SDL_BLENDMODE_BLEND),return {});
+    SDL2_INT_ERR_OUT(SDL_SetRenderDrawColor(m_renderer_, 0, 0, 0, 255),return {}); // 设置透明背景
 
     auto pix_fmt{SDL_PIXELFORMAT_RGBA32};
-    m_pixel_Byte_size = 4;
+    m_pixel_Byte_size_ = 4;
     switch (fmt) {
         case RGBA:
             pix_fmt = SDL_PIXELFORMAT_RGBA32;
@@ -73,25 +75,36 @@ bool XSDL::Init(const int &w,const int &h,const Format &fmt) {
         case ARGB:
             pix_fmt = SDL_PIXELFORMAT_ARGB32;
             break;
+        case ABGR:
+            pix_fmt = SDL_PIXELFORMAT_ABGR32;
+            break;
         case YUV420P:
             pix_fmt = SDL_PIXELFORMAT_IYUV;
-            m_pixel_Byte_size = 1;
+            m_pixel_Byte_size_ = 1;
             break;
         case RGB24:
             pix_fmt = SDL_PIXELFORMAT_RGB24;
-            m_pixel_Byte_size = 3;
+            m_pixel_Byte_size_ = 3;
+            break;
+        case BGR24:
+            pix_fmt = SDL_PIXELFORMAT_BGR24;
+            m_pixel_Byte_size_ = 3;
             break;
         case NV12:
             pix_fmt = SDL_PIXELFORMAT_NV12;
-            m_pixel_Byte_size = 1;
+            m_pixel_Byte_size_ = 1;
+        case NV21:
+            pix_fmt = SDL_PIXELFORMAT_NV21;
+            m_pixel_Byte_size_ = 1;
+            break;
         default:
             break;
     }
 
-    SDL2_PTR_ERR_OUT(m_texture = SDL_CreateTexture(m_renderer,
+    SDL2_PTR_ERR_OUT(m_texture_ = SDL_CreateTexture(m_renderer_,
                                                    pix_fmt,
                                                    SDL_TEXTUREACCESS_STREAMING, //纹理需频繁改变,带锁
-                                                   m_width,m_height),return {});
+                                                   m_width_,m_height_),return {});
     return true;
 }
 
@@ -102,27 +115,28 @@ bool XSDL::Draw(const void *datum,int line_size) {
         return {};
     }
 
-    unique_lock locker(m_mux);
+    unique_lock locker(m_mux_);
 
     if (!check_init()) { //SDL初始化检查
         return {};
     }
 
     if (line_size <= 0) {
-        line_size = m_width * m_pixel_Byte_size;
-#if 0
+#if 1
+        line_size = m_width_ * m_pixel_Byte_size_;
+#else
         switch (m_fmt) {
             case RGB24:
-                line_size = m_width * 3;
+                line_size = m_width_ * 3;
                 break;
             case RGBA:
             case BGRA:
             case ARGB:
-                line_size = m_width * 4;
+                line_size = m_width_ * 4;
                 break;
             case YUV420P:
             case NV12:
-                line_size = m_width;
+                line_size = m_width_;
                 break;
             default:
                 PRINT_ERR_TIPS(GET_STR(line_size error!));
@@ -131,13 +145,13 @@ bool XSDL::Draw(const void *datum,int line_size) {
 #endif
     }
 
-    SDL2_INT_ERR_OUT(SDL_UpdateTexture(m_texture,{},datum,line_size),return {});
+    SDL2_INT_ERR_OUT(SDL_UpdateTexture(m_texture_, nullptr,datum,line_size),return {});
     return Start_Rendering();
 }
 
 bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
-                const uint8_t *u,const int & u_pitch,
-                const uint8_t *v,const int & v_pitch) {
+                const uint8_t *u,const int &u_pitch,
+                const uint8_t *v,const int &v_pitch) {
 
     const auto b{!y || !u || !v || y_pitch <= 0 || u_pitch <= 0 || v_pitch <= 0};
     if (b){ //输入参数有误
@@ -149,10 +163,10 @@ bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
         return {};
     }
 
-    unique_lock locker(m_mux);
+    unique_lock locker(m_mux_);
 
-    SDL2_INT_ERR_OUT(SDL_UpdateYUVTexture(m_texture,{},y,y_pitch,u,u_pitch,v,v_pitch),return {});
-    //更新YUV到纹理
+    SDL2_INT_ERR_OUT(SDL_UpdateYUVTexture(m_texture_,nullptr,y,y_pitch,u,u_pitch,v,v_pitch),return {});
+    //更新YUV420到纹理
 
     return Start_Rendering();
 }
@@ -170,35 +184,40 @@ bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
         return {};
     }
 
-    unique_lock locker(m_mux);
-    SDL2_INT_ERR_OUT(SDL_UpdateNVTexture(m_texture,{},y,y_pitch,uv,uv_pitch),return {});
+    unique_lock locker(m_mux_);
+    SDL2_INT_ERR_OUT(SDL_UpdateNVTexture(m_texture_, nullptr,y,y_pitch,uv,uv_pitch),return {});
+    //更新NV12 / NV21到纹理
 
     return Start_Rendering();
 }
 
 XSDL::~XSDL() {
+    unique_lock locker(m_mux_);
     DeConstruct();
 }
 
 void XSDL::Close() {
-    unique_lock locker(m_mux);
+    unique_lock locker(m_mux_);
     DeConstruct();
 }
 
+/**
+ * 此函数没有锁,需谨慎使用
+ */
 void XSDL::DeConstruct(){
-    if (m_texture) {
-        SDL_DestroyTexture(m_texture);
-        m_texture = {};
+    if (m_texture_) {
+        SDL_DestroyTexture(m_texture_);
+        m_texture_ = {};
     }
 
-    if (m_renderer) {
-        SDL_DestroyRenderer(m_renderer);
-        m_renderer = {};
+    if (m_renderer_) {
+        SDL_DestroyRenderer(m_renderer_);
+        m_renderer_ = {};
     }
 
-    if (m_win) {
-        SDL_DestroyWindow(m_win);
-        m_win = {};
+    if (m_win_) {
+        SDL_DestroyWindow(m_win_);
+        m_win_ = {};
     }
 }
 
@@ -214,18 +233,18 @@ void XSDL::Scale(const int &w,const int &h) {
 
 bool XSDL::Start_Rendering() {
 
-    SDL2_INT_ERR_OUT(SDL_RenderClear(m_renderer),return {});
+    SDL2_INT_ERR_OUT(SDL_RenderClear(m_renderer_),return {});
     //清理渲染器
 #if 1
     SDL_Rect rect{};
     const SDL_Rect *p_rect{};
-    if (m_scale_w > 0 || m_scale_h > 0) { //更改纹理宽高
-        rect.w = m_scale_w;
-        rect.h = m_scale_h;
+    if (m_scale_w_ > 0 || m_scale_h_ > 0) { //更改纹理宽高
+        rect.w = m_scale_w_;
+        rect.h = m_scale_h_;
         p_rect = std::addressof(rect);
     }
 
-    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer,m_texture,{},p_rect,{},{},SDL_FLIP_NONE),return {});
+    SDL2_INT_ERR_OUT(SDL_RenderCopyEx(m_renderer_,m_texture_, nullptr,p_rect,{},{},SDL_FLIP_NONE),return {});
     //拷贝纹理数据到渲染器
 #else
     SDL_FRect fRect{};
@@ -234,15 +253,15 @@ bool XSDL::Start_Rendering() {
         fRect.w = static_cast<float >(m_scale_w);
         fRect.h = static_cast<float >(m_scale_h);
     }
-    SDL2_INT_ERR_OUT(SDL_RenderCopyExF(m_renderer,m_texture,{},p_fRect,{},{},SDL_FLIP_NONE),return {});
+    SDL2_INT_ERR_OUT(SDL_RenderCopyExF(m_renderer_,m_texture_,{},p_fRect,{},{},SDL_FLIP_NONE),return {});
 #endif
-    SDL_RenderPresent(m_renderer); //开始渲染
+    SDL_RenderPresent(m_renderer_); //开始渲染
     return true;
 }
 
 bool XSDL::check_init(){
 
-    const auto b {!m_win || !m_renderer || !m_texture || m_width <= 0 || m_height <= 0};
+    const auto b {!m_win_ || !m_renderer_ || !m_texture_ || m_width_ <= 0 || m_height_ <= 0};
     if (b){
         PRINT_ERR_TIPS(GET_STR(Uninitialized));
     }

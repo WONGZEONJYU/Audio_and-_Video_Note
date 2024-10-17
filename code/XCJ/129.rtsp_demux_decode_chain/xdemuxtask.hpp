@@ -1,5 +1,5 @@
-#ifndef INC_126_RTSP_DEMUX_THREAD_XDEMUXTASK_HPP
-#define INC_126_RTSP_DEMUX_THREAD_XDEMUXTASK_HPP
+#ifndef XDEMUXTASK_HPP_
+#define XDEMUXTASK_HPP_
 
 #include "xtools.hpp"
 #include "xdemux.hpp"

@@ -1,6 +1,6 @@
 
-#ifndef XHELPER_H
-#define XHELPER_H
+#ifndef XHELPER_HPP_
+#define XHELPER_HPP_
 
 #include <string>
 #include <memory>
@@ -13,6 +13,7 @@
 #include <system_error>
 #include <type_traits>
 #include <iostream>
+#include <thread>
 
 #ifdef HAVE_FFMPEG
 struct AVFormatContext;
@@ -20,14 +21,14 @@ struct AVPacket;
 struct AVFilterGraph;
 struct AVChannelLayout;
 struct AVRational;
+struct AVCodecParameters;
+struct AVCodecContext;
 class XAVPacket;
 class XAVFrame;
 class XCodecParameters;
-struct AVCodecParameters;
 using XCodecParameters_sp = std::shared_ptr<XCodecParameters>;
 using XAVPacket_sp = std::shared_ptr<XAVPacket>;
 using XAVFrame_sp = std::shared_ptr<XAVFrame>;
-struct AVCodecContext;
 struct XRational {
     int num{1}, ///< Numerator
     den{1}; ///< Denominator
@@ -218,7 +219,7 @@ struct Destroyer final{
         }
     }
 
-    ~Destroyer() {
+    inline ~Destroyer() {
         destroy();
     }
 
@@ -230,18 +231,18 @@ private:
 template<typename F1,typename F2>
 struct XRAII final {
     X_DISABLE_COPY(XRAII)
-    explicit XRAII(F1 &&f1,F2 &&f2) : m_f2(std::move(f2)){
+    inline explicit XRAII(F1 &&f1,F2 &&f2) : m_f2(std::move(f2)){
         f1();
     }
 
-    void destroy(){
+    inline void destroy(){
         if (!m_is_destroy){
             m_is_destroy = true;
             m_f2();
         }
     }
 
-    ~XRAII(){
+    inline ~XRAII(){
         destroy();
     }
 

@@ -28,7 +28,7 @@ public:
      * 传递到下一个责任链函数
      * @param pkt
      */
-    virtual void Next(XAVPacket &pkt){
+    virtual void Next(XAVPacket &pkt) {
         //std::unique_lock locker(m_mux);
         if (m_next_){
             m_next_.load()->Do(pkt);
@@ -57,7 +57,7 @@ protected:
     X_DISABLE_COPY_MOVE(XThread)
 };
 
-class XAVPacketList{
+class XAVPacketList {
     static inline constexpr auto max_packets{100};
 public:
     XAVPacket_sp Pop();

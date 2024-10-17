@@ -1,5 +1,5 @@
-#ifndef XDECODETASK_H
-#define XDECODETASK_H
+#ifndef XDECODETASK_HPP_
+#define XDECODETASK_HPP_
 
 #include "xtools.hpp"
 #include "xdecode.hpp"

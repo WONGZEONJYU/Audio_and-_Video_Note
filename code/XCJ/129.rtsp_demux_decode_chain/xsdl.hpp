@@ -21,7 +21,7 @@ protected:
      * @param winID 窗口句柄,如果为nullptr,创新新窗口
      * @return true or false
      */
-    bool Init(const int &w,const int &h,const Format &fmt) override;
+    bool Init(const int &w,const int &h,const Format &fmt,const std::string &) override;
 
     /**
     * 清理所有申请的资源,包括关闭窗口
@@ -76,9 +76,9 @@ protected:
     void Scale(const int &w,const int &h) override;
 
 protected:
-    SDL_Window *m_win{};
-    SDL_Renderer *m_renderer{};
-    SDL_Texture *m_texture{};
+    SDL_Window *m_win_{};
+    SDL_Renderer *m_renderer_{};
+    SDL_Texture *m_texture_{};
 
 public:
     explicit XSDL() = default;
