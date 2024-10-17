@@ -148,21 +148,20 @@ static inline constexpr struct CBR final : NAL_HRD{
 
 struct QP_CRF_Base {
     [[nodiscard]] inline constexpr auto value() const{return m_value_;}
+    [[nodiscard]] inline constexpr explicit operator auto() const{return m_value_;}
 protected:
     inline constexpr explicit QP_CRF_Base(const long long &v):m_value_(v){}
     long long m_value_{};
 };
 
 struct QP final : QP_CRF_Base {
-    static constexpr auto m_name{PARAMETERS(qp)};
+    static inline constexpr auto m_name{PARAMETERS(qp)};
     inline constexpr explicit QP(const long long &v):QP_CRF_Base(v){}
-    inline constexpr explicit operator auto() const{return m_value_;}
 };
 
 struct CRF final : QP_CRF_Base {
     static inline constexpr auto m_name{PARAMETERS(crf)};
     inline constexpr explicit CRF(const long long &v):QP_CRF_Base(v){}
-    inline constexpr explicit operator auto() const {return m_value_;}
 };
 
 #endif
