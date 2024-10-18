@@ -1,7 +1,7 @@
 extern "C"{
 #include <libswscale/swscale.h>
 }
-#include "XSwscale.hpp"
+#include "xswscale.hpp"
 
 bool XSwscale::Construct(const int &srcW,const int &srcH,
                          const int &srcFormat,

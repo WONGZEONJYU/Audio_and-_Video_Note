@@ -569,7 +569,7 @@ int XSonic::findSincCoefficient(const int &i,
     const auto leftVal{sincTable[left]},
                 rightVal{sincTable[right]};
 
-    return (leftVal * (width - position) + rightVal * position << 1) / width;
+    return ((leftVal * (width - position) + rightVal * position) << 1) / width;
 }
 
 int16_t XSonic::interpolate(const int16_t *in,
