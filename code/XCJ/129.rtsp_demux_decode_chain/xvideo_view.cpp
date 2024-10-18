@@ -4,6 +4,8 @@
 #include "xcodec_parameters.hpp"
 
 using namespace std;
+using namespace this_thread;
+using namespace chrono;
 
 void XVideoView::merge_nv12(uint8_t *const cache_,const XAVFrame &frame){
 
@@ -35,10 +37,23 @@ void XVideoView::merge_nv12(uint8_t *const cache_,const XAVFrame &frame){
     }
 }
 
-XVideoView *XVideoView::create(const XVideoView::RenderType &renderType) {
+XVideoView *XVideoView::create(const RenderType &renderType) {
+    XVideoView *ptr{};
     switch (renderType) {
         case SDL:
-            return new XSDL();
+            TRY_CATCH(ptr = new XSDL(),return {});
+            return ptr;
+        default:
+            return {};
+    }
+}
+
+XVideoView_sp XVideoView::create_sp(const RenderType &renderType) {
+    XVideoView_sp sp;
+    switch (renderType) {
+        case SDL:
+            TRY_CATCH(sp.reset(new XSDL()),return {});
+            return sp;
         default:
             return {};
     }
@@ -132,10 +147,10 @@ bool XVideoView::Open(const std::string &file_path) {
 
 XAVFrame_sp XVideoView::Read() {
 
-    auto b {m_width_ <= 0 || m_height_ <= 0 || m_fmt_ < 0 || !m_ifs_};
+    auto b{m_width_ <= 0 || m_height_ <= 0 || m_fmt_ < 0 || !m_ifs_};
 
     if (b) { //参数打开失败
-        //PRINT_ERR_TIPS(GET_STR(m_width_ <= 0 || m_height_ <= 0 || m_fmt_ < 0));
+        PRINT_ERR_TIPS(GET_STR(width height fmt error!));
         return {};
     }
 
@@ -187,7 +202,7 @@ XAVFrame_sp XVideoView::Read() {
     switch (m_frame_->format) {
         case AV_PIX_FMT_YUV420P:
         case AV_PIX_FMT_YUVJ420P:
-            for (uint i{}; i < 3; ++i) {
+            for (uint32_t i{}; i < 3; ++i) {
                 const auto len{ i ? m_frame_->linesize[i] * m_height_ / 2 :
                                 m_frame_->linesize[i] * m_height_ };
                 m_ifs_.read(reinterpret_cast<char *>(m_frame_->data[i]),len);
@@ -195,7 +210,7 @@ XAVFrame_sp XVideoView::Read() {
             break;
         case AV_PIX_FMT_NV12:
         case AV_PIX_FMT_NV21:
-            for(uint i{};i < 2;++i){
+            for(uint32_t i{};i < 2;++i){
                 const auto len{i ? m_frame_->linesize[i] * m_height_ / 2 :
                                m_frame_->linesize[i] * m_height_};
                 m_ifs_.read(reinterpret_cast<char*>(m_frame_->data[i]),len);
@@ -224,16 +239,15 @@ void XVideoView::MSleep(const uint64_t &ms) {
     const auto begin{Get_time_ms()};
     auto ms_{ms};
     while (ms_--) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        const auto now{Get_time_ms()};
-        if (now - begin >= ms){
+        sleep_for(milliseconds(1));
+        if (Get_time_ms() - begin >= ms){
             return;
         }
     }
 }
 
 int64_t XVideoView::Get_time_ms(){
-    const auto now_{chrono::high_resolution_clock::now()};
-    const auto now_ms{chrono::time_point_cast<chrono::milliseconds>(now_)};
+    const auto now_{high_resolution_clock::now()};
+    const auto now_ms{time_point_cast<milliseconds>(now_)};
     return now_ms.time_since_epoch().count();
 }

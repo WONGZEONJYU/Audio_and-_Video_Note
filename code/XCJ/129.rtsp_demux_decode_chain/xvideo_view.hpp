@@ -32,7 +32,7 @@ public:
      * @return
      */
     static XVideoView *create(const RenderType &renderType = SDL);
-
+    static XVideoView_sp create_sp(const RenderType &renderType = SDL);
     /**
      * 初始化渲染窗口 线程安全 可多次调用
      * @param w 窗口宽度
@@ -40,7 +40,8 @@ public:
      * @param fmt 绘制的像素格式
      * @return true or false
      */
-    virtual bool Init(const int &w,const int &h,const Format &fmt = RGBA,const std::string & = "") = 0;
+    virtual bool Init(const int &w,const int &h,
+        const Format &fmt = RGBA,const std::string & = "") = 0;
 
     /**
      * 初始化渲染窗口 线程安全 可多次调用

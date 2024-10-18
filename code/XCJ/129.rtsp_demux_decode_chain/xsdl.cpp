@@ -231,7 +231,7 @@ void XSDL::Scale(const int &w,const int &h) {
     XVideoView::Scale(w, h);
 }
 
-bool XSDL::Start_Rendering() {
+bool XSDL::Start_Rendering() const {
 
     SDL2_INT_ERR_OUT(SDL_RenderClear(m_renderer_),return {});
     //清理渲染器
@@ -259,7 +259,7 @@ bool XSDL::Start_Rendering() {
     return true;
 }
 
-bool XSDL::check_init(){
+bool XSDL::check_init() const{
 
     const auto b {!m_win_ || !m_renderer_ || !m_texture_ || m_width_ <= 0 || m_height_ <= 0};
     if (b){

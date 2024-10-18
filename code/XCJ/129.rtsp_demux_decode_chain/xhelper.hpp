@@ -33,8 +33,10 @@ struct XRational {
     int num{1}, ///< Numerator
     den{1}; ///< Denominator
 };
-
 #endif
+
+class XVideoView;
+using XVideoView_sp = std::shared_ptr<XVideoView>;
 
 #if HAVE_SDL2
 struct SDL_Window;

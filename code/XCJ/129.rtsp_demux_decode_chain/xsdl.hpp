@@ -1,16 +1,16 @@
-#ifndef INC_106_XVIDEO_VIEW_TEST_XSDL_HPP
-#define INC_106_XVIDEO_VIEW_TEST_XSDL_HPP
+#ifndef XSDL_HPP_
+#define XSDL_HPP_
 
 #include "xvideo_view.hpp"
 
 class XSDL : public XVideoView {
-
+friend class XVideoView;
     /**
      * 销毁资源
      */
     void DeConstruct();
-    bool Start_Rendering();
-    bool check_init();
+    bool Start_Rendering() const;
+    bool check_init() const ;
 
 protected:
     /**
@@ -18,10 +18,10 @@ protected:
      * @param w 窗口宽度
      * @param h 窗口高度
      * @param fmt 绘制的像素格式
-     * @param winID 窗口句柄,如果为nullptr,创新新窗口
+     * @param win_title 窗口标题,可以不填
      * @return true or false
      */
-    bool Init(const int &w,const int &h,const Format &fmt,const std::string &) override;
+    bool Init(const int &w,const int &h,const Format &fmt,const std::string &win_title) override;
 
     /**
     * 清理所有申请的资源,包括关闭窗口
@@ -35,7 +35,7 @@ protected:
      * line_size <=0 就根据宽度和像素格式自动计算出大小,如果有对齐问题,则需手动输入
      * @return ture or false
      */
-    bool Draw(const void *datum,int line_size) override;
+    bool Draw(const void *datum,int line_size) override ;
 
     /**
      * 渲染YUV,线程安全
@@ -56,7 +56,7 @@ protected:
      * @param y
      * @param y_pitch
      * @param uv
-     * @param uv_v_pitch
+     * @param uv_pitch
      * @return
      */
     bool Draw(const uint8_t *y,const int &y_pitch,
@@ -79,10 +79,10 @@ protected:
     SDL_Window *m_win_{};
     SDL_Renderer *m_renderer_{};
     SDL_Texture *m_texture_{};
-
-public:
     explicit XSDL() = default;
+public:
     ~XSDL() override;
+    X_DISABLE_COPY_MOVE(XSDL)
 };
 
 #endif
