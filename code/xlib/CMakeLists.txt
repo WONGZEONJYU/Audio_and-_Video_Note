@@ -49,38 +49,45 @@ set(FFMPEG_LIBS
 )
 
 set(SOURCE_FILE
-        xhelper.cpp
-        xhelper.hpp
-        xavframe.cpp
-        xavframe.hpp
-        xavpacket.cpp
-        xavpacket.hpp
-        xcodec.cpp
-        xcodec.hpp
-        xdecode.cpp
-        xdecode.hpp
-        xencode.cpp
-        xencode.hpp
-        xformat.cpp
-        xformat.hpp
-        xdemux.cpp
-        xdemux.hpp
-        xmux.cpp
-        xmux.hpp
-        xtools.cpp
-        xtools.hpp
-        xdemuxtask.cpp
-        xdemuxtask.hpp
-        xcodec_parameters.cpp
-        xcodec_parameters.hpp
-        xdecodetask.cpp
-        xdecodetask.h
-        xsdl.cpp
-        xsdl.hpp
-        xvideo_view.cpp
-        xvideo_view.hpp
-        xmuxtask.cpp
-        xmuxtask.hpp)
+xhelper.cpp
+xhelper.hpp
+xavframe.cpp
+xavframe.hpp
+xavpacket.cpp
+xavpacket.hpp
+xcodec.cpp
+xcodec.hpp
+xdecode.cpp
+xdecode.hpp
+xencode.cpp
+xencode.hpp
+xformat.cpp
+xformat.hpp
+xdemux.cpp
+xdemux.hpp
+xmux.cpp
+xmux.hpp
+xtools.cpp
+xtools.hpp
+xdemuxtask.cpp
+xdemuxtask.hpp
+xcodec_parameters.cpp
+xcodec_parameters.hpp
+xdecodetask.cpp
+xdecodetask.h
+xsdl.cpp
+xsdl.hpp
+xvideo_view.cpp
+xvideo_view.hpp
+xmuxtask.cpp
+xmuxtask.hpp
+xsonic.cpp
+xprivate_sonic.cpp
+xsonic.hpp
+xswrcontext.cpp
+xswrcontext.hpp
+xswscontext.cpp
+xswscontext.hpp)
 
 add_library(${PROJECT_NAME}_static STATIC ${SOURCE_FILE})
 add_library(${PROJECT_NAME}_dynamic SHARED ${SOURCE_FILE})
