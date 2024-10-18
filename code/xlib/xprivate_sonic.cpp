@@ -480,16 +480,11 @@ bool XSonic::moveNewSamplesToPitchBuffer(const int &originalNumOutputSamples) {
     if(m_numPitchSamples + numSamples > m_pitchBufferSize) {
         m_pitchBufferSize += (m_pitchBufferSize >> 1) + numSamples;
         m_pitchBuffer.clear();
-        try {
-            CHECK_EXC(m_pitchBuffer.resize(m_pitchBufferSize * numChannels));
-        } catch (const std::exception &e) {
-            std::cerr << e.what() << "\n";
-            return {};
-        }
+        TRY_CATCH(CHECK_EXC(m_pitchBuffer.resize(m_pitchBufferSize * numChannels)),return {});
     }
 
-    auto src_{m_outputBuffer.data() + originalNumOutputSamples * numChannels};
-    auto dst_{m_pitchBuffer.data() + m_numPitchSamples * numChannels};
+    const auto src_{m_outputBuffer.data() + originalNumOutputSamples * numChannels};
+    const auto dst_{m_pitchBuffer.data() + m_numPitchSamples * numChannels};
     const auto size_{numSamples * numChannels};
     std::copy_n(src_,size_,dst_);
 
@@ -506,8 +501,8 @@ void XSonic::removePitchSamples(const int &numSamples) {
 
     if(numSamples != m_numPitchSamples) {
         const auto numChannels{m_numChannels};
-        auto src_{m_pitchBuffer.data() + numSamples * numChannels};
-        auto dst_{m_pitchBuffer.data()};
+        const auto src_{m_pitchBuffer.data() + numSamples * numChannels};
+        const auto dst_{m_pitchBuffer.data()};
         const auto size_{(m_numPitchSamples - numSamples) * numChannels};
         std::move(src_,src_ + size_,dst_);
     }
@@ -574,7 +569,7 @@ int XSonic::findSincCoefficient(const int &i,
     const auto leftVal{sincTable[left]},
                 rightVal{sincTable[right]};
 
-    return ((leftVal * (width - position) + rightVal * position) << 1) / width;
+    return (leftVal * (width - position) + rightVal * position << 1) / width;
 }
 
 int16_t XSonic::interpolate(const int16_t *in,
@@ -615,9 +610,11 @@ int16_t XSonic::interpolate(const int16_t *in,
     /* It is better to clip than to wrap if there was a overflow. */
     if (overflowCount > 0) {
         return SHRT_MAX;
-    } else if (overflowCount < 0) {
+    }
+
+    if(overflowCount < 0) {
         return SHRT_MIN;
-    }else{}
+    }
 
     return static_cast<int16_t>(total >> 16);
 }
@@ -628,9 +625,9 @@ bool XSonic::adjustRate(const float &rate,const int &originalNumOutputSamples) {
         newSampleRate {static_cast<int>(static_cast<float>(oldSampleRate) / rate)},
         numChannels{m_numChannels};
 
-    static constexpr auto N {SINC_FILTER_POINTS};
+    static constexpr auto N{SINC_FILTER_POINTS};
     /* Set these values to help with the integer math */
-    while(newSampleRate > (1 << 14) || oldSampleRate > (1 << 14)) {
+    while(newSampleRate > 1 << 14 || oldSampleRate > 1 << 14) {
         newSampleRate >>= 1;
         oldSampleRate >>= 1;
     }
@@ -704,7 +701,7 @@ int XSonic::skipPitchPeriod(const int16_t *samples,
 
     auto out_buffer{m_outputBuffer.data() + m_numOutputSamples * numChannels};
 
-    overlapAdd(newSamples, numChannels, out_buffer, samples, samples + period * numChannels);
+    overlapAdd(newSamples,numChannels,out_buffer,samples,samples + period * numChannels);
 
     m_numOutputSamples += newSamples;
 
@@ -716,7 +713,7 @@ int XSonic::insertPitchPeriod(const int16_t *samples,
                               const int &period) {
 
     const auto numChannels{m_numChannels};
-    const auto f_period {static_cast<float >(period)};
+    const auto f_period{static_cast<float>(period)};
 
     int newSamples;
     if(speed < 0.5f) {
@@ -850,7 +847,7 @@ void XSonic::Move_(XSonic *src) noexcept(true){
     m_outputBuffer = std::move(src->m_outputBuffer);
     m_pitchBuffer = std::move(src->m_pitchBuffer);
     m_downSampleBuffer = std::move(src->m_downSampleBuffer);
-    auto dst_{static_cast<XSonic_data*>(this)},
+    const auto dst_{static_cast<XSonic_data*>(this)},
         src_{static_cast<XSonic_data*>(src)};
     *dst_ = *src_;
     *src_ = {};
