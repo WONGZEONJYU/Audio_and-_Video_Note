@@ -16,6 +16,7 @@
 #include <thread>
 
 #ifdef HAVE_FFMPEG
+struct AVChannelLayout;
 struct AVFormatContext;
 struct AVPacket;
 struct AVFilterGraph;
@@ -23,12 +24,19 @@ struct AVChannelLayout;
 struct AVRational;
 struct AVCodecParameters;
 struct AVCodecContext;
+struct SwsContext;
+struct SwsFilter;
+struct SwrContext;
 class XAVPacket;
 class XAVFrame;
 class XCodecParameters;
+class XSwscale;
+class XSwrSample;
 using XCodecParameters_sp = std::shared_ptr<XCodecParameters>;
 using XAVPacket_sp = std::shared_ptr<XAVPacket>;
 using XAVFrame_sp = std::shared_ptr<XAVFrame>;
+using XSwscale_sp = std::shared_ptr<XSwscale>;
+using XSwrSample_sp = std::shared_ptr<XSwrSample>;
 struct XRational {
     int num{1}, ///< Numerator
     den{1}; ///< Denominator
