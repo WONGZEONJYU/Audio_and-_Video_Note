@@ -84,10 +84,10 @@ xmuxtask.hpp
 xsonic.cpp
 xprivate_sonic.cpp
 xsonic.hpp
-xswrcontext.cpp
-xswrcontext.hpp
-xswscontext.cpp
-xswscontext.hpp)
+xswscale.cpp
+xswscale.hpp
+xswrsample.cpp
+xswrsample.hpp)
 
 add_library(${PROJECT_NAME}_static STATIC ${SOURCE_FILE})
 add_library(${PROJECT_NAME}_dynamic SHARED ${SOURCE_FILE})
