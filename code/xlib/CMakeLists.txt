@@ -89,8 +89,40 @@ xswscale.hpp
 xswrsample.cpp
 xswrsample.hpp)
 
-add_library(${PROJECT_NAME}_static STATIC ${SOURCE_FILE})
-add_library(${PROJECT_NAME}_dynamic SHARED ${SOURCE_FILE})
+set(static_lib ${PROJECT_NAME}_static)
+add_library(${static_lib} STATIC ${SOURCE_FILE})
+set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(${static_lib} PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib/")
 
-target_link_libraries(${PROJECT_NAME}_static ${FFMPEG_LIBS})
-target_link_libraries(${PROJECT_NAME}_dynamic ${FFMPEG_LIBS})
+set(shared_lib ${PROJECT_NAME}_shared)
+add_library(${shared_lib} SHARED ${SOURCE_FILE})
+set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(${shared_lib} PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib/")
+
+set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/" )
+
+target_include_directories(${static_lib} PUBLIC include)
+
+
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include")
+
+# Install the library and header files
+install(TARGETS ${static_lib}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        RUNTIME DESTINATION bin
+)
+
+# Install header files
+install(DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include/ DESTINATION include)
+
+# 查找所有 .hpp 文件
+file(GLOB HEADER_FILES "${CMAKE_SOURCE_DIR}/*.hpp")
+
+# 复制这些文件到指定目录
+file(COPY ${HEADER_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include/)
+
+target_link_libraries(${static_lib} ${FFMPEG_LIBS})
+target_link_libraries(${shared_lib} ${FFMPEG_LIBS})
