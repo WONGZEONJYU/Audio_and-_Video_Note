@@ -7,7 +7,7 @@ add_definitions(-DHAVE_FFMPEG)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 add_definitions(-DHAVE_SDL2)
 
-if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+if (WIN32)
     add_definitions(-DWINDOWS)
     include_directories(C:/libffmepg/include)
     include_directories(C:/SDL2-2.30.8/include)
@@ -36,75 +36,80 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
 
 endif ()
 
-set(FFMPEG_LIBS
-        avcodec
-        avdevice
-        avfilter
-        avformat
-        avutil
-        postproc
-        swresample
-        swscale
-        SDL2
-)
+file(GLOB SOURCE_FILE *.cpp *.hpp)
 
-set(SOURCE_FILE
-xhelper.cpp
-xhelper.hpp
-xavframe.cpp
-xavframe.hpp
-xavpacket.cpp
-xavpacket.hpp
-xcodec.cpp
-xcodec.hpp
-xdecode.cpp
-xdecode.hpp
-xencode.cpp
-xencode.hpp
-xformat.cpp
-xformat.hpp
-xdemux.cpp
-xdemux.hpp
-xmux.cpp
-xmux.hpp
-xtools.cpp
-xtools.hpp
-xdemuxtask.cpp
-xdemuxtask.hpp
-xcodec_parameters.cpp
-xcodec_parameters.hpp
-xdecodetask.cpp
-xdecodetask.h
-xsdl.cpp
-xsdl.hpp
-xvideo_view.cpp
-xvideo_view.hpp
-xmuxtask.cpp
-xmuxtask.hpp
-xsonic.cpp
-xprivate_sonic.cpp
-xsonic.hpp
-xswscale.cpp
-xswscale.hpp
-xswrsample.cpp
-xswrsample.hpp)
+#file(GLOB SOURCE_FILE
+#xhelper.cpp
+#xhelper.hpp
+#xavframe.cpp
+#xavframe.hpp
+#xavpacket.cpp
+#xavpacket.hpp
+#xcodec.cpp
+#xcodec.hpp
+#xdecode.cpp
+#xdecode.hpp
+#xencode.cpp
+#xencode.hpp
+#xformat.cpp
+#xformat.hpp
+#xdemux.cpp
+#xdemux.hpp
+#xmux.cpp
+#xmux.hpp
+#xtools.cpp
+#xtools.hpp
+#xdemuxtask.cpp
+#xdemuxtask.hpp
+#xcodec_parameters.cpp
+#xcodec_parameters.hpp
+#xdecodetask.cpp
+#xdecodetask.h
+#xsdl.cpp
+#xsdl.hpp
+#xvideo_view.cpp
+#xvideo_view.hpp
+#xmuxtask.cpp
+#xmuxtask.hpp
+#xsonic.cpp
+#xprivate_sonic.cpp
+#xsonic.hpp
+#xswscale.cpp
+#xswscale.hpp
+#xswrsample.cpp
+#xswrsample.hpp)
+
+set(LIB_OUT_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib/")
 
 set(static_lib ${PROJECT_NAME}_static)
 add_library(${static_lib} STATIC ${SOURCE_FILE})
-set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-set_target_properties(${static_lib} PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib/")
 
 set(shared_lib ${PROJECT_NAME}_shared)
 add_library(${shared_lib} SHARED ${SOURCE_FILE})
-set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-set_target_properties(${shared_lib} PROPERTIES
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib/")
+
+if (WIN32)
+    set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${static_lib})
+    set_target_properties(${static_lib} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+
+    set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${shared_lib})
+    set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+
+    set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
+
+    set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+    set_target_properties(${static_lib} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+
+    set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+    set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+    set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+
+endif ()
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/" )
 
 target_include_directories(${static_lib} PUBLIC include)
-
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include")
 
@@ -123,6 +128,18 @@ file(GLOB HEADER_FILES "${CMAKE_SOURCE_DIR}/*.hpp")
 
 # 复制这些文件到指定目录
 file(COPY ${HEADER_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include/)
+
+set(FFMPEG_LIBS
+        avcodec
+        avdevice
+        avfilter
+        avformat
+        avutil
+        postproc
+        swresample
+        swscale
+        SDL2
+)
 
 target_link_libraries(${static_lib} ${FFMPEG_LIBS})
 target_link_libraries(${shared_lib} ${FFMPEG_LIBS})
