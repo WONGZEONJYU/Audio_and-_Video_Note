@@ -32,11 +32,7 @@ if (WIN32)
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.lib")
 
     set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${static_lib})
-    set_target_properties(${static_lib} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
-
     set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${shared_lib})
-    set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
-    #set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 
     #重命名静态库名字
     add_custom_command(TARGET ${static_lib} POST_BUILD COMMAND ${CMAKE_COMMAND} -E rename
@@ -63,13 +59,13 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.dylib")
 
     set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-    set_target_properties(${static_lib} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
-
     set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-    set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
-    #set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 
 endif ()
+
+set_target_properties(${static_lib} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 
 include_directories(${FFMPEG_HEADERS_PATH})
 include_directories(${SDL_HEADERS_PATH})
