@@ -59,8 +59,8 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     set(Vulkan_INCLUDE_DIR "/Users/wong/VulkanSDK/1.3.283.0/macOS/include")
     set(Vulkan_LIBRARY "/Users/wong/VulkanSDK/1.3.283.0/macOS/lib/libvulkan.dylib")
 
-    file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.a")
-    file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.a")
+    file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.dylib")
+    file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.dylib")
 
     set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
     set_target_properties(${static_lib} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
