@@ -4,8 +4,8 @@
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
-    auto xviewer{XViewer::create()};
-    if (xviewer){
+    if (auto xviewer{XViewer::create()}){
+
         xviewer->show();
         return QApplication::exec();
     }

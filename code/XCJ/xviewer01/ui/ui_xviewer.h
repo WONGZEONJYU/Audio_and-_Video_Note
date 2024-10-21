@@ -10,6 +10,7 @@
 #define UI_XVIEWER_H
 
 #include <QtCore/QVariant>
+#include <QtGui/QIcon>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QWidget>
 
@@ -24,6 +25,9 @@ public:
         if (XViewer->objectName().isEmpty())
             XViewer->setObjectName("XViewer");
         XViewer->resize(400, 300);
+        QIcon icon;
+        icon.addFile(QString::fromUtf8(":/img/xv.ico"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        XViewer->setWindowIcon(icon);
 
         retranslateUi(XViewer);
 

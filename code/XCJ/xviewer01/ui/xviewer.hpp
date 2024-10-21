@@ -1,7 +1,3 @@
-//
-// Created by wong on 2024/10/20.
-//
-
 #ifndef XVIEWER01_XVIEWER_HPP
 #define XVIEWER01_XVIEWER_HPP
 

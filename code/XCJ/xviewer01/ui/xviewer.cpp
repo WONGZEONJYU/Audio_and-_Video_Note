@@ -1,7 +1,3 @@
-//
-// Created by wong on 2024/10/20.
-//
-
 // You may need to build the project (run Qt uic code generator) to get "ui_XViewer.h" resolved
 
 #include "xviewer.hpp"
