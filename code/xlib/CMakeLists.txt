@@ -94,7 +94,7 @@ if (WIN32)
     set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${shared_lib})
     set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 
-    set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+    #set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
 
@@ -103,7 +103,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
 
     set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
     set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
-    set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+    #set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 
 endif ()
 
