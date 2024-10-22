@@ -71,8 +71,10 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
+#######添加应用程序系统级图标#######
 set(QRC_SOURCE_FILE "${CMAKE_SOURCE_DIR}/resources/resources.qrc")
 qt_add_resources(${QRC_SOURCE_FILE})
+#######添加应用程序系统级图标#######
 
 set(Search_Range
         "${CMAKE_SOURCE_DIR}/*.cpp"
