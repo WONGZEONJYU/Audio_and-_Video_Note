@@ -44,14 +44,13 @@ void XViewer::mouseMoveEvent(QMouseEvent *event) {
         return;
     }
 #if 0
-    const auto global_pos{event->globalPosition()};
-    const auto delta_{global_pos - m_mouse_pos_};
-    this->move(pos() + delta_.toPoint());
-    m_mouse_pos_ = global_pos;
+    const auto global_pos{event->globalPosition()}; //获取鼠标相对桌面的坐标
+    const auto delta_{global_pos - m_mouse_pos_}; //计算出两坐标的差值
+    this->move(pos() + delta_.toPoint()); //Widget窗口相对桌面的坐标 + 鼠标坐标差值 = 计算出Widget移动到的坐标
+    m_mouse_pos_ = global_pos; //把当前鼠标坐标记录下来
 #else
     this->move((event->globalPosition() - m_mouse_pos_).toPoint());
 #endif
-
 }
 
 void XViewer::mousePressEvent(QMouseEvent *event) {
@@ -65,13 +64,11 @@ void XViewer::mousePressEvent(QMouseEvent *event) {
 #endif
     }
     QWidget::mousePressEvent(event);
-
 }
 
 void XViewer::mouseReleaseEvent(QMouseEvent *event) {
     m_is_mouse_pressed_ = false;
     QWidget::mouseReleaseEvent(event);
 }
-
 /////////////////////////////鼠标拖动窗口事件///////////////////////////////////////
 ///
