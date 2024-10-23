@@ -1,5 +1,5 @@
-#ifndef INC_124_TEST_XFORMAT_XFORMAT_HPP
-#define INC_124_TEST_XFORMAT_XFORMAT_HPP
+#ifndef XFORMAT_HPP_
+#define XFORMAT_HPP_
 
 #include "xhelper.hpp"
 

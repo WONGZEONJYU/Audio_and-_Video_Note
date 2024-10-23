@@ -1,5 +1,5 @@
-#ifndef INC_124_TEST_XFORMAT_XDEMUX_HPP
-#define INC_124_TEST_XFORMAT_XDEMUX_HPP
+#ifndef XDEMUX_HPP_
+#define XDEMUX_HPP_
 
 #include "xformat.hpp"
 

@@ -1,7 +1,3 @@
-//
-// Created by Fy-WONG on 2024/10/11.
-//
-
 #ifndef XMUXTASK_H
 #define XMUXTASK_H
 

@@ -1,9 +1,5 @@
-//
-// Created by wong on 2024/9/22.
-//
-
-#ifndef INC_124_TEST_XFORMAT_XMUX_HPP
-#define INC_124_TEST_XFORMAT_XMUX_HPP
+#ifndef XMUX_HPP_
+#define XMUX_HPP_
 
 #include "xformat.hpp"
 

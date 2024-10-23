@@ -1,5 +1,5 @@
-#ifndef INC_126_RTSP_DEMUX_THREAD_XTOOLS_HPP
-#define INC_126_RTSP_DEMUX_THREAD_XTOOLS_HPP
+#ifndef XTOOLS_HPP_
+#define XTOOLS_HPP_
 
 #include <thread>
 #include "xhelper.hpp"

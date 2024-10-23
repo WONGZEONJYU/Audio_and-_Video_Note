@@ -1,13 +1,13 @@
 #include "xhelper.hpp"
 
 #ifdef HAVE_FFMPEG
-extern "C"{
-#include <libavutil/error.h>
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/timestamp.h>
-#include <libavfilter/avfilter.h>
-}
+    extern "C"{
+    #include <libavutil/error.h>
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libavutil/timestamp.h>
+    #include <libavfilter/avfilter.h>
+    }
 #endif
 
 #ifdef HAVE_OPENGL
@@ -15,15 +15,15 @@ extern "C"{
 #endif
 
 #ifdef HAVE_SDL2
-#include <SDL.h>
+    #include <SDL.h>
 #endif
 
-#include <fstream>
 #include <sstream>
 #include <chrono>
-#include <thread>
 
 using namespace std;
+using namespace std::chrono;
+using namespace std::this_thread;
 
 namespace XHelper {
 #ifdef HAVE_FFMPEG
@@ -32,21 +32,21 @@ namespace XHelper {
         constexpr auto ERROR_STRING_SIZE {1024};
         char err_buf[ERROR_STRING_SIZE]{};
         av_strerror(error_num, err_buf, std::size(err_buf));
-        return {err_buf};
+        return err_buf;
     }
 
     void av_filter_graph_dump(AVFilterGraph * Graph,const string & filename) noexcept(false) {
 
-        ofstream graphFile(filename,std::ios::trunc);
+        ofstream graphFile(filename,ios::trunc);
 
         if (!graphFile){
-            throw std::runtime_error("open out_graphFile failed\n");
+            throw runtime_error(GET_STR(open out_graphFile failed\n));
         }
 
-        auto graph_src {avfilter_graph_dump(Graph, nullptr)};
+        auto graph_src{avfilter_graph_dump(Graph, nullptr)};
 
         if (!graph_src){
-            throw std::runtime_error("avfilter_graph_dump alloc string failed\n");
+            throw runtime_error(GET_STR(avfilter_graph_dump alloc string failed\n));
         }
 
         graphFile << graph_src;
@@ -116,7 +116,7 @@ namespace XHelper {
 #endif
 
 #ifdef HAVE_SDL2
-    void sdl2_err_out(const std::string &func,const std::string &file,
+    void sdl2_err_out(const string &func,const string &file,
                       const int &line) noexcept(true){
         cerr << "SDL2 error: " <<  SDL_GetError() << " at " << file << " : " << line << " - for " << func << "\n";
     }
@@ -153,7 +153,7 @@ namespace XHelper {
     }
 
     error_code make_error_code_helper(const int &errcode) noexcept(true) {
-        return std::make_error_code(static_cast<std::errc>(errcode));
+        return make_error_code(static_cast<errc>(errcode));
     }
 
     void print_err_tips(const string &func,const string &file,
@@ -165,8 +165,8 @@ namespace XHelper {
     }
 
     uint64_t Get_time_ms() {
-        const auto now_{std::chrono::high_resolution_clock::now()};
-        const auto now_ms{std::chrono::time_point_cast<std::chrono::milliseconds>(now_)};
+        const auto now_{high_resolution_clock::now()};
+        const auto now_ms{time_point_cast<milliseconds>(now_)};
         return now_ms.time_since_epoch().count();
     }
 
@@ -174,25 +174,25 @@ namespace XHelper {
         const auto begin{Get_time_ms()};
         auto ms_{ms};
         while (ms_--) {
-            std::this_thread::sleep_for(1ms);
-            const auto now{Get_time_ms()};
-            if (now - begin >= ms){
+            sleep_for(1ms);
+            if (Get_time_ms() - begin >= ms){
                 return;
             }
         }
     }
 
-    void xlog(const std::string &func,
-              const std::string &file,
+    void xlog(const string &func,
+              const string &file,
               const int &line,
-              const std::string &msg,
+              const string &msg,
               const int &level) {
         stringstream log_ss;
-        log_ss << GET_STR(log level : ) << " " << level << " msg : " << (func + " : " + file + " : ") << line << " : " << msg;
+        log_ss << GET_STR(log level : ) << " " << level << " msg : " <<
+            func << " : " << file + " : " << line << " : " << msg;
         if (XLOG_TYPE_DEBUG == level || level == XLOG_TYPE_INFO){
             cout << log_ss.str() << "\n" << flush;
         } else{
-            cerr << log_ss.str() << "\n";
+            cerr << log_ss.str() << "\n" << flush;
         }
     }
 }
