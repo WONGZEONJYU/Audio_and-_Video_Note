@@ -7,7 +7,7 @@ add_definitions(-DHAVE_FFMPEG)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 add_definitions(-DHAVE_SDL2)
 
-file(GLOB SOURCE_FILE *.cpp *.hpp)
+file(GLOB SOURCE_FILE "${CMAKE_SOURCE_DIR}/*.cpp" "${CMAKE_SOURCE_DIR}/*.hpp")
 
 set(shared_lib ${PROJECT_NAME}_shared)
 add_library(${shared_lib} SHARED ${SOURCE_FILE})

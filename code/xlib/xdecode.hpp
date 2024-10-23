@@ -1,5 +1,5 @@
-#ifndef INC_120_TEST_XDECODE_XDECODE_HPP
-#define INC_120_TEST_XDECODE_XDECODE_HPP
+#ifndef XDECODE_XDECODE_HPP
+#define XDECODE_XDECODE_HPP
 
 #include "xcodec.hpp"
 

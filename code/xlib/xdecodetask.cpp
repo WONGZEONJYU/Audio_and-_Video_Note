@@ -2,7 +2,7 @@
 // Created by Fy-WONG on 2024/10/8.
 //
 
-#include "xdecodetask.h"
+#include "xdecodetask.hpp"
 #include "xcodec_parameters.hpp"
 #include "xdecode.hpp"
 #include "xavpacket.hpp"

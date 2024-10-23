@@ -1,5 +1,5 @@
-#ifndef XPLAY2_XAVPACKET_HPP
-#define XPLAY2_XAVPACKET_HPP
+#ifndef XAVPACKET_HPP_
+#define XAVPACKET_HPP_
 
 extern "C"{
 #include <libavcodec/packet.h>

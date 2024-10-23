@@ -1,5 +1,5 @@
-#ifndef XPLAY2_XAVFRAME_HPP
-#define XPLAY2_XAVFRAME_HPP
+#ifndef XAVFRAME_HPP_
+#define XAVFRAME_HPP_
 
 extern "C"{
 #include <libavutil/frame.h>

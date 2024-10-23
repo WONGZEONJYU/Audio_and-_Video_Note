@@ -1,9 +1,5 @@
-//
-// Created by Administrator on 2024/7/30.
-//
-
-#ifndef XPLAY2_XAVCODECPARAMETERS_HPP
-#define XPLAY2_XAVCODECPARAMETERS_HPP
+#ifndef XAVCODEC_PARAMETERS_HPP_
+#define XAVCODEC_PARAMETERS_HPP_
 
 extern "C"{
 #include <libavcodec/codec_par.h>
