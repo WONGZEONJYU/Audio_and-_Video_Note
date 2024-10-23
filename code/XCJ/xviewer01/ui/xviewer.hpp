@@ -18,7 +18,6 @@ Q_OBJECT
     void Destroy();
 
 
-
     //鼠标移动事件,用于移动窗口
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -30,6 +29,7 @@ private:
     QSharedPointer<Ui::XViewer> m_ui_{};
     bool m_is_mouse_pressed_{};
     QPointF m_mouse_pos_{};
+
 public:
     static XViewer_sp create();
 };
