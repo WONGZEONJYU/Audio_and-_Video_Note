@@ -1,11 +1,8 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_XViewer.h" resolved
-
-#include "xviewer.hpp"
-
 #include <filesystem>
-
-#include "ui_xviewer.h"
 #include <QMouseEvent>
+#include "xviewer.hpp"
+#include "ui_xviewer.h"
 #include <xhelper.hpp>
 
 XViewer_sp XViewer::create() {
