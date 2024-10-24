@@ -31,8 +31,23 @@
 #max{
 	background-image: url(:/img/max.png);
 }
+#normal{
+	
+	background-image: url(:/img/normal.png);
+}
 #close{
 	background-image: url(:/img/close.png);
+}
+
+/*Body*/
+#body{
+	background-color: #212121;
+}
+#left{
+	background-color: #252525;
+}
+#cams{
+	background-color: #1e1e1e;
 }
 </string>
   </property>
@@ -42,8 +57,14 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>45</height>
+     <height>50</height>
     </rect>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>16777215</width>
+     <height>50</height>
+    </size>
    </property>
    <widget class="QWidget" name="logo" native="true">
     <property name="geometry">
@@ -55,52 +76,118 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="min">
+   <widget class="QWidget" name="head_button" native="true">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>680</x>
       <y>10</y>
-      <width>20</width>
-      <height>20</height>
+      <width>120</width>
+      <height>21</height>
      </rect>
     </property>
-    <property name="text">
-     <string/>
+    <widget class="QPushButton" name="min">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>20</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="max">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>0</y>
+       <width>20</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="close">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>0</y>
+       <width>20</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="normal">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>0</y>
+       <width>20</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <zorder>min</zorder>
+    <zorder>close</zorder>
+    <zorder>normal</zorder>
+    <zorder>max</zorder>
+   </widget>
+  </widget>
+  <widget class="QWidget" name="body" native="true">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>60</y>
+     <width>781</width>
+     <height>531</height>
+    </rect>
+   </property>
+   <widget class="QWidget" name="left" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>200</width>
+      <height>521</height>
+     </rect>
     </property>
-    <property name="flat">
-     <bool>true</bool>
+    <property name="maximumSize">
+     <size>
+      <width>200</width>
+      <height>16777215</height>
+     </size>
     </property>
    </widget>
-   <widget class="QPushButton" name="max">
+   <widget class="QWidget" name="cams" native="true">
     <property name="geometry">
      <rect>
-      <x>740</x>
-      <y>10</y>
-      <width>20</width>
-      <height>20</height>
+      <x>210</x>
+      <y>0</y>
+      <width>561</width>
+      <height>521</height>
      </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="flat">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="close">
-    <property name="geometry">
-     <rect>
-      <x>770</x>
-      <y>10</y>
-      <width>20</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="flat">
-     <bool>true</bool>
     </property>
    </widget>
   </widget>
@@ -126,29 +213,13 @@
    </hints>
   </connection>
   <connection>
-   <sender>max</sender>
-   <signal>clicked()</signal>
-   <receiver>XViewer</receiver>
-   <slot>showMaximized()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>749</x>
-     <y>20</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>747</x>
-     <y>-6</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>min</sender>
    <signal>clicked()</signal>
    <receiver>XViewer</receiver>
    <slot>showMinimized()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>718</x>
+     <x>698</x>
      <y>19</y>
     </hint>
     <hint type="destinationlabel">
@@ -157,5 +228,41 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>max</sender>
+   <signal>clicked()</signal>
+   <receiver>XViewer</receiver>
+   <slot>MaxWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>732</x>
+     <y>23</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>801</x>
+     <y>127</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>normal</sender>
+   <signal>clicked()</signal>
+   <receiver>XViewer</receiver>
+   <slot>NormalWindow()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>739</x>
+     <y>19</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>MaxWindow()</slot>
+  <slot>NormalWindow()</slot>
+ </slots>
 </ui>
