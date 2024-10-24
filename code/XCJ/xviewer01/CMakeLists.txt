@@ -48,8 +48,8 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     set(Vulkan_INCLUDE_DIR "/Users/wong/VulkanSDK/1.3.283.0/macOS/include")
     set(Vulkan_LIBRARY "/Users/wong/VulkanSDK/1.3.283.0/macOS/lib/libvulkan.dylib")
 
-    set(XLIB_HEADERS_PATH "/Users/wong/xlib/include")
-    set(XLIB_LIBS_PATH "/Users/wong/xlib/lib")
+    set(XLIB_HEADERS_PATH "/Users/wong/Library/xlib/include")
+    set(XLIB_LIBS_PATH "/Users/wong/Library/xlib/lib")
 ##################################根据开发电脑进行调整路径###################################
     file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.dylib")
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.dylib")
