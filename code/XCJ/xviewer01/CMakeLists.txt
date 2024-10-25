@@ -32,7 +32,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     ##################################根据开发电脑进行调整路径###################################
     file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.lib")
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.lib")
-    #file(GLOB XLIB "${XLIB_LIBS_PATH}/*.lib")
+    file(GLOB XLIB "${XLIB_LIBS_PATH}/*.lib")
 
     set(APP_ICON_RESOURCE "${CMAKE_SOURCE_DIR}/resources/win.rc")
 
@@ -56,7 +56,6 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.dylib")
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.dylib")
     file(GLOB XLIB "${XLIB_LIBS_PATH}/*.dylib")
-
 endif ()
 
 include_directories(${FFMPEG_HEADERS_PATH})
@@ -65,7 +64,8 @@ include_directories(${Vulkan_INCLUDE_DIR})
 include_directories(${XLIB_HEADERS_PATH})
 #link_directories(${FFMPEG_LIB_PATH})
 #link_directories(${SDL_LIB_PATH})
-link_directories(${XLIB_LIBS_PATH})
+#link_directories(${XLIB_LIBS_PATH})
+
 find_package(Vulkan REQUIRED)
 
 find_package(Qt6 COMPONENTS
@@ -97,8 +97,8 @@ target_link_libraries(
         ${PROJECT_NAME}
         ${SDL_LIBS}
         ${FFMPEG_LIBS}
-        #${XLIB}
-        #xlib_static
+        ${XLIB}
+        #xlib
         Qt::Core
         Qt::Gui
         Qt::Widgets
