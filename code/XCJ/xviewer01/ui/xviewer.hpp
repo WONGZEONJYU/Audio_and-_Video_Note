@@ -48,7 +48,6 @@ public:
 
 private:
     QVector<QSharedPointer<QWidget>> m_cam_wins_;
-
     QSharedPointer<Ui::XViewer> m_ui_{};
     QMenu m_left_menu_;
     bool m_is_mouse_pressed_{};

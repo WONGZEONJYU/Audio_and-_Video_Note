@@ -1,7 +1,6 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_XViewer.h" resolved
-#include <filesystem>
+
 #include <QMouseEvent>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include "xviewer.hpp"
 #include "ui_xviewer.h"
@@ -52,9 +51,9 @@ bool XViewer::Construct() {
     }
 
     {
-        auto m{m_left_menu_.addMenu(C(GET_STR(view)))};
+        const auto m{m_left_menu_.addMenu(C(GET_STR(view)))};
         auto a{m->addAction(C(GET_STR(1)))};
-        QObject::connect(a, &QAction::triggered, this, &XViewer::View1);
+        (QObject::connect(a, &QAction::triggered, this, &XViewer::View1));
         a = m->addAction(C(GET_STR(4)));
         QObject::connect(a, &QAction::triggered, this, &XViewer::View4);
         a = m->addAction(C(GET_STR(9)));
@@ -161,13 +160,12 @@ void XViewer::View(const int &count) {
         lay->setSpacing(2);
     }
 
-    for(int i{};auto &item:m_cam_wins_){
-        if (!item){
-            TRY_CATCH(CHECK_EXC(item.reset(new QWidget())), return;);
-            item->setStyleSheet(GET_STR(background-color:rgb(51, 51, 51);));
+    for(int i{};i < count;++i){
+        if (!m_cam_wins_[i]) {
+            TRY_CATCH(CHECK_EXC(m_cam_wins_[i].reset(new QWidget())), return;);
+            m_cam_wins_[i]->setStyleSheet(GET_STR(background-color:rgb(51, 51, 51);));
         }
-        lay->addWidget(item.get(), i / cols , i % cols);
-        ++i;
+        lay->addWidget(m_cam_wins_[i].get(), i / cols , i % cols);
     }
 
     for (int i {count}; i < m_cam_wins_.capacity(); ++i) {

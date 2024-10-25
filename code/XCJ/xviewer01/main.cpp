@@ -1,5 +1,6 @@
 #include <QApplication>
 #include "ui/xviewer.hpp"
+#include <xavframe.hpp>
 
 int main(int argc,char *argv[]) {
     QApplication a(argc, argv);
@@ -8,6 +9,8 @@ int main(int argc,char *argv[]) {
         xviewer->show();
         return QApplication::exec();
     }
+
+
 
     return -1;
 }
