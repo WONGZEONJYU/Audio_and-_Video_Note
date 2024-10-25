@@ -3,7 +3,7 @@
 
 #include "xhelper.hpp"
 
-class XFormat {
+class XLIB_API XFormat {
 
     static int Time_out_callback(void *);
     void destroy_fmt_ctx();

@@ -5,7 +5,7 @@
 
 using XAVPackets = std::vector<XAVPacket_sp>;
 
-class XEncode : public XCodec {
+class XLIB_API XEncode : public XCodec {
 
 public:
     /**

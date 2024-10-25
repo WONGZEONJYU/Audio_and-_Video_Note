@@ -3,7 +3,7 @@
 
 #include "xhelper.hpp"
 
-class XSwrSample final{
+class XLIB_API XSwrSample final{
 
     static auto new_obj() -> XSwrSample_sp;
     explicit XSwrSample() = default;
@@ -64,8 +64,8 @@ private:
     SwrContext* m_swr_ctx_{};
 
 public:
-    friend XSwrSample_sp new_XSwrSample() noexcept(true);
-    friend XSwrSample_sp new_XSwrSample(const AVChannelLayout *out_ch_layout,
+    friend XLIB_API XSwrSample_sp new_XSwrSample() noexcept(true);
+    friend XLIB_API XSwrSample_sp new_XSwrSample(const AVChannelLayout *out_ch_layout,
                                         const int &out_sample_fmt,
                                         const int &out_sample_rate,
                                         const AVChannelLayout *in_ch_layout,
@@ -77,8 +77,8 @@ public:
     X_DISABLE_COPY(XSwrSample)
 };
 
-XSwrSample_sp new_XSwrSample() noexcept(true);
-XSwrSample_sp new_XSwrSample(const AVChannelLayout *out_ch_layout,
+XLIB_API XSwrSample_sp new_XSwrSample() noexcept(true);
+XLIB_API XSwrSample_sp new_XSwrSample(const AVChannelLayout *out_ch_layout,
                                     const int &out_sample_fmt,
                                     const int &out_sample_rate,
                                     const AVChannelLayout *in_ch_layout,

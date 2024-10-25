@@ -1,6 +1,5 @@
 #include "xsonic.hpp"
 #include <algorithm>
-#include <iostream>
 
 static inline constexpr auto SINC_FILTER_POINTS{12},
 SINC_TABLE_SIZE{601};

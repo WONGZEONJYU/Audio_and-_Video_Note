@@ -7,7 +7,7 @@ extern "C"{
 
 #include "xhelper.hpp"
 
-class XCodecParameters final : AVCodecParameters {
+class XLIB_API XCodecParameters final : AVCodecParameters {
     static void Reset(AVCodecParameters *) noexcept(true);
     void Move(XCodecParameters *) noexcept(true);
 public:
@@ -72,9 +72,9 @@ private:
     AVRational m_time_base{1,1};
 };
 
-XCodecParameters_sp new_XCodecParameters();
-XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const AVRational &tb = {1,1});
-XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const AVRational &tb = {1,1});
+XLIB_API XCodecParameters_sp new_XCodecParameters();
+XLIB_API XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const AVRational &tb = {1,1});
+XLIB_API XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const AVRational &tb = {1,1});
 
 #endif
 

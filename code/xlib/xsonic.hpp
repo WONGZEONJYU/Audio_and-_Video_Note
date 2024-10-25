@@ -4,7 +4,7 @@
 #include "xhelper.hpp"
 
 class XSonic_data {
-friend class XSonic;
+    friend class XSonic;
 protected:
     XSonic_data() = default;
     static inline constexpr auto SONIC_MIN_PITCH_{65},
@@ -20,7 +20,7 @@ protected:
     bool m_is_init_{};
 };
 
-class XSonic : protected XSonic_data {
+class XLIB_API XSonic : protected XSonic_data {
 
     static void scaleSamples(int16_t * ,
                              const int&,
@@ -183,7 +183,7 @@ public:
 /* This is a non-stream oriented interface to just change the speed of a sound
    sample.  It works in-place on the sample array, so there must be at least
    speed*numSamples available space in the array. Returns the new number of samples. */
-int sonicChangeFloatSpeed(float *samples,
+XLIB_API int sonicChangeFloatSpeed(float *samples,
                           const int &numSamples,
                           const float &speed = 1.0f,
                           const float &pitch = 1.0f,
@@ -196,7 +196,7 @@ int sonicChangeFloatSpeed(float *samples,
 /* This is a non-stream oriented interface to just change the speed of a sound
    sample.  It works in-place on the sample array, so there must be at least
    speed*numSamples available space in the array. Returns the new number of samples. */
-int sonicChangeShortSpeed(int16_t *samples,
+XLIB_API int sonicChangeShortSpeed(int16_t *samples,
                           const int &numSamples,
                           const float &speed = 1.0f,
                           const float &pitch = 1.0f,

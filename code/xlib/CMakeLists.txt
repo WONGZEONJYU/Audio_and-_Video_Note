@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.29)
 project(xlib)
 
+add_definitions(-DUNICODE -D_UNICODE)
+
 set(CMAKE_CXX_STANDARD 20)
 
 add_definitions(-DHAVE_FFMPEG)
@@ -8,17 +10,17 @@ add_definitions(-D__STDC_CONSTANT_MACROS)
 add_definitions(-DHAVE_SDL2)
 
 file(GLOB SOURCE_FILE "${CMAKE_SOURCE_DIR}/*.cpp" "${CMAKE_SOURCE_DIR}/*.hpp")
-
-set(shared_lib ${PROJECT_NAME}_shared)
-add_library(${shared_lib} SHARED ${SOURCE_FILE})
-
-set(static_lib ${PROJECT_NAME}_static)
-add_library(${static_lib} STATIC ${SOURCE_FILE})
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILE})
 
 set(LIB_OUT_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib")
 
 if (WIN32)
     add_definitions(-DWINDOWS)
+    # 使用 MSVC 时指定字符集
+    if (MSVC)
+        target_compile_options(${PROJECT_NAME} PRIVATE "/utf-8")
+    endif()
+
     set(FFMPEG_HEADERS_PATH "C:/libffmepg/include")
     set(FFMPEG_LIB_PATH "C:/libffmepg/bin")
 
@@ -31,18 +33,7 @@ if (WIN32)
     file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.lib")
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.lib")
 
-    set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${static_lib})
-    set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${shared_lib})
-
-    #重命名静态库名字
-    add_custom_command(TARGET ${static_lib} POST_BUILD COMMAND ${CMAKE_COMMAND} -E rename
-            $<TARGET_FILE:${static_lib}> $<TARGET_FILE_DIR:${static_lib}>/${PROJECT_NAME}.lib
-    )
-
-    #重命名动态库名字
-    add_custom_command(TARGET ${shared_lib} POST_BUILD COMMAND ${CMAKE_COMMAND} -E rename
-            $<TARGET_FILE:${shared_lib}> $<TARGET_FILE_DIR:${shared_lib}>/${PROJECT_NAME}.dll
-    )
+    target_compile_definitions(${PROJECT_NAME} PRIVATE XLIB_EXPORTS)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
@@ -58,14 +49,10 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.dylib")
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.dylib")
 
-    set_target_properties(${static_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-    set_target_properties(${shared_lib} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-
 endif ()
 
-set_target_properties(${static_lib} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
-set_target_properties(${shared_lib} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
-set_target_properties(${shared_lib} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 
 include_directories(${FFMPEG_HEADERS_PATH})
 include_directories(${SDL_HEADERS_PATH})
@@ -81,8 +68,6 @@ endif ()
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/")
 
-target_include_directories(${static_lib} PUBLIC include)
-
 # Install the library and header files
 install(TARGETS ${static_lib}
         LIBRARY DESTINATION lib
@@ -97,5 +82,7 @@ file(GLOB HEADER_FILES "${CMAKE_SOURCE_DIR}/*.hpp")
 # 复制这些文件到指定目录
 file(COPY ${HEADER_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include/)
 
-target_link_libraries(${static_lib} ${FFMPEG_LIBS} ${SDL_LIBS})
-target_link_libraries(${shared_lib} ${FFMPEG_LIBS} ${SDL_LIBS})
+#file(COPY "${PROJECT_NAME}.lib" DESTINATION ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib)
+
+target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS} ${SDL_LIBS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}})

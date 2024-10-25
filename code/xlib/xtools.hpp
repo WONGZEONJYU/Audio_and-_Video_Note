@@ -4,11 +4,7 @@
 #include <thread>
 #include "xhelper.hpp"
 
-class XTools {
-
-};
-
-class XThread {
+class XLIB_API XThread {
     virtual void Main() = 0;
     void _stop_();
 public:
@@ -57,7 +53,7 @@ protected:
     X_DISABLE_COPY_MOVE(XThread)
 };
 
-class XAVPacketList {
+class XLIB_API XAVPacketList {
     static inline constexpr auto max_packets{100};
 public:
     XAVPacket_sp Pop();

@@ -1,7 +1,3 @@
-//
-// Created by Administrator on 2024/7/29.
-//
-
 extern "C" {
 #include <libavutil/avutil.h>
 }

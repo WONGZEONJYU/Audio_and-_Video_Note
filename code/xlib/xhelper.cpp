@@ -63,20 +63,20 @@ namespace XHelper {
             fill_n(str_temp,AV_TS_MAX_STRING_SIZE,0);
         }};
 
-        cerr << "pts: " << av_ts_make_string(str_temp,pkt.pts) <<
+        cerr << "\npts: " << av_ts_make_string(str_temp,pkt.pts) <<
                 " , pts_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.pts, time_base)) <<
                 " , dts: " << (fill_str_temp(),av_ts_make_string(str_temp,pkt.dts)) <<
                 " , dts_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.dts, time_base)) <<
                 " , duration: " << (fill_str_temp(),av_ts_make_string(str_temp,pkt.duration)) <<
                 " , duration_time: " << (fill_str_temp(),av_ts_make_time_string(str_temp,pkt.duration, time_base)) <<
-                " , stream_index " << pkt.stream_index << "\n" ;
+                " , stream_index " << pkt.stream_index << "\n" << flush;
     }
 
     void check_ff_func(const string &func,const string &file,
                        const int &line,const int &err_code) noexcept(false) {
         if (err_code < 0){
             stringstream err_msg;
-            err_msg << "ffmpeg error:" << err_code <<
+            err_msg << "\nffmpeg error:" << err_code <<
                         " at " << file << " : " << line <<
                         " -for " << func << " wrong reason: " <<
                         av_get_err(err_code) << "\n";
@@ -89,11 +89,11 @@ namespace XHelper {
                     const int &line,const int &err_code) noexcept(true){
         if (err_code < 0){
             stringstream err_msg;
-            err_msg << "ffmpeg error: " << err_code <<
+            err_msg << "\nffmpeg error: " << err_code <<
                     " at " << file << " : " << line <<
                     " -for " << func << " wrong reason: " <<
                     av_get_err(err_code) << "\n";
-            cerr << err_msg.str();
+            cerr << err_msg.str() << flush;
         }
     }
 
@@ -110,7 +110,8 @@ namespace XHelper {
 
         const auto err{glGetError()};
         if(GL_NO_ERROR != err) {
-            cerr << "OpenGL error :" << err << " at " << fname << ":" << line << " - for " << stmt;
+            cerr << "OpenGL error :" << err << " at " <<
+                fname << ":" << line << " - for " << stmt << "\n" << flush;
         }
     }
 #endif
@@ -118,7 +119,8 @@ namespace XHelper {
 #ifdef HAVE_SDL2
     void sdl2_err_out(const string &func,const string &file,
                       const int &line) noexcept(true){
-        cerr << "SDL2 error: " <<  SDL_GetError() << " at " << file << " : " << line << " - for " << func << "\n";
+        cerr << "\nSDL2 error: " << SDL_GetError() <<
+                " at " << file << " : " << line << " - for " << func << "\n" << flush;
     }
 #endif
 
@@ -126,28 +128,39 @@ namespace XHelper {
                        const int &line,const void *p) noexcept(false){
         if (!p){
             stringstream err_msg;
-            err_msg << "error: at " << file << " : " << line <<
+            err_msg << "\nerror: at " << file << " : " << line <<
                     " -for " << func << " return is nullptr\n";
             throw runtime_error(err_msg.str());
         }
     }
 
-    bool is_nullptr(const string &func,const string &file,
+    bool is_Nullptr_(const string &func,const string &file,
                     const int &line,const void *p) noexcept(true){
         if (!p){
             stringstream err_msg;
-            err_msg << "error: at " << file << " : " << line <<
+            err_msg << "\nerror: at " << file << " : " << line <<
                     " -for " << func << " is nullptr\n";
-            cerr << err_msg.str();
-            return {};
+            cerr << err_msg.str() << flush;
         }
-        return true;
+        return !p;
+    }
+
+    bool is_false(const string &func,const string &file,
+        const int &line,const bool &b) noexcept(true) {
+
+        if (!b) {
+            stringstream err_msg;
+            err_msg << "\nerror: at " << file << " : " << line <<
+                    " -for " << func << " is false\n";
+            cerr << err_msg.str() << flush;
+        }
+        return !b;
     }
 
     void check_EXC(const string &func,const string &file,
                    const int &line,const exception &e) noexcept(false){
         stringstream err_msg;
-        err_msg << "error: at " << file << " : " << line <<
+        err_msg << "\nerror: at " << file << " : " << line <<
                 " -for " << func << " wrong reason: " << e.what() << '\n';
         throw runtime_error(err_msg.str());
     }
@@ -159,9 +172,9 @@ namespace XHelper {
     void print_err_tips(const string &func,const string &file,
                         const int &line,const string &msg) noexcept(true){
         stringstream err_msg;
-        err_msg << "error: at" << file << " : " << line <<
+        err_msg << "\nerror: at" << file << " : " << line <<
                 " -for " << func << " wrong reason: " << msg << '\n';
-        cerr << err_msg.str();
+        cerr << err_msg.str() << flush;
     }
 
     uint64_t Get_time_ms() {
@@ -187,7 +200,7 @@ namespace XHelper {
               const string &msg,
               const int &level) {
         stringstream log_ss;
-        log_ss << GET_STR(log level : ) << " " << level << " msg : " <<
+        log_ss << GET_STR(\nlog level : ) << " " << level << " msg : " <<
             func << " : " << file + " : " << line << " : " << msg;
         if (XLOG_TYPE_DEBUG == level || level == XLOG_TYPE_INFO){
             cout << log_ss.str() << "\n" << flush;
@@ -197,6 +210,7 @@ namespace XHelper {
     }
 }
 
+#if 0
 static void yuvMirror(uint8_t* yuv,const int &w, const int &h) {
 
     constexpr auto swap_{[](uint8_t &a, uint8_t &b){
@@ -237,3 +251,4 @@ static void yuvMirror(uint8_t* yuv,const int &w, const int &h) {
         }
     }
 }
+#endif

@@ -4,7 +4,7 @@
 #include "encode_params.hpp"
 #include "xhelper.hpp"
 
-class XCodec {
+class XLIB_API XCodec {
 
     void destroy();
 public:

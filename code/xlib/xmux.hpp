@@ -3,7 +3,7 @@
 
 #include "xformat.hpp"
 
-class XMux : public XFormat{
+class XLIB_API XMux : public XFormat{
 
     void destroy();
 

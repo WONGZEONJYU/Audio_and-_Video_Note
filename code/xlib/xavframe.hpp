@@ -7,7 +7,11 @@ extern "C"{
 
 #include "xhelper.hpp"
 
-class XAVFrame final : public AVFrame {
+#ifdef _MSVC_LANG
+#pragma execution_character_set("utf-8")
+#endif
+
+class XLIB_API XAVFrame final : public AVFrame {
 
 public:
     XAVFrame();
@@ -112,8 +116,8 @@ public:
 
 };
 
-XAVFrame_sp new_XAVFrame() noexcept(true);
-XAVFrame_sp new_XAVFrame(const AVFrame &frame) noexcept(true);
-XAVFrame_sp new_XAVFrame(const AVFrame *frame) noexcept(true);
+XLIB_API XAVFrame_sp new_XAVFrame() noexcept(true);
+XLIB_API XAVFrame_sp new_XAVFrame(const AVFrame &frame) noexcept(true);
+XLIB_API XAVFrame_sp new_XAVFrame(const AVFrame *frame) noexcept(true);
 
 #endif

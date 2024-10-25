@@ -5,7 +5,7 @@
 
 using XAVFrames = std::vector<XAVFrame_sp>;
 
-class XDecode : public XCodec {
+class XLIB_API XDecode : public XCodec {
 
 public:
     /**

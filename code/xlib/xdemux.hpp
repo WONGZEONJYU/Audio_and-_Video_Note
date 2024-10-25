@@ -5,7 +5,7 @@
 
 class XAVPacket;
 
-class XDemux : public XFormat{
+class XLIB_API XDemux : public XFormat{
 
 public:
     static AVFormatContext *Open(const std::string &url);
@@ -29,4 +29,4 @@ public:
     X_DISABLE_COPY_MOVE(XDemux)
 };
 
-#endif //INC_124_TEST_XFORMAT_XDEMUX_HPP
+#endif

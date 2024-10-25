@@ -4,7 +4,8 @@
 #include "xvideo_view.hpp"
 
 class XSDL : public XVideoView {
-friend class XVideoView;
+
+    friend class XVideoView;
     /**
      * 销毁资源
      */

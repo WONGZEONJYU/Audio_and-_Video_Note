@@ -14,6 +14,16 @@
 #include <iostream>
 #include <thread>
 
+#ifdef _WIN32
+    #ifdef XLIB_EXPORTS
+        #define XLIB_API __declspec(dllexport)
+    #else
+        #define XLIB_API __declspec(dllimport)
+    #endif
+#else
+#define XLIB_API
+#endif
+
 #ifdef HAVE_FFMPEG
 struct AVChannelLayout;
 struct AVFormatContext;
@@ -58,53 +68,54 @@ enum XLogLevel{
     XLOG_TYPE_FATAL,
 };
 
-namespace XHelper {
+namespace XHelper  {
 #ifdef HAVE_FFMPEG
-    std::string av_get_err(const int&) noexcept(true);
+    XLIB_API std::string av_get_err(const int&) noexcept(true);
 
-    void log_packet(const AVFormatContext &, const AVPacket &)  noexcept(true);
+    XLIB_API void log_packet(const AVFormatContext &, const AVPacket &)  noexcept(true);
 
-    void av_filter_graph_dump(AVFilterGraph *,const std::string &) noexcept(false);
+    XLIB_API void av_filter_graph_dump(AVFilterGraph *,const std::string &) noexcept(false);
 
-    void check_ff_func(const std::string &func,const std::string &file,
+    XLIB_API void check_ff_func(const std::string &func,const std::string &file,
                        const int &line,const int &err_code) noexcept(false);
 
-    void ff_err_out(const std::string &func,const std::string &file,
+    XLIB_API void ff_err_out(const std::string &func,const std::string &file,
                     const int &line,const int &err_code) noexcept(true);
 
-    std::string channel_layout_describe(const AVChannelLayout &) noexcept(true);
+    XLIB_API std::string channel_layout_describe(const AVChannelLayout &) noexcept(true);
 #endif
 
 #ifdef HAVE_OPENGL
-    void checkOpenGLError(const std::string & , const std::string & ,const int &) noexcept(true);
+    XLIB_API void checkOpenGLError(const std::string & , const std::string & ,const int &) noexcept(true);
 #endif
 
 #ifdef HAVE_SDL2
-    void sdl2_err_out(const std::string &func,const std::string &file,
+    XLIB_API void sdl2_err_out(const std::string &func,const std::string &file,
                     const int &line) noexcept(true);
 #endif
 
-    void check_nullptr(const std::string &func,const std::string &file,
+    XLIB_API void check_nullptr(const std::string &func,const std::string &file,
                        const int &line,const void *p) noexcept(false);
 
-    bool is_nullptr(const std::string &func,const std::string &file,
+    XLIB_API bool is_Nullptr_(const std::string &func,const std::string &file,
                     const int &line,const void *p) noexcept(true);
 
-    void check_EXC(const std::string &func,const std::string &file,
+    XLIB_API bool is_false(const std::string &func,const std::string &file,
+        const int &line,const bool &b) noexcept(true);
+
+    XLIB_API void check_EXC(const std::string &func,const std::string &file,
                    const int &line,const std::exception &e) noexcept(false);
 
-    std::error_code make_error_code_helper(const int &errcode) noexcept(true);
+    XLIB_API std::error_code make_error_code_helper(const int &errcode) noexcept(true);
 
-    void print_err_tips(const std::string &func,const std::string &file,
+    XLIB_API void print_err_tips(const std::string &func,const std::string &file,
                         const int &line,const std::string &msg) noexcept(true);
 
-    bool float_Compare(const float &,const float &,const float & = 1e-6);
+    XLIB_API uint64_t Get_time_ms();
 
-    uint64_t Get_time_ms();
+    XLIB_API void MSleep(const uint64_t &);
 
-    void MSleep(const uint64_t &);
-
-    void xlog(const std::string &func,
+    XLIB_API void xlog(const std::string &func,
               const std::string &file,
               const int &line,
               const std::string &msg,
@@ -115,6 +126,12 @@ namespace XHelper {
 #define LOGDINFO(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_INFO)
 #define LOGERROR(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_ERROR)
 #define LOGFATAL(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_FATAL)
+
+#define TRY_CATCH(x,...) do{\
+    try{x;}catch(const std::exception &e){\
+    std::cerr << e.what() << "\n" << std::flush;\
+    __VA_ARGS__;}\
+}while(false)
 
 #ifdef HAVE_FFMPEG
     #define FF_CHECK_ERR(x,...) do{\
@@ -174,7 +191,7 @@ namespace XHelper {
 #define IS_NULLPTR(x,...) do{ \
     const auto _p_ {x};           \
     static_assert(std::is_pointer_v<std::remove_cv_t<decltype(_p_)>>,#x); \
-    if(!XHelper::is_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_))){ \
+    if(XHelper::is_Nullptr_(#x,__FILE__,__LINE__,static_cast<const void*>(_p_))){ \
         __VA_ARGS__;\
     }\
 }while(false)
@@ -183,9 +200,15 @@ namespace XHelper {
     const auto _smart_ptr_{x};\
     const auto _p_{_smart_ptr_.operator->()};\
     static_assert(std::is_pointer_v<std::remove_cv_t<decltype(_p_)>>,#x); \
-    if(!XHelper::is_nullptr(#x,__FILE__,__LINE__,static_cast<const void*>(_p_))){ \
+    if(XHelper::is_Nullptr_(#x,__FILE__,__LINE__,static_cast<const void*>(_p_))){ \
         __VA_ARGS__;\
     }\
+}while(false)
+
+#define IS_FALSE_(x,...)do{\
+    const auto b_{x};\
+    if (XHelper::is_false(#x,__FILE__,__LINE__,b_)){\
+    __VA_ARGS__;}\
 }while(false)
 
 #define CHECK_EXC(x,...)do{ \
@@ -196,12 +219,6 @@ namespace XHelper {
 
 #define PRINT_ERR_TIPS(msg) do{ \
     XHelper::print_err_tips(__func__,__FILE__,__LINE__,(msg));}while(false)
-
-#define TRY_CATCH(x,...) do{ \
-   try{x;}catch(const std::exception &e){\
-        std::cerr << e.what() << "\n";\
-        __VA_ARGS__;}\
-}while(false)
 
 #define GET_STR(args) #args
 

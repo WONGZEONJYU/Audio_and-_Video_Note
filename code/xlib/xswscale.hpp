@@ -3,7 +3,7 @@
 
 #include "xhelper.hpp"
 
-class XSwscale final {
+class XLIB_API XSwscale final {
 
     explicit XSwscale() = default;
 
@@ -40,8 +40,8 @@ private:
     SwsContext *m_sws_{};
 
 public:
-    friend  XSwscale_sp newXSwscale();
-    friend  XSwscale_sp newXSwscale(const int &srcW,
+    friend XLIB_API XSwscale_sp newXSwscale();
+    friend XLIB_API XSwscale_sp newXSwscale(const int &srcW,
                                 const int &srcH,
                                 const int &srcFormat,
                                 const int &dstW,
@@ -55,9 +55,8 @@ public:
     X_DISABLE_COPY_MOVE(XSwscale)
 };
 
-XSwscale_sp newXSwscale();
-
-XSwscale_sp newXSwscale(const int &srcW,
+XLIB_API XSwscale_sp newXSwscale();
+XLIB_API XSwscale_sp newXSwscale(const int &srcW,
                             const int &srcH,
                             const int &srcFormat,
                             const int &dstW,

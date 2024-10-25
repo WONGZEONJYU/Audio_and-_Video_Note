@@ -3,7 +3,7 @@
 
 #include "xhelper.hpp"
 
-class XVideoView {
+class XLIB_API XVideoView {
 
     void calc_fps();
     static void merge_nv12(uint8_t *,const XAVFrame &);
@@ -167,11 +167,14 @@ private:
     std::ifstream m_ifs_;
     XAVFrame_sp m_frame_;
     std::vector<uint8_t> m_cache_;
+
+protected:
+    explicit XVideoView() = default;
+    virtual ~XVideoView() = default;
+
 public:
     static int64_t Get_time_ms();
     static void MSleep(const uint64_t &);
-    explicit XVideoView() = default;
-    virtual ~XVideoView() = default;
     X_DISABLE_COPY_MOVE(XVideoView);
 };
 
