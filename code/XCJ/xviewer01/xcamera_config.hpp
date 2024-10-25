@@ -1,28 +1,29 @@
-#ifndef XCAMERACONFIG_HPP
-#define XCAMERACONFIG_HPP
+#ifndef XCAMERA_CONFIG_HPP_
+#define XCAMERA_CONFIG_HPP_
 
-#include <string_view>
 #include <xhelper.hpp>
 
-struct XCameraDate {
-    std::string_view m_name_{},
-    m_url{},//摄像头主码流
-    m_sub_url{},//摄像头子码流
-    m_save_path_{};//保存路径
+struct XCameraData {
+    char m_name_[4096]{}, //摄像头名称
+    m_url[sizeof(m_name_)]{},//摄像头主码流
+    m_sub_url[sizeof(m_name_)]{},//摄像头子码流
+    m_save_path_[sizeof(m_name_)]{};//保存路径
 };
 
 class XCameraConfig final{
 
     explicit XCameraConfig() = default;
 public:
-    void Push(const XCameraDate &date);
-    [[nodiscard]] XCameraDate GetCam(const uint32_t &index) const;
+    void Push(const XCameraData &date);
+    [[nodiscard]] XCameraData GetCam(const int &index) const;
     [[nodiscard]] uint32_t GetCamCount() const;
-    bool SetCam(const uint32_t &index, const XCameraDate &date);
-    bool DelCam(const uint32_t &index);
-    
+    bool SetCam(const int &index, const XCameraData &data);
+    bool DelCam(const int &index);
+    [[nodiscard]]bool Save(const std::string_view &path) const;
+    [[nodiscard]]bool Load(const std::string_view &path);
+
 private:
-    std::vector<XCameraDate> m_cams_;
+    std::vector<XCameraData> m_cams_;
     std::mutex m_mutex_;
 public:
     static XCameraConfig *Instance();
