@@ -1,7 +1,6 @@
 #ifndef XTOOLS_HPP_
 #define XTOOLS_HPP_
 
-#include <thread>
 #include "xhelper.hpp"
 
 class XLIB_API XThread {
