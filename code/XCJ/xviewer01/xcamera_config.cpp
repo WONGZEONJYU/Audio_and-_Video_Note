@@ -1,4 +1,5 @@
 #include "xcamera_config.hpp"
+#include <fstream>
 
 using namespace std;
 
@@ -43,14 +44,14 @@ bool XCameraConfig::DelCam(const int &index){
     return true;
 }
 
-bool XCameraConfig::Save(const std::string_view &path) const{
+bool XCameraConfig::Save(const string_view &path) const{
 
     if (path.empty()){
         PRINT_ERR_TIPS(GET_STR(path error!));
         return {};
     }
 
-    ofstream ofs(path,ios::binary);
+    ofstream ofs(path.data(),ios::binary);
     if (!ofs){
         PRINT_ERR_TIPS(GET_STR(path open failed!));
         return {};
@@ -63,14 +64,14 @@ bool XCameraConfig::Save(const std::string_view &path) const{
     return true;
 }
 
-bool XCameraConfig::Load(const std::string_view &path) {
+bool XCameraConfig::Load(const string_view &path) {
 
     if (path.empty()){
         PRINT_ERR_TIPS(GET_STR(path error!));
         return {};
     }
 
-    ifstream ifs(path,ios::binary);
+    ifstream ifs(path.data(),ios::binary);
     if (!ifs){
         PRINT_ERR_TIPS(GET_STR(path open failed!));
         return {};

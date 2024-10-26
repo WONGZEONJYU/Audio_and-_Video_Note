@@ -24,6 +24,10 @@ XViewer::~XViewer() {
     Destroy();
 }
 
+void XViewer::RefreshCams() {
+
+}
+
 bool XViewer::Construct() {
     TRY_CATCH(CHECK_EXC(m_ui_.reset(new Ui::XViewer())),return {});
     m_ui_->setupUi(this);
@@ -62,7 +66,9 @@ bool XViewer::Construct() {
         IS_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View16),return {});
     }
 
-    View(16);
+    //默认显示9个窗口
+    View9();
+    RefreshCams();
     return true;
 }
 

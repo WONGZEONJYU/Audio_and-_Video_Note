@@ -32,7 +32,16 @@ Q_OBJECT
     //窗口右键菜单
     void contextMenuEvent(QContextMenuEvent *event) override;
 
+    /**
+     * 预览窗口
+     * @param count
+     */
     void View(const int& count);
+
+    /**
+     * 刷新左侧相机列表
+     */
+    void RefreshCams();
 
 private slots:
     //大窗口,正常窗口

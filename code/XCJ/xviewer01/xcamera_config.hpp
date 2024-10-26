@@ -2,6 +2,7 @@
 #define XCAMERA_CONFIG_HPP_
 
 #include <xhelper.hpp>
+#include <string_view>
 
 struct XCameraData {
     char m_name_[4096]{}, //摄像头名称
