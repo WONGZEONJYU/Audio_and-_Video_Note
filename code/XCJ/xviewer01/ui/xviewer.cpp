@@ -5,8 +5,10 @@
 #include "xviewer.hpp"
 #include "ui_xviewer.h"
 #include <xhelper.hpp>
+#include "xcamera_config.hpp"
 
 #define C(s) QString::fromLocal8Bit(s)
+static constexpr auto CAM_CONF_PATH{"cams.db"};
 
 XViewer_sp XViewer::create() {
     XViewer_sp obj;
@@ -25,7 +27,15 @@ XViewer::~XViewer() {
 }
 
 void XViewer::RefreshCams() {
-
+    auto c{XCamera_Config_()};
+    m_ui_->cam_list->clear();
+    const auto count{c->GetCamCount()};
+    for (int i {}; i < count; ++i) {
+        auto cam{c->GetCam(i)};
+        auto item{new QListWidgetItem(QIcon(GET_STR(:/img/cam.png)),
+                                      C(cam.m_name_))};
+        m_ui_->cam_list->addItem(item);
+    }
 }
 
 bool XViewer::Construct() {
@@ -68,6 +78,7 @@ bool XViewer::Construct() {
 
     //默认显示9个窗口
     View9();
+    (void )XCamera_Config_()->Load(CAM_CONF_PATH);
     RefreshCams();
     return true;
 }

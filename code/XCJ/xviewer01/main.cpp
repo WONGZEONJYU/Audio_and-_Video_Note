@@ -1,11 +1,10 @@
 #include <QApplication>
 #include "ui/xviewer.hpp"
 #include "xcamera_config.hpp"
-
 #define TEST_CAM "test.db"
 
 int main(int argc,char *argv[]) {
-
+#if 0
     auto c{XCamera_Config_()};
     c->Load(TEST_CAM);
     {
@@ -48,6 +47,9 @@ int main(int argc,char *argv[]) {
         qDebug()<< c->GetCam(i).m_name_;
     }
     c->Save(TEST_CAM);
+
+#endif
+
     QApplication a(argc, argv);
 
     if (auto xviewer{XViewer::create()}){

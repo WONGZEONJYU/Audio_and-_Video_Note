@@ -56,9 +56,11 @@ bool XCameraConfig::Save(const string_view &path) const{
         PRINT_ERR_TIPS(GET_STR(path open failed!));
         return {};
     }
+
     unique_lock lock(const_cast<decltype(m_mutex_)&>(m_mutex_));
     for (const auto &item:m_cams_) {
-        ofs.write(reinterpret_cast<const char *>(addressof(item)), sizeof(item));
+        ofs.write(reinterpret_cast<const char *>(addressof(item)),
+                  sizeof(item));
     }
     ofs.close();
     return true;
@@ -73,7 +75,7 @@ bool XCameraConfig::Load(const string_view &path) {
 
     ifstream ifs(path.data(),ios::binary);
     if (!ifs){
-        PRINT_ERR_TIPS(GET_STR(path open failed!));
+         PRINT_ERR_TIPS(GET_STR(path open failed!));
         return {};
     }
 

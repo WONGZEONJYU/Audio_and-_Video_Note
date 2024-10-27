@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtGui/QIcon>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QWidget>
 
@@ -29,6 +30,7 @@ public:
     QPushButton *normal;
     QWidget *body;
     QWidget *left;
+    QListWidget *cam_list;
     QWidget *cams;
 
     void setupUi(QWidget *XViewer)
@@ -108,6 +110,10 @@ public:
         left->setObjectName("left");
         left->setGeometry(QRect(0, 0, 200, 521));
         left->setMaximumSize(QSize(200, 16777215));
+        cam_list = new QListWidget(left);
+        cam_list->setObjectName("cam_list");
+        cam_list->setGeometry(QRect(0, 0, 200, 1000));
+        cam_list->setIconSize(QSize(50, 50));
         cams = new QWidget(body);
         cams->setObjectName("cams");
         cams->setGeometry(QRect(210, 0, 561, 521));
