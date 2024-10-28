@@ -16,6 +16,7 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_PREFIX_PATH "C:/Qt6/6.8.0/msvc2022_64")
     # 设定为 Unicode 编码
     add_definitions(-DUNICODE -D_UNICODE)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
     set(FFMPEG_HEADERS_PATH "C:/libffmepg/include")
     set(FFMPEG_LIB_PATH "C:/libffmepg/bin")

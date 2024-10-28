@@ -18,7 +18,28 @@
     <normaloff>:/img/xv.ico</normaloff>:/img/xv.ico</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">/*顶部样式*/
+   <string notr="true">/*按钮样式*/
+
+QPushButton:hover 
+{
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(0, 102, 184, 255), stop:0.495 rgba(39, 39, 39, 255), stop:0.505 rgba(39,39, 39, 255), stop:1 rgba(0, 102, 184, 255));
+	border: none;
+	border-radius:5px;
+	color: rgb(255, 255, 255);
+	font: 75 12pt &quot;黑体&quot;;
+ }
+
+QPushButton:!hover
+{
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(0, 50, 150, 255), stop:0.495 rgba(0, 102, 184, 255), stop:0.505 rgba(0, 102, 184, 255), stop:1 rgba(0, 50, 150, 255));
+	border: none;
+	border-radius:5px;
+	color: rgb(255, 255, 255);
+	font: 75 12pt &quot;黑体&quot;;
+ }
+
+
+/*顶部样式*/
 #head{
 	background-color: rgb(53, 53, 53);
 }
@@ -183,9 +204,9 @@
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>0</y>
+       <y>50</y>
        <width>200</width>
-       <height>1000</height>
+       <height>941</height>
       </rect>
      </property>
      <property name="iconSize">
@@ -193,6 +214,45 @@
        <width>50</width>
        <height>50</height>
       </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="add_cam">
+     <property name="geometry">
+      <rect>
+       <x>5</x>
+       <y>5</y>
+       <width>61</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>新增</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="set_cam">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>5</y>
+       <width>61</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>修改</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="del_cam">
+     <property name="geometry">
+      <rect>
+       <x>135</x>
+       <y>5</y>
+       <width>61</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>删除</string>
      </property>
     </widget>
    </widget>
@@ -276,9 +336,60 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>add_cam</sender>
+   <signal>clicked()</signal>
+   <receiver>XViewer</receiver>
+   <slot>AddCam()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>49</x>
+     <y>88</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>84</x>
+     <y>-216</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>set_cam</sender>
+   <signal>clicked()</signal>
+   <receiver>XViewer</receiver>
+   <slot>SetCam()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>116</x>
+     <y>82</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>116</x>
+     <y>-44</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>del_cam</sender>
+   <signal>clicked()</signal>
+   <receiver>XViewer</receiver>
+   <slot>DelCam()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>181</x>
+     <y>91</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>187</x>
+     <y>-28</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>MaxWindow()</slot>
   <slot>NormalWindow()</slot>
+  <slot>AddCam()</slot>
+  <slot>SetCam()</slot>
+  <slot>DelCam()</slot>
  </slots>
 </ui>

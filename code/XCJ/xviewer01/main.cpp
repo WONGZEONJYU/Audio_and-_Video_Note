@@ -2,6 +2,7 @@
 #include "ui/xviewer.hpp"
 #include "xcamera_config.hpp"
 #define TEST_CAM "test.db"
+#include <QString>
 
 int main(int argc,char *argv[]) {
 #if 0
@@ -12,7 +13,7 @@ int main(int argc,char *argv[]) {
         strcpy(data.m_name_,GET_STR(cam0));
         strcpy(data.m_url,"rtsp:://112/ch0");
         strcpy(data.m_sub_url,"rtsp://112/ch1");
-        strcpy(data.m_save_path_,"C:\\");
+        strcpy(data.m_save_path,"C:\\");
         c->Push(data);
     }
 
@@ -21,7 +22,7 @@ int main(int argc,char *argv[]) {
         strcpy(data.m_name_,GET_STR(cam1));
         strcpy(data.m_url,"rtsp:://512/ch0");
         strcpy(data.m_sub_url,"rtsp://512/ch1");
-        strcpy(data.m_save_path_,"C:\\");
+        strcpy(data.m_save_path,"C:\\");
         c->Push(data);
     }
 

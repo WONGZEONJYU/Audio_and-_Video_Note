@@ -41,7 +41,9 @@ Q_OBJECT
     /**
      * 刷新左侧相机列表
      */
-    void RefreshCams();
+    void RefreshCams() const;
+
+    void SetCam(const int& index);
 
 private slots:
     //大窗口,正常窗口
@@ -51,6 +53,9 @@ private slots:
     void View4();
     void View9();
     void View16();
+    void AddCam();
+    void SetCam();
+    void DelCam();
 
 public:
     ~XViewer() override;
