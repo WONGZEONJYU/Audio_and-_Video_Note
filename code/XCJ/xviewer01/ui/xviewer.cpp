@@ -9,6 +9,7 @@
 #include "ui_xviewer.h"
 #include <xhelper.hpp>
 #include "xcamera_config.hpp"
+#include "xcamera_widget.hpp"
 
 #if _WIN32
 #define C(s) QString::fromUtf8(s)
@@ -295,7 +296,7 @@ void XViewer::View(const int &count) {
 
     for(int i{};i < count;++i){
         if (!m_cam_wins_[i]) {
-            TRY_CATCH(CHECK_EXC(m_cam_wins_[i].reset(new QWidget())), return;);
+            TRY_CATCH(CHECK_EXC(m_cam_wins_[i].reset(new XCameraWidget())), return;);
             m_cam_wins_[i]->setStyleSheet(GET_STR(background-color:rgb(51, 51, 51);));
         }
         lay->addWidget(m_cam_wins_[i].get(), i / cols , i % cols);

@@ -138,6 +138,7 @@ public:
         cam_list = new QListWidget(left);
         cam_list->setObjectName("cam_list");
         cam_list->setGeometry(QRect(0, 50, 200, 941));
+        cam_list->setDragEnabled(true);
         cam_list->setIconSize(QSize(50, 50));
         add_cam = new QPushButton(left);
         add_cam->setObjectName("add_cam");

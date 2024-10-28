@@ -13,6 +13,7 @@ QT_END_NAMESPACE
 
 class XViewer;
 using XViewer_sp = QSharedPointer<XViewer>;
+class XCameraWidget;
 
 class XViewer : public QWidget {
 Q_OBJECT
@@ -61,7 +62,7 @@ public:
     ~XViewer() override;
 
 private:
-    QVector<QSharedPointer<QWidget>> m_cam_wins_;
+    QVector<QSharedPointer<XCameraWidget>> m_cam_wins_;
     QSharedPointer<Ui::XViewer> m_ui_{};
     QMenu m_left_menu_;
     bool m_is_mouse_pressed_{};
