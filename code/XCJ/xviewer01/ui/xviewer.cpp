@@ -91,6 +91,7 @@ bool XViewer::Construct() {
     View9();
     (void )XCamera_Config_()->Load(CAM_CONF_PATH);
     RefreshCams();
+    startTimer(1);
     return true;
 }
 
@@ -307,4 +308,15 @@ void XViewer::View(const int &count) {
             m_cam_wins_[i].reset();
         }
     }
+}
+
+void XViewer::timerEvent(QTimerEvent *e){
+
+    foreach(const auto &item,m_cam_wins_){
+        if (item){
+            item->Draw();
+        }
+    }
+
+    QWidget::timerEvent(e);
 }

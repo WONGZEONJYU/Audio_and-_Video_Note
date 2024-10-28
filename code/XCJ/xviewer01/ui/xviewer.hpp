@@ -44,8 +44,11 @@ Q_OBJECT
      */
     void RefreshCams() const;
 
+    //编辑摄像机
     void SetCam(const int& index);
 
+    //定时器渲染视频 回调函数
+    void timerEvent(QTimerEvent *) override;
 private slots:
     //大窗口,正常窗口
     void MaxWindow();
