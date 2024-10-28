@@ -21,8 +21,8 @@ if (WIN32)
         target_compile_options(${PROJECT_NAME} PRIVATE "/utf-8")
     endif()
 
-    set(FFMPEG_HEADERS_PATH "C:/libffmepg/include")
-    set(FFMPEG_LIB_PATH "C:/libffmepg/bin")
+    set(FFMPEG_HEADERS_PATH "C:/libffmpeg/include")
+    set(FFMPEG_LIB_PATH "C:/libffmpeg/bin")
 
     set(SDL_HEADERS_PATH "C:/SDL2-2.30.8/include")
     set(SDL_LIB_PATH "C:/SDL2-2.30.8/lib/x64")
