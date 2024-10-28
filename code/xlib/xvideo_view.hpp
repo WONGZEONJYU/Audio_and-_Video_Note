@@ -170,12 +170,11 @@ private:
 
 protected:
     explicit XVideoView() = default;
-    virtual ~XVideoView() = default;
-
 public:
     static int64_t Get_time_ms();
     static void MSleep(const uint64_t &);
     X_DISABLE_COPY_MOVE(XVideoView);
+    virtual ~XVideoView() = default;
 };
 
 #endif
