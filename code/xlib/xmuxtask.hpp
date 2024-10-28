@@ -4,7 +4,7 @@
 #include "xtools.hpp"
 #include "xmux.hpp"
 
-class XMuxTask : public XThread {
+class XLIB_API XMuxTask : public XThread {
     void Main() override;
     void Do(XAVPacket &) override;
 public:
