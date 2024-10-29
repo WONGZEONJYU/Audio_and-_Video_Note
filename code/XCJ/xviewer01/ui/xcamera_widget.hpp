@@ -22,7 +22,7 @@ class XCameraWidget : public QWidget{
 
 public:
     explicit XCameraWidget(QWidget *parent = {});
-
+    ~XCameraWidget() override = default;
     //渲染视频
     void Draw() const;
 private:

@@ -32,7 +32,7 @@ void XCameraWidget::dropEvent(QDropEvent *event) {
     qDebug() << wid->currentRow();
     auto cam{XCamera_Config_()->GetCam(wid->currentRow())};
     //rtsp://admin:123456@192.168.0.123/stream0
-    Open(cam.m_sub_url);
+    Open(cam.m_url);
     QWidget::dropEvent(event);
 }
 
@@ -75,13 +75,13 @@ bool XCameraWidget::Open(const QString &url){
 
     //初始化渲染
     const auto wid{QWindow::fromWinId(winId())};
-    m_view_->Set_Win_ID(reinterpret_cast<void *>(wid->winId()));
-
+    //m_view_->Set_Win_ID(reinterpret_cast<void *>(wid->winId()));
+    m_view_->Set_Win_ID(reinterpret_cast<void *>(winId()));
+    qDebug() << "QWindow wid = " << wid->winId();
+    qDebug() << "win = " << winId();
     m_view_->Init(*parm);
-
     m_demux_->Start();
     m_decode_->Start();
-
     return true;
 }
 
@@ -93,8 +93,9 @@ void XCameraWidget::Draw() const {
     // if (!f){
     //     return;
     // }
-
+    //(void)m_view_->Is_Exit_Window();
     if (const auto f{m_decode_->CopyFrame()}) {
         m_view_->DrawFrame(*f);
     }
+    //m_view_->Is_Exit_Window();
 }

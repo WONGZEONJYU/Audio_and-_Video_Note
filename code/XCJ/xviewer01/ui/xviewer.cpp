@@ -46,7 +46,6 @@ void XViewer::RefreshCams() const {
                                             C(m_name_))};
         m_ui_->cam_list->addItem(item);
     }
-
 }
 
 bool XViewer::Construct() {
