@@ -77,7 +77,7 @@ bool XCameraWidget::Open(const QString &url){
 
     //m_view_->Set_Win_ID(reinterpret_cast<void*>(wid->winId()));
     m_view_->Set_Win_ID(reinterpret_cast<void *>(this->winId()));
-    
+
      qDebug() << "QWindow wid = " << wid->winId();
      qDebug() << "win = " << winId();
     m_view_->Init(*parm);
