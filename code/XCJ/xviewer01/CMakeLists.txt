@@ -18,8 +18,8 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_definitions(-DUNICODE -D_UNICODE)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
-    set(FFMPEG_HEADERS_PATH "C:/libffmepg/include")
-    set(FFMPEG_LIB_PATH "C:/libffmepg/bin")
+    set(FFMPEG_HEADERS_PATH "C:/libffmpeg/include")
+    set(FFMPEG_LIB_PATH "C:/libffmpeg/bin")
 
     set(SDL_HEADERS_PATH "C:/SDL2-2.30.8/include")
     set(SDL_LIB_PATH "C:/SDL2-2.30.8/lib/x64")
