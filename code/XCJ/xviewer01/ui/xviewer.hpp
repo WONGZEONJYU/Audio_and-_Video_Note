@@ -60,7 +60,6 @@ private slots:
     void AddCam();
     void SetCam();
     void DelCam();
-
 public:
     ~XViewer() override;
 
