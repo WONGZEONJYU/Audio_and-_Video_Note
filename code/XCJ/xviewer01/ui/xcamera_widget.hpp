@@ -8,7 +8,7 @@ class XDecodeTask;
 class XDemuxTask;
 class XVideoView;
 
-class XCameraWidget : public QWidget{
+class XCameraWidget final: public QWidget{
 
     Q_OBJECT
     //拖拽进入
