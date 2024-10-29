@@ -24,7 +24,7 @@ public:
     explicit XCameraWidget(QWidget *parent = {});
 
     //渲染视频
-    void Draw();
+    void Draw() const;
 private:
     QSharedPointer<XDecodeTask> m_decode_;
     QSharedPointer<XDemuxTask> m_demux_;

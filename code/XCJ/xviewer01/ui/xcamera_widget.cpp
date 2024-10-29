@@ -11,6 +11,7 @@
 #include <xdemuxtask.hpp>
 #include <xvideo_view.hpp>
 #include "xcamera_config.hpp"
+#include <QWindow>
 
 XCameraWidget::XCameraWidget(QWidget *parent) :
 QWidget(parent) {
@@ -49,14 +50,18 @@ bool XCameraWidget::Open(const QString &url){
 
     if (!m_demux_){
         TRY_CATCH(CHECK_EXC(m_demux_.reset(new XDemuxTask())),return {});
+    }else {
+        m_demux_->Stop();
     }
+
     if (!m_decode_){
         TRY_CATCH(CHECK_EXC(m_decode_.reset(new XDecodeTask())),return {});
+    }else {
+        m_decode_->Stop();
     }
     if (!m_view_){
         TRY_CATCH(CHECK_EXC(m_view_.reset(XVideoView::create())),return {});
     }
-
     //打开解封转
     IS_FALSE_(m_demux_->Open(url.toStdString()),return {});
 
@@ -69,7 +74,9 @@ bool XCameraWidget::Open(const QString &url){
     m_demux_->set_next(m_decode_.get());
 
     //初始化渲染
-    m_view_->Set_Win_ID(reinterpret_cast<void *>(this->winId()));
+    const auto wid{QWindow::fromWinId(winId())};
+    m_view_->Set_Win_ID(reinterpret_cast<void *>(wid->winId()));
+
     m_view_->Init(*parm);
 
     m_demux_->Start();
@@ -78,13 +85,16 @@ bool XCameraWidget::Open(const QString &url){
     return true;
 }
 
-void XCameraWidget::Draw(){
+void XCameraWidget::Draw() const {
     if (!m_demux_ || !m_decode_ || !m_view_){
         return;
     }
-    const auto f{m_decode_->CopyFrame()};
-    if (!f){
-        return;
+    // const auto f{m_decode_->CopyFrame()};
+    // if (!f){
+    //     return;
+    // }
+
+    if (const auto f{m_decode_->CopyFrame()}) {
+        m_view_->DrawFrame(*f);
     }
-    m_view_->DrawFrame(*f);
 }

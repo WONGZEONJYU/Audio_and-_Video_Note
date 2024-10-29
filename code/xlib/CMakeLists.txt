@@ -69,7 +69,7 @@ endif ()
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/")
 
 # Install the library and header files
-install(TARGETS ${static_lib}
+install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         RUNTIME DESTINATION bin)
