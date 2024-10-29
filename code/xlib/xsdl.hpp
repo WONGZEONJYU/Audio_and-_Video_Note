@@ -76,6 +76,8 @@ protected:
      */
     void Scale(const int &w,const int &h) override;
 
+    void ShowWindow() override;
+
 protected:
     SDL_Window *m_win_{};
     SDL_Renderer *m_renderer_{};

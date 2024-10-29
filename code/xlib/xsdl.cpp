@@ -265,3 +265,8 @@ bool XSDL::check_init() const{
     }
     return !b;
 }
+
+void XSDL::ShowWindow(){
+    unique_lock lock(m_mux_);
+    SDL_ShowWindow(m_win_);
+}

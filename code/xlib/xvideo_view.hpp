@@ -152,6 +152,7 @@ public:
         m_winID_ = win_id;
     }
 
+    virtual void ShowWindow(){}
 protected:
     std::mutex m_mux_;
     std::atomic_int64_t m_begin_time_{};
