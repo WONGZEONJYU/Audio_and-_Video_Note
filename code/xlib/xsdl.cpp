@@ -12,11 +12,9 @@ static inline bool sdl_init() {
         SDL2_INT_ERR_OUT(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO),return {});
         //direct3d
         //SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d");
-        if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1")){
-            //设置缩放算法,解决锯齿问题,采用双线性插值算法
-            PRINT_ERR_TIPS(SDL_GetError());
-            return {};
-        }
+        //设置缩放算法,解决锯齿问题,采用双线性插值算法
+        IS_FALSE_(SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY,"1"),PRINT_ERR_TIPS(SDL_GetError());return {});
+        IS_FALSE_(SDL_SetHint(SDL_HINT_VIDEO_WINDOW_SHARE_PIXEL_FORMAT,"1"),PRINT_ERR_TIPS(SDL_GetError());return {});
         is_init = true;
     }
     return is_init;
