@@ -114,7 +114,7 @@ Q_OBJECT
     void copy_y(const XAVFrame_sptr &);
     void copy_uv(const XAVFrame_sptr &);
 public:
-    explicit XVideoWidget(QWidget*  = nullptr);
+    explicit XVideoWidget(QWidget* = nullptr);
     ~XVideoWidget() override;
     /**
      * 该函数在分配纹理对象失败的时候抛异常并会清理所有成员属性

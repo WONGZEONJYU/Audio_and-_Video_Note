@@ -162,7 +162,7 @@ void XVideoWidget::paintGL() {
     //qDebug() << "end: " << __FUNCTION__;
 }
 
-void XVideoWidget::resizeGL(int w, int h) {
+void XVideoWidget::resizeGL(const int w,const int h) {
 
     //QMutexLocker locker(&m_mux);
     GL_CHECK(glViewport(0, 0, w, h));
@@ -318,15 +318,14 @@ void XVideoWidget::Repaint(const XAVFrame_sptr &frame) {
 
 void XVideoWidget::copy_y(const XAVFrame_sptr &frame){
 
-    const auto len{m_h * frame->linesize[0]};
-    if (m_yuv_datum[0].capacity() <= len){
+    if (const auto len{m_h * frame->linesize[0]}; m_yuv_datum[0].capacity() <= len){
         m_yuv_datum[0].clear();
         m_yuv_datum[0].resize(len + (len >> 1));
     }
 
     for(uint32_t i{};i < m_h;++i){
         const auto src{reinterpret_cast<const char*>(frame->data[0] + frame->linesize[0] * i)};
-        auto dst{m_yuv_datum[0].data() + m_w * i};
+        const auto dst{m_yuv_datum[0].data() + m_w * i};
         std::copy_n(src,m_w.load(),dst);
     }
 }
@@ -334,16 +333,14 @@ void XVideoWidget::copy_y(const XAVFrame_sptr &frame){
 void XVideoWidget::copy_uv(const XAVFrame_sptr &frame){
 
     for (auto n{1}; n <=2 ; ++n) {
-
-        const auto len{m_half_h * frame->linesize[n]};
-        if (m_yuv_datum[n].capacity() <= len) {
+        if (const auto len{m_half_h * frame->linesize[n]}; m_yuv_datum[n].capacity() <= len) {
             m_yuv_datum[n].clear();
             m_yuv_datum[n].resize(len + (len >> 1));
         }
 
         for (uint32_t i{}; i < m_half_h ; ++i) {
             const auto src{reinterpret_cast<const char*>(frame->data[n] + frame->linesize[n] * i)};
-            auto dst{m_yuv_datum[n].data() + m_half_w * i};
+            const auto dst{m_yuv_datum[n].data() + m_half_w * i};
             std::copy_n(src,m_half_w.load(),dst);
         }
     }

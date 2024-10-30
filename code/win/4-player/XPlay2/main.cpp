@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     try {
-        auto w{XPlay2Widget::Handle()};
+        const auto w{XPlay2Widget::Handle()};
         w->show();
         return QApplication::exec();
     } catch (const std::exception &e) {

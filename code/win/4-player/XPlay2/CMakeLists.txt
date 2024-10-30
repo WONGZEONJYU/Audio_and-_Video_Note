@@ -1,39 +1,55 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.29)
 
 project(XPlay2)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+add_definitions(-D__STDC_CONSTANT_MACROS)
+add_definitions(-DHAVE_FFMPEG)
+add_definitions(-DHAVE_OPENGL)
+
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_definitions(-DWINDOWS)
-    set(CMAKE_PREFIX_PATH "C:/Qt6/6.8.0/mingw_64/")
-    include_directories(c:/ffmepg-7.1/include)
-    include_directories(c:/SDL2-2.28.5-VC/include)
+#    if(MSVC)
+#        add_compile_options(/Zc:__cplusplus)
+#    endif()
+    ##################################根据开发电脑进行调整路径###################################
+    set(CMAKE_PREFIX_PATH "C:/Qt6/6.8.0/msvc2022_64")
+    # 设定为 Unicode 编码
+    add_definitions(-DUNICODE -D_UNICODE)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
-    link_directories(c:/ffmepg-7.1/bin)
-    link_directories(c:/SDL2-2.28.5-VC/lib/x64)
+    set(FFMPEG_HEADERS_PATH "C:/libffmpeg/include")
+    set(FFMPEG_LIB_PATH "C:/libffmpeg/bin")
+
+    set(SDL_HEADERS_PATH "C:/SDL2-2.30.8/include")
+    set(SDL_LIB_PATH "C:/SDL2-2.30.8/lib/x64")
 
     set(Vulkan_INCLUDE_DIR "C:/VulkanSDK/1.3.290.0/Include")
     set(Vulkan_LIBRARY "C:/VulkanSDK/1.3.290.0/Lib/vulkan-1.lib")
-    find_package(Vulkan REQUIRED)
-    include_directories(${Vulkan_INCLUDE_DIR})
+
+    ##################################根据开发电脑进行调整路径###################################
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
+    ##################################根据开发电脑进行调整路径###################################
     set(CMAKE_PREFIX_PATH "/Users/wong/Qt/6.8.0/macos")
-    include_directories(/usr/local/ffmpeg/include)
-    include_directories(/opt/homebrew/Cellar/sdl2/2.30.8/include/SDL2)
 
-    link_directories(/usr/local/ffmpeg/lib)
-    link_directories(/opt/homebrew/Cellar/sdl2/2.30.8/lib)
+    set(FFMPEG_HEADERS_PATH "/usr/local/ffmpeg/include")
+    set(FFMPEG_LIB_PATH "/usr/local/ffmpeg/lib")
+
+    set(SDL_HEADERS_PATH "/opt/homebrew/Cellar/sdl2/2.30.8/include/SDL2")
+    set(SDL_LIB_PATH "/opt/homebrew/Cellar/sdl2/2.30.8/lib")
 
     set(Vulkan_INCLUDE_DIR "/Users/wong/VulkanSDK/1.3.283.0/macOS/include")
     set(Vulkan_LIBRARY "/Users/wong/VulkanSDK/1.3.283.0/macOS/lib/libvulkan.dylib")
-    find_package(Vulkan REQUIRED)
-    include_directories(${Vulkan_INCLUDE_DIR})
+
+    ##################################根据开发电脑进行调整路径###################################
 
 endif()
 
@@ -59,11 +75,13 @@ set(QT__LIB
         Network
 )
 
-add_definitions(-D__STDC_CONSTANT_MACROS)
-add_definitions(-DHAVE_FFMPEG)
-add_definitions(-DHAVE_OPENGL)
+include_directories(${FFMPEG_HEADERS_PATH})
+include_directories(${SDL_HEADERS_PATH})
+include_directories(${Vulkan_INCLUDE_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src)
+link_directories(${FFMPEG_LIB_PATH})
+link_directories(${SDL_LIB_PATH})
 
 set(SRC_CODE
         src/XDemux.cpp
@@ -116,6 +134,7 @@ add_executable(${PROJECT_NAME}
         XVideoWidget.hpp
         ${SRC_CODE}
 )
+
 target_link_libraries(${PROJECT_NAME}
         Qt::Core
         Qt::Gui
@@ -129,31 +148,31 @@ target_link_libraries(${PROJECT_NAME}
         ${Vulkan_LIBRARY}
 )
 
-if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(DEBUG_SUFFIX)
-    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
-        set(DEBUG_SUFFIX "d")
-    endif ()
-    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
-    if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
-        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
-            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        endif ()
-    endif ()
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-    endif ()
-    foreach (QT_LIB ${QT__LIB})
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach (QT_LIB)
-endif ()
+#if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+#    set(DEBUG_SUFFIX)
+#    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
+#        set(DEBUG_SUFFIX "d")
+#    endif ()
+#    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
+#    if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
+#        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+#        if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
+#            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
+#        endif ()
+#    endif ()
+#    if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
+#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#                COMMAND ${CMAKE_COMMAND} -E make_directory
+#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#                COMMAND ${CMAKE_COMMAND} -E copy
+#                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
+#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+#    endif ()
+#    foreach (QT_LIB ${QT__LIB})
+#        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#                COMMAND ${CMAKE_COMMAND} -E copy
+#                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
+#                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+#    endforeach (QT_LIB)
+#endif ()
