@@ -316,6 +316,5 @@ void XViewer::timerEvent(QTimerEvent *e){
             item->Draw();
         }
     }
-
     QWidget::timerEvent(e);
 }

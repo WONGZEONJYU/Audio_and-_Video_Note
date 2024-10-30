@@ -3,13 +3,18 @@
 
 #include <QWidget>
 #include <QSharedPointer>
+#include "XVideoWidget.hpp"
 
 class XDecodeTask;
 class XDemuxTask;
 class XVideoView;
 
-class XCameraWidget final: public QWidget{
-
+class XCameraWidget final:
+#if 1
+public XVideoWidget {
+#else
+public QWidget
+#endif
     Q_OBJECT
     //拖拽进入
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -22,13 +27,15 @@ class XCameraWidget final: public QWidget{
 
 public:
     explicit XCameraWidget(QWidget *parent = {});
+
     ~XCameraWidget() override = default;
     //渲染视频
-    void Draw() const;
+    void Draw() ;
 private:
     QSharedPointer<XDecodeTask> m_decode_;
     QSharedPointer<XDemuxTask> m_demux_;
     QSharedPointer<XVideoView> m_view_;
+    std::atomic_bool m_is_setStyle{};
 };
 
 #endif

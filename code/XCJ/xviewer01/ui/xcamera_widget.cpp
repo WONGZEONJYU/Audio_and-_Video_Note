@@ -1,7 +1,3 @@
-//
-// Created by Fy-WONG on 2024/10/28.
-//
-
 #include "xcamera_widget.hpp"
 #include <qevent.h>
 #include <QListWidget>
@@ -11,10 +7,15 @@
 #include <xdemuxtask.hpp>
 #include <xvideo_view.hpp>
 #include "xcamera_config.hpp"
-#include <QWindow>
+#include "xcodec_parameters.hpp"
 
 XCameraWidget::XCameraWidget(QWidget *parent) :
-QWidget(parent) {
+#if 1
+XVideoWidget(parent)
+#else
+QWidget(parent)
+#endif
+{
     setAcceptDrops(true);
 }
 
@@ -26,9 +27,9 @@ void XCameraWidget::dragEnterEvent(QDragEnterEvent *event) {
 
 //松开拖拽
 void XCameraWidget::dropEvent(QDropEvent *event) {
-    //qDebug() << event->source()->objectName();
-    const auto wid{dynamic_cast<QListWidget*>(event->source())};
-    //qDebug() << wid->currentRow();
+
+    const auto wid {dynamic_cast<QListWidget*>(event->source())};
+
     const auto &[m_name_, m_url,
         m_sub_url, m_save_path]{XCamera_Config_()->GetCam(wid->currentRow())};
     Open(m_url);
@@ -36,13 +37,14 @@ void XCameraWidget::dropEvent(QDropEvent *event) {
 }
 
 void XCameraWidget::paintEvent(QPaintEvent *event) {
-
-    QStyleOption opt;
-    opt.initFrom(this);
-    QPainter painter(this);
-    style()->drawPrimitive(QStyle::PE_Widget, &opt,
-        &painter, this);
-    QWidget::paintEvent(event);
+    if (!m_is_setStyle) {
+        m_is_setStyle = true;
+        QStyleOption opt;
+        opt.initFrom(this);
+        QPainter painter(this);
+        style()->drawPrimitive(QStyle::PE_Widget, &opt,&painter,this);
+    }
+    QOpenGLWidget::paintEvent(event);
 }
 
 bool XCameraWidget::Open(const QString &url){
@@ -58,9 +60,11 @@ bool XCameraWidget::Open(const QString &url){
     }else {
         m_decode_->Stop();
     }
+#if 0
     if (!m_view_){
         TRY_CATCH(CHECK_EXC(m_view_.reset(XVideoView::create())),return {});
     }
+#endif
     //打开解封转
     IS_FALSE_(m_demux_->Open(url.toStdString()),return {});
 
@@ -72,33 +76,32 @@ bool XCameraWidget::Open(const QString &url){
     //设定解码线程接收解封转数据
     m_demux_->set_next(m_decode_.get());
 
+    Init(parm->Width(),parm->Height());
+#if 0
     //初始化渲染
-    const auto wid{QWindow::fromWinId(this->winId())};
-
-    //m_view_->Set_Win_ID(reinterpret_cast<void*>(wid->winId()));
-    m_view_->Set_Win_ID(reinterpret_cast<void *>(this->winId()));
-
-     qDebug() << "QWindow wid = " << wid->winId();
-     qDebug() << "win = " << winId();
+    m_view_->Set_Win_ID(reinterpret_cast<void *>(winId()));
     m_view_->Init(*parm);
-    m_view_->ShowWindow();
+#endif
 
     m_demux_->Start();
     m_decode_->Start();
     return true;
 }
 
-void XCameraWidget::Draw() const {
-    if (!m_demux_ || !m_decode_ || !m_view_){
+void XCameraWidget::Draw() {
+#if 0
+    if (!m_demux_ || !m_decode_ || !m_view_) {
         return;
     }
-    // const auto f{m_decode_->CopyFrame()};
-    // if (!f){
-    //     return;
-    // }
-
     if (const auto f{m_decode_->CopyFrame()}) {
         m_view_->DrawFrame(*f);
     }
-    //m_view_->Is_Exit_Window();
+#endif
+    if (!m_decode_ || !m_demux_) {
+        return;
+    }
+
+    if (const auto f{m_decode_->CopyFrame()}) {
+        Repaint(*f);
+    }
 }

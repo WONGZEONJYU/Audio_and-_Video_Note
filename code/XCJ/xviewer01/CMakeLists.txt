@@ -9,6 +9,7 @@ set(CMAKE_AUTOUIC ON)
 add_definitions(-DHAVE_FFMPEG)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 add_definitions(-DHAVE_SDL2)
+add_definitions(-DHAVE_OPENGL)
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     add_definitions(-DWINDOWS)
@@ -76,6 +77,8 @@ find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
+        OpenGL
+        OpenGLWidgets
         REQUIRED)
 
 #######添加应用程序系统级图标#######
@@ -106,4 +109,6 @@ target_link_libraries(
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt6::OpenGL
+        Qt6::OpenGLWidgets
 )
