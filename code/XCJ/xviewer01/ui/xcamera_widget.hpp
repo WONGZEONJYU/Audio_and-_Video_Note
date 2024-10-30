@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QSharedPointer>
-#include "XVideoWidget.hpp"
+#include "xvideo_widget.hpp"
 
 class XDecodeTask;
 class XDemuxTask;

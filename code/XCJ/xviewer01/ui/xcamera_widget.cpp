@@ -88,10 +88,10 @@ bool XCameraWidget::Open(const QString &url){
 
     //初始化渲染
 #ifdef MACOS
-    Init(*parm);
+    IS_FALSE_(Init(*parm),return {});
 #else
     m_view_->Set_Win_ID(reinterpret_cast<void *>(winId()));
-    m_view_->Init(*parm);
+    IS_FALSE_(m_view_->Init(*parm),return {});
 #endif
 
     m_demux_->Start();
