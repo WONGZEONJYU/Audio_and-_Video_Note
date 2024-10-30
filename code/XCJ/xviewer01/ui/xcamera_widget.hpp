@@ -10,10 +10,10 @@ class XDemuxTask;
 class XVideoView;
 
 class XCameraWidget final:
-#if 1
-public XVideoWidget {
+#ifdef MACOS
+protected XVideoWidget {
 #else
-public QWidget
+public QWidget{
 #endif
     Q_OBJECT
     //拖拽进入
@@ -30,12 +30,21 @@ public:
 
     ~XCameraWidget() override = default;
     //渲染视频
+#ifdef MACOS
     void Draw() ;
+#else
+    void Draw() const;
+#endif
+
 private:
     QSharedPointer<XDecodeTask> m_decode_;
     QSharedPointer<XDemuxTask> m_demux_;
+#ifndef MACOS
     QSharedPointer<XVideoView> m_view_;
-    std::atomic_bool m_is_setStyle{};
+#else
+    std::atomic_bool m_is_setStyle{}; //在使用QT_OPENGL时使用
+#endif
+
 };
 
 #endif

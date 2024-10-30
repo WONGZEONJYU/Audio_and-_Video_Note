@@ -7,10 +7,9 @@
 #include <xdemuxtask.hpp>
 #include <xvideo_view.hpp>
 #include "xcamera_config.hpp"
-#include "xcodec_parameters.hpp"
 
 XCameraWidget::XCameraWidget(QWidget *parent) :
-#if 1
+#ifdef MACOS
 XVideoWidget(parent)
 #else
 QWidget(parent)
@@ -37,14 +36,23 @@ void XCameraWidget::dropEvent(QDropEvent *event) {
 }
 
 void XCameraWidget::paintEvent(QPaintEvent *event) {
-    if (!m_is_setStyle) {
-        m_is_setStyle = true;
+
+    const auto temp_func{[this] {
         QStyleOption opt;
         opt.initFrom(this);
         QPainter painter(this);
         style()->drawPrimitive(QStyle::PE_Widget, &opt,&painter,this);
+    }};
+
+#ifdef MACOS
+    if (!m_is_setStyle) {
+        m_is_setStyle = true;
+        temp_func();
     }
     QOpenGLWidget::paintEvent(event);
+#else
+    temp_func();
+#endif
 }
 
 bool XCameraWidget::Open(const QString &url){
@@ -60,11 +68,13 @@ bool XCameraWidget::Open(const QString &url){
     }else {
         m_decode_->Stop();
     }
-#if 0
+
+#ifndef MACOS
     if (!m_view_){
         TRY_CATCH(CHECK_EXC(m_view_.reset(XVideoView::create())),return {});
     }
 #endif
+
     //打开解封转
     IS_FALSE_(m_demux_->Open(url.toStdString()),return {});
 
@@ -76,9 +86,10 @@ bool XCameraWidget::Open(const QString &url){
     //设定解码线程接收解封转数据
     m_demux_->set_next(m_decode_.get());
 
-    Init(parm->Width(),parm->Height());
-#if 0
     //初始化渲染
+#ifdef MACOS
+    Init(*parm);
+#else
     m_view_->Set_Win_ID(reinterpret_cast<void *>(winId()));
     m_view_->Init(*parm);
 #endif
@@ -88,16 +99,10 @@ bool XCameraWidget::Open(const QString &url){
     return true;
 }
 
+#ifdef MACOS
 void XCameraWidget::Draw() {
-#if 0
-    if (!m_demux_ || !m_decode_ || !m_view_) {
-        return;
-    }
-    if (const auto f{m_decode_->CopyFrame()}) {
-        m_view_->DrawFrame(*f);
-    }
-#endif
-    if (!m_decode_ || !m_demux_) {
+
+    if (!m_decode_ || !m_demux_ ) {
         return;
     }
 
@@ -105,3 +110,15 @@ void XCameraWidget::Draw() {
         Repaint(*f);
     }
 }
+#else
+void XCameraWidget::Draw() const {
+
+    if (!m_decode_ || !m_demux_ || !m_view_) {
+        return;
+    }
+
+    if (const auto f{m_decode_->CopyFrame()}) {
+        m_view_->DrawFrame(*f);
+    }
+}
+#endif

@@ -2,6 +2,7 @@
 #include <QByteArray>
 #include <algorithm>
 #include <xavframe.hpp>
+#include <xcodec_parameters.hpp>
 
 //attribute新版已经弃用
 //varying新版已经弃用
