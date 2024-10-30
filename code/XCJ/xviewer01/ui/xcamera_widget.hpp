@@ -11,7 +11,7 @@ class XVideoView;
 
 class XCameraWidget final:
 #ifdef MACOS
-protected XVideoWidget {
+public XVideoWidget {
 #else
 public QWidget{
 #endif
