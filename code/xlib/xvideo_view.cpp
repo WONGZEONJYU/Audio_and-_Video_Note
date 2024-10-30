@@ -59,9 +59,9 @@ XVideoView_sp XVideoView::create_sp(const RenderType &renderType) {
     }
 }
 
-bool XVideoView::Init(const XCodecParameters &parm,const std::string &win_title){
+bool XVideoView::Init(const XCodecParameters &parameters,const std::string &win_title){
     
-    auto fmt{parm.Video_pixel_format()};
+    auto fmt{parameters.Video_pixel_format()};
     switch (fmt) {
         case AV_PIX_FMT_YUV420P:
         case AV_PIX_FMT_YUVJ420P:
@@ -71,7 +71,7 @@ bool XVideoView::Init(const XCodecParameters &parm,const std::string &win_title)
             break;
     }
     
-    return Init(parm.Width(),parm.Height(),static_cast<Format>(fmt),win_title);
+    return Init(parameters.Width(),parameters.Height(),static_cast<Format>(fmt),win_title);
 }
 
 void XVideoView::calc_fps() {

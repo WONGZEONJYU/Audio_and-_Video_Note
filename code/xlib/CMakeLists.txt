@@ -5,10 +5,12 @@ add_definitions(-DUNICODE -D_UNICODE)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_definitions(-DHAVE_FFMPEG)
 add_definitions(-D__STDC_CONSTANT_MACROS)
+add_definitions(-DHAVE_FFMPEG)
 add_definitions(-DHAVE_SDL2)
+add_definitions(-DHAVE_OPENGL)
 
+find_package(OpenGL REQUIRED)
 file(GLOB SOURCE_FILE "${CMAKE_SOURCE_DIR}/*.cpp" "${CMAKE_SOURCE_DIR}/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILE})
 
@@ -84,5 +86,5 @@ file(COPY ${HEADER_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/includ
 
 #file(COPY "${PROJECT_NAME}.lib" DESTINATION ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib)
 
-target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS} ${SDL_LIBS})
+target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS} ${SDL_LIBS} OpenGL::GL)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}})
