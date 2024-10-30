@@ -69,7 +69,7 @@ private:
     //YUV数据空间
     QVector<QByteArray> m_yuv_datum_;
 
-    std::atomic_int m_w_{},m_h_{},
+    QAtomicInt m_w_{},m_h_{},
                     m_half_w_{},m_half_h_{};
 };
 

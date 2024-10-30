@@ -117,46 +117,41 @@ void XVideoWidget::initializeGL() {
     qDebug() << "OpenGL GLSL version: " <<  reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     //program加载shader(顶点和片元)脚本
-    //m_shader = new QOpenGLShaderProgram(this);
     TRY_CATCH(CHECK_EXC(m_shader_.reset(new QOpenGLShaderProgram(this))),return);
 
     //m_shader->create(); //通常不需要手动调用,因为 addShader, link, 等函数会隐式创建。
     //顶点shader
-    qDebug() << m_shader_->addShaderFromSourceCode(QOpenGLShader::Vertex,Vertex_shader);
+    IS_FALSE_(m_shader_->addShaderFromSourceCode(QOpenGLShader::Vertex,Vertex_shader));
     qDebug() << m_shader_->log();
 
     //片元shader
-    qDebug() << m_shader_->addShaderFromSourceCode(QOpenGLShader::Fragment,Fragment_shader);
+    IS_FALSE_(m_shader_->addShaderFromSourceCode(QOpenGLShader::Fragment,Fragment_shader));
     qDebug() << m_shader_->log();
 
     //编译shader
-    qDebug() << "m_shader->link() = " << m_shader_->link();
+    IS_FALSE_(m_shader_->link());
     qDebug() << m_shader_->log();
     //绑定shader
-    qDebug() << "program.bind() = " << m_shader_->bind();
+    IS_FALSE_(m_shader_->bind());
     qDebug() << m_shader_->log();
 
     // VAO VBO EBO详情看链接到解释
-    // https://blog.csdn.net/weixin_44179561/article/details/124275761
+    //https://blog.csdn.net/weixin_44179561/article/details/124275761
     //https://learnopengl-cn.readthedocs.io/zh/latest/01%20Getting%20started/05%20Shaders/
 
     TRY_CATCH(CHECK_EXC(m_VAO_.reset(new QOpenGLVertexArrayObject(this))),return);
-
-//    m_VAO->create();
-//    m_VAO->bind();
-    QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
-    //代替m_VAO->create(); m_VAO->bind();m_VAO->release();
-    //采用RAII技术
+    const QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
+    //采用RAII技术代替m_VAO->create(); m_VAO->bind();m_VAO->release();
 
     TRY_CATCH(CHECK_EXC(m_VBO_.reset(new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))),return);
     m_VBO_->create();
-    qDebug() << "m_VBO->bind() = " << m_VBO_->bind();
+    IS_FALSE_(m_VBO_->bind());
     m_VBO_->allocate(ver_tex_coordinate, sizeof(ver_tex_coordinate));
     m_VBO_->setUsagePattern(QOpenGLBuffer::StaticDraw);
 
     TRY_CATCH(CHECK_EXC(m_EBO_.reset(new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer))),return);
     m_EBO_->create();
-    qDebug() << "m_EBO->bind() = " << m_EBO_->bind();
+    IS_FALSE_(m_EBO_->bind());
     m_EBO_->allocate(direction, sizeof(direction));
 
     //传递顶点和材质坐标
@@ -222,10 +217,10 @@ void XVideoWidget::paintGL() {
         IS_FALSE_(!item.isEmpty(),return);
     }
 
-    QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
+    const QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
     //m_VAO->bind(); //被QOpenGLVertexArrayObject::Binder vao(m_VAO);取代
 
-    XRAII r([this]{
+    const XRAII r([this]{
         IS_FALSE_(m_shader_->bind());
         IS_FALSE_(m_VBO_->bind());
         IS_FALSE_(m_EBO_->bind());
@@ -313,9 +308,9 @@ bool XVideoWidget::Init(const int &w,const int&h) noexcept(true) {
         PRINT_ERR_TIPS(GET_STR(Please call the show() function first));
         return {});
 
-    QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
+    const QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
 
-    XRAII r([this]{
+    const XRAII r([this]{
         IS_FALSE_(m_shader_->bind());
         IS_FALSE_(m_VBO_->bind());
         IS_FALSE_(m_EBO_->bind());
@@ -412,7 +407,7 @@ void XVideoWidget::copy_y(const XAVFrame &frame){
     for(uint32_t i{};i < m_h_;++i){
         const auto src{frame.data[0] + frame.linesize[0] * i};
         const auto dst{m_yuv_datum_[0].data() + m_w_ * i};
-        std::copy_n(src,m_w_.load(),dst);
+        std::copy_n(src,m_w_,dst);
     }
 }
 
@@ -427,7 +422,7 @@ void XVideoWidget::copy_uv(const XAVFrame &frame){
         for (uint32_t i{}; i < m_half_h_ ; ++i) {
             const auto src{frame.data[n] + frame.linesize[n] * i};
             const auto dst{m_yuv_datum_[n].data() + m_half_w_ * i};
-            std::copy_n(src,m_half_w_.load(),dst);
+            std::copy_n(src,m_half_w_,dst);
         }
     }
 }
