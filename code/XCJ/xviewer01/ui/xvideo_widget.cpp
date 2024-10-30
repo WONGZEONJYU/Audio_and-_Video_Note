@@ -1,5 +1,8 @@
 #include "xvideo_widget.hpp"
-#include <QByteArray>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLBuffer>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLTexture>
 #include <algorithm>
 #include <xavframe.hpp>
 #include <xcodec_parameters.hpp>

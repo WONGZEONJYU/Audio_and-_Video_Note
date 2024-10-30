@@ -5,17 +5,19 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #endif
-#include <QOpenGLShaderProgram>
+
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
-#include <QOpenGLBuffer>
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLTexture>
 #include <QMutex>
 #include <QSharedPointer>
 #include <QVector>
 #include <xcodec_parameters.hpp>
 #include <xhelper.hpp>
+
+class QOpenGLShaderProgram;
+class QOpenGLBuffer;
+class QOpenGLVertexArrayObject;
+class QOpenGLTexture;
 
 class XVideoWidget : public QOpenGLWidget,
                            protected QOpenGLFunctions
