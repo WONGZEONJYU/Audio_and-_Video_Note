@@ -1,8 +1,10 @@
 #include <QApplication>
+#include <filesystem>
 #include "ui/xviewer.hpp"
 #include "xcamera_config.hpp"
 #define TEST_CAM "test.db"
 #include <QString>
+#include "xcamera_record.hpp"
 
 int main(int argc,char *argv[]) {
 #if 0
@@ -51,6 +53,15 @@ int main(int argc,char *argv[]) {
 
 #endif
 
+#if 1
+    constexpr auto save_path{GET_STR(./video/0/)};
+    std::filesystem::create_directories(save_path);
+
+    XCameraRecord record;
+    record.set_rtsp_url("rtsp://admin:123456@10.10.10.254/stream0");
+    record.set_save_path(save_path);
+    record.Start();
+#endif
     QApplication a(argc, argv);
 
     if (const auto xviewer{XViewer::create()}){
