@@ -147,6 +147,7 @@ struct QP_CRF_Base {
     [[nodiscard]] inline constexpr explicit operator auto() const{return m_value_;}
 protected:
     inline constexpr explicit QP_CRF_Base(const long long &v):m_value_(v){}
+private:
     long long m_value_{};
 };
 
