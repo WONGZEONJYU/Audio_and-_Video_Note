@@ -1,8 +1,8 @@
-#include "xcamera_recode.hpp"
+#include "xcamera_record.hpp"
 #include <xdemuxtask.hpp>
 #include <xmuxtask.hpp>
 
-void XCameraRecode::Main() {
+void XCameraRecorde::Main() {
 
     XDemuxTask demux_task;
     XMuxTask mux_task;
@@ -17,9 +17,18 @@ void XCameraRecode::Main() {
         }
         XHelper::MSleep(10);
     }
+
     //获取到音视频参数
     const auto vp{demux_task.CopyVideoParm()};
-    const auto ap{demux_task.CopyAudioParm()};
     CHECK_FALSE_(vp.operator bool(),demux_task.Stop();return);
-    mux_task.Open(m_rtsp_url_,*vp,ap ? *ap : XCodecParameters());
+
+    demux_task.Start(); //启动解封装,提前启动,防止查超时
+
+    const auto ap{demux_task.CopyAudioParm()};
+
+    CHECK_FALSE_(mux_task.Open(m_rtsp_url_,*vp,ap ? *ap : XCodecParameters()),
+        demux_task.Stop();mux_task.Stop();return);
+
+    demux_task.set_next(&mux_task);
+    mux_task.Start();
 }
