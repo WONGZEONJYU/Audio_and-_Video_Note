@@ -29,11 +29,14 @@ void XDecodeTask::Main() {
     {
         unique_lock locker(m_mutex_);
         if (!m_frame_){
-            if (!((m_frame_ = new_XAVFrame()))) {
-                while (!m_is_exit_) {
-                    PRINT_ERR_TIPS(GET_STR(new_XAVFrame error!));
-                    sleep_for(1ms);
+            while (!m_is_exit_) {
+                if ((m_frame_ = new_XAVFrame())) {
+                    break;
                 }
+                PRINT_ERR_TIPS(GET_STR(new_XAVFrame error!));
+                locker.unlock();
+                sleep_for(1ms);
+                locker.lock();
             }
         }
     }

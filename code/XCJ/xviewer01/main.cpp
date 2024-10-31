@@ -68,6 +68,5 @@ int main(int argc,char *argv[]) {
         xviewer->show();
         return QApplication::exec();
     }
-
     return -1;
 }

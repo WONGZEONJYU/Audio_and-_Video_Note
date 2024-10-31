@@ -1,6 +1,7 @@
 #include "xmuxtask.hpp"
 #include "xmux.hpp"
 #include "xcodec_parameters.hpp"
+#include "xavpacket.hpp"
 
 void XMuxTask::Do(XAVPacket &pkt){
 
@@ -10,10 +11,27 @@ void XMuxTask::Do(XAVPacket &pkt){
 
 void XMuxTask::Main() {
     m_xmux_.WriteHead();
+
     while (!m_is_exit_) {
         std::unique_lock locker(m_mux_);
-        auto pkt{m_pkts_.Pop()};
+        const auto pkt{m_pkts_.Pop()};
         if (!pkt){
+            locker.unlock();
+            XHelper::MSleep(1);
+            continue;
+        }
+        if (m_xmux_.video_index() == pkt->stream_index
+            && pkt->flags & AV_PKT_FLAG_KEY) {
+            m_xmux_.Write(*pkt);
+            break;
+        }
+    }
+
+    while (!m_is_exit_) {
+        std::unique_lock locker(m_mux_);
+        const auto pkt{m_pkts_.Pop()};
+        if (!pkt){
+            locker.unlock();
             XHelper::MSleep(1);
             continue;
         }
