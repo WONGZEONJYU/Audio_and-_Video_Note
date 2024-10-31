@@ -7,10 +7,7 @@ extern "C"{
 
 AVFormatContext *XDemux::Open(const std::string &url) {
 
-    if (url.empty()){
-        PRINT_ERR_TIPS(GET_STR(url is empty!));
-        return {};
-    }
+    IS_FALSE_(!url.empty(),PRINT_ERR_TIPS(GET_STR(url is empty!));return {});
 
     AVFormatContext *c{};
     AVDictionary *opts{};

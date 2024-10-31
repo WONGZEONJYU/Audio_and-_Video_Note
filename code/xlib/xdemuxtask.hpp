@@ -20,4 +20,4 @@ public:
     X_DISABLE_COPY_MOVE(XDemuxTask)
 };
 
-#endif //INC_126_RTSP_DEMUX_THREAD_XDEMUXTASK_HPP
+#endif

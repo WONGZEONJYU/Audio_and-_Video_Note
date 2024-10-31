@@ -6,6 +6,8 @@
 #include <chrono>
 #include "xavpacket.hpp"
 
+using namespace std;
+using namespace std::this_thread;
 using namespace std::chrono;
 
 bool XDemuxTask::Open(const std::string &url, const uint64_t &time_out) {
@@ -27,15 +29,15 @@ void XDemuxTask::Main() {
     XAVPacket pkt;
     while (!m_is_exit_) {
         if (!m_demux_.Read(pkt)){
-            std::cout << GET_STR(-);
+            cout << GET_STR(-) << flush;
             if (!m_demux_.is_connected()){
                 Open(m_url_,m_timeout_ms_);
             }
-            std::this_thread::sleep_for(1ms);
+            sleep_for(1ms);
             continue;
         }
-        std::cout << GET_STR(.);
+        cout << GET_STR(.) << flush;
         Next(pkt);
-        std::this_thread::sleep_for(1ms);
+        sleep_for(1ms);
     }
 }

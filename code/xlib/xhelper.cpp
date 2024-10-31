@@ -76,7 +76,7 @@ namespace XHelper {
                        const int &line,const int &err_code) noexcept(false) {
         if (err_code < 0){
             stringstream err_msg;
-            err_msg << "\nffmpeg error:" << err_code <<
+            err_msg << "\nffmpeg error: " << err_code <<
                         " at " << file << " : " << line <<
                         " -for " << func << " wrong reason: " <<
                         av_get_err(err_code) << "\n";
@@ -107,9 +107,7 @@ namespace XHelper {
 
 #ifdef HAVE_OPENGL
     void checkOpenGLError(const string &stmt, const string &fname,const int &line) noexcept(true){
-
-        const auto err{glGetError()};
-        if(GL_NO_ERROR != err) {
+        if(const auto err{glGetError()}; GL_NO_ERROR != err) {
             cerr << "OpenGL error :" << err << " at " <<
                 fname << ":" << line << " - for " << stmt << "\n" << flush;
         }
@@ -158,11 +156,11 @@ namespace XHelper {
     }
 
     void check_EXC(const string &func,const string &file,
-                   const int &line,const exception &e) noexcept(false){
-        stringstream err_msg;
-        err_msg << "\nerror: at " << file << " : " << line <<
-                " -for " << func << " wrong reason: " << e.what() << '\n';
-        throw runtime_error(err_msg.str());
+                   const int &line,const exception &e) noexcept(false) {
+            stringstream err_msg;
+            err_msg << "\nerror: at " << file << " : " << line <<
+                    " -for " << func << " wrong reason: " << e.what() << "\n";
+            throw runtime_error(err_msg.str());
     }
 
     error_code make_error_code_helper(const int &errcode) noexcept(true) {
@@ -172,7 +170,7 @@ namespace XHelper {
     void print_err_tips(const string &func,const string &file,
                         const int &line,const string &msg) noexcept(true){
         stringstream err_msg;
-        err_msg << "\nerror: at" << file << " : " << line <<
+        err_msg << "\nerror: at " << file << " : " << line <<
                 " -for " << func << " wrong reason: " << msg << '\n';
         cerr << err_msg.str() << flush;
     }
@@ -200,7 +198,7 @@ namespace XHelper {
               const string &msg,
               const int &level) {
         stringstream log_ss;
-        log_ss << GET_STR(\nlog level : ) << " " << level << " msg : " <<
+        log_ss << "\nlog level : " << level << " msg : " <<
             func << " : " << file + " : " << line << " : " << msg;
         if (XLOG_TYPE_DEBUG == level || level == XLOG_TYPE_INFO){
             cout << log_ss.str() << "\n" << flush;

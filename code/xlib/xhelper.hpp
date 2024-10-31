@@ -233,7 +233,7 @@ namespace XHelper  {
 
 template<typename F>
 struct Destroyer final{
-    X_DISABLE_COPY(Destroyer)
+
     constexpr inline explicit Destroyer(F &&f):
     fn(std::move(f)){}
 
@@ -251,11 +251,13 @@ struct Destroyer final{
 private:
     F fn;
     std::atomic_bool is_destroy{};
+    X_DISABLE_COPY(Destroyer)
 };
 
-template<typename F1,typename F2>
+template<typename F2>
 struct XRAII final {
-    X_DISABLE_COPY(XRAII)
+
+    template<typename F1>
     constexpr inline explicit XRAII(F1 &&f1,F2 &&f2):
     m_f2(std::move(f2)){
         f1();
@@ -273,8 +275,9 @@ struct XRAII final {
     }
 
 private:
-    F2 m_f2;
+    F2 m_f2{};
     std::atomic_bool m_is_destroy{};
+    X_DISABLE_COPY(XRAII)
 };
 
 #endif

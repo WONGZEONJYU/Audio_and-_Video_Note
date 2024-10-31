@@ -30,8 +30,8 @@ AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
     //3.设置参数,解码
     codec_ctx->time_base = {1,25};
     codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
-    codec_ctx->thread_count = static_cast<int>(std::thread::hardware_concurrency());
-
+    const auto thread_count {static_cast<int>(std::thread::hardware_concurrency())};
+    codec_ctx->thread_count = thread_count > 16 ? 16 : thread_count;
     return codec_ctx;
 }
 

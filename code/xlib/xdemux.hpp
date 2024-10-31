@@ -5,7 +5,7 @@
 
 class XAVPacket;
 
-class XLIB_API XDemux : public XFormat{
+class XLIB_API XDemux : public XFormat {
 
 public:
     static AVFormatContext *Open(const std::string &url);

@@ -7,8 +7,7 @@ class XLIB_API XFormat {
 
     static int Time_out_callback(void *);
     void destroy_fmt_ctx();
-    void destroy();
-
+    void destroy_();
 public:
     /**
      * 设置AVFormatContext,线程安全,ctx传nullptr,代表要销毁当前上下文
@@ -87,7 +86,7 @@ public:
      * 是否断开重连
      * @return
      */
-    [[nodiscard]] auto is_connected(){return m_is_connected_.load();}
+    [[nodiscard]] auto is_connected() const {return m_is_connected_.load();}
 
 protected:
     std::mutex m_mux_;

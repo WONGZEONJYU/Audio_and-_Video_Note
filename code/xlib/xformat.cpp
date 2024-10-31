@@ -1,7 +1,3 @@
-//
-// Created by wong on 2024/9/21.
-//
-
 extern "C"{
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
@@ -40,8 +36,7 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
     m_last_time_ = XHelper::Get_time_ms();
 
     if (m_time_out_ms_ > 0){
-        const AVIOInterruptCB cb {Time_out_callback, this};
-        m_fmt_ctx_->interrupt_callback = cb;
+        m_fmt_ctx_->interrupt_callback = {Time_out_callback, this};
     }
 
     m_audio_index_ = m_video_index_ = -1;
@@ -49,8 +44,7 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
     m_audio_timebase_ = {1,44100};
     for (int i {}; i < m_fmt_ctx_->nb_streams; ++i) {
         const auto stream{m_fmt_ctx_->streams[i]};
-        const auto type{stream->codecpar->codec_type};
-        if (AVMEDIA_TYPE_VIDEO == type){
+        if (const auto type{stream->codecpar->codec_type}; AVMEDIA_TYPE_VIDEO == type){
             m_video_index_ = i;
             m_video_timebase_.num = stream->time_base.num;
             m_video_timebase_.den = stream->time_base.den;
@@ -144,13 +138,13 @@ bool XFormat::RescaleTime(XAVPacket &packet, const int64_t &offset_pts, const XR
     return RescaleTime(packet,offset_pts,in_time_base);
 }
 
-void XFormat::destroy() {
+void XFormat::destroy_() {
     std::unique_lock locker(m_mux_);
     destroy_fmt_ctx();
 }
 
 XFormat::~XFormat() {
-    destroy();
+    destroy_();
 }
 
 int XFormat::Time_out_callback(void *const arg) {
@@ -168,8 +162,8 @@ bool XFormat::set_timeout_ms(const uint64_t &ms) {
 }
 
 bool XFormat::IsTimeout() {
-    const auto curr_time{XHelper::Get_time_ms()};
-    if (curr_time - m_last_time_ > m_time_out_ms_) {
+    if (const auto curr_time{XHelper::Get_time_ms()};
+            curr_time - m_last_time_ > m_time_out_ms_) {
         m_is_connected_ = false;
         m_last_time_ = curr_time;
         return true;

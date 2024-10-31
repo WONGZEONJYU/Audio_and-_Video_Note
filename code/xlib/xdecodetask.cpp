@@ -8,30 +8,38 @@
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
 
+using namespace std;
 using namespace std::this_thread;
 using namespace std::chrono;
 
 void XDecodeTask::Do(XAVPacket &pkt) {
-    std::cout << "#";
+
     if (0 != pkt.stream_index){
         return;
     }
-    auto pkt_{new_XAVPacket()};
-    *pkt_ = std::move(pkt);
-    m_pkt_list_.Push(pkt_);
+
+    if(const auto pkt_{new_XAVPacket(pkt)}) {
+        m_pkt_list_.Push(std::move(pkt));
+        cout << "#" << flush;
+    }
 }
 
 void XDecodeTask::Main() {
 
     {
-        std::unique_lock locker(m_mutex_);
+        unique_lock locker(m_mutex_);
         if (!m_frame_){
-            m_frame_ = new_XAVFrame();
+            if (!((m_frame_ = new_XAVFrame()))) {
+                while (!m_is_exit_) {
+                    PRINT_ERR_TIPS(GET_STR(new_XAVFrame error!));
+                    sleep_for(1ms);
+                }
+            }
         }
     }
 
     while (!m_is_exit_){
-        auto pkt{m_pkt_list_.Pop()};
+        const auto pkt{m_pkt_list_.Pop()};
         if (!pkt){
             sleep_for(1ms);
             continue;
@@ -43,7 +51,7 @@ void XDecodeTask::Main() {
         }
 
         {
-            std::unique_lock locker(m_mutex_);
+            unique_lock locker(m_mutex_);
             if (m_decode_.Receive(*m_frame_)){
                 std::cout << "@";
                 m_need_view_ = true;
@@ -63,18 +71,15 @@ bool XDecodeTask::Open(const XCodecParameters_sp &parm) {
     }
 
     parm->to_context(c);
-    std::unique_lock locker(m_mutex_);
+    unique_lock locker(m_mutex_);
     m_decode_.set_codec_ctx(c);
-    if (!m_decode_.Open()) {
-        LOGERROR(GET_STR(Decode::Open failed!));
-        return {};
-    }
+    IS_FALSE_(m_decode_.Open(),return {});
     LOGDINFO(GET_STR(Open codec success!));
     return true;
 }
 
 XAVFrame_sp XDecodeTask::CopyFrame() {
-    std::unique_lock locker(m_mutex_);
+    unique_lock locker(m_mutex_);
     if (!m_need_view_ || !m_frame_ || !m_frame_->buf[0]) {
         return {};
     }

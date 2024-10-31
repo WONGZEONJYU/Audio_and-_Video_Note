@@ -11,6 +11,7 @@ public:
     /**
      * 创建编解码上下文
      * @param codec_id 对应ffmpeg
+     * @param is_encode
      * @return AVCodecContext* or nullptr
      */
     static AVCodecContext *Create(const int &codec_id,const bool &is_encode);
