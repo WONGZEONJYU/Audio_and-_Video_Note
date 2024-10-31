@@ -76,12 +76,12 @@ bool XCameraWidget::Open(const QString &url){
 #endif
 
     //打开解封转
-    IS_FALSE_(m_demux_->Open(url.toStdString()),return {});
+    CHECK_FALSE_(m_demux_->Open(url.toStdString()),return {});
 
     XCodecParameters_sp parm;
-    IS_FALSE_((parm = m_demux_->CopyVideoParm()).operator bool(),return {});
+    CHECK_FALSE_((parm = m_demux_->CopyVideoParm()).operator bool(),return {});
     //打开视频解码器
-    IS_FALSE_(m_decode_->Open(parm),return {});
+    CHECK_FALSE_(m_decode_->Open(parm),return {});
 
     //设定解码线程接收解封转数据
     m_demux_->set_next(m_decode_.get());
@@ -91,7 +91,7 @@ bool XCameraWidget::Open(const QString &url){
     IS_FALSE_(Init(*parm),return {});
 #else
     m_view_->Set_Win_ID(reinterpret_cast<void *>(winId()));
-    IS_FALSE_(m_view_->Init(*parm),return {});
+    CHECK_FALSE_(m_view_->Init(*parm),return {});
 #endif
 
     m_demux_->Start();

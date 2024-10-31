@@ -2,22 +2,23 @@
 #define XMUX_HPP_
 
 #include "xformat.hpp"
+#include "xcodec_parameters.hpp"
 
-class XLIB_API XMux : public XFormat{
+class XLIB_API XMux final : public XFormat{
 
     void destroy();
 
 public:
     static AVFormatContext *Open(const std::string &url,
-                                 const XCodecParameters_sp &video_parm = {},
-                                 const XCodecParameters_sp &audio_parm = {});
+                                 const XCodecParameters &video_parm = {},
+                                 const XCodecParameters &audio_parm = {});
 
     /**
      * 音视频时间基准参数
      * @param tb
      */
-    void set_video_time_base(const AVRational *tb);
-    void set_audio_time_base(const AVRational *tb);
+    void set_video_time_base(const AVRational &tb);
+    void set_audio_time_base(const AVRational &tb);
 
     /**
      * 写入头部信息

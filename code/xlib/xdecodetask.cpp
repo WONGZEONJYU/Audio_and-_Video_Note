@@ -73,7 +73,7 @@ bool XDecodeTask::Open(const XCodecParameters_sp &parm) {
     parm->to_context(c);
     unique_lock locker(m_mutex_);
     m_decode_.set_codec_ctx(c);
-    IS_FALSE_(m_decode_.Open(),return {});
+    CHECK_FALSE_(m_decode_.Open(),return {});
     LOGDINFO(GET_STR(Open codec success!));
     return true;
 }

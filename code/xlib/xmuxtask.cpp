@@ -24,24 +24,22 @@ void XMuxTask::Main() {
 }
 
 bool XMuxTask::Open(const std::string &url,
-                    const XCodecParameters_sp &video_parm,
-                    const XCodecParameters_sp &audio_parm) {
+                    const XCodecParameters &video_parm,
+                    const XCodecParameters &audio_parm) {
 
-    auto c{XMux::Open(url,video_parm,audio_parm)};
+    const auto c{XMux::Open(url,video_parm,audio_parm)};
     if (!c){
         return {};
     }
 
     m_xmux_.set_fmt_ctx(c);
 
-    if (video_parm){
-        const auto tb{video_parm->time_base()};
-        m_xmux_.set_video_time_base(&tb);
+    if (video_parm.Video_pixel_format() >= 0){
+        m_xmux_.set_video_time_base(video_parm.time_base());
     }
 
-    if (audio_parm){
-        const auto tb{audio_parm->time_base()};
-        m_xmux_.set_audio_time_base(&tb);
+    if (audio_parm.Audio_sample_format() >= 0){
+        m_xmux_.set_audio_time_base(audio_parm.time_base());
     }
 
     return true;

@@ -1,7 +1,3 @@
-//
-// Created by wong on 2024/9/26.
-//
-
 #include <sstream>
 #include "xtools.hpp"
 #include "xavpacket.hpp"

@@ -4,7 +4,7 @@
 #include "xtools.hpp"
 #include "xdemux.hpp"
 
-class XLIB_API XDemuxTask : public XThread{
+class XLIB_API XDemuxTask final: public XThread{
 
     void Main() override;
 public:

@@ -7,9 +7,9 @@ extern "C"{
 void XCodecParameters::Reset(AVCodecParameters *obj) noexcept(true) {
     av_freep(&obj->extradata);
     av_channel_layout_uninit(&obj->ch_layout);
-    av_packet_side_data_free(&obj->coded_side_data, &obj->nb_coded_side_data);
+    av_packet_side_data_free(&obj->coded_side_data,&obj->nb_coded_side_data);
 
-    std::fill_n(reinterpret_cast<uint8_t *>(obj), sizeof(AVCodecParameters),0);
+    std::fill_n(reinterpret_cast<uint8_t *>(obj),sizeof(AVCodecParameters),0);
 
     obj->codec_type          = AVMEDIA_TYPE_UNKNOWN;
     obj->codec_id            = AV_CODEC_ID_NONE;
@@ -29,12 +29,12 @@ void XCodecParameters::Reset(AVCodecParameters *obj) noexcept(true) {
 
 void XCodecParameters::Move(XCodecParameters *obj) noexcept(true) {
     auto src_{static_cast<AVCodecParameters*>(obj)};
-    auto dst_{static_cast<decltype(src_)>(this)};
+    const auto dst_{static_cast<decltype(src_)>(this)};
     Reset(dst_);//先释放自身的数据,再进行移动
     *dst_ = *src_;
     m_time_base = obj->m_time_base;
     obj->m_time_base = {1,1};
-    std::fill_n(reinterpret_cast<uint8_t*>(src_), sizeof(AVCodecParameters),0);
+    std::fill_n(reinterpret_cast<uint8_t*>(src_),sizeof(AVCodecParameters),0);
     //std::fill_n此处无法省掉,避免成员extradata,ch_layout,coded_side_data成员被直接释放掉
     Reset(src_);
 }
@@ -68,9 +68,7 @@ XCodecParameters::XCodecParameters(XCodecParameters &&obj) noexcept(true)
 }
 
 XCodecParameters &XCodecParameters::operator=(const XCodecParameters &obj) noexcept(false) {
-
-    auto obj_{std::addressof(obj)};
-    if (this != obj_){
+    if (const auto obj_{std::addressof(obj)}; this != obj_){
         from_AVFormatContext(obj_);
         m_time_base = obj.m_time_base;
     }
@@ -78,9 +76,7 @@ XCodecParameters &XCodecParameters::operator=(const XCodecParameters &obj) noexc
 }
 
 XCodecParameters& XCodecParameters::operator=(XCodecParameters &&obj) noexcept(true) {
-
-    auto obj_{std::addressof(obj)};
-    if (this != obj_){
+    if (const auto obj_{std::addressof(obj)}; this != obj_){
         Move(obj_);
     }
     return *this;

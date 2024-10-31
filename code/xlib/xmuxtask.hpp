@@ -4,13 +4,13 @@
 #include "xtools.hpp"
 #include "xmux.hpp"
 
-class XLIB_API XMuxTask : public XThread {
+class XLIB_API XMuxTask final : public XThread {
     void Main() override;
     void Do(XAVPacket &) override;
 public:
     bool Open(const std::string &url,
-        const XCodecParameters_sp &video_parm = {},
-        const XCodecParameters_sp &audio_parm = {});
+        const XCodecParameters &video_parm = {},
+        const XCodecParameters &audio_parm = {});
 
 private:
     std::mutex m_mux_;

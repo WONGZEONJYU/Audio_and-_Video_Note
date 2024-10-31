@@ -205,7 +205,12 @@ namespace XHelper  {
     }\
 }while(false)
 
-#define IS_FALSE_(x,...)do{\
+/**
+ * x需为false,否则忽略
+ * @param x
+ * @param ... 用于你的处理
+ */
+#define CHECK_FALSE_(x,...)do{\
     const auto b_{x};\
     if (XHelper::is_false(#x,__FILE__,__LINE__,b_)){\
     __VA_ARGS__;}\

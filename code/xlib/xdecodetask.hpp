@@ -4,7 +4,7 @@
 #include "xtools.hpp"
 #include "xdecode.hpp"
 
-class XLIB_API XDecodeTask : public XThread {
+class XLIB_API XDecodeTask final: public XThread {
 
     void Do(XAVPacket &) override;
     void Main() override;

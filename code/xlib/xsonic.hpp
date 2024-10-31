@@ -20,7 +20,7 @@ protected:
     bool m_is_init_{};
 };
 
-class XLIB_API XSonic : protected XSonic_data {
+class XLIB_API XSonic final: protected XSonic_data {
 
     static void scaleSamples(int16_t * ,
                              const int&,

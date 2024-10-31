@@ -77,13 +77,13 @@ bool XViewer::Construct() {
     {
         const auto m{m_left_menu_.addMenu(C(GET_STR(view)))};
         auto a{m->addAction(C(GET_STR(1)))};
-        IS_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View1),return {});
+        CHECK_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View1),return {});
         a = m->addAction(C(GET_STR(4)));
-        IS_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View4),return {});
+        CHECK_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View4),return {});
         a = m->addAction(C(GET_STR(9)));
-        IS_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View9),return {});
+        CHECK_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View9),return {});
         a = m->addAction(C(GET_STR(16)));
-        IS_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View16),return {});
+        CHECK_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View16),return {});
     }
 
     //默认显示9个窗口
@@ -189,7 +189,7 @@ void XViewer::SetCam(const int &index) {
     lay.addRow(C(GET_STR(保存路径)),&save_path_edit);
 
     QPushButton save_(C(GET_STR(保存)));
-    IS_FALSE_(QObject::connect(&save_,&QPushButton::clicked,&dlg,&QDialog::accept));
+    CHECK_FALSE_(QObject::connect(&save_,&QPushButton::clicked,&dlg,&QDialog::accept));
     lay.addRow(&save_);
 
     const auto c{XCamera_Config_()};
@@ -239,7 +239,7 @@ void XViewer::SetCam(const int &index) {
 
     index >= 0 ? (void)c->SetCam(index,data) : c->Push(data);
 
-    IS_FALSE_(c->Save(CAM_CONF_PATH));
+    CHECK_FALSE_(c->Save(CAM_CONF_PATH));
     RefreshCams();
 }
 
