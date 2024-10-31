@@ -53,7 +53,7 @@ int main(int argc,char *argv[]) {
 
     QApplication a(argc, argv);
 
-    if (auto xviewer{XViewer::create()}){
+    if (const auto xviewer{XViewer::create()}){
         xviewer->show();
         return QApplication::exec();
     }

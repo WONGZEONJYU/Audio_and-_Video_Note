@@ -105,7 +105,6 @@ target_link_libraries(
         ${SDL_LIBS}
         ${FFMPEG_LIBS}
         ${XLIB}
-        #xlib
         Qt::Core
         Qt::Gui
         Qt::Widgets
