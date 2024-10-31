@@ -1,6 +1,8 @@
 #ifndef XVIDEO_WIDGET_HPP
 #define XVIDEO_WIDGET_HPP
 
+#ifdef MACOS
+
 #if defined(__APPLE__) && defined(__MACH__)
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
@@ -11,7 +13,6 @@
 #include <QMutex>
 #include <QSharedPointer>
 #include <QVector>
-#include <xcodec_parameters.hpp>
 #include <xhelper.hpp>
 
 class QOpenGLShaderProgram;
@@ -72,5 +73,7 @@ private:
     QAtomicInt m_w_{},m_h_{},
                     m_half_w_{},m_half_h_{};
 };
+
+#endif
 
 #endif

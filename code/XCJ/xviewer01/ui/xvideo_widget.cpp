@@ -1,3 +1,5 @@
+#ifdef MACOS
+
 #include "xvideo_widget.hpp"
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
@@ -426,3 +428,5 @@ void XVideoWidget::copy_uv(const XAVFrame &frame){
         }
     }
 }
+
+#endif

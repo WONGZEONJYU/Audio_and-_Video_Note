@@ -1,13 +1,15 @@
-#ifndef XCAMERAWIDGET_HPP
-#define XCAMERAWIDGET_HPP
+#ifndef XCAMERA_WIDGET_HPP
+#define XCAMERA_WIDGET_HPP
 
-#include <QWidget>
-#include <QSharedPointer>
+#ifdef MACOS
 #include "xvideo_widget.hpp"
+#else
+#include <QWidget>
+class XVideoView;
+#endif
 
 class XDecodeTask;
 class XDemuxTask;
-class XVideoView;
 
 class XCameraWidget final:
 #ifdef MACOS
