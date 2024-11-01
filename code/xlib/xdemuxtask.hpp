@@ -4,7 +4,7 @@
 #include "xtools.hpp"
 #include "xdemux.hpp"
 
-class XLIB_API XDemuxTask final: public XThread{
+class XLIB_API XDemuxTask final: public XThread {
 
     void Main() override;
 public:
@@ -17,6 +17,7 @@ private:
     uint64_t m_timeout_ms_{};
 public:
     explicit XDemuxTask() = default;
+    ~XDemuxTask() override;
     X_DISABLE_COPY_MOVE(XDemuxTask)
 };
 

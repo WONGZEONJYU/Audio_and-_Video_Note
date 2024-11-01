@@ -8,9 +8,9 @@ void XThread::_stop_() {
     if (m_th_.joinable()) {
         LOGDINFO(GET_STR(thread begin stop));
         m_th_.join();
-        std::string s(GET_STR(thread end stop :));
-        s += std::to_string(m_index_);
-        LOGDINFO(s);
+        std::stringstream ss;
+        ss << GET_STR(thread end stop index:) << m_index_ << " ";
+        LOGDINFO(ss.str());
     }
 }
 
@@ -19,7 +19,7 @@ void XThread::Start() {
     m_is_exit_ = false;
     std::unique_lock locker(m_mux_);
     m_th_ = std::thread(&XThread::Main, this);
-    m_index_.store(i++);
+    m_index_ = i++;
     std::stringstream ss;
     ss << GET_STR(thread start index:) << m_index_ << " ";
     LOGDINFO(ss.str());

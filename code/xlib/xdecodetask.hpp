@@ -30,6 +30,7 @@ private:
     std::atomic_bool m_need_view_;
 public:
     explicit XDecodeTask() = default;
+    ~XDecodeTask() override;
     X_DISABLE_COPY_MOVE(XDecodeTask)
 };
 

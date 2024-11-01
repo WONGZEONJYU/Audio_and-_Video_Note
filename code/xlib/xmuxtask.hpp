@@ -23,7 +23,7 @@ private:
 
 public:
     explicit  XMuxTask() = default;
-    ~XMuxTask() override = default;
+    ~XMuxTask() override ;
     X_DISABLE_COPY_MOVE(XMuxTask)
 };
 

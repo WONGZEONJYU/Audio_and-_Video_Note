@@ -90,3 +90,7 @@ XAVFrame_sp XDecodeTask::CopyFrame() {
     m_need_view_ = false;
     return f;
 }
+
+XDecodeTask::~XDecodeTask() {
+    XThread::Stop();
+}

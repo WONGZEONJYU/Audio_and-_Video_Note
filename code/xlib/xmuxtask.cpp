@@ -70,3 +70,7 @@ bool XMuxTask::Open(const std::string &url,
     return Open(url, video_parm ? *video_parm : XCodecParameters(),
         audio_parm ? *audio_parm : XCodecParameters());
 }
+
+XMuxTask::~XMuxTask() {
+    XThread::Stop();
+}
