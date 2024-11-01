@@ -5,10 +5,12 @@
 #include <QLineEdit>
 #include <QFormLayout>
 #include <QMessageBox>
+#include <QDir>
 #include "xviewer.hpp"
 #include "ui_xviewer.h"
 #include <xhelper.hpp>
 #include "xcamera_config.hpp"
+#include "xcamera_record.hpp"
 #include "xcamera_widget.hpp"
 
 #if _WIN32
@@ -84,6 +86,10 @@ bool XViewer::Construct() {
         CHECK_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View9),return {});
         a = m->addAction(C(GET_STR(16)));
         CHECK_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::View16),return {});
+        a = m->addAction(C(GET_STR(Start ALL Record)));
+        CHECK_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::StartRecord),return {});
+        a = m->addAction(C(GET_STR(Stop ALL Record)));
+        CHECK_FALSE_(QObject::connect(a, &QAction::triggered, this, &XViewer::StopRecord),return {});
     }
 
     //默认显示9个窗口
@@ -275,6 +281,28 @@ void XViewer::DelCam() {
     c->DelCam(row);
     (void)c->Save(CAM_CONF_PATH);
     RefreshCams();
+}
+
+void XViewer::StartRecord() {
+    m_ui_->status->setText(GET_STR(录制中。。。));
+    const auto c{XCamera_Config_()};
+    const auto count{c->GetCamCount()};
+    for (int i{}; i < count; ++i) {
+        const auto &[name,url,sub_url,save_path]{c->GetCam(i)};
+        std::stringstream ss;
+        ss << save_path << GET_STR(/) << i << GET_STR(/);
+        QDir dir;
+        (void)dir.mkpath(ss.str().c_str());
+
+        QSharedPointer<XCameraRecord> rec;
+        TRY_CATCH(CHECK_EXC(rec.reset(new XCameraRecord())));
+
+        m_cam_records_.push_back(rec);
+    }
+}
+
+void XViewer::StopRecord() {
+
 }
 
 void XViewer::contextMenuEvent(QContextMenuEvent *event) {

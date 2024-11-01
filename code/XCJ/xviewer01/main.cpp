@@ -53,7 +53,7 @@ int main(int argc,char *argv[]) {
 
 #endif
 
-#if 1
+#if 0
     constexpr auto save_path{GET_STR(./video/0/)};
     std::filesystem::create_directories(save_path);
 
@@ -66,6 +66,7 @@ int main(int argc,char *argv[]) {
     record.set_save_path(save_path);
     record.Start();
 #endif
+
     QApplication a(argc, argv);
 
     if (const auto xviewer{XViewer::create()}){

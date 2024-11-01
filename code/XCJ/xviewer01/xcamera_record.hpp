@@ -29,8 +29,11 @@ private:
 
 public:
     explicit XCameraRecord() = default;
-    ~XCameraRecord() override = default;
+    ~XCameraRecord() override;
     X_DISABLE_COPY_MOVE(XCameraRecord)
 };
+
+using XCameraRecord_sp = std::shared_ptr<XCameraRecord>;
+XCameraRecord_sp newXCameraRecord();
 
 #endif

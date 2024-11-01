@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtGui/QIcon>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QWidget>
@@ -28,6 +29,7 @@ public:
     QPushButton *max;
     QPushButton *close;
     QPushButton *normal;
+    QLabel *status;
     QWidget *body;
     QWidget *left;
     QListWidget *cam_list;
@@ -97,6 +99,14 @@ public:
 "#cams{\n"
 "	background-color: #1e1e1e;\n"
 "}\n"
+"\n"
+"#status{\n"
+"	\n"
+"	color: rgb(255, 255, 255);\n"
+"	font: 700 12pt \"Consolas\";\n"
+"}\n"
+"\n"
+"\n"
 ""));
         head = new QWidget(XViewer);
         head->setObjectName("head");
@@ -128,6 +138,9 @@ public:
         close->raise();
         normal->raise();
         max->raise();
+        status = new QLabel(head);
+        status->setObjectName("status");
+        status->setGeometry(QRect(330, 10, 271, 31));
         body = new QWidget(XViewer);
         body->setObjectName("body");
         body->setGeometry(QRect(10, 60, 781, 531));
@@ -172,6 +185,7 @@ public:
         max->setText(QString());
         close->setText(QString());
         normal->setText(QString());
+        status->setText(QCoreApplication::translate("XViewer", "\347\233\221\346\216\247\344\270\255\343\200\202\343\200\202\343\200\202", nullptr));
         add_cam->setText(QCoreApplication::translate("XViewer", "\346\226\260\345\242\236", nullptr));
         set_cam->setText(QCoreApplication::translate("XViewer", "\344\277\256\346\224\271", nullptr));
         del_cam->setText(QCoreApplication::translate("XViewer", "\345\210\240\351\231\244", nullptr));

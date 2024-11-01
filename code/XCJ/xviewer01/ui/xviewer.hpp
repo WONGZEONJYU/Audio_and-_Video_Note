@@ -14,8 +14,9 @@ QT_END_NAMESPACE
 class XViewer;
 using XViewer_sp = QSharedPointer<XViewer>;
 class XCameraWidget;
+class XCameraRecord;
 
-class XViewer : public QWidget {
+class XViewer final: public QWidget {
 Q_OBJECT
     explicit XViewer(QWidget *parent = nullptr);
     bool Construct();
@@ -60,16 +61,19 @@ private slots:
     void AddCam();
     void SetCam();
     void DelCam();
+
+    void StartRecord();
+    void StopRecord();
 public:
     ~XViewer() override;
 
 private:
     QVector<QSharedPointer<XCameraWidget>> m_cam_wins_;
+    QVector<QSharedPointer<XCameraRecord>> m_cam_records_;
     QSharedPointer<Ui::XViewer> m_ui_{};
     QMenu m_left_menu_;
     bool m_is_mouse_pressed_{};
     QPointF m_mouse_pos_{};
-
 public:
     static XViewer_sp create();
 };

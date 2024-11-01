@@ -62,3 +62,13 @@ void XCameraRecord::Main() {
     mux_task.Stop();
     demux_task.Stop();
 }
+
+XCameraRecord::~XCameraRecord() {
+    XThread::Stop();
+}
+
+XCameraRecord_sp newXCameraRecord() {
+    XCameraRecord_sp obj;
+    TRY_CATCH(CHECK_EXC(obj.reset(new XCameraRecord())),return {});
+    return obj;
+}

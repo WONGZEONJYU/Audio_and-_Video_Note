@@ -70,6 +70,14 @@ QPushButton:!hover
 #cams{
 	background-color: #1e1e1e;
 }
+
+#status{
+	
+	color: rgb(255, 255, 255);
+	font: 700 12pt &quot;Consolas&quot;;
+}
+
+
 </string>
   </property>
   <widget class="QWidget" name="head" native="true">
@@ -174,6 +182,19 @@ QPushButton:!hover
     <zorder>close</zorder>
     <zorder>normal</zorder>
     <zorder>max</zorder>
+   </widget>
+   <widget class="QLabel" name="status">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>10</y>
+      <width>271</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>监控中。。。</string>
+    </property>
    </widget>
   </widget>
   <widget class="QWidget" name="body" native="true">
