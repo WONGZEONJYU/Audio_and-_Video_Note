@@ -28,7 +28,7 @@ void XCameraRecord::Main() {
         if (demux_task.Open(m_rtsp_url_)) { //最坏情况阻塞一秒
             break;
         }
-        XHelper::MSleep(10);
+        XHelper::MSleep(3000);
     }
 
     //获取到音视频参数
@@ -48,19 +48,22 @@ void XCameraRecord::Main() {
     auto present_time{XHelper::Get_time_ms()};
     while (!m_is_exit_) {
 
-        if (const auto now{XHelper::Get_time_ms()};now - present_time > m_file_sec_ * 1000) {
+        if (const auto now{XHelper::Get_time_ms()};
+            now - present_time > m_file_sec_ * 1000) {
             present_time = now;
             mux_task.Stop();
             CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),vp.get(),ap.get()),
-                demux_task.Stop();mux_task.Stop();return);
+//                         mux_task.Stop();
+//                         demux_task.Stop();
+                         return);
             mux_task.Start();
         }
 
         XHelper::MSleep(10);
     }
 
-    mux_task.Stop();
-    demux_task.Stop();
+//    mux_task.Stop();
+//    demux_task.Stop();
 }
 
 XCameraRecord::~XCameraRecord() {

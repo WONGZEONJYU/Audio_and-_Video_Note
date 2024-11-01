@@ -284,7 +284,8 @@ void XViewer::DelCam() {
 }
 
 void XViewer::StartRecord() {
-    m_ui_->status->setText(GET_STR(录制中。。。));
+    StopRecord();
+    m_ui_->status->setText("录制中。。。");
     const auto c{XCamera_Config_()};
     const auto count{c->GetCamCount()};
     for (int i{}; i < count; ++i) {
@@ -293,16 +294,22 @@ void XViewer::StartRecord() {
         ss << save_path << GET_STR(/) << i << GET_STR(/);
         QDir dir;
         (void)dir.mkpath(ss.str().c_str());
-
         QSharedPointer<XCameraRecord> rec;
         TRY_CATCH(CHECK_EXC(rec.reset(new XCameraRecord())));
-
+        if (rec.isNull()){
+            continue;
+        }
+        rec->set_file_sec(10);
+        rec->set_save_path(ss.str());
+        rec->set_rtsp_url(url);
+        rec->Start();
         m_cam_records_.push_back(rec);
     }
 }
 
 void XViewer::StopRecord() {
-
+    m_ui_->status->setText("监控中。。。");
+    m_cam_records_.clear();
 }
 
 void XViewer::contextMenuEvent(QContextMenuEvent *event) {
