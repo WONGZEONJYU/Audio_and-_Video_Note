@@ -48,7 +48,7 @@ void XCameraRecord::Main() {
     auto present_time{XHelper::Get_time_ms()};
     while (!m_is_exit_) {
 
-        if (const auto now{XHelper::Get_time_ms()};now - present_time > m_file_src_ * 1000) {
+        if (const auto now{XHelper::Get_time_ms()};now - present_time > m_file_sec_ * 1000) {
             present_time = now;
             mux_task.Stop();
             CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),*vp,ap ? *ap : XCodecParameters()),

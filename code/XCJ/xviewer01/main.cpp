@@ -58,7 +58,11 @@ int main(int argc,char *argv[]) {
     std::filesystem::create_directories(save_path);
 
     XCameraRecord record;
+#ifdef MACOS
+    record.set_rtsp_url("rtsp://admin:123456@192.168.50.123/stream0");
+#else
     record.set_rtsp_url("rtsp://admin:123456@10.10.10.254/stream0");
+#endif
     record.set_save_path(save_path);
     record.Start();
 #endif
