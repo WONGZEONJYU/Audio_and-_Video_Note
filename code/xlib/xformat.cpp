@@ -134,8 +134,7 @@ bool XFormat::RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const AVRa
 }
 
 bool XFormat::RescaleTime(XAVPacket &packet, const int64_t &offset_pts, const XRational &time_base) const{
-    const AVRational in_time_base{time_base.num,time_base.den};
-    return RescaleTime(packet,offset_pts,in_time_base);
+    return RescaleTime(packet,offset_pts,AVRational{time_base.num,time_base.den});
 }
 
 void XFormat::destroy_() {

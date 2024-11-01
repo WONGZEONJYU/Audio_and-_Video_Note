@@ -39,7 +39,7 @@ void XCameraRecord::Main() {
 
     const auto ap{demux_task.CopyAudioParm()};
 
-    CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),*vp,ap ? *ap : XCodecParameters()),
+    CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),vp.get(),ap.get()),
         demux_task.Stop();mux_task.Stop();return);
 
     demux_task.set_next(&mux_task);
@@ -51,7 +51,7 @@ void XCameraRecord::Main() {
         if (const auto now{XHelper::Get_time_ms()};now - present_time > m_file_sec_ * 1000) {
             present_time = now;
             mux_task.Stop();
-            CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),*vp,ap ? *ap : XCodecParameters()),
+            CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),vp.get(),ap.get()),
                 demux_task.Stop();mux_task.Stop();return);
             mux_task.Start();
         }

@@ -63,18 +63,26 @@ public:
     ~XCodecParameters();
 
     void set_time_base(const AVRational &tb) noexcept(true){
-        m_time_base = tb;
+        m_time_base_ = tb;
     }
 
-    [[nodiscard]] auto time_base() const noexcept(true){return m_time_base;}
+    void set_x_time_base(const XRational &tb) noexcept(true){
+        m_x_time_base_ = {tb.num, tb.den};
+    }
+
+    [[nodiscard]] auto time_base() const noexcept(true){return m_time_base_;}
+    [[nodiscard]] auto x_time_base() const noexcept(true){return m_x_time_base_;}
 
 private:
-    AVRational m_time_base{1,1};
+    AVRational m_time_base_{1,1};
+    XRational m_x_time_base_{1,1};
 };
 
 XLIB_API XCodecParameters_sp new_XCodecParameters();
 XLIB_API XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const AVRational &tb = {1,1});
+XLIB_API XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const XRational &tb = {1,1});
 XLIB_API XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const AVRational &tb = {1,1});
+XLIB_API XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const XRational &tb = {1,1});
 
 #endif
 

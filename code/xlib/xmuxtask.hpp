@@ -9,8 +9,12 @@ class XLIB_API XMuxTask final : public XThread {
     void Do(XAVPacket &) override;
 public:
     bool Open(const std::string &url,
-        const XCodecParameters &video_parm = {},
-        const XCodecParameters &audio_parm = {});
+        const XCodecParameters &video_parm ,
+        const XCodecParameters &audio_parm);
+
+    bool Open(const std::string &url,
+        const XCodecParameters* video_parm = {},
+        const XCodecParameters* audio_parm = {});
 
 private:
     std::mutex m_mux_;

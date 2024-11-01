@@ -2,16 +2,33 @@
 #define XMUX_HPP_
 
 #include "xformat.hpp"
-#include "xcodec_parameters.hpp"
 
 class XLIB_API XMux final : public XFormat{
 
     void destroy();
 
 public:
+    /**
+     * 创建并打开复用器
+     * @param url
+     * @param video_parm
+     * @param audio_parm
+     * @return AVFormatContext* or nullptr
+     */
     static AVFormatContext *Open(const std::string &url,
-                                 const XCodecParameters &video_parm = {},
-                                 const XCodecParameters &audio_parm = {});
+                                 const XCodecParameters& video_parm,
+                                 const XCodecParameters& audio_parm);
+
+    /**
+     * 创建并打开复用器,指针可以为nullptr
+     * @param url
+     * @param video_parm
+     * @param audio_parm
+     * @return AVFormatContext* or nullptr
+     */
+    static AVFormatContext *Open(const std::string &url,
+                                 const XCodecParameters* video_parm = {},
+                                 const XCodecParameters* audio_parm = {});
 
     /**
      * 音视频时间基准参数
@@ -40,8 +57,13 @@ public:
     bool WriteEnd();
 
 private:
+#if 1
+    XRational m_src_video_time_base_,
+            m_src_audio_time_base_;
+#else
     AVRational *m_src_video_time_base_{},
                 *m_src_audio_time_base_{};
+#endif
     std::atomic_int64_t m_src_begin_video_pts_{-1},
             m_src_begin_audio_pts_{-1};
 public:

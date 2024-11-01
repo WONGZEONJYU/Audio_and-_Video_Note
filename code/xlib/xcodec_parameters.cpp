@@ -32,10 +32,13 @@ void XCodecParameters::Move(XCodecParameters *obj) noexcept(true) {
     const auto dst_{static_cast<decltype(src_)>(this)};
     Reset(dst_);//先释放自身的数据,再进行移动
     *dst_ = *src_;
-    m_time_base = obj->m_time_base;
-    obj->m_time_base = {1,1};
+    m_time_base_ = obj->m_time_base_;
+    m_x_time_base_ = obj->m_x_time_base_;
+    obj->m_time_base_ = {1,1};
+    obj->m_x_time_base_ = {1,1};
     std::fill_n(reinterpret_cast<uint8_t*>(src_),sizeof(AVCodecParameters),0);
     //std::fill_n此处无法省掉,避免成员extradata,ch_layout,coded_side_data成员被直接释放掉
+    //和对某些成员进行初始化
     Reset(src_);
 }
 
@@ -47,19 +50,22 @@ XCodecParameters::XCodecParameters()
 XCodecParameters::XCodecParameters(const AVCodecContext *src,const AVRational &tb) noexcept(false)
 :XCodecParameters(){
     from_context(src);
-    m_time_base = tb;
+    m_time_base_ = tb;
+    m_x_time_base_ = {tb.num,tb.den};
 }
 
 XCodecParameters::XCodecParameters(const AVCodecParameters *src,const AVRational &tb) noexcept(false)
 :XCodecParameters(){
     from_AVFormatContext(src);
-    m_time_base = tb;
+    m_time_base_ = tb;
+    m_x_time_base_ = {tb.num,tb.den};
 }
 
 XCodecParameters::XCodecParameters(const XCodecParameters &obj) noexcept(false)
 :XCodecParameters() {
     from_AVFormatContext(std::addressof(obj));
-    m_time_base = obj.m_time_base;
+    m_time_base_ = obj.m_time_base_;
+    m_x_time_base_ = obj.m_x_time_base_;
 }
 
 XCodecParameters::XCodecParameters(XCodecParameters &&obj) noexcept(true)
@@ -70,7 +76,8 @@ XCodecParameters::XCodecParameters(XCodecParameters &&obj) noexcept(true)
 XCodecParameters &XCodecParameters::operator=(const XCodecParameters &obj) noexcept(false) {
     if (const auto obj_{std::addressof(obj)}; this != obj_){
         from_AVFormatContext(obj_);
-        m_time_base = obj.m_time_base;
+        m_time_base_ = obj.m_time_base_;
+        m_x_time_base_ = obj.m_x_time_base_;
     }
     return *this;
 }
@@ -142,8 +149,15 @@ XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const AVRa
     return obj;
 }
 
+XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const XRational &tb ) {
+    return  new_XCodecParameters(src,AVRational{tb.num,tb.den});
+}
+
 XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const AVRational &tb){
     XCodecParameters_sp obj;
     TRY_CATCH(CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb)),return {});
     return obj;
+}
+XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const XRational &tb ) {
+    return new_XCodecParameters(src,AVRational{tb.num,tb.den});
 }

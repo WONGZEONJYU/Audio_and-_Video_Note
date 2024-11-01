@@ -4,7 +4,6 @@
 #include "xavpacket.hpp"
 
 void XMuxTask::Do(XAVPacket &pkt){
-
     m_pkts_.Push(pkt);
     Next(pkt);
 }
@@ -36,8 +35,9 @@ void XMuxTask::Main() {
             continue;
         }
         m_xmux_.Write(*pkt);
-        std::cout << "W";
+        std::cout << "W" << std::flush;
     }
+
     m_xmux_.WriteEnd();
 }
 
@@ -61,4 +61,12 @@ bool XMuxTask::Open(const std::string &url,
     }
 
     return true;
+}
+
+bool XMuxTask::Open(const std::string &url,
+    const XCodecParameters *video_parm,
+    const XCodecParameters *audio_parm) {
+
+    return Open(url, video_parm ? *video_parm : XCodecParameters(),
+        audio_parm ? *audio_parm : XCodecParameters());
 }
