@@ -64,8 +64,14 @@ private slots:
 
     void StartRecord();
     void StopRecord();
+
+    void Preview(); //预览界面
+    void Playback(); //回放界面
+
 public:
-    ~XViewer() override;
+    ~XViewer() override {
+        Destroy();
+    }
 
 private:
     QVector<QSharedPointer<XCameraWidget>> m_cam_wins_;

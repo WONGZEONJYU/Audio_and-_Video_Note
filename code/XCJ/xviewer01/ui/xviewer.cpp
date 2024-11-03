@@ -33,10 +33,6 @@ XViewer_sp XViewer::create() {
 XViewer::XViewer(QWidget *parent) :
 QWidget(parent),m_cam_wins_(16){}
 
-XViewer::~XViewer() {
-    Destroy();
-}
-
 void XViewer::RefreshCams() const {
     const auto c{XCamera_Config_()};
     m_ui_->cam_list->clear();
@@ -74,6 +70,7 @@ bool XViewer::Construct() {
         hlay->setSpacing(0);
         hlay->addWidget(m_ui_->left);
         hlay->addWidget(m_ui_->cams);
+        hlay->addWidget(m_ui_->playback_wid);
     }
 
     {
@@ -97,6 +94,7 @@ bool XViewer::Construct() {
     (void )XCamera_Config_()->Load(CAM_CONF_PATH);
     RefreshCams();
     startTimer(1);
+    Preview();
     return true;
 }
 
@@ -315,6 +313,18 @@ void XViewer::StopRecord() {
 void XViewer::contextMenuEvent(QContextMenuEvent *event) {
     m_left_menu_.exec(QCursor::pos());
     event->accept();
+}
+
+void XViewer::Preview(){
+    m_ui_->cams->show();
+    m_ui_->playback_wid->hide();
+    m_ui_->preview->setChecked(true);
+}
+
+void XViewer::Playback(){
+    m_ui_->cams->hide();
+    m_ui_->playback_wid->show();
+    m_ui_->playback->setChecked(true);
 }
 
 void XViewer::View(const int &count) {

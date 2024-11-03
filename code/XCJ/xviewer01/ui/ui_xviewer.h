@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtGui/QIcon>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QCalendarWidget>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
@@ -30,6 +31,8 @@ public:
     QPushButton *close;
     QPushButton *normal;
     QLabel *status;
+    QPushButton *preview;
+    QPushButton *playback;
     QWidget *body;
     QWidget *left;
     QListWidget *cam_list;
@@ -37,12 +40,15 @@ public:
     QPushButton *set_cam;
     QPushButton *del_cam;
     QWidget *cams;
+    QWidget *playback_wid;
+    QCalendarWidget *cal;
+    QListWidget *time_list;
 
     void setupUi(QWidget *XViewer)
     {
         if (XViewer->objectName().isEmpty())
             XViewer->setObjectName("XViewer");
-        XViewer->resize(800, 600);
+        XViewer->resize(885, 666);
         QIcon icon;
         icon.addFile(QString::fromUtf8(":/img/xv.ico"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
         XViewer->setWindowIcon(icon);
@@ -106,6 +112,28 @@ public:
 "	font: 700 12pt \"Consolas\";\n"
 "}\n"
 "\n"
+"/*tab\350\217\234\345\215\225\346\214\211\351\222\256\345\210\207\346\215\242\346\240\267\345\274\217*/\n"
+"\n"
+"#preview{\n"
+"	background-color: rgb(50, 50, 50);\n"
+"}\n"
+"\n"
+"#playback{\n"
+"	background-color: rgb(50, 50, 50);\n"
+"}\n"
+"\n"
+"\n"
+"#preview:checked{\n"
+"	background-color: rgb(0, 102, 184);\n"
+"}\n"
+"\n"
+"#playback:checked{\n"
+"	background-color: rgb(0, 102, 184);\n"
+"}\n"
+"\n"
+"\n"
+"\n"
+"\n"
 "\n"
 ""));
         head = new QWidget(XViewer);
@@ -140,7 +168,19 @@ public:
         max->raise();
         status = new QLabel(head);
         status->setObjectName("status");
-        status->setGeometry(QRect(330, 10, 271, 31));
+        status->setGeometry(QRect(550, 10, 111, 31));
+        preview = new QPushButton(head);
+        preview->setObjectName("preview");
+        preview->setGeometry(QRect(250, 22, 90, 30));
+        preview->setCheckable(true);
+        preview->setChecked(true);
+        preview->setAutoRepeat(false);
+        preview->setAutoExclusive(true);
+        playback = new QPushButton(head);
+        playback->setObjectName("playback");
+        playback->setGeometry(QRect(350, 22, 90, 30));
+        playback->setCheckable(true);
+        playback->setAutoExclusive(true);
         body = new QWidget(XViewer);
         body->setObjectName("body");
         body->setGeometry(QRect(10, 60, 781, 531));
@@ -164,7 +204,21 @@ public:
         del_cam->setGeometry(QRect(135, 5, 61, 41));
         cams = new QWidget(body);
         cams->setObjectName("cams");
-        cams->setGeometry(QRect(210, 0, 561, 521));
+        cams->setGeometry(QRect(210, 0, 651, 531));
+        playback_wid = new QWidget(body);
+        playback_wid->setObjectName("playback_wid");
+        playback_wid->setGeometry(QRect(210, 10, 651, 521));
+        cal = new QCalendarWidget(playback_wid);
+        cal->setObjectName("cal");
+        cal->setGeometry(QRect(160, 0, 600, 500));
+        time_list = new QListWidget(playback_wid);
+        time_list->setObjectName("time_list");
+        time_list->setGeometry(QRect(0, 0, 150, 800));
+        time_list->raise();
+        cal->raise();
+        cams->raise();
+        left->raise();
+        playback_wid->raise();
 
         retranslateUi(XViewer);
         QObject::connect(close, &QPushButton::clicked, XViewer, qOverload<>(&QWidget::close));
@@ -174,6 +228,8 @@ public:
         QObject::connect(add_cam, SIGNAL(clicked()), XViewer, SLOT(AddCam()));
         QObject::connect(set_cam, SIGNAL(clicked()), XViewer, SLOT(SetCam()));
         QObject::connect(del_cam, SIGNAL(clicked()), XViewer, SLOT(DelCam()));
+        QObject::connect(preview, SIGNAL(clicked()), XViewer, SLOT(Preview()));
+        QObject::connect(playback, SIGNAL(clicked()), XViewer, SLOT(Playback()));
 
         QMetaObject::connectSlotsByName(XViewer);
     } // setupUi
@@ -186,6 +242,8 @@ public:
         close->setText(QString());
         normal->setText(QString());
         status->setText(QCoreApplication::translate("XViewer", "\347\233\221\346\216\247\344\270\255\343\200\202\343\200\202\343\200\202", nullptr));
+        preview->setText(QCoreApplication::translate("XViewer", "\351\242\204\350\247\210", nullptr));
+        playback->setText(QCoreApplication::translate("XViewer", "\345\233\236\346\224\276", nullptr));
         add_cam->setText(QCoreApplication::translate("XViewer", "\346\226\260\345\242\236", nullptr));
         set_cam->setText(QCoreApplication::translate("XViewer", "\344\277\256\346\224\271", nullptr));
         del_cam->setText(QCoreApplication::translate("XViewer", "\345\210\240\351\231\244", nullptr));

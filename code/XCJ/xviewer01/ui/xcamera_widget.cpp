@@ -27,7 +27,7 @@ void XCameraWidget::dragEnterEvent(QDragEnterEvent *event) {
 //松开拖拽
 void XCameraWidget::dropEvent(QDropEvent *event) {
 
-    const auto wid {dynamic_cast<QListWidget*>(event->source())};
+    const auto wid{dynamic_cast<QListWidget*>(event->source())};
 
     const auto &[m_name_, m_url,
         m_sub_url, m_save_path]{XCamera_Config_()->GetCam(wid->currentRow())};
@@ -37,11 +37,11 @@ void XCameraWidget::dropEvent(QDropEvent *event) {
 
 void XCameraWidget::paintEvent(QPaintEvent *event) {
 
-    const auto temp_func{[this] {
+    const auto temp_func{[this]{
         QStyleOption opt;
         opt.initFrom(this);
         QPainter painter(this);
-        style()->drawPrimitive(QStyle::PE_Widget, &opt,&painter,this);
+        style()->drawPrimitive(QStyle::PE_Widget,&opt,&painter,this);
     }};
 
 #ifdef MACOS

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>885</width>
+    <height>666</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -76,6 +76,28 @@ QPushButton:!hover
 	color: rgb(255, 255, 255);
 	font: 700 12pt &quot;Consolas&quot;;
 }
+
+/*tab菜单按钮切换样式*/
+
+#preview{
+	background-color: rgb(50, 50, 50);
+}
+
+#playback{
+	background-color: rgb(50, 50, 50);
+}
+
+
+#preview:checked{
+	background-color: rgb(0, 102, 184);
+}
+
+#playback:checked{
+	background-color: rgb(0, 102, 184);
+}
+
+
+
 
 
 </string>
@@ -186,14 +208,58 @@ QPushButton:!hover
    <widget class="QLabel" name="status">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>550</x>
       <y>10</y>
-      <width>271</width>
+      <width>111</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>监控中。。。</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="preview">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>22</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>预览</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+    <property name="autoRepeat">
+     <bool>false</bool>
+    </property>
+    <property name="autoExclusive">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="playback">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>22</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>回放</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="autoExclusive">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>
@@ -285,11 +351,46 @@ QPushButton:!hover
      <rect>
       <x>210</x>
       <y>0</y>
-      <width>561</width>
-      <height>521</height>
+      <width>651</width>
+      <height>531</height>
      </rect>
     </property>
    </widget>
+   <widget class="QWidget" name="playback_wid" native="true">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>10</y>
+      <width>651</width>
+      <height>521</height>
+     </rect>
+    </property>
+    <widget class="QCalendarWidget" name="cal">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>0</y>
+       <width>600</width>
+       <height>500</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="time_list">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>150</width>
+       <height>800</height>
+      </rect>
+     </property>
+    </widget>
+    <zorder>time_list</zorder>
+    <zorder>cal</zorder>
+   </widget>
+   <zorder>cams</zorder>
+   <zorder>left</zorder>
+   <zorder>playback_wid</zorder>
   </widget>
  </widget>
  <resources>
@@ -408,6 +509,38 @@ QPushButton:!hover
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>preview</sender>
+   <signal>clicked()</signal>
+   <receiver>XViewer</receiver>
+   <slot>Preview()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>292</x>
+     <y>39</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>-73</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>playback</sender>
+   <signal>clicked()</signal>
+   <receiver>XViewer</receiver>
+   <slot>Playback()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>367</x>
+     <y>36</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>374</x>
+     <y>-31</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>MaxWindow()</slot>
@@ -415,5 +548,7 @@ QPushButton:!hover
   <slot>AddCam()</slot>
   <slot>SetCam()</slot>
   <slot>DelCam()</slot>
+  <slot>Preview()</slot>
+  <slot>Playback()</slot>
  </slots>
 </ui>

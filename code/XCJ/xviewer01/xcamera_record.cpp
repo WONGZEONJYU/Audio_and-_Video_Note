@@ -52,18 +52,12 @@ void XCameraRecord::Main() {
             now - present_time > m_file_sec_ * 1000) {
             present_time = now;
             mux_task.Stop();
-            CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),vp.get(),ap.get()),
-//                         mux_task.Stop();
-//                         demux_task.Stop();
-                         return);
+            CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),vp.get(),ap.get()),return);
             mux_task.Start();
         }
 
         XHelper::MSleep(10);
     }
-
-//    mux_task.Stop();
-//    demux_task.Stop();
 }
 
 XCameraRecord::~XCameraRecord() {
