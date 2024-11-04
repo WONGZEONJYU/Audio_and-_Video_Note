@@ -365,7 +365,7 @@ QPushButton:!hover
       <height>521</height>
      </rect>
     </property>
-    <widget class="QCalendarWidget" name="cal">
+    <widget class="XCalendarWidget" name="cal">
      <property name="geometry">
       <rect>
        <x>160</x>
@@ -393,6 +393,13 @@ QPushButton:!hover
    <zorder>playback_wid</zorder>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>XCalendarWidget</class>
+   <extends>QCalendarWidget</extends>
+   <header>xcalendar_widget.hpp</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resources/resources.qrc"/>
  </resources>

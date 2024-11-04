@@ -12,11 +12,11 @@
 #include <QtCore/QVariant>
 #include <QtGui/QIcon>
 #include <QtWidgets/QApplication>
-#include <QtWidgets/QCalendarWidget>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QWidget>
+#include "xcalendar_widget.hpp"
 
 QT_BEGIN_NAMESPACE
 
@@ -41,7 +41,7 @@ public:
     QPushButton *del_cam;
     QWidget *cams;
     QWidget *playback_wid;
-    QCalendarWidget *cal;
+    XCalendarWidget *cal;
     QListWidget *time_list;
 
     void setupUi(QWidget *XViewer)
@@ -208,7 +208,7 @@ public:
         playback_wid = new QWidget(body);
         playback_wid->setObjectName("playback_wid");
         playback_wid->setGeometry(QRect(210, 10, 651, 521));
-        cal = new QCalendarWidget(playback_wid);
+        cal = new XCalendarWidget(playback_wid);
         cal->setObjectName("cal");
         cal->setGeometry(QRect(160, 0, 600, 500));
         time_list = new QListWidget(playback_wid);
