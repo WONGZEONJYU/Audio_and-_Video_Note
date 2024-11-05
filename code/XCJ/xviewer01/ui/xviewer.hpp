@@ -5,7 +5,7 @@
 #include <QSharedPointer>
 #include <QMenu>
 #include <QVector>
-#include <array>
+#include <QDate>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class XViewer; }
@@ -65,8 +65,12 @@ private slots:
     void StartRecord();
     void StopRecord();
 
-    void Preview(); //预览界面
-    void Playback(); //回放界面
+    void Preview() const; //预览界面
+    void Playback() const; //回放界面
+
+    void SelectCamera(const QModelIndex &index);
+    void SelectDate(QDate date);
+    void PlayVideo(const QModelIndex &index);
 
 public:
     ~XViewer() override {

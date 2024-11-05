@@ -315,16 +315,28 @@ void XViewer::contextMenuEvent(QContextMenuEvent *event) {
     event->accept();
 }
 
-void XViewer::Preview(){
+void XViewer::Preview() const{
     m_ui_->cams->show();
     m_ui_->playback_wid->hide();
     m_ui_->preview->setChecked(true);
 }
 
-void XViewer::Playback(){
+void XViewer::Playback() const{
     m_ui_->cams->hide();
     m_ui_->playback_wid->show();
     m_ui_->playback->setChecked(true);
+}
+
+void XViewer::SelectCamera(const QModelIndex &index) {
+    qDebug() << index;
+}
+
+void XViewer::SelectDate(QDate date) {
+    qDebug() << date;
+}
+
+void XViewer::PlayVideo(const QModelIndex &index) {
+    qDebug() << index;
 }
 
 void XViewer::View(const int &count) {

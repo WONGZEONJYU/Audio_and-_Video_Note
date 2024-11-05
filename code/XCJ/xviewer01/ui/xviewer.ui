@@ -370,8 +370,8 @@ QPushButton:!hover
       <rect>
        <x>160</x>
        <y>0</y>
-       <width>600</width>
-       <height>500</height>
+       <width>411</width>
+       <height>511</height>
       </rect>
      </property>
     </widget>
@@ -548,6 +548,54 @@ QPushButton:!hover
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>cam_list</sender>
+   <signal>clicked(QModelIndex)</signal>
+   <receiver>XViewer</receiver>
+   <slot>SelectCamera(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>119</x>
+     <y>397</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>154</x>
+     <y>-86</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>cal</sender>
+   <signal>clicked(QDate)</signal>
+   <receiver>XViewer</receiver>
+   <slot>SelectDate(QDate)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>515</x>
+     <y>116</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>526</x>
+     <y>-78</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>time_list</sender>
+   <signal>activated(QModelIndex)</signal>
+   <receiver>XViewer</receiver>
+   <slot>PlayVideo(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>295</x>
+     <y>348</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>-146</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>MaxWindow()</slot>
@@ -557,5 +605,8 @@ QPushButton:!hover
   <slot>DelCam()</slot>
   <slot>Preview()</slot>
   <slot>Playback()</slot>
+  <slot>SelectCamera(QModelIndex)</slot>
+  <slot>SelectDate(QDate)</slot>
+  <slot>PlayVideo(QModelIndex)</slot>
  </slots>
 </ui>

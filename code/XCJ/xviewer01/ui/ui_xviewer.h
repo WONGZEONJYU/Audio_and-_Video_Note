@@ -210,7 +210,7 @@ public:
         playback_wid->setGeometry(QRect(210, 10, 651, 521));
         cal = new XCalendarWidget(playback_wid);
         cal->setObjectName("cal");
-        cal->setGeometry(QRect(160, 0, 600, 500));
+        cal->setGeometry(QRect(160, 0, 411, 511));
         time_list = new QListWidget(playback_wid);
         time_list->setObjectName("time_list");
         time_list->setGeometry(QRect(0, 0, 150, 800));
@@ -230,6 +230,9 @@ public:
         QObject::connect(del_cam, SIGNAL(clicked()), XViewer, SLOT(DelCam()));
         QObject::connect(preview, SIGNAL(clicked()), XViewer, SLOT(Preview()));
         QObject::connect(playback, SIGNAL(clicked()), XViewer, SLOT(Playback()));
+        QObject::connect(cam_list, SIGNAL(clicked(QModelIndex)), XViewer, SLOT(SelectCamera(QModelIndex)));
+        QObject::connect(cal, SIGNAL(clicked(QDate)), XViewer, SLOT(SelectDate(QDate)));
+        QObject::connect(time_list, SIGNAL(activated(QModelIndex)), XViewer, SLOT(PlayVideo(QModelIndex)));
 
         QMetaObject::connectSlotsByName(XViewer);
     } // setupUi
