@@ -212,6 +212,7 @@ public:
         cal->setObjectName("cal");
         cal->setGeometry(QRect(160, 0, 411, 511));
         time_list = new QListWidget(playback_wid);
+        new QListWidgetItem(time_list);
         time_list->setObjectName("time_list");
         time_list->setGeometry(QRect(0, 0, 150, 800));
         time_list->raise();
@@ -250,6 +251,13 @@ public:
         add_cam->setText(QCoreApplication::translate("XViewer", "\346\226\260\345\242\236", nullptr));
         set_cam->setText(QCoreApplication::translate("XViewer", "\344\277\256\346\224\271", nullptr));
         del_cam->setText(QCoreApplication::translate("XViewer", "\345\210\240\351\231\244", nullptr));
+
+        const bool __sortingEnabled = time_list->isSortingEnabled();
+        time_list->setSortingEnabled(false);
+        QListWidgetItem *___qlistwidgetitem = time_list->item(0);
+        ___qlistwidgetitem->setText(QCoreApplication::translate("XViewer", "16:56:33", nullptr));
+        time_list->setSortingEnabled(__sortingEnabled);
+
     } // retranslateUi
 
 };

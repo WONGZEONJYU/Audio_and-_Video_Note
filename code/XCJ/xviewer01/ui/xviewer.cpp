@@ -6,6 +6,7 @@
 #include <QFormLayout>
 #include <QMessageBox>
 #include <QDir>
+#include <QStringList>
 #include "xviewer.hpp"
 #include "ui_xviewer.h"
 #include <xhelper.hpp>
@@ -19,22 +20,18 @@
 #define C(s) QString::fromLocal8Bit(s)
 #endif
 
-static constexpr auto CAM_CONF_PATH{"cams.db"};
+static inline constexpr auto CAM_CONF_PATH{"cams.db"};
 
-XViewer_sp XViewer::create() {
-    XViewer_sp obj;
-    TRY_CATCH(CHECK_EXC(obj.reset(new XViewer())),return {});
-    if (!obj->Construct()){
-        obj.reset();
-    }
-    return obj;
-}
-
+#if 1
+XViewer::XViewer(QWidget *parent) :
+QWidget(parent){}
+#else
 XViewer::XViewer(QWidget *parent) :
 QWidget(parent),m_cam_wins_(16){}
+#endif
 
 void XViewer::RefreshCams() const {
-    const auto c{XCamera_Config_()};
+    const auto c{XCamCfg()};
     m_ui_->cam_list->clear();
     const auto count{c->GetCamCount()};
     for (int i {}; i < count; ++i) {
@@ -91,15 +88,11 @@ bool XViewer::Construct() {
 
     //默认显示9个窗口
     View9();
-    (void )XCamera_Config_()->Load(CAM_CONF_PATH);
+    CHECK_FALSE_(XCamCfg()->Load(CAM_CONF_PATH));
     RefreshCams();
     startTimer(1);
     Preview();
     return true;
-}
-
-void XViewer::Destroy() {
-
 }
 
 /////////////////////////////鼠标拖动窗口事件///////////////////////////////////////
@@ -196,7 +189,7 @@ void XViewer::SetCam(const int &index) {
     CHECK_FALSE_(QObject::connect(&save_,&QPushButton::clicked,&dlg,&QDialog::accept));
     lay.addRow(&save_);
 
-    const auto c{XCamera_Config_()};
+    const auto c{XCamCfg()};
 
     if (index >= 0) {
         const auto &[name,url,sub_url_
@@ -235,7 +228,7 @@ void XViewer::SetCam(const int &index) {
     }
 
     XCameraData data;
-    auto&[name,url,sub_url,save_path]{data};
+    auto &[name,url,sub_url,save_path]{data};
     strcpy(name,name_edit.text().toStdString().c_str());
     strcpy(url,url_edit.text().toStdString().c_str());
     strcpy(sub_url,sub_url_edit.text().toStdString().c_str());
@@ -275,7 +268,7 @@ void XViewer::DelCam() {
         return;
     }
 
-    const auto c{XCamera_Config_()};
+    const auto c{XCamCfg()};
     c->DelCam(row);
     (void)c->Save(CAM_CONF_PATH);
     RefreshCams();
@@ -283,30 +276,32 @@ void XViewer::DelCam() {
 
 void XViewer::StartRecord() {
     StopRecord();
-    m_ui_->status->setText("录制中。。。");
-    const auto c{XCamera_Config_()};
+    m_ui_->status->setText(C("录制中。。。"));
+    const auto c{XCamCfg()};
     const auto count{c->GetCamCount()};
+
     for (int i{}; i < count; ++i) {
-        const auto &[name,url,sub_url,save_path]{c->GetCam(i)};
-        std::stringstream ss;
-        ss << save_path << GET_STR(/) << i << GET_STR(/);
-        QDir dir;
-        (void)dir.mkpath(ss.str().c_str());
+        const auto &[name,url,
+            sub_url,save_path]{c->GetCam(i)};
+
+        QStringList ss;
+        ss << save_path << GET_STR(/) << QString::number(i) << GET_STR(/);
+        (void)QDir().mkpath(ss.join(""));
+
         QSharedPointer<XCameraRecord> rec;
-        TRY_CATCH(CHECK_EXC(rec.reset(new XCameraRecord())));
+        TRY_CATCH(CHECK_EXC(rec = m_cam_records_.emplace_back(new XCameraRecord())));
         if (rec.isNull()){
             continue;
         }
         rec->set_file_sec(10);
-        rec->set_save_path(ss.str());
+        rec->set_save_path(ss.join("").toStdString());
         rec->set_rtsp_url(url);
         rec->Start();
-        m_cam_records_.push_back(rec);
     }
 }
 
 void XViewer::StopRecord() {
-    m_ui_->status->setText("监控中。。。");
+    m_ui_->status->setText(C("监控中。。。"));
     m_cam_records_.clear();
 }
 
@@ -328,7 +323,18 @@ void XViewer::Playback() const{
 }
 
 void XViewer::SelectCamera(const QModelIndex &index) {
-    qDebug() << index;
+    const auto c{XCamCfg()};
+    const auto cam{c->GetCam(index.row())};
+    const auto &[name,url,
+        sub_url,save_path]{cam};
+
+    if (!name[0]) {
+        return;
+    }
+    QStringList ss;
+    ss << save_path << GET_STR(/) << QString::number(index.row()) << GET_STR(/);
+
+    qDebug() << ss.join("");
 }
 
 void XViewer::SelectDate(QDate date) {
@@ -336,21 +342,56 @@ void XViewer::SelectDate(QDate date) {
 }
 
 void XViewer::PlayVideo(const QModelIndex &index) {
-    qDebug() << index;
+
+    const auto &c{XCamCfg_Ref()};
+    const auto cam{c[index.row()]};
+    const auto &[name,url,
+        sub_url,save_path]{cam};
+
+    if (!name[0]) {
+        return;
+    }
+    QStringList ss;
+    ss << save_path << GET_STR(/) << QString::number(index.row()) << GET_STR(/);
+
+    qDebug() << ss.join("");
+
+    QDir dir(ss.join(""));
+    if (!dir.exists()) {
+        return;
+    }
+    //获取当前目录下所有mp4 avi文件
+    const QStringList filters(GET_STR(*.mp4),GET_STR(*.avi));
+    dir.setNameFilters(filters); //筛选
+
+    const auto files{dir.entryList()};
+    for (const auto &file : files) {
+
+    }
+
 }
 
 void XViewer::View(const int &count) {
     //qDebug() << __func__ << GET_STR(()) << count;
     //2x2 3x3 4x4
-    const auto cols{static_cast<int>(qSqrt(count))};
+    const auto cols{static_cast<int>(qSqrt(count))}; //开根号得到列数
 
-    auto lay{dynamic_cast<QGridLayout*>(m_ui_->cams->layout())};
+    auto lay {dynamic_cast<QGridLayout*>(m_ui_->cams->layout())};
     if (!lay){
-        TRY_CATCH(CHECK_EXC(lay = new QGridLayout(m_ui_->cams)), return;);
+        TRY_CATCH(CHECK_EXC(lay = new QGridLayout(m_ui_->cams)), return);
         lay->setContentsMargins({});
         lay->setSpacing(2);
     }
+#if 1
+    m_cam_wins_.clear();
+    for (int i {}; i < count; ++i) {
+        XCameraWidget_sp w;
+        TRY_CATCH(CHECK_EXC(w = m_cam_wins_.emplace_back(new XCameraWidget())), return;);
+        w->setStyleSheet(GET_STR(background-color:rgb(51, 51, 51);));
+        lay->addWidget(w.get(), i / cols , i % cols);
+    }
 
+#else
     for(int i{};i < count;++i){
         if (!m_cam_wins_[i]) {
             TRY_CATCH(CHECK_EXC(m_cam_wins_[i].reset(new XCameraWidget())), return;);
@@ -364,6 +405,8 @@ void XViewer::View(const int &count) {
             m_cam_wins_[i].reset();
         }
     }
+
+#endif
 }
 
 void XViewer::timerEvent(QTimerEvent *e){
@@ -374,4 +417,13 @@ void XViewer::timerEvent(QTimerEvent *e){
         }
     }
     QWidget::timerEvent(e);
+}
+
+XViewer_sp XViewer::create() {
+    XViewer_sp obj;
+    TRY_CATCH(CHECK_EXC(obj.reset(new XViewer())),return {});
+    if (!obj->Construct()){
+        obj.reset();
+    }
+    return obj;
 }

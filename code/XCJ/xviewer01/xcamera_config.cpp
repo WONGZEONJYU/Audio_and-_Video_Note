@@ -8,6 +8,10 @@ XCameraConfig *XCameraConfig::Instance() {
     return addressof(instance);
 }
 
+XCameraConfig &XCameraConfig::Ref_Instance() {
+    return *Instance();
+}
+
 void XCameraConfig::Push(const XCameraData &data) {
     unique_lock lock(m_mutex_);
     m_cams_.push_back(data);
@@ -19,6 +23,10 @@ XCameraData XCameraConfig::GetCam(const int &index) const {
     }
     unique_lock lock(const_cast<decltype(m_mutex_)&>(m_mutex_));
     return m_cams_[index];
+}
+
+XCameraData XCameraConfig::operator[](const int &index) const {
+    return GetCam(index);
 }
 
 uint32_t XCameraConfig::GetCamCount() const {

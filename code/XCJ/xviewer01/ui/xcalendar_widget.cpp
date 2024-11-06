@@ -26,3 +26,4 @@ void XCalendarWidget::paintCell(QPainter * const painter,
     painter->setPen(QColor(255, 0, 0));  //设置字体颜色
     painter->drawText(rect,Qt::AlignCenter,QString::number(date.day()));
 }
+

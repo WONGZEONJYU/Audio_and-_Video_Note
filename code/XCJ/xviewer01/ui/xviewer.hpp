@@ -17,10 +17,15 @@ class XCameraWidget;
 class XCameraRecord;
 
 class XViewer final: public QWidget {
+
 Q_OBJECT
+
+    using XCameraWidget_sp = QSharedPointer<XCameraWidget>;
+    using XCameraRecord_sp = QSharedPointer<XCameraRecord>;
+
     explicit XViewer(QWidget *parent = nullptr);
     bool Construct();
-    void Destroy();
+    //void Destroy();
 
     /***********鼠标移动事件,用于移动窗口***********/
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -68,18 +73,16 @@ private slots:
     void Preview() const; //预览界面
     void Playback() const; //回放界面
 
-    void SelectCamera(const QModelIndex &index);
-    void SelectDate(QDate date);
-    void PlayVideo(const QModelIndex &index);
+    void SelectCamera(const QModelIndex &index); //选择相机
+    void SelectDate(QDate date); //选择日期
+    void PlayVideo(const QModelIndex &index); //播放视频
 
 public:
-    ~XViewer() override {
-        Destroy();
-    }
+    ~XViewer() override  = default;
 
 private:
-    QVector<QSharedPointer<XCameraWidget>> m_cam_wins_;
-    QVector<QSharedPointer<XCameraRecord>> m_cam_records_;
+    QVector<XCameraWidget_sp> m_cam_wins_;
+    QVector<XCameraRecord_sp> m_cam_records_;
     QSharedPointer<Ui::XViewer> m_ui_{};
     QMenu m_left_menu_;
     bool m_is_mouse_pressed_{};

@@ -17,6 +17,11 @@ class XCameraConfig final{
 public:
     void Push(const XCameraData &date);
     [[nodiscard]] XCameraData GetCam(const int &index) const;
+    XCameraData operator[](const int &index) const;
+    [[nodiscard]] inline auto begin() {return m_cams_.begin();}
+    [[nodiscard]] inline auto begin() const noexcept{return m_cams_.begin();}
+    [[nodiscard]] inline auto end() noexcept{return m_cams_.end();}
+    [[nodiscard]] inline auto end() const noexcept{return m_cams_.end();}
     [[nodiscard]] uint32_t GetCamCount() const;
     bool SetCam(const int &index, const XCameraData &data);
     bool DelCam(const int &index);
@@ -28,9 +33,11 @@ private:
     std::mutex m_mutex_;
 public:
     static XCameraConfig *Instance();
+    static XCameraConfig &Ref_Instance();
     X_DISABLE_COPY_MOVE(XCameraConfig)
 };
 
-#define XCamera_Config_() XCameraConfig::Instance()
+#define XCamCfg() XCameraConfig::Instance()
+#define XCamCfg_Ref() XCameraConfig::Ref_Instance()
 
 #endif

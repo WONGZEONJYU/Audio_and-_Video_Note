@@ -384,6 +384,11 @@ QPushButton:!hover
        <height>800</height>
       </rect>
      </property>
+     <item>
+      <property name="text">
+       <string>16:56:33</string>
+      </property>
+     </item>
     </widget>
     <zorder>time_list</zorder>
     <zorder>cal</zorder>
