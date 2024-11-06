@@ -6,10 +6,11 @@ QCalendarWidget(p) {
 }
 
 void XCalendarWidget::paintCell(QPainter * const painter,
-                                const QRect &rect, QDate date) const {
+                                const QRect &rect,const QDate date) const {
 
-    //测试代码
-    if (date.day() != 4){
+    //qDebug() << date;
+    //有视频的日期特殊显示
+    if (m_date_.find(date) == m_date_.end()){ //如果没有视频文件,则按照默认显示
         QCalendarWidget::paintCell(painter, rect, date);
         return;
     }

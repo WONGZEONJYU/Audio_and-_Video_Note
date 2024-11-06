@@ -3,6 +3,8 @@
 
 using namespace std;
 
+#define rm_const(x) const_cast<decltype(x)&>(x)
+
 XCameraConfig *XCameraConfig::Instance() {
     static XCameraConfig instance;
     return addressof(instance);
@@ -21,7 +23,7 @@ XCameraData XCameraConfig::GetCam(const int &index) const {
     if (index < 0 || index >= m_cams_.size()){
         return {};
     }
-    unique_lock lock(const_cast<decltype(m_mutex_)&>(m_mutex_));
+    unique_lock lock(rm_const(m_mutex_));
     return m_cams_[index];
 }
 
@@ -30,7 +32,7 @@ XCameraData XCameraConfig::operator[](const int &index) const {
 }
 
 uint32_t XCameraConfig::GetCamCount() const {
-    unique_lock lock(const_cast<decltype(m_mutex_)&>(m_mutex_));
+    unique_lock lock(rm_const(m_mutex_));
     return m_cams_.size();
 }
 
@@ -87,10 +89,11 @@ bool XCameraConfig::Load(const string_view &path) {
         return {};
     }
 
-    XCameraData data;
     unique_lock lock(m_mutex_);
     m_cams_.clear();
+
     while (true){
+        XCameraData data;
         ifs.read(reinterpret_cast<char *>(addressof(data)), sizeof(data));
         if (sizeof(data) != ifs.gcount()){
             ifs.close();

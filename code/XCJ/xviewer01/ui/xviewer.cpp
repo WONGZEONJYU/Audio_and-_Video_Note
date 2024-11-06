@@ -323,34 +323,16 @@ void XViewer::Playback() const{
 }
 
 void XViewer::SelectCamera(const QModelIndex &index) {
-    const auto c{XCamCfg()};
-    const auto cam{c->GetCam(index.row())};
-    const auto &[name,url,
-        sub_url,save_path]{cam};
-
-    if (!name[0]) {
-        return;
-    }
-    QStringList ss;
-    ss << save_path << GET_STR(/) << QString::number(index.row()) << GET_STR(/);
-
-    qDebug() << ss.join("");
-}
-
-void XViewer::SelectDate(QDate date) {
-    qDebug() << date;
-}
-
-void XViewer::PlayVideo(const QModelIndex &index) {
 
     const auto &c{XCamCfg_Ref()};
     const auto cam{c[index.row()]};
     const auto &[name,url,
-        sub_url,save_path]{cam};
+            sub_url,save_path]{cam};
 
     if (!name[0]) {
         return;
     }
+
     QStringList ss;
     ss << save_path << GET_STR(/) << QString::number(index.row()) << GET_STR(/);
 
@@ -358,17 +340,41 @@ void XViewer::PlayVideo(const QModelIndex &index) {
 
     QDir dir(ss.join(""));
     if (!dir.exists()) {
+        qDebug() << ss.join("") << " " << GET_STR(is empty!);
         return;
     }
+
     //获取当前目录下所有mp4 avi文件
     const QStringList filters(GET_STR(*.mp4),GET_STR(*.avi));
     dir.setNameFilters(filters); //筛选
-
+    m_ui_->cal->ClearDate();
     const auto files{dir.entryList()};
-    for (const auto &file : files) {
+    for (const auto &file: files) {
+        if (file == GET_STR(.) || file == GET_STR(..)){
+            continue;
+        }
+        //"cam_2024_11_06_23_41_46.mp4"
 
+        auto t_date{file.left(file.size() - 4)}; //去掉.mp4
+        t_date = t_date.right(t_date.size() - 4); //去掉cam_
+
+        auto dt{QDateTime::fromString(t_date,GET_STR(yyyy_MM_dd_hh_mm_ss))};
+        m_ui_->cal->AddDate(dt.date());
+        //qDebug() << dt.date();
     }
+    m_ui_->cal->showNextMonth();
+    m_ui_->cal->showPreviousMonth();
+    //m_ui_->cal->showToday();
+}
 
+void XViewer::SelectDate(QDate date) {
+    (void)m_ui_;
+    qDebug() << date;
+}
+
+void XViewer::PlayVideo(const QModelIndex &index) {
+    (void)m_ui_;
+    qDebug() << index;
 }
 
 void XViewer::View(const int &count) {
