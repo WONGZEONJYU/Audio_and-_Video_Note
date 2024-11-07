@@ -6,6 +6,8 @@
 #include <QMenu>
 #include <QVector>
 #include <QDate>
+#include <QMap>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class XViewer; }
@@ -15,6 +17,11 @@ class XViewer;
 using XViewer_sp = QSharedPointer<XViewer>;
 class XCameraWidget;
 class XCameraRecord;
+
+struct XCamVideo {
+    QString m_file_path;
+    QDateTime m_date_time;
+};
 
 class XViewer final: public QWidget {
 
@@ -83,6 +90,7 @@ public:
 private:
     QVector<XCameraWidget_sp> m_cam_wins_;
     QVector<XCameraRecord_sp> m_cam_records_;
+    QMap<QDate,QVector<XCamVideo>> m_cam_videos_;
     QSharedPointer<Ui::XViewer> m_ui_{};
     QMenu m_left_menu_;
     bool m_is_mouse_pressed_{};

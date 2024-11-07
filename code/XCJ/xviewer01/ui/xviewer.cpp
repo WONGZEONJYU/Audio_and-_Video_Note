@@ -92,6 +92,7 @@ bool XViewer::Construct() {
     RefreshCams();
     startTimer(1);
     Preview();
+    m_ui_->time_list->clear();
     return true;
 }
 
@@ -345,36 +346,65 @@ void XViewer::SelectCamera(const QModelIndex &index) {
     }
 
     //获取当前目录下所有mp4 avi文件
-    const QStringList filters(GET_STR(*.mp4),GET_STR(*.avi));
+    QStringList filters;
+    filters << GET_STR(*.mp4) << GET_STR(*.avi);
     dir.setNameFilters(filters); //筛选
     m_ui_->cal->ClearDate();
-    const auto files{dir.entryList()};
-    for (const auto &file: files) {
-        if (file == GET_STR(.) || file == GET_STR(..)){
+    m_cam_videos_.clear();
+
+    for (const auto files{dir.entryInfoList()};
+        const auto &file: files) {
+
+        const auto file_name{file.fileName()};
+
+        if (file_name == GET_STR(.) || file_name == GET_STR(..)){
             continue;
         }
         //"cam_2024_11_06_23_41_46.mp4"
 
-        auto t_date{file.left(file.size() - 4)}; //去掉.mp4
+        auto t_date{file_name.left(file_name.size() - 4)}; //去掉.mp4
         t_date = t_date.right(t_date.size() - 4); //去掉cam_
 
-        auto dt{QDateTime::fromString(t_date,GET_STR(yyyy_MM_dd_hh_mm_ss))};
+        const auto dt{QDateTime::fromString(t_date,GET_STR(yyyy_MM_dd_hh_mm_ss))};
         m_ui_->cal->AddDate(dt.date());
-        //qDebug() << dt.date();
+
+        XCamVideo v;
+        v.m_file_path = file.absoluteFilePath();
+        v.m_date_time = dt;
+
+        m_cam_videos_[dt.date()].push_back(v);
     }
     m_ui_->cal->showNextMonth();
     m_ui_->cal->showPreviousMonth();
-    //m_ui_->cal->showToday();
+
 }
 
-void XViewer::SelectDate(QDate date) {
-    (void)m_ui_;
-    qDebug() << date;
+void XViewer::SelectDate(const QDate date) {
+
+    //qDebug() << date;
+    m_ui_->time_list->clear();
+    for (const auto dates{m_cam_videos_[date]};
+        const auto &[m_file_path, m_date_time]: dates) {
+        const auto item{new QListWidgetItem(m_date_time.time().toString())};
+        item->setData(Qt::UserRole, m_file_path);
+        m_ui_->time_list->addItem(item);
+    }
 }
 
 void XViewer::PlayVideo(const QModelIndex &index) {
-    (void)m_ui_;
-    qDebug() << index;
+    (void)index;
+    //qDebug() << index;
+#if 1
+    const auto file_path{index.data(Qt::UserRole).toString()};
+    qDebug() << file_path;
+#else
+    const auto item {m_ui_->time_list->currentItem()};
+    if (!item) {
+        return;
+    }
+    const auto file_path{item->data(Qt::UserRole).toString()};
+    qDebug() << file_path;
+#endif
 }
 
 void XViewer::View(const int &count) {
