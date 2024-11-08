@@ -13,6 +13,7 @@
 #include "xcamera_config.hpp"
 #include "xcamera_record.hpp"
 #include "xcamera_widget.hpp"
+#include "xplayvieo.hpp"
 
 #if _WIN32
 #define C(s) QString::fromUtf8(s)
@@ -47,6 +48,8 @@ bool XViewer::Construct() {
     TRY_CATCH(CHECK_EXC(m_ui_.reset(new Ui::XViewer())),return {});
     m_ui_->setupUi(this);
     setWindowFlags(Qt::FramelessWindowHint);
+
+    //TRY_CATCH(CHECK_EXC(m_alone_play_.reset(new XPlayVideo())),return {});
 
     {
         QVBoxLayout *vlay{};
@@ -405,6 +408,10 @@ void XViewer::PlayVideo(const QModelIndex &index) {
     const auto file_path{item->data(Qt::UserRole).toString()};
     qDebug() << file_path;
 #endif
+    //const auto play{dynamic_cast<XPlayVideo*>(m_alone_play_.get())};
+    static XPlayVideo play;
+    play.show();
+    play.Open(file_path);
 }
 
 void XViewer::View(const int &count) {
