@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>XPlayVieo</class>
+ <widget class="QWidget" name="XPlayVieo">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>835</width>
+    <height>660</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>XPlayVieo</string>
+  </property>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
