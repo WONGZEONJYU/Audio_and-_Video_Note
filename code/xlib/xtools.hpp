@@ -15,7 +15,6 @@ public:
      * @param xt
      */
     void set_next(XThread *xt){
-        //std::unique_lock locker(m_mux);
         m_next_ = xt;
     }
 
@@ -24,14 +23,13 @@ public:
      * @param pkt
      */
     virtual void Next(XAVPacket &pkt) {
-        //std::unique_lock locker(m_mux);
         if (m_next_){
             m_next_.load()->Do(pkt);
         }
     }
 
     /**
-     * 执行任务,用户如有需要则自行继承
+     * 执行任务,用户如有需要则自行重写该函数
      * @param XAVPacket &
      */
     virtual void Do(XAVPacket &){}

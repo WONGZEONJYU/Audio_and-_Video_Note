@@ -64,6 +64,14 @@ public:
     bool RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const XRational &time_base) const;
 
     /**
+     * 把pts dst duration转换成毫秒
+     * @param pts
+     * @param index
+     * @return -1 at error
+     */
+    int64_t RescaleToMs(const int64_t &pts,const int &index) const;
+
+    /**
      * 获取编码/解码器id
      * @return
      */

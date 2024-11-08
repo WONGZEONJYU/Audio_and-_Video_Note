@@ -137,6 +137,18 @@ bool XFormat::RescaleTime(XAVPacket &packet, const int64_t &offset_pts, const XR
     return RescaleTime(packet,offset_pts,AVRational{time_base.num,time_base.den});
 }
 
+int64_t XFormat::RescaleToMs(const int64_t &pts,const int &index) const{
+
+    check_fmt_ctx();
+    if (index < 0 || index >= m_fmt_ctx_->nb_streams) {
+        PRINT_ERR_TIPS(GET_STR(index not in range));
+        return -1;
+    }
+    const auto in_tb{m_fmt_ctx_->streams[index]->time_base};
+    locker.unlock();
+    return av_rescale_q(pts,in_tb,{1,1000});
+}
+
 void XFormat::destroy_() {
     std::unique_lock locker(m_mux_);
     destroy_fmt_ctx();

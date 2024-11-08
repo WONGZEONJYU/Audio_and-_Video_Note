@@ -21,6 +21,7 @@ void XDemuxTask::Main() {
 
     XAVPacket pkt;
     while (!m_is_exit_) {
+
         if (!m_demux_.Read(pkt)){
             cout << GET_STR(-) << flush;
             if (!m_demux_.is_connected()){
@@ -29,7 +30,18 @@ void XDemuxTask::Main() {
             XHelper::MSleep(1);
             continue;
         }
+
         cout << GET_STR(.) << flush;
+
+        if (m_demux_.video_index() == pkt.stream_index &&
+            SYNC_VIDEO == m_sync_type_) {
+            auto dur{m_demux_.RescaleToMs(pkt.duration,pkt.stream_index)};
+            if (dur < 0) {
+                dur = 40;
+            }
+            XHelper::MSleep(dur);
+        }
+
         Next(pkt);
         XHelper::MSleep(1);
     }
