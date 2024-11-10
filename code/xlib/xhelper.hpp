@@ -262,8 +262,7 @@ private:
 template<typename F2>
 struct XRAII final {
 
-    template<typename F1>
-    constexpr inline explicit XRAII(F1 &&f1,F2 &&f2):
+    constexpr inline explicit XRAII(auto &&f1,F2 &&f2):
     m_f2(std::move(f2)){
         f1();
     }
