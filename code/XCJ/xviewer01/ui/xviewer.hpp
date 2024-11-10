@@ -91,7 +91,7 @@ private:
     QVector<XCameraWidget_sp> m_cam_wins_;
     QVector<XCameraRecord_sp> m_cam_records_;
     QMap<QDate,QVector<XCamVideo>> m_cam_videos_;
-    //QSharedPointer<QWidget> m_alone_play_;
+    QSharedPointer<QWidget> m_alone_play_;
     QSharedPointer<Ui::XViewer> m_ui_{};
     QMenu m_left_menu_;
     bool m_is_mouse_pressed_{};

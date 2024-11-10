@@ -107,6 +107,7 @@ XVideoWidget::~XVideoWidget() {
 #define Separator "*********************************************"
 
 //初始化opengl
+
 void XVideoWidget::initializeGL() {
 
     qDebug() << "\n" << Separator << "begin " << __func__ << Separator;
@@ -316,7 +317,6 @@ bool XVideoWidget::Init(const int &w,const int&h) noexcept(true) {
         CHECK_FALSE_(m_shader_->bind());
         CHECK_FALSE_(m_VBO_->bind());
         CHECK_FALSE_(m_EBO_->bind());
-
         },[this]{
             m_shader_->release();
             m_VBO_->release();

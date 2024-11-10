@@ -13,7 +13,7 @@ QT_END_NAMESPACE
 
 class XPlayVideo :
 #ifdef MACOS
-public XVideoWidget
+public XVideoWidget{
 #else
 public QWidget {
 #endif
@@ -30,6 +30,7 @@ private:
     QSharedPointer<Ui::XPlayVieo> m_ui_;
     XDemuxTask m_demux_task_;
     XDecodeTask m_decode_task_;
+    int m_timer_id{-1};
 #ifndef MACOS
     XVideoView_sp m_view_;
 #endif

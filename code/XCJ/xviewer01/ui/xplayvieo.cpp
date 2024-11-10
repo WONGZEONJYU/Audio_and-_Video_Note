@@ -2,7 +2,7 @@
 
 #include "xplayvieo.hpp"
 #include <xvideo_view.hpp>
-#include "ui_XPlayVieo.h"
+#include "ui_xplayvieo.h"
 
 void XPlayVideo::timerEvent(QTimerEvent *const event) {
 
@@ -30,7 +30,6 @@ QWidget(parent),
 #endif
 m_ui_(new Ui::XPlayVieo) {
     m_ui_->setupUi(this);
-    startTimer(10);
 }
 
 XPlayVideo::~XPlayVideo() {
@@ -64,16 +63,22 @@ bool XPlayVideo::Open(const QString &url) {
 #else
     CHECK_FALSE_(Init(*vp));
 #endif
-
+    m_timer_id = startTimer(10);
     m_demux_task_.Start();
     m_decode_task_.Start();
     return true;
 }
 
 void XPlayVideo::Close() {
+    if (m_timer_id >= 0){
+        killTimer(m_timer_id);
+        m_timer_id = -1;
+    }
     m_demux_task_.Stop();
     m_decode_task_.Stop();
+#ifndef MACOS
     if (m_view_) {
         m_view_->Close();
     }
+#endif
 }

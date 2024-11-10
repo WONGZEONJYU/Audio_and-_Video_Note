@@ -396,7 +396,6 @@ void XViewer::SelectDate(const QDate date) {
 
 void XViewer::PlayVideo(const QModelIndex &index) {
     (void)index;
-    //qDebug() << index;
 #if 1
     const auto file_path{index.data(Qt::UserRole).toString()};
     qDebug() << file_path;
@@ -408,10 +407,17 @@ void XViewer::PlayVideo(const QModelIndex &index) {
     const auto file_path{item->data(Qt::UserRole).toString()};
     qDebug() << file_path;
 #endif
-    //const auto play{dynamic_cast<XPlayVideo*>(m_alone_play_.get())};
-    static XPlayVideo play;
-    play.show();
-    play.Open(file_path);
+
+#ifdef MACOS
+    TRY_CATCH(CHECK_EXC(m_alone_play_.reset(new XPlayVideo())), return;);
+#else
+    if (!m_alone_play_){
+        TRY_CATCH(CHECK_EXC(m_alone_play_.reset(new XPlayVideo())), return;);
+    }
+#endif
+    const auto play{dynamic_cast<XPlayVideo*>(m_alone_play_.get())};
+    play->show();
+    play->Open(file_path);
 }
 
 void XViewer::View(const int &count) {
@@ -433,7 +439,6 @@ void XViewer::View(const int &count) {
         w->setStyleSheet(GET_STR(background-color:rgb(51, 51, 51);));
         lay->addWidget(w.get(), i / cols , i % cols);
     }
-
 #else
     for(int i{};i < count;++i){
         if (!m_cam_wins_[i]) {
