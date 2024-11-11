@@ -424,7 +424,6 @@ void XViewer::View(const int &count) {
     //qDebug() << __func__ << GET_STR(()) << count;
     //2x2 3x3 4x4
     const auto cols{static_cast<int>(qSqrt(count))}; //开根号得到列数
-
     auto lay {dynamic_cast<QGridLayout*>(m_ui_->cams->layout())};
     if (!lay){
         TRY_CATCH(CHECK_EXC(lay = new QGridLayout(m_ui_->cams)), return);
