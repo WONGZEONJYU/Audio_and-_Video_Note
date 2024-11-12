@@ -66,7 +66,7 @@ void XAudioThread::DeConstruct() noexcept(true){
 int XAudioThread::Resample(XAVFrame_sptr &&af,std::vector<uint8_t> &d,int &out_samples) noexcept(false){
 
     QMutexLocker locker(&m_a_mux);
-    int re_size;
+    int re_size {};
     CHECK_EXC(re_size = m_resample->Resample(af,d,out_samples),
               locker.unlock());
     return re_size;
@@ -77,7 +77,7 @@ int XAudioThread::Speed_Change(std::vector<uint8_t> &in,
                                const int &in_re_size,
                                std::vector<uint8_t> &out){
     int out_size{};
-
+    qDebug() << m_speed;
     if (m_speed != 1.0f) {
 
         if (in_samples > 0 && in_re_size > 0) {
@@ -87,15 +87,21 @@ int XAudioThread::Speed_Change(std::vector<uint8_t> &in,
 
                 m_xSonic->sonicSetSpeed(m_speed);
 
-                m_xSonic->sonicWriteShortToStream(reinterpret_cast<const int16_t *>(in.data()), in_samples);
+                m_xSonic->sonicWriteShortToStream(reinterpret_cast<const int16_t *>(in.data()),in_samples);
 
-                const auto size_{static_cast<uint32_t>(static_cast<float >(in_re_size) / m_speed) * sizeof(int16_t)};
-                if (out.capacity() <= size_) {
+                // if (const auto size_{static_cast<uint32_t>(static_cast<float >(in_re_size) / m_speed) * sizeof(int16_t)};
+                //         out.capacity() <= size_) {
+                //     out.clear();
+                //     out.resize(size_ + (size_ >> 1));
+                // }
+
+                const auto out_samples{m_xSonic->sonicSamplesAvailable()};
+                if (const auto size_{out_samples * m_Out_Sample_Format * m_Channels};
+                    out.capacity() < size_) {
                     out.clear();
-                    out.resize(size_ + (size_ >> 1));
+                    out.resize(size_);
                 }
 
-                const auto out_samples{static_cast<int>(static_cast<float>(in_samples) / m_speed)};
                 out_size = m_xSonic->sonicReadShortFromStream(reinterpret_cast<int16_t *>(out.data()),out_samples);
             }
 
@@ -148,8 +154,8 @@ void XAudioThread::entry() noexcept(false) {
                 const auto sonic_size{Speed_Change(resample_datum,out_samples,re_size,speed_datum)};
 
                 while (!m_is_Exit && sonic_size > 0){
-                    const auto free_size{m_audio_play.load()->FreeSize()};
-                    if (m_is_Pause || free_size < sonic_size) {
+
+                    if (const auto free_size{m_audio_play.load()->FreeSize()}; m_is_Pause || free_size < sonic_size) {
                         msleep(1);
                         continue;
                     }
