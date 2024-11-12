@@ -134,9 +134,7 @@ void XPlay2Widget::timerEvent(QTimerEvent *) {
         return;
     }
 
-    const auto total{m_dmt->totalMS()};
-
-    if (total > 0) {
+    if (const auto total{m_dmt->totalMS()}; total > 0) {
         const auto pos{static_cast<double>(m_dmt->Pts()) / static_cast<double>(total)},
                     v{static_cast<decltype(pos)>(m_ui->PlayPos->maximum()) * pos};
         m_ui->PlayPos->setValue(static_cast<int>(v));
@@ -158,6 +156,7 @@ void XPlay2Widget::SliderReleased() {
 
     try {
         m_dmt->Seek(pos);
+        SpeedChanged(m_ui->Speed->value());
     } catch (const std::exception &e) {
         qDebug() << e.what();
     }
@@ -167,11 +166,11 @@ void XPlay2Widget::SliderReleased() {
     sender()->blockSignals(false);
 }
 
-void XPlay2Widget::VolumeChanged(const int &v) {
+void XPlay2Widget::VolumeChanged(const int &v) const {
     const auto max{static_cast<double >(m_ui->VolumeSlider->maximum())};
     m_dmt->SetVolume(v / max);
 }
 
-void XPlay2Widget::SpeedChanged(const double &v){
+void XPlay2Widget::SpeedChanged(const double &v) const {
     m_dmt->SetSpeed(static_cast<float>(v));
 }
