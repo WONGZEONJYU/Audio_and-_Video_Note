@@ -12,14 +12,19 @@ struct XAudio_Data {
 
 class XAudio_Play {
     X_DISABLE_COPY_MOVE(XAudio_Play)
-    int64_t Speed_Change(std::vector<uint8_t> &,std::vector<uint8_t> &);
+    using data_buffer_t = std::vector<uint8_t>;
+    int64_t Speed_Change(data_buffer_t &,data_buffer_t &);
 public:
     static XAudio_Play * instance();
 
     virtual ~XAudio_Play() = default;
 
     virtual bool Open(const XAudioSpec &spec_) {
-        return m_son.Open(spec_.m_freq, spec_.m_channels);
+        const auto r{m_son.Open(spec_.m_freq,spec_.m_channels)};
+        if (r) {
+            m_spec_ = spec_;
+        }
+        return r;
     }
 
     void Push(const uint8_t * data, const size_t &size);
@@ -45,7 +50,6 @@ protected:
     XAudioSpec m_spec_{};
 private:
     std::atomic<float> m_speed_{1.0f};
-
     XSonic m_son;
 };
 

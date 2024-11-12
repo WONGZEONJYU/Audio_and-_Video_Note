@@ -1,31 +1,22 @@
 #include "xaudio_play.hpp"
 
-void XAudio_Play::Push(const uint8_t * data, const size_t &size) {
+void XAudio_Play::Push(const uint8_t *data, const size_t &size) {
+    std::vector in_buf(data, data + size);
     std::unique_lock locker(m_mux_);
 
-    std::vector<uint8_t> in_buf;
-    in_buf.assign(data, data + size);
-    if (std::vector<uint8_t> out_buf; Speed_Change(in_buf,out_buf) > 0) {
+    if (decltype(in_buf) out_buf; Speed_Change(in_buf,out_buf) > 0) {
         auto &[m_data,m_offset] {m_datum_.emplace_back()};
         m_data = std::move(out_buf);
     }
-
-    // if (m_speed_ != 1.0f) {
-    //
-    // }else {
-    //     auto &[m_data,m_offset] {m_datum_.emplace_back()};
-    //     m_data.assign(data, data + size);
-    // }
 }
 
 void XAudio_Play::AudioCallback(void * const userdata,
-    uint8_t * stream,
-    const int length) {
+    uint8_t * stream,const int length) {
     const auto this_{static_cast<XAudio_Play *>(userdata)};
     this_->Callback(stream, length);
 }
 
-int64_t XAudio_Play::Speed_Change(std::vector<uint8_t> &in, std::vector<uint8_t> &out) {
+int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
 
     int64_t out_size{-1};
 
