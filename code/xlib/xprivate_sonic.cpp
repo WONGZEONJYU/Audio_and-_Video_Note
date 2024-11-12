@@ -181,8 +181,8 @@ bool XSonic::addShortSamplesToInputBuffer(const int16_t *samples,const int &numS
         return {};
     }
 
-    auto src_{samples};
-    auto dst_{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+    const auto src_{samples};
+    const auto dst_{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
     const auto size_{numSamples * m_numChannels};
     std::copy_n(src_,size_,dst_);
 
@@ -221,8 +221,8 @@ void XSonic::removeInputSamples(const int &position) {
     const auto remainingSamples{m_numInputSamples - position};
 
     if(remainingSamples > 0) {
-        auto src_{m_inputBuffer.data() + position * m_numChannels};
-        auto dst_{m_inputBuffer.data()};
+        const auto src_{m_inputBuffer.data() + position * m_numChannels};
+        const auto dst_{m_inputBuffer.data()};
         const auto size_{remainingSamples * m_numChannels};
         std::move(src_,src_ + size_ ,dst_);
     }
@@ -240,8 +240,8 @@ bool XSonic::copyToOutput(const int16_t *samples,const int &numSamples) {
         return {};
     }
 
-    auto src_{samples};
-    auto dst_{m_outputBuffer.data() + m_numOutputSamples*m_numChannels};
+    const auto src_{samples};
+    const auto dst_{m_outputBuffer.data() + m_numOutputSamples*m_numChannels};
     const auto size_{numSamples * m_numChannels};
     std::copy_n(src_,size_,dst_);
 
@@ -305,8 +305,7 @@ int XSonic::findPitchPeriodInRange(const int16_t *samples,
         int diff{};
         auto s{samples},p{samples + period};
         for(int i{}; i < period; i++) {
-            auto sVal = *s++;
-            auto pVal = *p++;
+            auto sVal{*s++},pVal{*p++};
             diff += sVal >= pVal? static_cast<int16_t>(sVal - pVal) :
                     static_cast<int16_t>(pVal - sVal);
         }
@@ -420,8 +419,7 @@ void XSonic::overlapAdd(const int &numSamples,
     for(uint32_t i{};i < numChannels;i++) {
 
         auto o{out + i};
-        auto u{rampUp + i};
-        auto d{rampDown + i};
+        auto u{rampUp + i},d{rampDown + i};
 
         for(int t{}; t < numSamples; t++) {
             const auto v_d{*d},v_u{*u};
@@ -532,7 +530,7 @@ bool XSonic::adjustPitch(const int &originalNumOutputSamples) {
             return {};
         }
 
-        auto out{m_outputBuffer.data() + m_numOutputSamples * numChannels};
+        const auto out{m_outputBuffer.data() + m_numOutputSamples * numChannels};
 
         if(pitch >= 1.0f) {
             auto rampDown{m_pitchBuffer.data() + position * numChannels},
@@ -620,7 +618,7 @@ int16_t XSonic::interpolate(const int16_t *in,
 bool XSonic::adjustRate(const float &rate,const int &originalNumOutputSamples) {
 
     auto oldSampleRate{m_sampleRate},
-        newSampleRate {static_cast<int>(static_cast<float>(oldSampleRate) / rate)},
+        newSampleRate{static_cast<int>(static_cast<float>(oldSampleRate) / rate)},
         numChannels{m_numChannels};
 
     static constexpr auto N{SINC_FILTER_POINTS};
@@ -762,8 +760,8 @@ bool XSonic::changeSpeed(const float &speed) {
             position += newSamples;
         } else {
 
-            auto samples{m_inputBuffer.data() + position * m_numChannels};
-            auto period{findPitchPeriod(samples, 1)};
+            const auto samples{m_inputBuffer.data() + position * m_numChannels};
+            const auto period{findPitchPeriod(samples, 1)};
 
             if (!period) {
                 return {};

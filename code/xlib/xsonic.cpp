@@ -31,7 +31,7 @@ void XSonic::Close(){
     m_outputBuffer.clear();
     m_pitchBuffer.clear();
     m_downSampleBuffer.clear();
-    auto parent_{static_cast<XSonic_data*>(this)};
+    const auto parent_{static_cast<XSonic_data*>(this)};
     *parent_ = {};
 }
 
@@ -122,8 +122,8 @@ int XSonic::sonicReadFloatFromStream(float *samples,
     }
 
     if(remainingSamples > 0) {
-        auto src_{m_outputBuffer.data() + numSamples*m_numChannels};
-        auto dst_{m_outputBuffer.data()};
+        const auto src_{m_outputBuffer.data() + numSamples*m_numChannels};
+        const auto dst_{m_outputBuffer.data()};
         const auto size_{remainingSamples * m_numChannels};
         std::move(src_,src_ + size_,dst_);
     }
@@ -151,14 +151,14 @@ int XSonic::sonicReadShortFromStream(int16_t *samples,
         numSamples = maxSamples;
     }
 
-    auto read_{m_outputBuffer.data()};
-    auto write_{samples};
+    const auto read_{m_outputBuffer.data()};
+    const auto write_{samples};
     const auto w_size_{numSamples * m_numChannels};
     std::copy_n(read_,w_size_,write_);
 
     if(remainingSamples > 0) {
-        auto src_{m_outputBuffer.data() + numSamples*m_numChannels};
-        auto dst_{m_outputBuffer.data()};
+        const auto src_{m_outputBuffer.data() + numSamples*m_numChannels};
+        const auto dst_{m_outputBuffer.data()};
         const auto size_{remainingSamples * m_numChannels};
         std::move(src_,src_ + size_,dst_);
     }

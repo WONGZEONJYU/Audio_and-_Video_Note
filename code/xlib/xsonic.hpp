@@ -177,7 +177,7 @@ public:
     explicit XSonic(const int &sampleRate,const int &numChannels);
     XSonic(XSonic &&) noexcept(true);
     XSonic &operator=(XSonic &&) noexcept(true);
-    virtual ~XSonic() = default;
+    ~XSonic() = default;
 };
 
 /* This is a non-stream oriented interface to just change the speed of a sound
