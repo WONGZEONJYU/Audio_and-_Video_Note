@@ -7,7 +7,7 @@ int main() {
     constexpr XAudioSpec spec;
     a->Open(spec);
 
-    std::ifstream ifs("44100_16bit_2ch.pcm",std::ios::binary);
+    std::ifstream ifs("test_pcm.pcm",std::ios::binary);
     if (!ifs) {
         std::cerr << "Error opening file\n";
         return -1;
@@ -15,7 +15,7 @@ int main() {
 
     a->set_volume(128);
     uint8_t buf[1024]{};
-    a->set_speed(1.0);
+    a->set_speed(2.0);
     while (true) {
         ifs.read(reinterpret_cast<char*>(buf), sizeof(buf));
         const auto read_size{ifs.gcount()};

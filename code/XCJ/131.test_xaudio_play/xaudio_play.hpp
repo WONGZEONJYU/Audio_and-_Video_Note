@@ -15,7 +15,7 @@ class XAudio_Play {
     using data_buffer_t = std::vector<uint8_t>;
     int64_t Speed_Change(data_buffer_t &,data_buffer_t &);
 public:
-    static XAudio_Play * instance();
+    static XAudio_Play *instance();
 
     virtual ~XAudio_Play() = default;
 
@@ -40,9 +40,9 @@ public:
 protected:
     explicit XAudio_Play() = default;
 
-    static void AudioCallback(void * ,uint8_t * ,int);
+    static void AudioCallback(void *,uint8_t * ,int);
 
-    virtual void Callback(uint8_t * ,const int &) {}
+    virtual void Callback(uint8_t *,const int &) {}
 
     std::mutex m_mux_;
     std::list<XAudio_Data> m_datum_;
