@@ -51,7 +51,7 @@ int XResample::Resample(const XAVFrame_sptr &frame,resample_data_t &datum,int &o
     //+ 256的目的是重采样内部是有一定的缓存,就存在上一次的重采样缓存数据和这一次重采样一起输出的情况,多出来的目的是为了分配大点的输出buffer
     //const auto speed_size {speed_rate / static_cast<double >(frame->sample_rate)};
 
-    const auto out_count {static_cast<double >(frame->nb_samples) *
+    const auto out_count{static_cast<double >(frame->nb_samples) *
                                         static_cast<double >(frame->sample_rate) / static_cast<double >(frame->sample_rate) + 256.0};
 
     const auto out_size{av_samples_get_buffer_size(nullptr,frame->ch_layout.nb_channels,static_cast<int>(out_count),

@@ -267,7 +267,7 @@ double XDemuxThread::Volume() const noexcept(true){
     return -1.0;
 }
 
-void XDemuxThread::SetSpeed(float speed) noexcept(true){
+void XDemuxThread::SetSpeed(const float speed) noexcept(true){
     QMutexLocker locker(&m_mux);
     if (!m_at || !m_vt){
         return;

@@ -37,8 +37,8 @@ private slots:
     void PlayOrPause();
     void SliderPressed();
     void SliderReleased();
-    void VolumeChanged(const int&);
-    void SpeedChanged(const double &);
+    void VolumeChanged(const int&) const;
+    void SpeedChanged(const double &) const;
 private:
     std::atomic_bool m_is_SliderPress{};
     QSharedPointer<Ui::XPlay2Widget> m_ui;
