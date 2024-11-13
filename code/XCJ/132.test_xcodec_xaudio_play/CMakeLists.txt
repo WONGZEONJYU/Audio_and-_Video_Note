@@ -42,6 +42,7 @@ endif ()
 
 include_directories(${SDL_HEADERS_PATH})
 include_directories(${XLIB_HEADERS_PATH})
+include_directories(${FFMPEG_HEADERS_PATH})
 
 file(GLOB SRC_FILE ${CMAKE_SOURCE_DIR}/*.*)
 
