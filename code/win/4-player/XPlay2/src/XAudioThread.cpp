@@ -77,7 +77,7 @@ int XAudioThread::Speed_Change(std::vector<uint8_t> &in,
                                const int &in_re_size,
                                std::vector<uint8_t> &out){
     int out_size{};
-    qDebug() << m_speed;
+
     if (m_speed != 1.0f) {
 
         if (in_samples > 0 && in_re_size > 0) {
