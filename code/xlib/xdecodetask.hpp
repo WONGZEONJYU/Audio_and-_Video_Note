@@ -15,6 +15,7 @@ public:
      * @return true or false
      */
     bool Open(const XCodecParameters_sp &parm);
+    bool Open(const XCodecParameters &parm);
 
     /**
      * 拷贝解码后的一帧数据,有可能为空
@@ -34,7 +35,7 @@ public:
      * 此函数为帧缓存策略
      * 对于视频来说,这里设置不设置无所谓,丢帧不容易发现
      * 对于音频来说,丢帧非常容易发现,如发现音频丢帧,设置这里采用缓存策略可以避免这个问题
-     * 当然视频也可以采用阵缓存策略
+     * 当然视频也可以采用帧缓存策略
      * @param b
      */
     void set_frame_cache(const bool &b) {
@@ -49,7 +50,7 @@ private:
     std::atomic_bool m_need_view_{},
         m_frame_cache_{};
     std::atomic_int m_stream_index_{};
-    std::list<XAVFrame_sp> m_frames_list_;
+    std::list<XAVFrame_sp> m_frames_;
 
 public:
     explicit XDecodeTask() = default;

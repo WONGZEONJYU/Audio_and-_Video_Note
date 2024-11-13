@@ -1,5 +1,6 @@
 #include "xaudio_play.hpp"
 #include  <SDL.h>
+#include "xcodec_parameters.hpp"
 
 using namespace std;
 
@@ -18,21 +19,71 @@ public:
 
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
-        SDL_AudioSpec spec{
-            .freq = spec_.m_freq,
-            .format = spec_.m_format,
-            .channels = spec_.m_channels,
-            .silence = 0,
-            .samples = spec_.m_samples,
-            .callback = AudioCallback,
-            .userdata = this
-        };
+        SDL_AudioSpec spec{};
+        auto &[freq,format,channels,
+               silence,samples,padding,
+               size,callback,userdata]{spec};
+
+        freq = spec_.m_freq;
+        format = spec_.m_format;
+        channels = spec_.m_channels;
+        samples = spec_.m_samples;
+        callback = AudioCallback;
+        userdata = this;
+
         SDL2_INT_ERR_OUT(SDL_OpenAudio(&spec,{}),return {});
         CHECK_FALSE_(XAudio_Play::Open(spec_),return {});
         SDL_PauseAudio(0);
         return true;
     }
 
+    bool Open(const XCodecParameters &parameters) override{
+        XAudioSpec spec;
+        auto &[freq,format,channels
+                ,samples]{spec};
+
+        freq = parameters.Sample_rate();
+        channels = parameters.Ch_layout()->nb_channels;
+
+        const auto frame_size{parameters.Audio_nbSamples()};
+        samples = frame_size > 0 ? frame_size : samples;
+
+        switch (parameters.Audio_sample_format()) {
+            case AV_SAMPLE_FMT_U8:
+            case AV_SAMPLE_FMT_U8P: {
+                format = AUDIO_S8;
+                break;
+            }
+            case AV_SAMPLE_FMT_S16:         ///< signed 16 bits
+            case AV_SAMPLE_FMT_S16P: {      ///< signed 16 bits, planar
+                format = AUDIO_S16;
+                break;
+            }
+            case AV_SAMPLE_FMT_S32:         ///< signed 32 bits
+            case AV_SAMPLE_FMT_S32P: {      ///< signed 32 bits, planar
+                format = AUDIO_S32;
+                break;
+            }
+            case AV_SAMPLE_FMT_FLT:         ///< float
+            case AV_SAMPLE_FMT_FLTP: {      ///< float, planar
+                format = AUDIO_F32;
+                break;
+            }
+            default:
+                break;
+        }
+
+        return Open(spec);
+    }
+
+    bool Open(const XCodecParameters_sp &parameters) override{
+        if (!parameters){
+            PRINT_ERR_TIPS(GET_STR(parameters empty!));
+            return {};
+        }
+        return Open(*parameters);
+    }
+private:
     void Callback(uint8_t * const stream, const int &len) override {
 
         std::fill_n(stream,len,0);

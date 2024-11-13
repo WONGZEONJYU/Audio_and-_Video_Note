@@ -46,10 +46,10 @@
 #endif
 
 struct XAudioSpec {
- int m_freq {44100};
- unsigned short m_format {AUDIO_S16SYS};
- unsigned char m_channels{2};
- unsigned short m_samples{1024};
+ int m_freq {44100},
+ m_format {AUDIO_S16SYS},
+        m_channels{2},
+        m_samples{1024};
 };
 
 #endif

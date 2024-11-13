@@ -1,19 +1,18 @@
 #include "xaudio_play.hpp"
 #include "xavframe.hpp"
-#include "xcodec_parameters.hpp"
 
 using namespace std;
 
 template<typename T>
 static inline bool plane_to_cross(const XAVFrame &frame,vector<uint8_t> &out) {
 
-    if (!frame.data[0] || !frame.data[1] || frame.linesize[0] != frame.linesize[1]) {
-        return {};
-    }
+    IS_NULLPTR(frame.data[0],return {});
+    IS_NULLPTR(frame.data[1],return {});
+    CHECK_FALSE_(frame.linesize[0] > 0,return {});
 
     if (out.capacity() < frame.linesize[0]) {
         out.clear();
-        out.resize(frame.linesize[0]);
+        TRY_CATCH(CHECK_EXC(out.resize(frame.linesize[0])),return {});
     }
 
     const auto out_data{reinterpret_cast<T*>(out.data())};
@@ -29,44 +28,6 @@ static inline bool plane_to_cross(const XAVFrame &frame,vector<uint8_t> &out) {
     return true;
 }
 
-bool XAudio_Play::Open(const XCodecParameters &parameters) {
-
-    XAudioSpec spec;
-    auto &[freq,format,channels,samples]{spec};
-    freq = parameters.Sample_rate();
-    channels = parameters.Ch_layout()->nb_channels;
-
-    const auto frame_size{ parameters.Audio_nbSamples()};
-    samples = frame_size > 0 ? frame_size : samples;
-
-    switch (parameters.Audio_sample_format()) {
-        case AV_SAMPLE_FMT_U8:
-        case AV_SAMPLE_FMT_U8P: {
-            format = AUDIO_S8;
-            break;
-        }
-        case AV_SAMPLE_FMT_S16:         ///< signed 16 bits
-        case AV_SAMPLE_FMT_S16P: {      ///< signed 16 bits, planar
-            format = AUDIO_S16;
-            break;
-        }
-        case AV_SAMPLE_FMT_S32:         ///< signed 32 bits
-        case AV_SAMPLE_FMT_S32P: {      ///< signed 32 bits, planar
-            format = AUDIO_S32;
-            break;
-        }
-        case AV_SAMPLE_FMT_FLT:         ///< float
-            case AV_SAMPLE_FMT_FLTP: {      ///< float, planar
-            format = AUDIO_F32;
-            break;
-        }
-        default:
-            break;
-    }
-
-    return Open(spec);
-}
-
 bool XAudio_Play::Open(const XAudioSpec &spec_) {
     std::unique_lock locker(m_mux_);
     is_init_son_ = m_son.Open(spec_.m_freq,spec_.m_channels);
@@ -79,8 +40,9 @@ bool XAudio_Play::Open(const XAudioSpec &spec_) {
 void XAudio_Play::push_helper(data_buffer_t &in) {
     std::unique_lock locker(m_mux_);
     if (data_buffer_t out; Speed_Change(in,out) > 0) {
-        auto &[m_data,m_offset] {m_datum_.emplace_back()};
-        m_data = std::move(out);
+        //auto &[m_data,m_offset]{m_datum_.emplace_back(std::move(out))};
+        //m_data = std::move(out);
+        TRY_CATCH(CHECK_EXC(m_datum_.emplace_back(std::move(out))));
     }
 }
 
@@ -91,9 +53,7 @@ void XAudio_Play::Push(const uint8_t *data, const size_t &size) {
 
 void XAudio_Play::Push(const XAVFrame &frame) {
 
-    if (!frame.data[0]) {
-        return;
-    }
+    IS_NULLPTR(frame.data[0], return);
 
     data_buffer_t in;
     bool b{};
@@ -148,9 +108,7 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
 
     int64_t out_size{-1};
 
-    if (in.empty()) {
-        return out_size;
-    }
+    CHECK_FALSE_(!in.empty(),return out_size);
 
     if (is_init_son_ && 1.0f != m_speed_) {
 
@@ -164,15 +122,15 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
         need_sample = need_sample < 0 ? 0 : need_sample;
         data_buffer_t temp_out(need_sample * m_spec_.m_channels * sizeof(int16_t));
 
-        out_size  = m_son.sonicReadShortFromStream(reinterpret_cast<int16_t *>(temp_out.data()),need_sample);
+        out_size = m_son.sonicReadShortFromStream(reinterpret_cast<int16_t *>(temp_out.data()),need_sample);
 
         if (out_size > 0) {
+            out_size = static_cast<decltype(out_size)>(temp_out.size());
             out = std::move(temp_out);
         }
-
     }else {
         out = std::move(in);
-        out_size = static_cast<int64_t>(out.size());
+        out_size = static_cast<decltype(out_size)>(out.size());
     }
 
     return out_size;
