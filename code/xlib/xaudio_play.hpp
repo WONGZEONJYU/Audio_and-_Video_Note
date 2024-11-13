@@ -13,27 +13,39 @@ class XLIB_API XAudio_Play {
     X_DISABLE_COPY_MOVE(XAudio_Play)
     using data_buffer_t = std::vector<uint8_t>;
     int64_t Speed_Change(data_buffer_t &,data_buffer_t &);
+
+    void push_helper(data_buffer_t &);
+
 public:
     static XAudio_Play *instance();
 
     virtual ~XAudio_Play() = default;
 
-    virtual bool Open(const XAudioSpec &spec_) {
-        const auto r{m_son.Open(spec_.m_freq,spec_.m_channels)};
-        if (r) {
-            m_spec_ = spec_;
-        }
-        return r;
-    }
+    /**
+     * 支持ffmpeg参数
+     * @param parameters ffmpeg参数
+     * @return true or false
+     */
+    virtual bool Open(const XCodecParameters &parameters);
+
+    /**
+     * 需被派生类继承,如果需要调整播放倍速,派生类继承本函数后,调用一次本函数
+     * @param spec_ 音频相关参数
+     * @return true or false
+     */
+    virtual bool Open(const XAudioSpec &spec_);
 
     void Push(const uint8_t * data, const size_t &size);
+    void Push(const XAVFrame &);
 
-    void set_volume(const int &volume) {
+    inline void set_volume(const int &volume) {
         m_volume_ = volume;
     }
 
-    void set_speed(const double &s) {
-        m_speed_ = static_cast<float>(s);
+    inline void set_speed(const double &s) {
+        if(is_init_son_) {
+            m_speed_ = static_cast<float>(s);
+        }
     }
 
 protected:
@@ -48,6 +60,7 @@ protected:
     std::atomic_int m_volume_{128};
     XAudioSpec m_spec_{};
 private:
+    std::atomic_bool is_init_son_{};
     std::atomic<float> m_speed_{1.0f};
     XSonic m_son;
 };

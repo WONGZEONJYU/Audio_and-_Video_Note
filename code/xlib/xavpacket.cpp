@@ -8,11 +8,11 @@ XAVPacket::XAVPacket() : AVPacket() {
     av_packet_unref(this);
 }
 
-XAVPacket::XAVPacket(const AVPacket &packet) : AVPacket() {
+XAVPacket::XAVPacket(const AVPacket &packet) : XAVPacket() {
     av_packet_ref(this,std::addressof(packet));
 }
 
-XAVPacket::XAVPacket(const AVPacket *packet) : AVPacket() {
+XAVPacket::XAVPacket(const AVPacket *packet) : XAVPacket() {
     av_packet_ref(this,packet);
 }
 
@@ -25,8 +25,7 @@ XAVPacket::XAVPacket(XAVPacket &&obj) noexcept : XAVPacket() {
 }
 
 XAVPacket &XAVPacket::operator=(const XAVPacket &obj) {
-    auto obj_{std::addressof(obj)};
-    if (this != obj_){
+    if (const auto obj_{std::addressof(obj)}; this != obj_){
         av_packet_unref(this);//先释放自身,再调用av_packet_ref
         av_packet_ref(this,obj_);
     }
@@ -34,8 +33,7 @@ XAVPacket &XAVPacket::operator=(const XAVPacket &obj) {
 }
 
 XAVPacket &XAVPacket::operator=(XAVPacket &&obj) noexcept {
-    auto obj_{std::addressof(obj)};
-    if (this != obj_){
+    if (const auto obj_{std::addressof(obj)}; this != obj_){
         av_packet_unref(this);//先释放自身,再调用av_packet_move_ref
         av_packet_move_ref(this,obj_);
     }
@@ -78,6 +76,18 @@ void XAVPacket::Move_FromAVPacket(AVPacket *packet) {
 
 void XAVPacket::Move_FromAVPacket(AVPacket &&packet) {
     Move_FromAVPacket(std::addressof(packet));
+}
+
+XAVPacket::operator bool() const {
+    return data;
+}
+
+bool XAVPacket::operator!() const {
+    return !data;
+}
+
+bool XAVPacket::empty() const {
+    return !data;
 }
 
 XAVPacket_sp new_XAVPacket() noexcept(true) {

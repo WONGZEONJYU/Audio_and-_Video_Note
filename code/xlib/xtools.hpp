@@ -41,7 +41,6 @@ private:
     std::thread m_th_;
     std::mutex m_mux_;
     std::atomic_int m_index_{};
-    //XThread *m_next{};
     std::atomic<XThread*> m_next_;
 
 protected:
@@ -53,11 +52,11 @@ protected:
 class XLIB_API XAVPacketList {
     static inline constexpr auto max_packets{100};
 public:
-    XAVPacket_sp Pop();
+    [[nodiscard]] XAVPacket_sp Pop();
     void Push(XAVPacket_sp &&);
-    void Push(XAVPacket_sp &);
-    void Push(XAVPacket &);
-    void Push(XAVPacket &&);
+    void Push(const XAVPacket_sp &);
+    [[nodiscard]] bool Push(const XAVPacket &);
+    [[nodiscard]] bool Push(XAVPacket &&);
 private:
     std::list<XAVPacket_sp> m_packets_;
     std::mutex m_mux_;

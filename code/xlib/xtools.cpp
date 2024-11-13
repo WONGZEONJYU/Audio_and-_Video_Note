@@ -67,17 +67,22 @@ void XAVPacketList::Push(XAVPacket_sp &&pkt) {
     }
 }
 
-void XAVPacketList::Push(XAVPacket_sp &pkt) {
-    Push(std::move(pkt));
+void XAVPacketList::Push(const XAVPacket_sp &pkt){
+    auto pkt_{pkt};
+    Push(std::move(pkt_));
 }
 
-void XAVPacketList::Push(XAVPacket &pkt){
-    Push(std::move(pkt));
-}
-
-void XAVPacketList::Push(XAVPacket &&pkt){
+bool XAVPacketList::Push(const XAVPacket &pkt){
     XAVPacket_sp pkt_;
-    IS_SMART_NULLPTR(pkt_ = new_XAVPacket(), return;);
+    IS_SMART_NULLPTR(pkt_ = new_XAVPacket(pkt), return {});
+    Push(std::move(pkt_));
+    return true;
+}
+
+bool XAVPacketList::Push(XAVPacket &&pkt){
+    XAVPacket_sp pkt_;
+    IS_SMART_NULLPTR(pkt_ = new_XAVPacket(), return {});
     *pkt_ = std::move(pkt);
     Push(std::move(pkt_));
+    return true;
 }

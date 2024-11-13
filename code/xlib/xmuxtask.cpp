@@ -4,7 +4,9 @@
 #include "xavpacket.hpp"
 
 void XMuxTask::Do(XAVPacket &pkt){
-    m_pkts_.Push(pkt);
+    if (m_pkts_.Push(pkt)) {
+        std::cout << GET_STR(P1) << std::flush;
+    }
     Next(pkt);
 }
 
@@ -19,9 +21,11 @@ void XMuxTask::Main() {
             XHelper::MSleep(1);
             continue;
         }
+
         if (m_xmux_.video_index() == pkt->stream_index
             && pkt->flags & AV_PKT_FLAG_KEY) {
             m_xmux_.Write(*pkt);
+            std::cout << GET_STR(W) << std::flush;
             break;
         }
     }
@@ -35,7 +39,7 @@ void XMuxTask::Main() {
             continue;
         }
         m_xmux_.Write(*pkt);
-        std::cout << "W" << std::flush;
+        std::cout << GET_STR(W) << std::flush;
     }
 
     m_xmux_.WriteEnd();

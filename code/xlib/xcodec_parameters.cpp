@@ -133,6 +133,10 @@ int XCodecParameters::Sample_Format_Size() const noexcept(true){
     return av_get_bytes_per_sample(static_cast<AVSampleFormat>(format));
 }
 
+int XCodecParameters::Audio_nbSamples() const noexcept(true) {
+    return frame_size;
+}
+
 XCodecParameters::~XCodecParameters() {
     Reset(this);
 }

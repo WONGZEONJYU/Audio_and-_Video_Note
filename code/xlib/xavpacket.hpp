@@ -12,7 +12,7 @@ public:
     XAVPacket();
 
     /**
-     * ?AVPacket??,????+1,AVPacket???????????
+     *
      * @param packet
      */
     explicit XAVPacket(const AVPacket &packet);
@@ -63,6 +63,10 @@ public:
      */
     void Move_FromAVPacket(AVPacket *packet);
     void Move_FromAVPacket(AVPacket &&packet);
+
+    explicit operator bool() const;
+    bool operator !() const;
+    [[nodiscard]] bool empty() const;
 };
 
 XLIB_API XAVPacket_sp new_XAVPacket() noexcept(true);

@@ -114,6 +114,10 @@ public:
     void Move_fromAVFrame(AVFrame *frame);
     void Move_fromAVFrame(AVFrame &&frame);
 
+    explicit operator bool() const;
+    bool operator !() const;
+    [[nodiscard]] bool empty() const;
+
 };
 
 XLIB_API XAVFrame_sp new_XAVFrame() noexcept(true);

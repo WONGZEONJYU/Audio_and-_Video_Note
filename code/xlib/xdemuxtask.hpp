@@ -19,6 +19,12 @@ public:
     bool Open(const std::string &url,const uint64_t &time_out = 1000);
     auto CopyVideoParm() const{return m_demux_.CopyVideoParm();}
     auto CopyAudioParm() const{return m_demux_.CopyAudioParm();}
+    auto audio_index() const { return m_demux_.audio_index(); }
+    auto video_index() const { return m_demux_.video_index(); }
+    /**
+     * 如果用于播放器,没有音频的时候,需视频自己进行同步
+     * @param type
+     */
     void set_sync_type(const SYNC_TYPE &type){m_sync_type_ = type;}
 private:
     XDemux m_demux_;

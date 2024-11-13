@@ -13,8 +13,7 @@ XSonic::XSonic(XSonic &&obj) noexcept(true){
 }
 
 XSonic &XSonic::operator=(XSonic &&obj) noexcept(true){
-    auto src_{std::addressof(obj)};
-    if (this != src_){
+    if (const auto src_{std::addressof(obj)}; this != src_){
         Move_(src_);
     }
     return *this;
@@ -116,13 +115,13 @@ int XSonic::sonicReadFloatFromStream(float *samples,
 #if 0
         *samples++ = (*out_buffer++)/32767.0f;
 #else
-        const auto v {*out_buffer++};
+        const auto v{*out_buffer++};
         *samples++ = static_cast<float>(v) / 32767.0f;
 #endif
     }
 
     if(remainingSamples > 0) {
-        const auto src_{m_outputBuffer.data() + numSamples*m_numChannels};
+        const auto src_{m_outputBuffer.data() + numSamples * m_numChannels};
         const auto dst_{m_outputBuffer.data()};
         const auto size_{remainingSamples * m_numChannels};
         std::move(src_,src_ + size_,dst_);
