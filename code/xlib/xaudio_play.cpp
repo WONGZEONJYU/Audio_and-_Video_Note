@@ -6,6 +6,14 @@ using namespace std;
 template<typename T>
 static inline bool plane_to_cross(const XAVFrame &frame,vector<uint8_t> &out) {
 
+    if constexpr (!(std::is_same_v<T,uint8_t> ||
+        std::is_same_v<T,short> || std::is_same_v<T,uint16_t> ||
+        std::is_same_v<T,int32_t> || std::is_same_v<T,uint32_t> ||
+        std::is_same_v<T,int64_t> || std::is_same_v<T,uint64_t> ||
+        std::is_same_v<T,float> || std::is_same_v<T,double> )) {
+        static_assert(false,GET_STR(not support type));
+    }
+
     IS_NULLPTR(frame.data[0],return {});
     IS_NULLPTR(frame.data[1],return {});
     CHECK_FALSE_(frame.linesize[0] > 0,return {});
@@ -26,15 +34,6 @@ static inline bool plane_to_cross(const XAVFrame &frame,vector<uint8_t> &out) {
         out_data[index + 1] = Right_[i];
     }
     return true;
-}
-
-bool XAudio_Play::Open(const XAudioSpec &spec_) {
-    std::unique_lock locker(m_mux_);
-    is_init_son_ = m_son.Open(spec_.m_freq,spec_.m_channels);
-    if (is_init_son_) {
-        m_spec_ = spec_;
-    }
-    return is_init_son_;
 }
 
 void XAudio_Play::push_helper(data_buffer_t &in) {
@@ -104,25 +103,35 @@ void XAudio_Play::AudioCallback(void * const userdata,
     this_->Callback(stream, length);
 }
 
+bool XAudio_Play::support_gear_shift(const XAudioSpec &spec_,const FMT_SIZE &fmt_size) {
+
+    std::unique_lock locker(m_mux_);
+    const auto b{m_speed_ctr_.Open(spec_.m_freq,spec_.m_channels)};
+    if (b) {
+        m_spec_ = spec_;
+        m_format_size_ = fmt_size;
+    }
+    return b;
+}
+
 int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
 
     int64_t out_size{-1};
 
     CHECK_FALSE_(!in.empty(),return out_size);
 
-    if (is_init_son_ && 1.0f != m_speed_) {
+    if (UNKNOWN_!= m_format_size_ && 1.0f != m_speed_) {
 
-        m_son.sonicSetSpeed(m_speed_);
+        m_speed_ctr_.Set_Speed(m_speed_);
+        const auto in_samples_num{static_cast<int>(in.size() / (m_spec_.m_channels  * m_format_size_))};
 
-        const auto in_samples_num{static_cast<int>(in.size() / (static_cast<int>(m_spec_.m_channels)  * sizeof(int16_t)) )};
+        CHECK_FALSE_(m_speed_ctr_.Send(reinterpret_cast<int16_t*>(in.data()),in_samples_num),return out_size);
 
-        CHECK_FALSE_(m_son.sonicWriteShortToStream(reinterpret_cast<int16_t*>(in.data()),in_samples_num),return out_size);
-
-        auto need_sample{m_son.sonicSamplesAvailable()};
+        auto need_sample{m_speed_ctr_.sonicSamplesAvailable()};
         need_sample = need_sample < 0 ? 0 : need_sample;
-        data_buffer_t temp_out(need_sample * m_spec_.m_channels * sizeof(int16_t));
+        data_buffer_t temp_out(need_sample * m_spec_.m_channels * m_format_size_);
 
-        out_size = m_son.sonicReadShortFromStream(reinterpret_cast<int16_t *>(temp_out.data()),need_sample);
+        out_size = m_speed_ctr_.Receive(reinterpret_cast<int16_t *>(temp_out.data()),need_sample);
 
         if (out_size > 0) {
             out_size = static_cast<decltype(out_size)>(temp_out.size());

@@ -4,7 +4,9 @@
 
 using namespace std;
 
-class SDL_Audio final : public XAudio_Play {
+
+
+class XLIB_API SDL_Audio final : public XAudio_Play {
 
 public:
     explicit SDL_Audio() {
@@ -15,7 +17,8 @@ public:
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
     }
 
-    bool Open(const XAudioSpec &spec_) override  {
+    bool Open(const XAudioSpec &spec_) override {
+
 
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
@@ -31,13 +34,30 @@ public:
         callback = AudioCallback;
         userdata = this;
 
-        SDL2_INT_ERR_OUT(SDL_OpenAudio(&spec,{}),return {});
-        CHECK_FALSE_(XAudio_Play::Open(spec_),return {});
+        int ret;
+        SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&spec,{}));
+        if (ret < 0) {
+            SDL_AudioSpec default_spec{
+                .freq = 44100,
+                .format = AUDIO_S16SYS,
+                .channels = 2,
+                .silence = 0,
+                .samples = 1024,
+                .padding = 0,
+                .size = 0,
+                .callback = AudioCallback,
+                .userdata = this,
+            };
+
+            SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&default_spec,{}),return {});
+        }
+
+        CHECK_FALSE_(support_gear_shift(spec_,FLOAT_),return {});
         SDL_PauseAudio(0);
         return true;
     }
 
-    bool Open(const XCodecParameters &parameters) override{
+    bool Open(const XCodecParameters &parameters) override {
         XAudioSpec spec;
         auto &[freq,format,channels
                 ,samples]{spec};
@@ -70,6 +90,7 @@ public:
                 break;
             }
             default:
+                format = -1;
                 break;
         }
 

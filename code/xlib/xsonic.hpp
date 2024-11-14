@@ -168,7 +168,7 @@ public:
 /* Get the number of channels. */
     [[nodiscard]] int sonicGetNumChannels() const;
 
-protected:
+private:
     std::vector<int16_t> m_inputBuffer,m_outputBuffer,
                         m_pitchBuffer,m_downSampleBuffer;
 public:

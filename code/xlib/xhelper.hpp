@@ -122,10 +122,10 @@ namespace XHelper  {
               const int &level = XLOG_TYPE_DEBUG);
 }
 
-#define LOGDEBUG(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg))
-#define LOGDINFO(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_INFO)
-#define LOGERROR(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_ERROR)
-#define LOGFATAL(msg) XHelper::xlog(__func__,__FILE__,__LINE__,(msg),XLOG_TYPE_FATAL)
+#define LOGDEBUG(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg))
+#define LOGDINFO(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_INFO)
+#define LOGERROR(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_ERROR)
+#define LOGFATAL(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_FATAL)
 
 #define TRY_CATCH(x,...) do{\
     try{x;}catch(const std::exception &e){\
@@ -223,7 +223,7 @@ namespace XHelper  {
 }while(false)
 
 #define PRINT_ERR_TIPS(msg) do{ \
-    XHelper::print_err_tips(__func__,__FILE__,__LINE__,(msg));}while(false)
+    XHelper::print_err_tips(__FUNCTION__,__FILE__,__LINE__,(msg));}while(false)
 
 #define GET_STR(args) #args
 
