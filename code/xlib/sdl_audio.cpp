@@ -4,8 +4,6 @@
 
 using namespace std;
 
-
-
 class XLIB_API SDL_Audio final : public XAudio_Play {
 
 public:
@@ -18,7 +16,6 @@ public:
     }
 
     bool Open(const XAudioSpec &spec_) override {
-
 
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
