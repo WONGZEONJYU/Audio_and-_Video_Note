@@ -23,14 +23,14 @@ public:
 
     [[nodiscard]] inline auto sonicSamplesAvailable() const {
         if (!is_init) {
+            PRINT_ERR_TIPS(GET_STR(Uninitialized));
             return -1;
         }
         return m_son_.sonicSamplesAvailable();
     }
 
     template<typename T>
-    inline std::enable_if_t<std::is_fundamental_v<T>,bool>
-    Send(const T *src,const int &sample) {
+    inline bool Send(const T *src,const int &samples) {
 
         if (!is_init) {
             PRINT_ERR_TIPS(GET_STR(Uninitialized));
@@ -38,11 +38,11 @@ public:
         }
 
         if constexpr (std::is_same_v<T,float>) {
-            return m_son_.sonicWriteFloatToStream(src,sample);
+            return m_son_.sonicWriteFloatToStream(src,samples);
         }else if constexpr (std::is_same_v<T,short>) {
-            return m_son_.sonicWriteShortToStream(src,sample);
+            return m_son_.sonicWriteShortToStream(src,samples);
         }else if constexpr (std::is_same_v<T,uint8_t>) {
-            return m_son_.sonicWriteUnsignedCharToStream(src,sample);
+            return m_son_.sonicWriteUnsignedCharToStream(src,samples);
         } else {
             static_assert(false,GET_STR("not support type"));
         }
@@ -50,8 +50,7 @@ public:
     }
 
     template<typename T>
-    inline std::enable_if_t<std::is_fundamental_v<T>,bool>
-    Receive(T * dst,const int &sample) {
+    inline bool Receive(T *dst,const int &samples) {
 
         if (!is_init) {
             PRINT_ERR_TIPS(GET_STR(Uninitialized));
@@ -59,11 +58,11 @@ public:
         }
 
         if constexpr (std::is_same_v<T,float>) {
-            return m_son_.sonicReadFloatFromStream(dst,sample);
+            return m_son_.sonicReadFloatFromStream(dst,samples);
         }else if constexpr (std::is_same_v<T,short>) {
-            return m_son_.sonicReadShortFromStream(dst,sample);
+            return m_son_.sonicReadShortFromStream(dst,samples);
         }else if constexpr (std::is_same_v<T,uint8_t>) {
-            return m_son_.sonicReadUnsignedCharFromStream(dst,sample);
+            return m_son_.sonicReadUnsignedCharFromStream(dst,samples);
         }else {
             static_assert(false,GET_STR("not support type"));
         }

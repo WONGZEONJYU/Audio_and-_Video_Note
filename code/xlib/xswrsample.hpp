@@ -54,17 +54,20 @@ class XLIB_API XSwrSample final{
     [[nodiscard]] int opt_set_sample_rate(const std::string&,
                              const int64_t &val) const noexcept(true);
 
+    [[nodiscard]] bool init() const noexcept(true);
 public:
     /**
-     * 调用前,请先设置好参数
-     * @return true or false
+     * 重采样接口
+     * @param out 输入数据
+     * @param out_nb_samples 输出样本数
+     * @param in 输入数据
+     * @param in_nb_samples 输出样本数
+     * @return number of samples output per channel, negative value on error
      */
-    [[nodiscard]] bool init() const noexcept(true);
-
     int convert(uint8_t **out,
-                    const int &out_count,
-                    const uint8_t * const *in,
-                    const int &in_count ) const noexcept(true);
+                const int &out_nb_samples,
+                const uint8_t * const *in,
+                const int &in_nb_samples) const noexcept(true);
 
     /**
      * 输入的AVFrame和输出的AVFrame的信息必须要与配置本重采样器的参数一致
@@ -87,6 +90,7 @@ public:
      * 设置待重采样音频的通道数、采样格式、采样率
      * @return true or false
      */
+#if 0
     [[nodiscard]] bool set_input_ch_layout(const AVChannelLayout *)  noexcept(true);
     [[nodiscard]] bool set_input_sample_fmt(const int &) noexcept(true);
     [[nodiscard]] bool set_input_sample_rate(const int64_t &) noexcept(true);
@@ -98,10 +102,19 @@ public:
     [[nodiscard]] bool set_output_ch_layout(const AVChannelLayout *) noexcept(true);
     [[nodiscard]] bool set_output_sample_fmt(const int &) noexcept(true);
     [[nodiscard]] bool set_output_sample_rate(const int64_t &) noexcept(true);
-
+#endif
     [[nodiscard]] int64_t get_delay(const int64_t& ) const noexcept(true);
+
+    [[nodiscard]] int64_t next_pts(const int64_t &pts) const;
+
+    /**
+     * 重采样软补偿
+     * @param sample_delta
+     * @param compensation_distance
+     * @return
+     */
     [[nodiscard]] bool set_compensation(const int &sample_delta,
-                           const int &compensation_distance) const noexcept(true);
+                                        const int &compensation_distance) const noexcept(true);
 
 private:
     SwrContext* m_swr_ctx_{};
@@ -126,8 +139,8 @@ public:
 
 XLIB_API XSwrSample_sp new_XSwrSample() noexcept(true);
 XLIB_API XSwrSample_sp new_XSwrSample(const XSwrParam &p,
-                                    const int &log_offset,
-                                    void *log_ctx) noexcept(true);
+                                    const int &log_offset = {},
+                                    void *log_ctx = {}) noexcept(true);
 XLIB_API XSwrSample_sp new_XSwrSample(const AVChannelLayout *out_ch_layout,
                                     const int &out_sample_fmt,
                                     const int &out_sample_rate,

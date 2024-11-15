@@ -65,9 +65,9 @@ int XSwrSample::convert(uint8_t **out, const int &out_count,
     return ret;
 }
 
-int XSwrSample::convert(const XAVFrame &src_, XAVFrame &dst_) const noexcept(false) {
+int XSwrSample::convert(const XAVFrame &src, XAVFrame &dst) const noexcept(false) {
     int ret;
-    FF_CHECK_ERR(ret = swr_convert_frame(m_swr_ctx_,&dst_,&src_));
+    FF_CHECK_ERR(ret = swr_convert_frame(m_swr_ctx_,&dst,&src));
     return ret;
 }
 
@@ -97,6 +97,7 @@ int XSwrSample::opt_set_sample_rate(const std::string& name,
     return av_opt_set_int(m_swr_ctx_,name.c_str(), val, 0);
 }
 
+#if 0
 bool XSwrSample::set_input_ch_layout(const AVChannelLayout *layout)  noexcept(true){
     FF_ERR_OUT(opt_set_ch_layout(GET_STR(ichl),layout),return {});
     m_params_.m_in_ch_layout = layout;
@@ -132,9 +133,18 @@ bool XSwrSample::set_output_sample_rate(const int64_t &val) noexcept(true){
     m_params_.m_out_sample_rate = static_cast<decltype(m_params_.m_out_sample_rate)>(val);
     return true;
 }
+#endif
 
 int64_t XSwrSample::get_delay(const int64_t& base) const noexcept(true){
-    return swr_get_delay(m_swr_ctx_,base);
+    int16_t ret;
+    FF_ERR_OUT(ret = swr_get_delay(m_swr_ctx_,base));
+    return ret;
+}
+
+int64_t XSwrSample::next_pts(const int64_t &pts) const{
+    int64_t ret;
+    FF_ERR_OUT(ret = swr_next_pts(m_swr_ctx_,pts));
+    return ret;
 }
 
 bool XSwrSample::set_compensation(const int &sample_delta,

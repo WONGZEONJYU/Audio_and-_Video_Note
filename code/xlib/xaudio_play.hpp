@@ -3,12 +3,14 @@
 
 #include "xaduio_parameters.hpp"
 #include "xaudio_triple_speed.hpp"
-#include "xswrsample.hpp"
+#include "xcodec_parameters.hpp"
 
 struct XAudio_Data {
     std::vector<uint8_t> m_data{};
     std::atomic_uint64_t m_offset{};
 };
+
+struct XSwrParam;
 
 class XLIB_API XAudio_Play {
     X_DISABLE_COPY_MOVE(XAudio_Play)
@@ -21,13 +23,25 @@ public:
     static XAudio_Play *instance();
     virtual ~XAudio_Play() = default;
 
+#if 1
     /**
      * 如果需要支持ffmpeg接口,则重载以下两个函数或其中一个
+     * 用户重载后,可以调用本函数对ffmpeg的参数进行copy
      * @param parameters ffmpeg参数
      * @return true or false
      */
-    virtual auto Open(const XCodecParameters &parameters)->bool {return {};}
-    virtual auto Open(const XCodecParameters_sp &parameters) ->bool {return {};}
+    virtual auto Open(const XCodecParameters &parameters)->bool {
+        ff_audio_parameters_ = parameters;
+        return {};
+    }
+
+    virtual auto Open(const XCodecParameters_sp &parameters) ->bool {
+        if (parameters) {
+            ff_audio_parameters_ = *parameters;
+        }
+        return {};
+    }
+#endif
 
     /**
      * @param spec_ 音频相关参数
@@ -35,37 +49,34 @@ public:
      */
     virtual bool Open(const XAudioSpec &spec_) = 0;
 
+    /**
+     * PCM裸数据,可以是平面格式或交叉模式
+     * 如果播放库不支持平面格式,可能有奇奇怪怪的问题
+     * @param data
+     * @param size
+     */
     void Push(const uint8_t * data, const size_t &size);
-    void Push(const XAVFrame &);
+
+    /**
+     * 直接支持ffmpeg音频接口,会进行重采样
+     * @param frame
+     */
+    void Push(const XAVFrame &frame);
 
     inline void set_volume(const int &volume) {
         m_volume_ = volume;
     }
 
     inline void set_speed(const double &s) {
-        if(UNKNOWN_ != m_format_size_) {
-            m_speed_ = static_cast<float>(s);
-        }
+        m_speed_ = static_cast<float>(s);
     }
 
 protected:
-
-    enum FMT_SIZE: int {
-        UNKNOWN_ = -1,
-        U8S8_ = sizeof(char),
-        U16S16_ = sizeof(short),
-        U32S32_ = sizeof(int),
-        FLOAT_ = sizeof(float),
-        DOUBLE_ = sizeof(double),
-    };
-
     explicit XAudio_Play() = default;
-
     static void AudioCallback(void *,uint8_t * ,int);
-
     virtual void Callback(uint8_t *,const int &) {}
 
-    bool support_gear_shift(const XAudioSpec &spec_,const FMT_SIZE &fmt_size);
+    bool init_swr(const XSwrParam &);
 
     std::mutex m_mux_;
     std::list<XAudio_Data> m_datum_;
@@ -73,10 +84,10 @@ protected:
     XAudioSpec m_spec_{};
 
 private:
-    std::atomic<FMT_SIZE> m_format_size_{UNKNOWN_};
     std::atomic<float> m_speed_{1.0f};
     Audio_Playback_Speed m_speed_ctr_;
     XSwrSample_sp m_swr_;
+    XCodecParameters ff_audio_parameters_;
 };
 
 #define xAudio() XAudio_Play::instance()

@@ -1,6 +1,7 @@
 #include "xaudio_play.hpp"
 #include  <SDL.h>
 #include "xcodec_parameters.hpp"
+#include "xswrsample.hpp"
 
 using namespace std;
 
@@ -19,13 +20,25 @@ public:
 
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
+        const SDL_AudioSpec default_spec{
+            .freq = 44100,
+            .format = AUDIO_S16SYS,
+            .channels = 2,
+            .silence = 0,
+            .samples = 1024,
+            .padding = 0,
+            .size = 0,
+            .callback = AudioCallback,
+            .userdata = this,
+        };
+
         SDL_AudioSpec spec{};
         auto &[freq,format,channels,
                silence,samples,padding,
                size,callback,userdata]{spec};
 
         freq = spec_.m_freq;
-        format = spec_.m_format;
+        //format = spec_.m_format;
         channels = spec_.m_channels;
         samples = spec_.m_samples;
         callback = AudioCallback;
@@ -34,26 +47,16 @@ public:
         int ret;
         SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&spec,{}));
         if (ret < 0) {
-            SDL_AudioSpec default_spec{
-                .freq = 44100,
-                .format = AUDIO_S16SYS,
-                .channels = 2,
-                .silence = 0,
-                .samples = 1024,
-                .padding = 0,
-                .size = 0,
-                .callback = AudioCallback,
-                .userdata = this,
-            };
+            auto tmp_spec{default_spec};
+            SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&tmp_spec,{}),return {});
+        }else {
 
-            SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&default_spec,{}),return {});
         }
 
-        CHECK_FALSE_(support_gear_shift(spec_,FLOAT_),return {});
         SDL_PauseAudio(0);
         return true;
     }
-
+#if 0
     bool Open(const XCodecParameters &parameters) override {
         XAudioSpec spec;
         auto &[freq,format,channels
@@ -101,6 +104,8 @@ public:
         }
         return Open(*parameters);
     }
+#endif
+
 private:
     void Callback(uint8_t * const stream, const int &len) override {
 
