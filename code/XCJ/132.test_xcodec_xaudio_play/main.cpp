@@ -33,6 +33,8 @@ int main() {
         return -1;
     }
 
+    a->set_speed(1.0);
+
     demux_task.Start();
     decode_task.Start();
 
