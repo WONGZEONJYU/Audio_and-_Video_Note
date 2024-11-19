@@ -30,19 +30,9 @@ public:
      * @param parameters ffmpeg参数
      * @return true or false
      */
-    virtual auto Open(const XCodecParameters &parameters)->bool {
-        ff_audio_parameters_ = parameters;
-        return {};
-    }
-
-    virtual auto Open(const XCodecParameters_sp &parameters) ->bool {
-        if (parameters) {
-            ff_audio_parameters_ = *parameters;
-        }
-        return {};
-    }
+    virtual auto Open(const XCodecParameters &parameters)->bool;
+    virtual auto Open(const XCodecParameters_sp &parameters) ->bool;
 #endif
-
     /**
      * @param spec_ 音频相关参数
      * @return true or false
@@ -55,7 +45,7 @@ public:
      * @param data
      * @param size
      */
-    void Push(const uint8_t * data, const size_t &size);
+    void Push(const uint8_t *data, const size_t &size);
 
     /**
      * 直接支持ffmpeg音频接口,会进行重采样
@@ -82,12 +72,11 @@ protected:
     std::list<XAudio_Data> m_datum_;
     std::atomic_int m_volume_{128};
     XAudioSpec m_spec_{};
-
+    Audio_Playback_Speed m_speed_ctr_;
 private:
     std::atomic<float> m_speed_{1.0f};
-    Audio_Playback_Speed m_speed_ctr_;
     XSwrSample_sp m_swr_;
-    XCodecParameters ff_audio_parameters_;
+    XCodecParameters m_ff_audio_parameters_;
 };
 
 #define xAudio() XAudio_Play::instance()

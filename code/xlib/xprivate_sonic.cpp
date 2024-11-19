@@ -121,12 +121,7 @@ bool XSonic::enlargeOutputBufferIfNeeded(const int &numSamples) {
     if(m_numOutputSamples + numSamples > m_outputBufferSize) {
         m_outputBufferSize += (m_outputBufferSize >> 1) + numSamples;
         m_outputBuffer.clear();
-        try {
-            CHECK_EXC(m_outputBuffer.resize(m_outputBufferSize * m_numChannels));
-        }catch (const std::exception &e){
-            std::cerr << e.what() << "\n";
-            return {};
-        }
+        TRY_CATCH(CHECK_EXC(m_outputBuffer.resize(m_outputBufferSize * m_numChannels)),return {});
     }
     return true;
 }
@@ -136,13 +131,82 @@ bool XSonic::enlargeInputBufferIfNeeded(const int &numSamples) {
     if(m_numInputSamples + numSamples > m_inputBufferSize) {
         m_inputBufferSize += (m_inputBufferSize >> 1) + numSamples;
         m_inputBuffer.clear();
-        try {
-            CHECK_EXC(m_inputBuffer.resize(m_inputBufferSize * m_numChannels));
-        }catch(const std::exception &e) {
-            std::cerr << e.what() << "\n";
-            return {};
-        }
+        TRY_CATCH(CHECK_EXC(m_inputBuffer.resize(m_inputBufferSize * m_numChannels)),return {});
     }
+    return true;
+}
+
+bool XSonic::addDoubleSamplesToInputBuffer(const double *samples, const int &numSamples) {
+
+    if(numSamples <= 0 || !samples) {
+        return {};
+    }
+
+    if(!enlargeInputBufferIfNeeded(numSamples)) {
+        return {};
+    }
+
+    const auto count{numSamples * m_numChannels};
+    const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+
+    for(int i{}; i < count; ++i) {
+        auto sample{samples[i]};
+        if (sample > 1.0) {
+            sample = 1.0;
+        }
+
+        if (sample < -1.0) {
+            sample = -1.0;
+        }
+
+        buffer[i] = static_cast<int16_t>(std::round(sample * 32767.0));
+    }
+
+    m_numInputSamples += numSamples;
+    return true;
+}
+
+bool XSonic::addS64SamplesToInputBuffer(const int64_t *samples, const int &numSamples) {
+
+    if(numSamples <= 0 || !samples) {
+        return {};
+    }
+
+    if(!enlargeInputBufferIfNeeded(numSamples)) {
+        return {};
+    }
+
+    const auto count{numSamples * m_numChannels};
+    const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+
+    for(int i{}; i < count; ++i) {
+        const auto v1{samples[i] + (1LL << 47)},v2{v1 >> 48};
+        buffer[i] = static_cast<int16_t>(v2);
+    }
+
+    m_numInputSamples += numSamples;
+    return true;
+}
+
+bool XSonic::addU64SamplesToInputBuffer(const uint64_t *samples, const int &numSamples) {
+
+    if(numSamples <= 0 || !samples) {
+        return {};
+    }
+
+    if(!enlargeInputBufferIfNeeded(numSamples)) {
+        return {};
+    }
+
+    const auto count{numSamples * m_numChannels};
+    const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+
+    for(int i{}; i < count; ++i) {
+        const auto v1{samples[i] - 9223372036854775808ULL},v2{v1 >> 48};
+        buffer[i] = static_cast<int16_t>(v2);
+    }
+
+    m_numInputSamples += numSamples;
     return true;
 }
 
@@ -156,15 +220,63 @@ bool XSonic::addFloatSamplesToInputBuffer(const float *samples,const int &numSam
         return {};
     }
 
+#if 1
+    const auto count{numSamples * m_numChannels};
+    const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+
+    for(int i{}; i < count; ++i) {
+        const auto v{samples[i] * 32767.0f};
+        buffer[i] = static_cast<int16_t>(v);
+    }
+#else
     auto count{numSamples * m_numChannels};
     auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+
     while(count--) {
-#if 0
-        *buffer++ = (*samples++)*32767.0f; //原写法
-#else
-        const auto v{(*samples++) * 32767.0f};
+        const auto v{*samples++ * 32767.0f};
         *buffer++ = static_cast<int16_t>(v);
+    }
 #endif
+    m_numInputSamples += numSamples;
+    return true;
+}
+
+bool XSonic::addS32SamplesToInputBuffer(const int32_t *samples, const int &numSamples) {
+
+    if(numSamples <= 0 || !samples) {
+        return {};
+    }
+
+    if(!enlargeInputBufferIfNeeded(numSamples)) {
+        return {};
+    }
+
+    const auto count{numSamples * m_numChannels};
+    const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+    for(int i{}; i < count; ++i) {
+        const auto v1{*samples++ + 32768},v2{v1 >> 16};
+        buffer[i] = static_cast<int16_t>(v2);
+    }
+
+    m_numInputSamples += numSamples;
+    return true;
+}
+
+bool XSonic::addU32SamplesToInputBuffer(const uint32_t *samples, const int &numSamples) {
+
+    if(numSamples <= 0 || !samples) {
+        return {};
+    }
+
+    if(!enlargeInputBufferIfNeeded(numSamples)) {
+        return {};
+    }
+
+    const auto count{numSamples * m_numChannels};
+    const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+    for(int i{}; i < count; ++i) {
+        const auto v1{*samples++ - 2147483648L},v2{v1 >> 16};
+        buffer[i] = static_cast<int16_t>(v2);
     }
 
     m_numInputSamples += numSamples;
@@ -190,6 +302,27 @@ bool XSonic::addShortSamplesToInputBuffer(const int16_t *samples,const int &numS
     return true;
 }
 
+bool XSonic::addUnsignedShortSamplesToInputBuffer(const uint16_t *samples, const int &numSamples) {
+
+    if(numSamples <= 0 || !samples) {
+        return {};
+    }
+
+    if(!enlargeInputBufferIfNeeded(numSamples)) {
+        return {};
+    }
+
+    const auto dst_{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+    const auto size_{numSamples * m_numChannels};
+
+    for(auto i{0}; i < size_; ++i) {
+        dst_[i] = static_cast<int16_t>(samples[i] - 32768);
+    }
+
+    m_numInputSamples += numSamples;
+    return true;
+}
+
 bool XSonic::addUnsignedCharSamplesToInputBuffer(const uint8_t *samples,const int &numSamples) {
 
     if(numSamples <= 0 || !samples) {
@@ -203,13 +336,27 @@ bool XSonic::addUnsignedCharSamplesToInputBuffer(const uint8_t *samples,const in
     auto count{numSamples * m_numChannels};
     auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
     while(count--) {
-#if  0
-        *buffer++ = (*samples++ - 128) << 8; 原写法
-#else
-        const auto v1{*samples++ - 128};
-        const auto v2{v1 << 8};
+        const auto v1{*samples++ - 128},v2{v1 << 8};
         *buffer++ = static_cast<int16_t>(v2);
-#endif
+    }
+    m_numInputSamples += numSamples;
+    return true;
+}
+
+bool XSonic::addCharSamplesToInputBuffer(const int8_t *samples, const int &numSamples) {
+
+    if(numSamples <= 0 || !samples) {
+        return {};
+    }
+
+    if(!enlargeInputBufferIfNeeded(numSamples)) {
+        return {};
+    }
+
+    auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+    auto count{numSamples * m_numChannels};
+    while(count--) {
+        *buffer++ = static_cast<int16_t>(*samples << 8);
     }
 
     m_numInputSamples += numSamples;

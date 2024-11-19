@@ -20,7 +20,7 @@ protected:
     bool m_is_init_{};
 };
 
-class XLIB_API XSonic final: protected XSonic_data {
+class XLIB_API XSonic final: XSonic_data {
 
     static void scaleSamples(int16_t * ,
                              const int&,
@@ -36,11 +36,30 @@ class XLIB_API XSonic final: protected XSonic_data {
 
     bool enlargeInputBufferIfNeeded(const int &numSamples);
 
+    bool addDoubleSamplesToInputBuffer(const double *samples,
+                                      const int &numSamples);
+
+    bool addS64SamplesToInputBuffer(const int64_t *samples,
+                                      const int &numSamples);
+
+    bool addU64SamplesToInputBuffer(const uint64_t *samples,
+                                  const int &numSamples);
+
     bool addFloatSamplesToInputBuffer(const float *samples,
                                       const int &numSamples);
 
+    bool addS32SamplesToInputBuffer(const int32_t *samples,const int &numSamples);
+
+    bool addU32SamplesToInputBuffer(const uint32_t *samples,const int &numSamples);
+
     bool addShortSamplesToInputBuffer(const int16_t *samples,
                                       const int &numSamples);
+
+    bool addUnsignedShortSamplesToInputBuffer(const uint16_t *samples,
+                                      const int &numSamples);
+
+    bool addCharSamplesToInputBuffer(const int8_t *samples,
+        const int &numSamples);
 
     bool addUnsignedCharSamplesToInputBuffer(const uint8_t *samples,
                                              const int &numSamples);
@@ -114,24 +133,60 @@ class XLIB_API XSonic final: protected XSonic_data {
 public:
     bool Open(const int &sampleRate,const int &numChannels);
     void Close();
+
+
+    bool sonicWriteDoubleToStream(const double *samples,const int &numSamples);
+
     /* Use this to write floating point data to be speed up or down into the stream.
    Values must be between -1 and 1.  Return 0 if memory realloc failed, otherwise 1 */
     bool sonicWriteFloatToStream(const float *samples,const int &numSamples);
 /* Use this to write 16-bit data to be speed up or down into the stream.
    Return 0 if memory realloc failed, otherwise 1 */
+
+    bool sonicWriteU64ToStream(const uint64_t *samples,const int &numSamples);
+
+    bool sonicWriteS64ToStream(const int64_t *samples,const int &numSamples);
+
+    bool sonicWriteS32ToStream(const int32_t *samples,const int &numSamples);
+
+    bool sonicWriteU32ToStream(const uint32_t *samples,const int &numSamples);
+
     bool sonicWriteShortToStream(const int16_t *samples,const int &numSamples);
 /* Use this to write 8-bit unsigned data to be speed up or down into the stream.
    Return 0 if memory realloc failed, otherwise 1 */
+
+    bool sonicWriteUnsignedShortToStream(const uint16_t *samples,const int &numSamples);
+
+    bool sonicWriteCharToStream(const int8_t *samples,const int &numSamples);
+
     bool sonicWriteUnsignedCharToStream(const uint8_t *samples,const int &numSamples);
+
+    int sonicReadDoubleFromStream(double *samples,const int &maxSamples);
+
+    int sonicReadS64FromStream(int64_t *samples,const int &maxSamples);
+
+    int sonicReadU64FromStream(uint64_t *samples,const int &maxSamples);
+
 /* Use this to read floating point data out of the stream.  Sometimes no data
    will be available, and zero is returned, which is not an error condition. */
     int sonicReadFloatFromStream(float *samples,const int &maxSamples);
+
+    int sonicReadU32FromStream(uint32_t *samples,const int &maxSamples);
+
+    int sonicReadS32FromStream(int32_t *samples,const int &maxSamples);
+
 /* Use this to read 16-bit data out of the stream.  Sometimes no data will
    be available, and zero is returned, which is not an error condition. */
     int sonicReadShortFromStream(int16_t *samples,const int &maxSamples);
+
+    int sonicReadUnsignedShortFromStream(uint16_t *samples,const int &maxSamples);
+
 /* Use this to read 8-bit unsigned data out of the stream.  Sometimes no data will
    be available, and zero is returned, which is not an error condition. */
     int sonicReadUnsignedCharFromStream(uint8_t *samples,const int &maxSamples);
+
+    int sonicReadSignedCharFromStream(int8_t *samples,const int &maxSamples);
+
 /* Force the sonic stream to generate output using whatever data it currently
    has.  No extra delay will be added to the output, but flushing in the middle of
    words could introduce distortion. */

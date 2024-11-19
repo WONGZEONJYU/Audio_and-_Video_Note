@@ -1,5 +1,5 @@
 #include "xaudio_play.hpp"
-#include  <SDL.h>
+#include <SDL.h>
 #include "xcodec_parameters.hpp"
 #include "xswrsample.hpp"
 
@@ -38,7 +38,7 @@ public:
                size,callback,userdata]{spec};
 
         freq = spec_.m_freq;
-        //format = spec_.m_format;
+        format = to_sdl_audio_format(spec_.m_format);
         channels = spec_.m_channels;
         samples = spec_.m_samples;
         callback = AudioCallback;
@@ -46,64 +46,44 @@ public:
 
         int ret;
         SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&spec,{}));
+        m_spec_ = spec_;
         if (ret < 0) {
             auto tmp_spec{default_spec};
             SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&tmp_spec,{}),return {});
-        }else {
-
+            m_spec_.m_channels = tmp_spec.channels;
+            m_spec_.m_samples = tmp_spec.samples;
+            m_spec_.m_freq = tmp_spec.freq;
+            m_spec_.m_format = sdl_to_xaudio_format(tmp_spec.format);
         }
 
+        m_speed_ctr_.Open(freq,channels);
         SDL_PauseAudio(0);
         return true;
     }
-#if 0
+#if 1
     bool Open(const XCodecParameters &parameters) override {
         XAudioSpec spec;
-        auto &[freq,format,channels
-                ,samples]{spec};
+        auto &[freq,format,channels,samples]{spec};
 
         freq = parameters.Sample_rate();
         channels = parameters.Ch_layout()->nb_channels;
-
-        const auto frame_size{parameters.Audio_nbSamples()};
-        samples = frame_size > 0 ? frame_size : samples;
-
-        switch (parameters.Audio_sample_format()) {
-            case AV_SAMPLE_FMT_U8:
-            case AV_SAMPLE_FMT_U8P: {
-                format = AUDIO_S8;
-                break;
-            }
-            case AV_SAMPLE_FMT_S16:         ///< signed 16 bits
-            case AV_SAMPLE_FMT_S16P: {      ///< signed 16 bits, planar
-                format = AUDIO_S16;
-                break;
-            }
-            case AV_SAMPLE_FMT_S32:         ///< signed 32 bits
-            case AV_SAMPLE_FMT_S32P: {      ///< signed 32 bits, planar
-                format = AUDIO_S32;
-                break;
-            }
-            case AV_SAMPLE_FMT_FLT:         ///< float
-            case AV_SAMPLE_FMT_FLTP: {      ///< float, planar
-                format = AUDIO_F32;
-                break;
-            }
-            default:
-                format = -1;
-                break;
+        samples = parameters.Audio_nbSamples();
+        format = ff_to_xaduio_format(parameters.Audio_sample_format());
+        const auto b{Open(spec)};
+        if (b) {
+            XAudio_Play::Open(parameters);
         }
-
-        return Open(spec);
+        return b;
     }
 
-    bool Open(const XCodecParameters_sp &parameters) override{
-        if (!parameters){
-            PRINT_ERR_TIPS(GET_STR(parameters empty!));
+    bool Open(const XCodecParameters_sp &parameters) override {
+        if(!parameters) {
+            PRINT_ERR_TIPS(GET_STR(parameters error!));
             return {};
         }
         return Open(*parameters);
     }
+
 #endif
 
 private:
