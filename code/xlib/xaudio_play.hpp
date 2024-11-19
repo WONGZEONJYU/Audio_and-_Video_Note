@@ -7,7 +7,7 @@
 
 struct XAudio_Data {
     std::vector<uint8_t> m_data{};
-    std::atomic_uint64_t m_offset{};
+    [[maybe_unused]] std::atomic_uint64_t m_offset{};
 };
 
 struct XSwrParam;
@@ -20,7 +20,7 @@ class XLIB_API XAudio_Play {
     void push_helper(data_buffer_t &);
 
 public:
-    static XAudio_Play *instance();
+    [[maybe_unused]] static XAudio_Play *instance();
     virtual ~XAudio_Play() = default;
 
 #if 1
@@ -53,12 +53,14 @@ public:
      */
     void Push(const XAVFrame &frame);
 
-    inline void set_volume(const int &volume) {
+    [[maybe_unused]] inline void set_volume(const int &volume) {
         m_volume_ = volume;
     }
 
-    inline void set_speed(const double &s) {
-        m_speed_ = static_cast<float>(s);
+    [[maybe_unused]]  inline void set_speed(const double &s) {
+        if(m_init_speed_ctr_){
+            m_speed_ = static_cast<float>(s);
+        }
     }
 
 protected:
@@ -66,17 +68,22 @@ protected:
     static void AudioCallback(void *,uint8_t * ,int);
     virtual void Callback(uint8_t *,const int &) {}
 
-    bool init_swr(const XSwrParam &);
+    [[maybe_unused]] bool init_swr(const XSwrParam &);
+
+    [[maybe_unused]] bool init_speed_ctr(const int &sample_rate,
+                                         const int &channels);
 
     std::mutex m_mux_;
     std::list<XAudio_Data> m_datum_;
     std::atomic_int m_volume_{128};
     XAudioSpec m_spec_{};
-    Audio_Playback_Speed m_speed_ctr_;
+
 private:
     std::atomic<float> m_speed_{1.0f};
     XSwrSample_sp m_swr_;
     XCodecParameters m_ff_audio_parameters_;
+    Audio_Playback_Speed m_speed_ctr_;
+    std::atomic_bool m_init_speed_ctr_{};
 };
 
 #define xAudio() XAudio_Play::instance()

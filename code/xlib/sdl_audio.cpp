@@ -47,7 +47,7 @@ public:
         int ret;
         SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&spec,{}));
         m_spec_ = spec_;
-        if (ret < 0) {
+        if (ret < 0) { //用默认参数进行初始化
             auto tmp_spec{default_spec};
             SDL2_INT_ERR_OUT(ret = SDL_OpenAudio(&tmp_spec,{}),return {});
             m_spec_.m_channels = tmp_spec.channels;
@@ -56,11 +56,11 @@ public:
             m_spec_.m_format = sdl_to_xaudio_format(tmp_spec.format);
         }
 
-        m_speed_ctr_.Open(freq,channels);
+        CHECK_FALSE_(init_speed_ctr(m_spec_.m_freq,m_spec_.m_channels),return {});
         SDL_PauseAudio(0);
         return true;
     }
-#if 1
+
     bool Open(const XCodecParameters &parameters) override {
         XAudioSpec spec;
         auto &[freq,format,channels,samples]{spec};
@@ -84,12 +84,10 @@ public:
         return Open(*parameters);
     }
 
-#endif
-
 private:
     void Callback(uint8_t * const stream, const int &len) override {
 
-        std::fill_n(stream,len,0);
+        fill_n(stream,len,0);
         uint64_t need_size{static_cast<decltype(need_size)>(len)}, //需要处理的大小
                 mixed_size{}; //已经处理的数据的大小
 
@@ -118,7 +116,7 @@ private:
     }
 };
 
-XAudio_Play * XAudio_Play::instance() {
+XAudio_Play *XAudio_Play::instance() {
     static SDL_Audio audio;
     return &audio;
 }

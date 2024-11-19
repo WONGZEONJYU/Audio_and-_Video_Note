@@ -180,7 +180,8 @@ bool XSonic::addS64SamplesToInputBuffer(const int64_t *samples, const int &numSa
     const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
 
     for(int i{}; i < count; ++i) {
-        const auto v1{samples[i] + (1LL << 47)},v2{v1 >> 48};
+        const auto v1{samples[i] + (1LL << 47)},
+                v2{v1 >> 48};
         buffer[i] = static_cast<int16_t>(v2);
     }
 
@@ -202,7 +203,8 @@ bool XSonic::addU64SamplesToInputBuffer(const uint64_t *samples, const int &numS
     const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
 
     for(int i{}; i < count; ++i) {
-        const auto v1{samples[i] - 9223372036854775808ULL},v2{v1 >> 48};
+        const auto v1{samples[i] - 9223372036854775808ULL},
+                v2{v1 >> 48};
         buffer[i] = static_cast<int16_t>(v2);
     }
 
@@ -220,7 +222,6 @@ bool XSonic::addFloatSamplesToInputBuffer(const float *samples,const int &numSam
         return {};
     }
 
-#if 1
     const auto count{numSamples * m_numChannels};
     const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
 
@@ -228,15 +229,7 @@ bool XSonic::addFloatSamplesToInputBuffer(const float *samples,const int &numSam
         const auto v{samples[i] * 32767.0f};
         buffer[i] = static_cast<int16_t>(v);
     }
-#else
-    auto count{numSamples * m_numChannels};
-    auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
 
-    while(count--) {
-        const auto v{*samples++ * 32767.0f};
-        *buffer++ = static_cast<int16_t>(v);
-    }
-#endif
     m_numInputSamples += numSamples;
     return true;
 }
@@ -254,7 +247,8 @@ bool XSonic::addS32SamplesToInputBuffer(const int32_t *samples, const int &numSa
     const auto count{numSamples * m_numChannels};
     const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
     for(int i{}; i < count; ++i) {
-        const auto v1{*samples++ + 32768},v2{v1 >> 16};
+        const auto v1{samples[i] + 32768},
+                    v2{v1 >> 16};
         buffer[i] = static_cast<int16_t>(v2);
     }
 
@@ -275,7 +269,8 @@ bool XSonic::addU32SamplesToInputBuffer(const uint32_t *samples, const int &numS
     const auto count{numSamples * m_numChannels};
     const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
     for(int i{}; i < count; ++i) {
-        const auto v1{*samples++ - 2147483648L},v2{v1 >> 16};
+        const auto v1{samples[i] - 2147483648L},
+                v2{v1 >> 16};
         buffer[i] = static_cast<int16_t>(v2);
     }
 
@@ -333,12 +328,15 @@ bool XSonic::addUnsignedCharSamplesToInputBuffer(const uint8_t *samples,const in
         return {};
     }
 
-    auto count{numSamples * m_numChannels};
-    auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
-    while(count--) {
-        const auto v1{*samples++ - 128},v2{v1 << 8};
-        *buffer++ = static_cast<int16_t>(v2);
+    const auto count{numSamples * m_numChannels};
+    const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+
+    for (int i{};i < count;++i){
+        const auto v1{samples[i] - 128},
+                v2{v1 << 8};
+        buffer[i] = static_cast<int16_t>(v2);
     }
+
     m_numInputSamples += numSamples;
     return true;
 }
@@ -353,10 +351,11 @@ bool XSonic::addCharSamplesToInputBuffer(const int8_t *samples, const int &numSa
         return {};
     }
 
-    auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
-    auto count{numSamples * m_numChannels};
-    while(count--) {
-        *buffer++ = static_cast<int16_t>(*samples << 8);
+    const auto buffer{m_inputBuffer.data() + m_numInputSamples * m_numChannels};
+    const auto count{numSamples * m_numChannels};
+
+    for (int i{};i < count;++i){
+        buffer[i] = static_cast<int16_t>(samples[i] << 8);
     }
 
     m_numInputSamples += numSamples;

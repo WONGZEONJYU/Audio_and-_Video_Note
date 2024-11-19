@@ -148,8 +148,13 @@ bool XAudio_Play::init_swr(const XSwrParam &p) {
     return m_swr_.operator bool();
 }
 
+bool XAudio_Play::init_speed_ctr(const int &sample_rate,const int &channels){
+    CHECK_FALSE_(m_init_speed_ctr_ = m_speed_ctr_.Open(sample_rate,channels),return {});
+    return true;
+}
+
 template<typename T>
-static inline int64_t Speed_Change(const vector<uint8_t> &in, vector<uint8_t> &out,
+static inline int64_t Speed_Change_helper(const vector<uint8_t> &in, vector<uint8_t> &out,
     Audio_Playback_Speed &s,const XAudioSpec &spec_) {
 
     if constexpr (!(std::is_same_v<T,uint8_t> || std::is_same_v<T,int8_t> ||
@@ -204,9 +209,29 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
             out = std::move(temp_out);
         }
 #endif
+        using Speed_Change_type = int64_t(*)(const vector<uint8_t> &, vector<uint8_t> &,
+                Audio_Playback_Speed &,const XAudioSpec &);
 
-        out_size = ::Speed_Change<double>(in,out,m_speed_ctr_,m_spec_);
+        static constexpr pair<ENUM_AUDIO_FMT(XAudio),Speed_Change_type> list[]{
+            {GET_FMT_VAL(XAudio)::XAudio_S8_FMT,Speed_Change_helper<int8_t>},
+            {GET_FMT_VAL(XAudio)::XAudio_U8_FMT,Speed_Change_helper<uint8_t>},
+            {GET_FMT_VAL(XAudio)::XAudio_S16_FMT,Speed_Change_helper<int16_t>},
+            {GET_FMT_VAL(XAudio)::XAudio_U16_FMT,Speed_Change_helper<uint16_t>},
+            {GET_FMT_VAL(XAudio)::XAudio_S32_FMT,Speed_Change_helper<int32_t>},
+            {GET_FMT_VAL(XAudio)::XAudio_U32_FMT,Speed_Change_helper<uint32_t>},
+            {GET_FMT_VAL(XAudio)::XAudio_S64_FMT,Speed_Change_helper<int64_t>},
+            {GET_FMT_VAL(XAudio)::XAudio_U64_FMT,Speed_Change_helper<uint64_t>},
+            {GET_FMT_VAL(XAudio)::XAudio_FLOAT_FMT,Speed_Change_helper<float>},
+            {GET_FMT_VAL(XAudio)::XAudio_DOUBLE_FMT,Speed_Change_helper<double>},
+        };
 
+        for (const auto &[first,
+                          second] : list) {
+            if (first == m_spec_.m_format){
+                out_size = second(in,out,m_speed_ctr_,m_spec_);
+                break;
+            }
+        }
     }else {
         out = std::move(in);
         out_size = static_cast<decltype(out_size)>(out.size());

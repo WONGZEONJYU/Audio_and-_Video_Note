@@ -48,7 +48,9 @@ public:
             return m_son_.sonicWriteShortToStream(src,samples);
         }else if constexpr (std::is_same_v<T,uint8_t>) {
             return m_son_.sonicWriteUnsignedCharToStream(src,samples);
-        } else if constexpr (std::is_same_v<T,uint16_t>) {
+        } else if constexpr (std::is_same_v<T,int8_t>){
+            return m_son_.sonicWriteCharToStream(src,samples);
+        }else if constexpr (std::is_same_v<T,uint16_t>) {
             return m_son_.sonicWriteUnsignedShortToStream(src,samples);
         }else if constexpr (std::is_same_v<T,uint32_t>) {
             return m_son_.sonicWriteU32ToStream(src,samples);

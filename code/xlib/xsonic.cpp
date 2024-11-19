@@ -147,7 +147,7 @@ int XSonic::sonicReadS64FromStream(int64_t *samples, const int &maxSamples) {
     const auto count{numSamples * m_numChannels};
 
     for(int i{};i < count;++i) {
-        samples[i] = out_buffer[i] << 48;
+        samples[i] = static_cast<int64_t>(out_buffer[i]) << 48;
     }
 
     if(remainingSamples > 0) {
@@ -398,16 +398,6 @@ int XSonic::sonicReadUnsignedCharFromStream(uint8_t *samples,
 
     const auto out_buffer{m_outputBuffer.data()};
     const auto count{numSamples * m_numChannels};
-
-//     while(count--) {
-// #if 0
-//         *samples++ = (char)((*out_buffer++) >> 8) + 128;
-// #else
-//         const auto v1{*out_buffer++};
-//         const auto v2{static_cast<char>(v1 >> 8)};
-//         *samples++ = v2 + 128;
-// #endif
-//     }
 
     for(int i{};i < count;++i) {
         const auto v1{out_buffer[i] >> 8},v2{v1 + 128};
