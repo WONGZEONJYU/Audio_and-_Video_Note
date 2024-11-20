@@ -1,11 +1,10 @@
 #include "xaudio_play.hpp"
 #include <SDL.h>
 #include "xcodec_parameters.hpp"
-#include "xswrsample.hpp"
 
 using namespace std;
 
-class XLIB_API SDL_Audio final : public XAudio_Play {
+class SDL_Audio final : public XAudio_Play {
 
 public:
     explicit SDL_Audio() {
@@ -18,8 +17,6 @@ public:
 
     bool Open(const XAudioSpec &spec_) override {
 
-        SDL_QuitSubSystem(SDL_INIT_AUDIO);
-
         const SDL_AudioSpec default_spec{
             .freq = 44100,
             .format = AUDIO_S16SYS,
@@ -31,6 +28,8 @@ public:
             .callback = AudioCallback,
             .userdata = this,
         };
+
+        SDL_QuitSubSystem(SDL_INIT_AUDIO); //用于关闭回调函数
 
         SDL_AudioSpec spec{};
         auto &[freq,format,channels,
@@ -71,7 +70,7 @@ public:
         format = ff_to_xaduio_format(parameters.Audio_sample_format());
         const auto b{Open(spec)};
         if (b) {
-            XAudio_Play::Open(parameters);
+            XAudio_Play::Open(parameters); //复制一份参数
         }
         return b;
     }

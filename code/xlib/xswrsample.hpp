@@ -1,7 +1,6 @@
 #ifndef SWRESAMPLE_HPP_
 #define SWRESAMPLE_HPP_
 
-#include "xavframe.hpp"
 #include "xhelper.hpp"
 
 struct XSwrParam {
@@ -12,17 +11,17 @@ struct XSwrParam {
         m_out_sample_fmt{},
         m_out_sample_rate{};
 
-    inline constexpr explicit operator bool() const {
+    inline explicit operator bool() const {
         return m_in_ch_layout && m_out_ch_layout &&
             m_in_sample_fmt > 0 && m_in_sample_rate > 0 &&
                 m_out_sample_fmt > 0 && m_out_sample_rate > 0;
     }
 
-    inline constexpr bool operator !() const {
+    inline bool operator !() const {
         return !operator bool();
     }
 
-    [[nodiscard]] inline constexpr bool empty() const {
+    [[nodiscard]] inline bool empty() const {
         return operator!();
     }
 };

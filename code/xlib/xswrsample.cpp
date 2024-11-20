@@ -2,8 +2,8 @@ extern "C"{
 #include <libswresample/swresample.h>
 #include <libavutil/opt.h>
 }
-
 #include "xswrsample.hpp"
+#include "xavframe.hpp"
 
 bool XSwrSample::Construct() noexcept(true) {
     IS_NULLPTR(m_swr_ctx_ = swr_alloc(),return {});

@@ -20,10 +20,9 @@ class XLIB_API XAudio_Play {
     void push_helper(data_buffer_t &);
 
 public:
-    [[maybe_unused]] static XAudio_Play *instance();
+    static XAudio_Play *instance();
     virtual ~XAudio_Play() = default;
 
-#if 1
     /**
      * 如果需要支持ffmpeg接口,则重载以下两个函数或其中一个
      * 用户重载后,可以调用本函数对ffmpeg的参数进行copy
@@ -32,7 +31,7 @@ public:
      */
     virtual auto Open(const XCodecParameters &parameters)->bool;
     virtual auto Open(const XCodecParameters_sp &parameters) ->bool;
-#endif
+
     /**
      * @param spec_ 音频相关参数
      * @return true or false
@@ -48,7 +47,7 @@ public:
     void Push(const uint8_t *data, const size_t &size);
 
     /**
-     * 直接支持ffmpeg音频接口,会进行重采样
+     * 直接支持ffmpeg接口
      * @param frame
      */
     void Push(const XAVFrame &frame);
@@ -57,17 +56,17 @@ public:
         m_volume_ = volume;
     }
 
-    [[maybe_unused]]  inline void set_speed(const double &s) {
-        if(m_init_speed_ctr_){
-            m_speed_ = static_cast<float>(s);
-        }
-    }
+    [[maybe_unused]]  void set_speed(const double &s) ;
 
 protected:
     explicit XAudio_Play() = default;
     static void AudioCallback(void *,uint8_t * ,int);
     virtual void Callback(uint8_t *,const int &) {}
 
+    /**
+     * 重采样初始化
+     * @return ture or false
+     */
     [[maybe_unused]] bool init_swr(const XSwrParam &);
 
     [[maybe_unused]] bool init_speed_ctr(const int &sample_rate,

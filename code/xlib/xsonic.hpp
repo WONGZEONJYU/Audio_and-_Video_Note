@@ -48,18 +48,20 @@ class XLIB_API XSonic final: XSonic_data {
     bool addFloatSamplesToInputBuffer(const float *samples,
                                       const int &numSamples);
 
-    bool addS32SamplesToInputBuffer(const int32_t *samples,const int &numSamples);
+    bool addS32SamplesToInputBuffer(const int32_t *samples,
+                                    const int &numSamples);
 
-    bool addU32SamplesToInputBuffer(const uint32_t *samples,const int &numSamples);
+    bool addU32SamplesToInputBuffer(const uint32_t *samples,
+                                    const int &numSamples);
 
     bool addShortSamplesToInputBuffer(const int16_t *samples,
                                       const int &numSamples);
 
     bool addUnsignedShortSamplesToInputBuffer(const uint16_t *samples,
-                                      const int &numSamples);
+                                            const int &numSamples);
 
     bool addCharSamplesToInputBuffer(const int8_t *samples,
-        const int &numSamples);
+                                    const int &numSamples);
 
     bool addUnsignedCharSamplesToInputBuffer(const uint8_t *samples,
                                              const int &numSamples);
@@ -133,7 +135,6 @@ class XLIB_API XSonic final: XSonic_data {
 public:
     bool Open(const int &sampleRate,const int &numChannels);
     void Close();
-
 
     bool sonicWriteDoubleToStream(const double *samples,const int &numSamples);
 

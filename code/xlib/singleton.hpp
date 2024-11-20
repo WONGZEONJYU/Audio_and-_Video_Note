@@ -7,7 +7,7 @@ template <typename T>
 class XLIB_API Singleton {
     X_DISABLE_COPY_MOVE(Singleton)
 protected:
-    Singleton() = default;
+    explicit Singleton() = default;
     virtual ~Singleton() = default;
 
 public:
@@ -16,8 +16,8 @@ public:
     template <typename ...Args>
     static Ptr instance(Args&&... args){
         if (!sm_ins_){
-            static std::mutex mu;
-            std::unique_lock locker(mu);
+            static std::mutex mux;
+            std::unique_lock locker(mux);
             TRY_CATCH(CHECK_EXC(sm_ins_.reset(new T(std::forward<Args>(args)...))));
         }
         return sm_ins_;

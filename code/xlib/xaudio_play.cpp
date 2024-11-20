@@ -5,7 +5,7 @@
 using namespace std;
 
 template<typename T>
-static inline bool plane_to_cross(const XAVFrame &frame,vector<uint8_t> &out) {
+static inline bool plane_to_interleaved(const XAVFrame &frame,vector<uint8_t> &out) {
 
     if constexpr (!(std::is_same_v<T,uint8_t> || std::is_same_v<T,int8_t> ||
         std::is_same_v<T,short> || std::is_same_v<T,uint16_t> ||
@@ -43,7 +43,7 @@ auto XAudio_Play::Open(const XCodecParameters &parameters)->bool {
     return {};
 }
 
-auto XAudio_Play::Open(const XCodecParameters_sp &parameters) ->bool {
+auto XAudio_Play::Open(const XCodecParameters_sp &parameters) -> bool {
     if (parameters) {
         m_ff_audio_parameters_ = *parameters;
     }
@@ -66,21 +66,20 @@ void XAudio_Play::Push(const XAVFrame &frame) {
 
     IS_NULLPTR(frame.data[0], return);
 
-    data_buffer_t in;
     bool b{};
 
-#if 1
     using plane_to_cross_type = bool(*)(const XAVFrame &frame,vector<uint8_t> &out);
 
     static constexpr pair<ENUM_AUDIO_FMT(FF),plane_to_cross_type> list[]{
-        {GET_FMT_VAL(FF)::FF_FMT_U8P,plane_to_cross<uint8_t>},
-        {GET_FMT_VAL(FF)::FF_FMT_S16P,plane_to_cross<uint16_t>},
-        {GET_FMT_VAL(FF)::FF_FMT_S32P,plane_to_cross<uint32_t>},
-        {GET_FMT_VAL(FF)::FF_FMT_FLTP,plane_to_cross<float>},
-        {GET_FMT_VAL(FF)::FF_FMT_DBLP,plane_to_cross<double>},
-        {GET_FMT_VAL(FF)::FF_FMT_S64P,plane_to_cross<uint64_t>},
+        {GET_FMT_VAL(FF)::FF_FMT_U8P,plane_to_interleaved<uint8_t>},
+        {GET_FMT_VAL(FF)::FF_FMT_S16P,plane_to_interleaved<uint16_t>},
+        {GET_FMT_VAL(FF)::FF_FMT_S32P,plane_to_interleaved<uint32_t>},
+        {GET_FMT_VAL(FF)::FF_FMT_FLTP,plane_to_interleaved<float>},
+        {GET_FMT_VAL(FF)::FF_FMT_DBLP,plane_to_interleaved<double>},
+        {GET_FMT_VAL(FF)::FF_FMT_S64P,plane_to_interleaved<uint64_t>},
     };
 
+    data_buffer_t in;
     for (const auto &[fst,snd]:list) {
         if (fst == frame.format) {
             b = snd(frame,in);
@@ -93,54 +92,12 @@ void XAudio_Play::Push(const XAVFrame &frame) {
     }else {
         Push(frame.data[0],frame.linesize[0]);
     }
-
-#else
-    switch (frame.format) {
-        case AV_SAMPLE_FMT_U8P: {
-            b = plane_to_cross<uint8_t>(frame,in);
-            break;
-        }
-
-        case AV_SAMPLE_FMT_S16P: {
-            b = plane_to_cross<uint16_t>(frame,in);
-            break;
-        }
-
-        case AV_SAMPLE_FMT_S32P: {
-            b = plane_to_cross<uint32_t>(frame,in);
-            break;
-        }
-
-        case AV_SAMPLE_FMT_FLTP: {
-            b = plane_to_cross<float>(frame,in);
-            break;
-        }
-
-        case AV_SAMPLE_FMT_DBLP: {
-            b = plane_to_cross<double>(frame,in);
-            break;
-        }
-        case AV_SAMPLE_FMT_S64P: {
-            b = plane_to_cross<uint64_t>(frame,in);
-            break;
-        }
-
-        default: {
-            Push(frame.data[0],frame.linesize[0]);
-            return;
-        }
-    }
-
-    if (b) {
-        push_helper(in);
-    }
-#endif
 }
 
 void XAudio_Play::AudioCallback(void * const userdata,
                                 uint8_t * stream,const int length) {
     const auto this_{static_cast<XAudio_Play *>(userdata)};
-    this_->Callback(stream, length);
+    this_->Callback(stream,length);
 }
 
 bool XAudio_Play::init_swr(const XSwrParam &p) {
@@ -150,12 +107,12 @@ bool XAudio_Play::init_swr(const XSwrParam &p) {
 
 bool XAudio_Play::init_speed_ctr(const int &sample_rate,const int &channels){
     CHECK_FALSE_(m_init_speed_ctr_ = m_speed_ctr_.Open(sample_rate,channels),return {});
-    return true;
+    return m_init_speed_ctr_;
 }
 
 template<typename T>
 static inline int64_t Speed_Change_helper(const vector<uint8_t> &in, vector<uint8_t> &out,
-    Audio_Playback_Speed &s,const XAudioSpec &spec_) {
+    Audio_Playback_Speed &s) {
 
     if constexpr (!(std::is_same_v<T,uint8_t> || std::is_same_v<T,int8_t> ||
         std::is_same_v<T,short> || std::is_same_v<T,uint16_t> ||
@@ -167,13 +124,15 @@ static inline int64_t Speed_Change_helper(const vector<uint8_t> &in, vector<uint
 
     int64_t out_size{-1};
 
-    const auto in_samples_num{static_cast<int>(in.size() / (spec_.m_channels  * sizeof(T)))};
+    const auto channels{s.get_channels()};
+
+    const auto in_samples_num{static_cast<int>(in.size() / (channels * sizeof(T)))};
 
     CHECK_FALSE_(s.Send(reinterpret_cast<const T*>(in.data()),in_samples_num),return out_size);
 
     auto need_sample{s.sonicSamplesAvailable()};
     need_sample = need_sample < 0 ? 0 : need_sample;
-    vector<uint8_t> temp_out(need_sample * spec_.m_channels * sizeof(T));
+    vector<uint8_t> temp_out(need_sample * channels * sizeof(T));
 
     out_size = s.Receive(reinterpret_cast<T*>(temp_out.data()),need_sample);
 
@@ -192,25 +151,9 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
     CHECK_FALSE_(!in.empty(),return out_size);
 
     if (1.0f != m_speed_) {
-#if 0
-        m_speed_ctr_.Set_Speed(m_speed_);
-        const auto in_samples_num{static_cast<int>(in.size() / (m_spec_.m_channels  * sizeof(float)))};
 
-        CHECK_FALSE_(m_speed_ctr_.Send(reinterpret_cast<float*>(in.data()),in_samples_num),return out_size);
-
-        auto need_sample{m_speed_ctr_.sonicSamplesAvailable()};
-        need_sample = need_sample < 0 ? 0 : need_sample;
-        data_buffer_t temp_out(need_sample * m_spec_.m_channels * sizeof(float));
-
-        out_size = m_speed_ctr_.Receive(reinterpret_cast<float *>(temp_out.data()),need_sample);
-
-        if (out_size > 0) {
-            out_size = static_cast<decltype(out_size)>(temp_out.size());
-            out = std::move(temp_out);
-        }
-#endif
         using Speed_Change_type = int64_t(*)(const vector<uint8_t> &, vector<uint8_t> &,
-                Audio_Playback_Speed &,const XAudioSpec &);
+                Audio_Playback_Speed &);
 
         static constexpr pair<ENUM_AUDIO_FMT(XAudio),Speed_Change_type> list[]{
             {GET_FMT_VAL(XAudio)::XAudio_S8_FMT,Speed_Change_helper<int8_t>},
@@ -228,7 +171,7 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
         for (const auto &[first,
                           second] : list) {
             if (first == m_spec_.m_format){
-                out_size = second(in,out,m_speed_ctr_,m_spec_);
+                out_size = second(in,out,m_speed_ctr_);
                 break;
             }
         }
@@ -238,4 +181,11 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
     }
 
     return out_size;
+}
+
+void XAudio_Play::set_speed(const double &s) {
+    if(m_init_speed_ctr_){
+        m_speed_ = static_cast<float>(s);
+        m_speed_ctr_.Set_Speed(m_speed_);
+    }
 }

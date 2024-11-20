@@ -49,10 +49,9 @@
 #define SET_FMT_VAL(sub_enum,name,value) sub_enum##_##name = value
 #define GET_FMT_VAL(enum_name) enum_name##_##AudioFormats
 
-#include <type_traits>
-#include <array>
+#include "xhelper.hpp"
 
-ENUM_AUDIO_FMT(XAudio)  {
+ENUM_AUDIO_FMT(XAudio) {
     SET_FMT_VAL(XAudio,Unknown,-1),
     SET_FMT_VAL(XAudio,S8_FMT,1),
     SET_FMT_VAL(XAudio,U8_FMT,2),
@@ -130,88 +129,31 @@ struct XAudioSpec {
   int m_channels{2},m_samples{1024};
 };
 
-#define XAUDIO_MAP(sub_enum,arr_name) \
-static constexpr std::pair<ENUM_AUDIO_FMT(XAudio),ENUM_AUDIO_FMT(sub_enum)> arr_name[]
-
-
 /**
  * 把自定义格式转换为QT支持的播放格式
  * @param f 自定义格式
  * @return GET_FMT_VAL(Qt)
  */
-static ENUM_AUDIO_FMT(Qt) to_qt_audio_format(const ENUM_AUDIO_FMT(XAudio) &f) {
-
-    XAUDIO_MAP(Qt,list){
-        {GET_FMT_VAL(XAudio)::XAudio_U8_FMT,GET_FMT_VAL(Qt)::Qt_UInt8},
-        {GET_FMT_VAL(XAudio)::XAudio_S16_FMT,GET_FMT_VAL(Qt)::Qt_Int16},
-        {GET_FMT_VAL(XAudio)::XAudio_S32_FMT,GET_FMT_VAL(Qt)::Qt_Int32},
-        {GET_FMT_VAL(XAudio)::XAudio_FLOAT_FMT,GET_FMT_VAL(Qt)::Qt_Float},
-    };
-
-    for (const auto &[first,second] : list) {
-        if (first == f) {
-            return second;
-        }
-    }
-
-    return GET_FMT_VAL(Qt)::Qt_Unknown;
-}
-
+XLIB_API auto to_qt_audio_format(const ENUM_AUDIO_FMT(XAudio) &f) ->ENUM_AUDIO_FMT(Qt) ;
 
 /**
  * 把自定义格式转换为SDL支持的播放格式
  * @param f 自定义格式
  * @return GET_FMT_VAL(SDL)
  */
-static inline auto to_sdl_audio_format(const ENUM_AUDIO_FMT(XAudio) &f) {
-
-    XAUDIO_MAP(SDL,list) {
-        {GET_FMT_VAL(XAudio)::XAudio_S8_FMT,GET_FMT_VAL(SDL)::SDL_AUDIO_S8},
-        {GET_FMT_VAL(XAudio)::XAudio_U8_FMT,GET_FMT_VAL(SDL)::SDL_AUDIO_U8},
-        {GET_FMT_VAL(XAudio)::XAudio_S16_FMT,GET_FMT_VAL(SDL)::SDL_AUDIO_S16SYS},
-        {GET_FMT_VAL(XAudio)::XAudio_U16_FMT,GET_FMT_VAL(SDL)::SDL_AUDIO_U16SYS},
-        {GET_FMT_VAL(XAudio)::XAudio_S32_FMT,GET_FMT_VAL(SDL)::SDL_AUDIO_S32SYS},
-        {GET_FMT_VAL(XAudio)::XAudio_FLOAT_FMT,GET_FMT_VAL(SDL)::SDL_AUDIO_F32SYS},
-    };
-
-    for (const auto &[first,second] : list) {
-        if (first == f) {
-            return second;
-        }
-    }
-
-    return GET_FMT_VAL(SDL)::SDL_Unknown;
-}
+XLIB_API auto to_sdl_audio_format(const ENUM_AUDIO_FMT(XAudio) &f) ->ENUM_AUDIO_FMT(SDL);
 
 /**
  * 把SDL格式转换成自定义格式
  * @param f SDL格式
  * @return
  */
-static inline auto sdl_to_xaudio_format(const ENUM_AUDIO_FMT(SDL) &f) {
-
-    static constexpr std::pair<ENUM_AUDIO_FMT(SDL),ENUM_AUDIO_FMT(XAudio)> list[] {
-        {GET_FMT_VAL(SDL)::SDL_AUDIO_S8,GET_FMT_VAL(XAudio)::XAudio_S8_FMT},
-        {GET_FMT_VAL(SDL)::SDL_AUDIO_U8,GET_FMT_VAL(XAudio)::XAudio_U8_FMT},
-        {GET_FMT_VAL(SDL)::SDL_AUDIO_S16SYS,GET_FMT_VAL(XAudio)::XAudio_S16_FMT},
-        {GET_FMT_VAL(SDL)::SDL_AUDIO_U16SYS,GET_FMT_VAL(XAudio)::XAudio_U16_FMT},
-        {GET_FMT_VAL(SDL)::SDL_AUDIO_S32SYS,GET_FMT_VAL(XAudio)::XAudio_S32_FMT},
-        {GET_FMT_VAL(SDL)::SDL_AUDIO_F32SYS,GET_FMT_VAL(XAudio)::XAudio_FLOAT_FMT},
-    };
-
-    for (const auto &[first,second] : list) {
-        if (first == f) {
-            return second;
-        }
-    }
-
-    return GET_FMT_VAL(XAudio)::XAudio_Unknown;
-}
+XLIB_API auto sdl_to_xaudio_format(const ENUM_AUDIO_FMT(SDL) &f) ->ENUM_AUDIO_FMT(XAudio);
 
 /**
  *sdl_to_xaudio_format的重载版
  */
-static inline auto sdl_to_xaudio_format(const int &f) {
+static inline auto sdl_to_xaudio_format(const int &f){
     return sdl_to_xaudio_format(static_cast<ENUM_AUDIO_FMT(SDL)>(f));
 }
 
@@ -220,25 +162,7 @@ static inline auto sdl_to_xaudio_format(const int &f) {
  * @param f 自定义格式
  * @return GET_FMT_VAL(FF)
  */
-static inline auto to_ffmpeg_audio_format(const ENUM_AUDIO_FMT(XAudio) &f) {
-
-    XAUDIO_MAP(FF,list) {
-        {GET_FMT_VAL(XAudio)::XAudio_U8_FMT,GET_FMT_VAL(FF)::FF_FMT_U8},
-        {GET_FMT_VAL(XAudio)::XAudio_S16_FMT,GET_FMT_VAL(FF)::FF_FMT_S16},
-        {GET_FMT_VAL(XAudio)::XAudio_S32_FMT,GET_FMT_VAL(FF)::FF_FMT_S32},
-        {GET_FMT_VAL(XAudio)::XAudio_FLOAT_FMT,GET_FMT_VAL(FF)::FF_FMT_FLT},
-        {GET_FMT_VAL(XAudio)::XAudio_DOUBLE_FMT,GET_FMT_VAL(FF)::FF_FMT_DBL},
-        {GET_FMT_VAL(XAudio)::XAudio_S64_FMT,GET_FMT_VAL(FF)::FF_FMT_S64},
-    };
-
-    for (const auto &[first,second] : list) {
-        if (first == f) {
-            return second;
-        }
-    }
-
-    return GET_FMT_VAL(FF)::FF_Unknown;
-}
+XLIB_API auto to_ffmpeg_audio_format(const ENUM_AUDIO_FMT(XAudio) &f) ->ENUM_AUDIO_FMT(FF);
 
 /**
  * 把ffmpeg支持的格式转换为自定义格式
@@ -246,30 +170,7 @@ static inline auto to_ffmpeg_audio_format(const ENUM_AUDIO_FMT(XAudio) &f) {
  * @param f
  * @return GET_FMT_VAL(XAudio)
  */
-static inline auto ff_to_xaduio_format(const ENUM_AUDIO_FMT(FF) &f) {
-
-    static constexpr std::pair<ENUM_AUDIO_FMT(FF),ENUM_AUDIO_FMT(XAudio)> list[] {
-        {GET_FMT_VAL(FF)::FF_FMT_U8,GET_FMT_VAL(XAudio)::XAudio_U8_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_S16,GET_FMT_VAL(XAudio)::XAudio_S16_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_S32,GET_FMT_VAL(XAudio)::XAudio_S32_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_FLT,GET_FMT_VAL(XAudio)::XAudio_FLOAT_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_DBL,GET_FMT_VAL(XAudio)::XAudio_DOUBLE_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_S64,GET_FMT_VAL(XAudio)::XAudio_S64_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_U8P,GET_FMT_VAL(XAudio)::XAudio_U8_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_S16P,GET_FMT_VAL(XAudio)::XAudio_S16_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_S32P,GET_FMT_VAL(XAudio)::XAudio_S32_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_S64P,GET_FMT_VAL(XAudio)::XAudio_S64_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_FLTP,GET_FMT_VAL(XAudio)::XAudio_FLOAT_FMT},
-        {GET_FMT_VAL(FF)::FF_FMT_DBLP,GET_FMT_VAL(XAudio)::XAudio_DOUBLE_FMT},
-    };
-
-    for (const auto &[first,second] : list) {
-        if (first == f) {
-            return second;
-        }
-    }
-    return GET_FMT_VAL(XAudio)::XAudio_Unknown;
-}
+XLIB_API auto ff_to_xaduio_format(const ENUM_AUDIO_FMT(FF) &f) ->ENUM_AUDIO_FMT(XAudio);
 
 /**
  * ff_to_xaduio_format的重载版
@@ -283,32 +184,10 @@ static inline auto ff_to_xaduio_format(const int &f) {
  * @param f
  * @return  GET_FMT_VAL(FF)
  */
-static inline auto planer_to_interlace(const ENUM_AUDIO_FMT(FF) &f) {
-
-    static constexpr std::pair<GET_FMT_VAL(FF),GET_FMT_VAL(FF)> list[] {
-        {GET_FMT_VAL(FF)::FF_FMT_U8P,GET_FMT_VAL(FF)::FF_FMT_U8},
-        {GET_FMT_VAL(FF)::FF_FMT_S16P,GET_FMT_VAL(FF)::FF_FMT_S16},
-        {GET_FMT_VAL(FF)::FF_FMT_S32P,GET_FMT_VAL(FF)::FF_FMT_S32},
-        {GET_FMT_VAL(FF)::FF_FMT_S64P,GET_FMT_VAL(FF)::FF_FMT_S64},
-        {GET_FMT_VAL(FF)::FF_FMT_FLTP,GET_FMT_VAL(FF)::FF_FMT_FLT},
-        {GET_FMT_VAL(FF)::FF_FMT_DBLP,GET_FMT_VAL(FF)::FF_FMT_DBL},
-    };
-
-    for (const auto &[first,second] : list) {
-        if (first == f) {
-            return second;
-        }
-    }
-    return GET_FMT_VAL(FF)::FF_Unknown;
-}
+XLIB_API auto planer_to_interlace(const ENUM_AUDIO_FMT(FF) &f) ->ENUM_AUDIO_FMT(FF);
 
 static inline auto planer_to_interlace(const int &f) {
     return planer_to_interlace(static_cast<ENUM_AUDIO_FMT(FF)>(f));
 }
-
-#undef XAUDIO_MAP
-// #undef ENUM_AUDIO_FMT
-// #undef SET_FMT_VAL
-// #undef GET_FMT_VAL
 
 #endif
