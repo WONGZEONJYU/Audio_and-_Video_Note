@@ -22,7 +22,7 @@ if (WIN32)
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.lib")
 
     file(GLOB XLIB "${XLIB_LIBS_PATH}/*.lib")
-
+    file(COPY "${XLIB_LIBS_PATH}/xlib.dll" DESTINATION ${CMAKE_BINARY_DIR})
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
     set(FFMPEG_HEADERS_PATH "/usr/local/ffmpeg/include")

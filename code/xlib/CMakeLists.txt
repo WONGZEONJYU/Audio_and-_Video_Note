@@ -29,8 +29,8 @@ if (WIN32)
     set(FFMPEG_HEADERS_PATH "C:/libffmpeg/include")
     set(FFMPEG_LIB_PATH "C:/libffmpeg/bin")
 
-    set(SDL_HEADERS_PATH "C:/SDL2-2.30.8/include")
-    set(SDL_LIB_PATH "C:/SDL2-2.30.8/lib/x64")
+    set(SDL_HEADERS_PATH "C:/SDL2-2.30.9/include")
+    set(SDL_LIB_PATH "C:/SDL2-2.30.9/lib/x64")
 
     set(Vulkan_INCLUDE_DIR "C:/VulkanSDK/1.3.290.0/Include")
     set(Vulkan_LIBRARY "C:/VulkanSDK/1.3.290.0/Lib/vulkan-1.lib")
@@ -49,8 +49,8 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     set(FFMPEG_HEADERS_PATH "/usr/local/ffmpeg/include")
     set(FFMPEG_LIB_PATH "/usr/local/ffmpeg/lib")
 
-    set(SDL_HEADERS_PATH "/opt/homebrew/Cellar/sdl2/2.30.8/include/SDL2")
-    set(SDL_LIB_PATH "/opt/homebrew/Cellar/sdl2/2.30.8/lib")
+    set(SDL_HEADERS_PATH "/opt/homebrew/Cellar/sdl2/2.30.9/include/SDL2")
+    set(SDL_LIB_PATH "/opt/homebrew/Cellar/sdl2/2.30.9/lib")
 
     set(Vulkan_INCLUDE_DIR "/Users/wong/VulkanSDK/1.3.283.0/macOS/include")
     set(Vulkan_LIBRARY "/Users/wong/VulkanSDK/1.3.283.0/macOS/lib/libvulkan.dylib")
@@ -58,6 +58,13 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.dylib")
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.dylib")
 
+    find_package(Qt6 COMPONENTS
+            Core
+            Gui
+            Widgets
+            OpenGL
+            OpenGLWidgets
+            REQUIRED)
 endif ()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})

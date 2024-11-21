@@ -151,8 +151,7 @@ bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
                 const uint8_t *u,const int &u_pitch,
                 const uint8_t *v,const int &v_pitch) {
 
-    const auto b{!y || !u || !v || y_pitch <= 0 || u_pitch <= 0 || v_pitch <= 0};
-    if (b){ //输入参数有误
+    if (!y || !u || !v || y_pitch <= 0 || u_pitch <= 0 || v_pitch <= 0){ //输入参数有误
         PRINT_ERR_TIPS(GET_STR(Parameter error!));
         return {};
     }
@@ -172,8 +171,7 @@ bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
 bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
           const uint8_t *uv,const int &uv_pitch) {
 
-    const auto b{!y || !uv || y_pitch <= 0 || uv_pitch <= 0};
-    if (b){
+    if (!y || !uv || y_pitch <= 0 || uv_pitch <= 0){
         PRINT_ERR_TIPS(GET_STR(Parameter error!));
         return {};
     }

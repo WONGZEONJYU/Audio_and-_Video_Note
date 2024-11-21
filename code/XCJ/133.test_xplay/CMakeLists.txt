@@ -6,14 +6,18 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+add_definitions(-DHAVE_FFMPEG)
+add_definitions(-DHAVE_SDL2)
+add_definitions(-DHAVE_OPENGL)
+
 if (WIN32)
     add_definitions(-DWINDOWS)
     set(CMAKE_PREFIX_PATH "C:/Qt6/6.8.0/msvc2022_64")
     set(FFMPEG_HEADERS_PATH "C:/libffmpeg/include")
     set(FFMPEG_LIB_PATH "C:/libffmpeg/bin")
 
-    set(SDL_HEADERS_PATH "C:/SDL2-2.30.8/include")
-    set(SDL_LIB_PATH "C:/SDL2-2.30.8/lib/x64")
+    set(SDL_HEADERS_PATH "C:/SDL2-2.30.9/include")
+    set(SDL_LIB_PATH "C:/SDL2-2.30.9/lib/x64")
 
     set(Vulkan_INCLUDE_DIR "C:/VulkanSDK/1.3.290.0/Include")
     set(Vulkan_LIBRARY "C:/VulkanSDK/1.3.290.0/Lib/vulkan-1.lib")
@@ -24,6 +28,8 @@ if (WIN32)
     file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.lib")
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.lib")
     file(GLOB XLIBS "${XLIB_LIBS_PATH}/*.lib")
+
+    file(COPY "${XLIB_LIBS_PATH}/xlib.dll" DESTINATION ${CMAKE_BINARY_DIR})
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)

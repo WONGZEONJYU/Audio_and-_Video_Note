@@ -64,26 +64,22 @@ void XDecodeTask::Main() {
 
 bool XDecodeTask::Open(const XCodecParameters &parm){
 
-    const auto c{XDecode::Create(parm.Codec_id(),false)};
-
-    if (!c) {
-        LOGERROR(GET_STR(Decode::Create failed!));
-        return {};
-    }
+    m_is_open_ = false;
+    AVCodecContext * c{};
+    IS_NULLPTR(c = XDecode::Create(parm.Codec_id(),false),
+        LOGERROR(GET_STR(Decode::Create failed!));return {};);
 
     parm.to_context(c);
     unique_lock locker(m_mutex_);
     m_decode_.set_codec_ctx(c);
     CHECK_FALSE_(m_decode_.Open(),return {});
     LOGDINFO(GET_STR(Open codec success!));
-    return true;
+    m_is_open_ = true;
+    return m_is_open_;
 }
 
 bool XDecodeTask::Open(const XCodecParameters_sp &parm) {
-    if (!parm){
-        PRINT_ERR_TIPS(GET_STR(Parameters empty!));
-        return {};
-    }
+    IS_SMART_NULLPTR(parm, return {});
 #if 1
     return Open(*parm);
 #else

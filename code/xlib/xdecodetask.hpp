@@ -6,9 +6,9 @@
 
 class XLIB_API XDecodeTask final: public XThread {
 
-    void Do(XAVPacket &) override;
     void Main() override;
 public:
+    void Do(XAVPacket &) override;
     /**
      * 打开解码器
      * @param parm
@@ -42,16 +42,27 @@ public:
         m_frame_cache_ = b;
     }
 
+    bool is_open() const {
+        return m_is_open_;
+    }
+
+    explicit operator bool() const {
+        return m_is_open_;
+    }
+
+    bool operator!() const {
+        return !m_is_open_;
+    }
+
 private:
     XAVPacketList m_pkt_list_;
     XDecode m_decode_;
     std::mutex m_mutex_;
     XAVFrame_sp m_frame_;
     std::atomic_bool m_need_view_{},
-        m_frame_cache_{};
+        m_frame_cache_{},m_is_open_{};
     std::atomic_int m_stream_index_{};
     std::list<XAVFrame_sp> m_frames_;
-
 public:
     explicit XDecodeTask() = default;
     ~XDecodeTask() override;

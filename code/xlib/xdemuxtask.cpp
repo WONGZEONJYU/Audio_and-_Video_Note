@@ -7,10 +7,8 @@ bool XDemuxTask::Open(const std::string &url, const uint64_t &time_out) {
     m_url_ = url;
     m_timeout_ms_ = time_out;
     m_demux_.set_fmt_ctx({});
-    const auto c{XDemux::Open(url)};
-    if (!c){
-        return {};
-    }
+    AVFormatContext *c{};
+    IS_NULLPTR(c = XDemux::Open(url),return {});
     m_demux_.set_fmt_ctx(c);
     m_demux_.set_timeout_ms(time_out);
     return true;

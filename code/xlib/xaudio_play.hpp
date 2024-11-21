@@ -7,7 +7,8 @@
 
 struct XAudio_Data {
     std::vector<uint8_t> m_data{};
-    [[maybe_unused]] std::atomic_uint64_t m_offset{};
+    uint64_t m_offset{};
+    int64_t m_pts{};
 };
 
 struct XSwrParam;
@@ -44,7 +45,9 @@ public:
      * @param data
      * @param size
      */
-    void Push(const uint8_t *data, const size_t &size);
+    void Push(const uint8_t *data,
+        const size_t &size,
+        const int64_t &pts);
 
     /**
      * 直接支持ffmpeg接口

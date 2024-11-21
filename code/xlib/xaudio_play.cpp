@@ -57,7 +57,7 @@ void XAudio_Play::push_helper(data_buffer_t &in) {
     }
 }
 
-void XAudio_Play::Push(const uint8_t *data, const size_t &size) {
+void XAudio_Play::Push(const uint8_t *data, const size_t &size,const int64_t &pts) {
     std::vector in_buf(data, data + size);
     push_helper(in_buf);
 }
