@@ -14,7 +14,7 @@ find_package(OpenGL REQUIRED)
 file(GLOB SOURCE_FILE "${CMAKE_SOURCE_DIR}/*.cpp" "${CMAKE_SOURCE_DIR}/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILE})
 
-set(LIB_OUT_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib")
+#set(LIB_OUT_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib")
 
 if (WIN32)
     add_definitions(-DWINDOWS)
@@ -22,6 +22,9 @@ if (WIN32)
     if (MSVC)
         target_compile_options(${PROJECT_NAME} PRIVATE "/utf-8")
     endif()
+
+    set(LIB_OUT_ROOT_PATH "C:/xlib")
+    set(LIB_OUT_PATH "${LIB_OUT_ROOT_PATH}/lib")
 
     set(FFMPEG_HEADERS_PATH "C:/libffmpeg/include")
     set(FFMPEG_LIB_PATH "C:/libffmpeg/bin")
@@ -39,6 +42,10 @@ if (WIN32)
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     add_definitions(-DMACOS)
+
+    set(LIB_OUT_ROOT_PATH "/Users/wong/Library/xlib")
+    set(LIB_OUT_PATH "${LIB_OUT_ROOT_PATH}/lib")
+
     set(FFMPEG_HEADERS_PATH "/usr/local/ffmpeg/include")
     set(FFMPEG_LIB_PATH "/usr/local/ffmpeg/lib")
 
@@ -55,6 +62,7 @@ endif ()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
+set_target_properties(${PROJECT_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIB_OUT_PATH})
 
 include_directories(${FFMPEG_HEADERS_PATH})
 include_directories(${SDL_HEADERS_PATH})
@@ -63,28 +71,27 @@ include_directories(${SDL_HEADERS_PATH})
 find_package(Vulkan REQUIRED)
 include_directories(${Vulkan_INCLUDE_DIR})
 
-set(TARGET_INCLUDE_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include")
+#set(TARGET_INCLUDE_PATH "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include")
+set(TARGET_INCLUDE_PATH "${LIB_OUT_ROOT_PATH}/include")
 if (NOT EXISTS ${TARGET_INCLUDE_PATH})
     file(MAKE_DIRECTORY ${TARGET_INCLUDE_PATH})
 endif ()
 
-set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/")
+#set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/${PROJECT_NAME}/")
 
 # Install the library and header files
-install(TARGETS ${PROJECT_NAME}
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin)
-
-# Install header files
-install(DIRECTORY ${TARGET_INCLUDE_PATH} DESTINATION include)
+#install(TARGETS ${PROJECT_NAME}
+#        LIBRARY DESTINATION lib
+#        ARCHIVE DESTINATION lib
+#        RUNTIME DESTINATION bin)
+#
+## Install header files
+#install(DIRECTORY ${TARGET_INCLUDE_PATH} DESTINATION include)
 
 # 查找所有 .hpp 文件
 file(GLOB HEADER_FILES "${CMAKE_SOURCE_DIR}/*.hpp")
 # 复制这些文件到指定目录
-file(COPY ${HEADER_FILES} DESTINATION ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/include/)
-
-#file(COPY "${PROJECT_NAME}.lib" DESTINATION ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/lib)
+file(COPY ${HEADER_FILES} DESTINATION ${LIB_OUT_ROOT_PATH}/include/)
 
 target_link_libraries(${PROJECT_NAME} ${FFMPEG_LIBS} ${SDL_LIBS} OpenGL::GL)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}})
