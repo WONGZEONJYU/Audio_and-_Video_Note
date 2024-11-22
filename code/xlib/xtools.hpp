@@ -3,6 +3,14 @@
 
 #include "xhelper.hpp"
 
+XLIB_API auto XRescale(const int64_t &pts,
+    const AVRational &src_tb,
+    const AVRational &dst_tb) -> int64_t;
+
+XLIB_API auto XRescale(const int64_t &pts,
+    const XRational &src_tb,
+    const XRational &dst_tb) ->int64_t;
+
 class XLIB_API XThread {
     virtual void Main() = 0;
     void _stop_();
@@ -50,7 +58,7 @@ protected:
 };
 
 class XLIB_API XAVPacketList {
-    static inline constexpr auto max_packets{100};
+    static inline constexpr auto max_packets{1000};
 public:
     [[nodiscard]] XAVPacket_sp Pop();
     void Push(XAVPacket_sp &&);

@@ -5,7 +5,8 @@
 using namespace std;
 
 class SDL_Audio final : public XAudio_Play {
-
+    atomic_int64_t m_curr_pts_{};
+    atomic_uint64_t m_last_ms_{};
 public:
     explicit SDL_Audio() {
         SDL_Init(SDL_INIT_AUDIO);
@@ -83,20 +84,42 @@ public:
         return Open(*parameters);
     }
 
+    auto curr_pts() ->int64_t override {
+
+        double ms{};
+        if (m_last_ms_ > 0) {
+            ms = static_cast<decltype(ms)>(XHelper::Get_time_ms() - m_last_ms_);
+        }
+
+        if (m_time_base_ > 0) {
+            ms = ms / 1000.0 / m_time_base_;
+        }
+
+        return m_curr_pts_ + static_cast<int64_t>(ms);
+    }
+
 private:
-    void Callback(uint8_t * const stream, const int &len) override {
+    void Callback(uint8_t * const stream,const int &len) override {
 
         fill_n(stream,len,0);
         uint64_t need_size{static_cast<decltype(need_size)>(len)}, //需要处理的大小
                 mixed_size{}; //已经处理的数据的大小
 
+        unique_lock locker(m_mux_);
+        if (m_datum_.empty()) {
+            return;
+        }
+
+        m_curr_pts_ = m_datum_.front().m_pts;//当前播放的PTS
+        m_last_ms_ = XHelper::Get_time_ms();
+
         while (mixed_size < len) {
-            unique_lock locker(m_mux_);
+
             if (m_datum_.empty()) {
                 break;
             }
 
-            auto &[buf,offset]{m_datum_.front()};
+            auto &[buf,offset,pts]{m_datum_.front()};
             auto size{buf.size() - offset};
 
             if (size > need_size) {

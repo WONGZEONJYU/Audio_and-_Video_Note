@@ -36,9 +36,20 @@ void XDecodeTask::Main() {
         }
     }
 
+    int64_t curr_pts{-1};
+
     while (!m_is_exit_){
+
+        while (!m_is_exit_) { //同步
+            if (m_sync_pts_ >= 0 && curr_pts > m_sync_pts_) {
+                sleep_for(1ms);
+                continue;
+            }
+            break;
+        }
+
         const auto pkt{m_pkt_list_.Pop()};
-        if (!pkt){
+        if (!pkt) {
             sleep_for(1ms);
             continue;
         }
@@ -51,8 +62,9 @@ void XDecodeTask::Main() {
         {
             unique_lock locker(m_mutex_);
             if (m_decode_.Receive(*m_frame_)){
-                std::cout << GET_STR(D) << flush;
+                cout << GET_STR(D) << flush;
                 m_need_view_ = true;
+                curr_pts = m_frame_->pts; //获取解码后的pts
                 if (m_frame_cache_) {
                     TRY_CATCH(CHECK_EXC(m_frames_.push_back(std::move(new_XAVFrame(*m_frame_)))));
                 }
@@ -80,6 +92,7 @@ bool XDecodeTask::Open(const XCodecParameters &parm){
 
 bool XDecodeTask::Open(const XCodecParameters_sp &parm) {
     IS_SMART_NULLPTR(parm, return {});
+
 #if 1
     return Open(*parm);
 #else

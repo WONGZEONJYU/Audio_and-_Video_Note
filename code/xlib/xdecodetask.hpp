@@ -27,7 +27,7 @@ public:
      * 区分音频还是视频
      * @param index
      */
-    void set_stream_index(const int &index) {
+    inline void set_stream_index(const int &index) {
         m_stream_index_ = index;
     }
 
@@ -38,20 +38,28 @@ public:
      * 当然视频也可以采用帧缓存策略
      * @param b
      */
-    void set_frame_cache(const bool &b) {
+    inline void set_frame_cache(const bool &b) {
         m_frame_cache_ = b;
     }
 
-    bool is_open() const {
+    inline bool is_open() const {
         return m_is_open_;
     }
 
-    explicit operator bool() const {
+    inline explicit operator bool() const {
         return m_is_open_;
     }
 
-    bool operator!() const {
+    inline bool operator!() const {
         return !m_is_open_;
+    }
+
+    /**
+     * 设置同步
+     * @param sync_pts
+     */
+    inline void set_sync_pts(const int64_t &sync_pts) {
+        m_sync_pts_ = sync_pts;
     }
 
 private:
@@ -63,6 +71,7 @@ private:
         m_frame_cache_{},m_is_open_{};
     std::atomic_int m_stream_index_{};
     std::list<XAVFrame_sp> m_frames_;
+    std::atomic_int64_t m_sync_pts_{-1};
 public:
     explicit XDecodeTask() = default;
     ~XDecodeTask() override;

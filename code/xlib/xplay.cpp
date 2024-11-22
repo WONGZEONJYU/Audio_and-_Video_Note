@@ -47,8 +47,16 @@ void XPlay::Start() {
 
 void XPlay::Main() {
 
-    while (!m_is_exit_) {
+    const auto vp{m_demuxTask_.CopyVideoParm()},
+                ap{m_demuxTask_.CopyAudioParm()};
 
+    while (!m_is_exit_) {
+        const auto sync{XRescale(xAudio()->curr_pts(),
+            ap->x_time_base(),
+            vp->x_time_base())};
+        m_video_decode_task_.set_sync_pts(sync);
+        m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
+        XHelper::MSleep(1);
     }
 }
 

@@ -40,33 +40,37 @@ static inline bool plane_to_interleaved(const XAVFrame &frame,vector<uint8_t> &o
 
 auto XAudio_Play::Open(const XCodecParameters &parameters)->bool {
     m_ff_audio_parameters_ = parameters;
+    if (const auto &[num, den]{parameters.x_time_base()}; num > 0) {
+        m_time_base_ = static_cast<double>(den) / static_cast<double>(num);
+    }
     return {};
 }
 
 auto XAudio_Play::Open(const XCodecParameters_sp &parameters) -> bool {
     if (parameters) {
-        m_ff_audio_parameters_ = *parameters;
+        XAudio_Play::Open(*parameters);
     }
     return {};
 }
 
-void XAudio_Play::push_helper(data_buffer_t &in) {
+void XAudio_Play::push_helper(data_buffer_t &in,const int64_t &pts) {
     std::unique_lock locker(m_mux_);
     if (data_buffer_t out; Speed_Change(in,out) > 0) {
-        TRY_CATCH(CHECK_EXC(m_datum_.emplace_back(std::move(out),0)));
+        TRY_CATCH(CHECK_EXC(m_datum_.emplace_back(std::move(out),0,pts)));
     }
 }
 
 void XAudio_Play::Push(const uint8_t *data, const size_t &size,const int64_t &pts) {
     std::vector in_buf(data, data + size);
-    push_helper(in_buf);
+    push_helper(in_buf,pts);
 }
 
 void XAudio_Play::Push(const XAVFrame &frame) {
 
     IS_NULLPTR(frame.data[0], return);
-
-    bool b{};
+    if (frame.width || frame.height) {
+        return;
+    }
 
     using plane_to_cross_type = bool(*)(const XAVFrame &frame,vector<uint8_t> &out);
 
@@ -80,6 +84,7 @@ void XAudio_Play::Push(const XAVFrame &frame) {
     };
 
     data_buffer_t in;
+    bool b{};
     for (const auto &[fst,snd]:list) {
         if (fst == frame.format) {
             b = snd(frame,in);
@@ -88,9 +93,9 @@ void XAudio_Play::Push(const XAVFrame &frame) {
     }
 
     if (b) {
-        push_helper(in);
+        push_helper(in,frame.pts);
     }else {
-        Push(frame.data[0],frame.linesize[0]);
+        Push(frame.data[0],frame.linesize[0],frame.pts);
     }
 }
 
