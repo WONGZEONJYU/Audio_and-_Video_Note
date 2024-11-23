@@ -68,21 +68,30 @@ void XPlayer::Main() {
 
             m_video_decode_task_.set_sync_pts(sync);
         }
+
         m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
+
         XHelper::MSleep(1);
     }
+}
+
+bool XPlayer::win_is_exit(){
+    if (m_videoView_){
+        return m_videoView_->Is_Exit_Window();
+    }
+    return {};
 }
 
 void XPlayer::Update() {
 
     if (m_videoView_) {
-        if (const auto f{m_video_decode_task_.CopyFrame()}) {
-            m_videoView_->DrawFrame(*f);
+        if (const auto vf{m_video_decode_task_.CopyFrame()}) {
+            m_videoView_->DrawFrame(*vf);
         }
     }
 
-    if (const auto f{m_audio_decode_task_.CopyFrame()}) {
-        xAudio()->Push(*f);
+    if (const auto af{m_audio_decode_task_.CopyFrame()}) {
+        xAudio()->Push(*af);
     }
 }
 
@@ -96,5 +105,8 @@ void XPlayer::Do(XAVPacket &xav_packet) {
 }
 
 XPlayer::~XPlayer() {
+    m_demuxTask_.Stop(); //必须先停掉解封装线程,
+    m_video_decode_task_.Stop();
+    m_audio_decode_task_.Stop();
     XThread::Stop();
 }

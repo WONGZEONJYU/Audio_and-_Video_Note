@@ -46,8 +46,8 @@ protected:
     std::atomic_bool m_is_exit_{};
 
 private:
-    std::thread m_th_;
     std::mutex m_mux_;
+    std::thread m_th_;
     std::atomic_int m_index_{};
     std::atomic<XThread*> m_next_;
 
@@ -67,8 +67,8 @@ public:
     [[nodiscard]] bool Push(XAVPacket &&);
     [[nodiscard]] uint64_t Size() const;
 private:
-    std::list<XAVPacket_sp> m_packets_;
     std::mutex m_mux_;
+    std::list<XAVPacket_sp> m_packets_;
 public:
     explicit XAVPacketList() = default;
     X_DISABLE_COPY_MOVE(XAVPacketList)

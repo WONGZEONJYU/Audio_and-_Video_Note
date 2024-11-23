@@ -25,14 +25,16 @@ public:
 
      void Update();
 
+     bool win_is_exit();
+
      explicit XPlayer() = default;
      ~XPlayer() override ;
 protected:
-     XDemuxTask m_demuxTask_;
-     XDecodeTask m_video_decode_task_,
-          m_audio_decode_task_;
-     XVideoView_sp m_videoView_{};
-     std::atomic_bool m_is_open_{};
+    XDemuxTask m_demuxTask_;
+    XDecodeTask m_video_decode_task_,
+            m_audio_decode_task_;
+    XVideoView_sp m_videoView_{};
+    std::atomic_bool m_is_open_{};
 };
 
 #endif

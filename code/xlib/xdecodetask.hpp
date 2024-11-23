@@ -67,9 +67,9 @@ public:
     }
 
 private:
-    XAVPacketList m_pkt_list_;
-    XDecode m_decode_;
     std::mutex m_mutex_;
+    XDecode m_decode_;
+    XAVPacketList m_pkt_list_;
     XAVFrame_sp m_frame_;
     std::atomic_bool m_need_view_{},
         m_frame_cache_{},m_is_open_{};

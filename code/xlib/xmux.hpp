@@ -5,7 +5,7 @@
 
 class XLIB_API XMux final : public XFormat{
 
-    void destroy();
+    [[maybe_unused]] void destroy();
 
 public:
     /**

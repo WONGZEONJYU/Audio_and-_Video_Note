@@ -29,7 +29,7 @@ void XDecodeTask::Do(XAVPacket &pkt) {
         }
         break;
     }
-    Next(pkt);
+    //Next(pkt);
 }
 
 void XDecodeTask::Main() {
@@ -144,5 +144,6 @@ XAVFrame_sp XDecodeTask::CopyFrame() {
 }
 
 XDecodeTask::~XDecodeTask() {
+    cerr << __FUNCTION__ << "\n";
     XThread::Stop();
 }

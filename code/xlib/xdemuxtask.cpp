@@ -44,5 +44,6 @@ void XDemuxTask::Main() {
 }
 
 XDemuxTask::~XDemuxTask(){
+    cerr << __FUNCTION__ << "\n";
     XThread::Stop();
 }
