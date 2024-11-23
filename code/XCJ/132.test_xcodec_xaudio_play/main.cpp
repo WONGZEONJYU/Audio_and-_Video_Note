@@ -2,7 +2,6 @@
 #include <xdemuxtask.hpp>
 #include <xdecodetask.hpp>
 #include <xaudio_play.hpp>
-#include <xcodec_parameters.hpp>
 #include <xavframe.hpp>
 
 using namespace std;
