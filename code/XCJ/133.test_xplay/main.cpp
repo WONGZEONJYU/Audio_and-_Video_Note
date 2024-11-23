@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
 
     XPlayer xplayer;
-    xplayer.Open("/Volumes/500G/v1080.mp4");
+    xplayer.Open("v1080.mp4");
     xplayer.Start();
 
     while (true) {
