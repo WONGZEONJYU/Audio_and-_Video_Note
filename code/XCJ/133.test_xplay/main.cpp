@@ -11,16 +11,16 @@ int main(int argc, char *argv[]) {
     return QApplication::exec();
 }
 #else
-#include <xplay.hpp>
+#include <xplayer.hpp>
 
 int main(int argc, char *argv[]) {
 
-    XPlay xplay;
-    xplay.Open("10-8.mp4");
-    xplay.Start();
+    XPlayer xplayer;
+    xplayer.Open("/Volumes/500G/v1080.mp4");
+    xplayer.Start();
 
     while (true) {
-        xplay.Update();
+        xplayer.Update();
         XHelper::MSleep(10);
     }
 

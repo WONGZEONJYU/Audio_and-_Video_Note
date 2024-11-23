@@ -58,13 +58,6 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     file(GLOB FFMPEG_LIBS "${FFMPEG_LIB_PATH}/*.dylib")
     file(GLOB SDL_LIBS "${SDL_LIB_PATH}/*.dylib")
 
-    find_package(Qt6 COMPONENTS
-            Core
-            Gui
-            Widgets
-            OpenGL
-            OpenGLWidgets
-            REQUIRED)
 endif ()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIB_OUT_PATH})

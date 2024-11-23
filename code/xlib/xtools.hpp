@@ -65,6 +65,7 @@ public:
     void Push(const XAVPacket_sp &);
     [[nodiscard]] bool Push(const XAVPacket &);
     [[nodiscard]] bool Push(XAVPacket &&);
+    [[nodiscard]] uint64_t Size() const;
 private:
     std::list<XAVPacket_sp> m_packets_;
     std::mutex m_mux_;

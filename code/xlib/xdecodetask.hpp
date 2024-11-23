@@ -62,6 +62,10 @@ public:
         m_sync_pts_ = sync_pts;
     }
 
+    inline void set_block_size(const uint_fast64_t &s){
+        m_block_size = s;
+    }
+
 private:
     XAVPacketList m_pkt_list_;
     XDecode m_decode_;
@@ -72,6 +76,7 @@ private:
     std::atomic_int m_stream_index_{};
     std::list<XAVFrame_sp> m_frames_;
     std::atomic_int64_t m_sync_pts_{-1};
+    std::atomic_uint_fast64_t m_block_size{};
 public:
     explicit XDecodeTask() = default;
     ~XDecodeTask() override;

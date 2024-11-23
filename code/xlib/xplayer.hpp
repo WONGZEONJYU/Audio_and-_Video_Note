@@ -5,8 +5,8 @@
 #include "xdemuxtask.hpp"
 #include "xdecodetask.hpp"
 
-class XLIB_API XPlay : public XThread {
-     X_DISABLE_COPY_MOVE(XPlay)
+class XLIB_API XPlayer : public XThread {
+     X_DISABLE_COPY_MOVE(XPlayer)
      void Main() override;
      void Do(XAVPacket &) override;
 public:
@@ -25,13 +25,14 @@ public:
 
      void Update();
 
-     explicit XPlay() = default;
-     ~XPlay() override ;
+     explicit XPlayer() = default;
+     ~XPlayer() override ;
 protected:
      XDemuxTask m_demuxTask_;
      XDecodeTask m_video_decode_task_,
           m_audio_decode_task_;
      XVideoView_sp m_videoView_{};
+     std::atomic_bool m_is_open_{};
 };
 
 #endif

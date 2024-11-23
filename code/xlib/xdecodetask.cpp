@@ -18,6 +18,17 @@ void XDecodeTask::Do(XAVPacket &pkt) {
         cout << GET_STR(P0) << flush;
     }
 
+    if (!m_block_size){
+        return;
+    }
+
+    while (!m_is_exit_){
+        if (m_pkt_list_.Size() > m_block_size){
+            sleep_for(1ms);
+            continue;
+        }
+        break;
+    }
     Next(pkt);
 }
 

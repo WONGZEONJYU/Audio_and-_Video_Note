@@ -1,6 +1,7 @@
 #ifndef XVIDEO_WIDGET_HPP
 #define XVIDEO_WIDGET_HPP
 
+#if 0
 #ifdef MACOS
 
 #if defined(__APPLE__) && defined(__MACH__)
@@ -76,4 +77,5 @@ private:
 
 #endif
 
+#endif
 #endif

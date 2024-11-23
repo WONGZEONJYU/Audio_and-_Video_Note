@@ -104,3 +104,8 @@ bool XAVPacketList::Push(XAVPacket &&pkt){
     Push(std::move(pkt_));
     return true;
 }
+
+uint64_t XAVPacketList::Size() const {
+    std::unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));
+    return m_packets_.size();
+}
