@@ -23,8 +23,15 @@ public:
       */
      void Start() override;
 
+     /**
+      * 更新显示和更新音频输出数据
+      */
      void Update();
 
+     /**
+      * 检查SDL窗口是否退出
+      * @return ture or false
+      */
      bool win_is_exit();
 
      explicit XPlayer() = default;

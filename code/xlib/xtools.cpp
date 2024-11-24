@@ -22,6 +22,7 @@ auto XRescale(const int64_t &pts,
 
 void XThread::_stop_() {
     m_is_exit_ = true;
+    m_next_ = {};
     if (m_th_.joinable()) {
         LOGDINFO(GET_STR(thread begin stop));
         m_th_.join();

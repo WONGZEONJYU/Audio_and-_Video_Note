@@ -44,6 +44,7 @@ void XDemuxTask::Main() {
 }
 
 XDemuxTask::~XDemuxTask(){
-    cerr << __FUNCTION__ << "\n";
+    cerr << "begin " <<__FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
     XThread::Stop();
+    cerr << "begin " <<__FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
 }

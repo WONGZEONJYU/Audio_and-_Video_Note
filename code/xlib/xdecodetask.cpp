@@ -10,7 +10,7 @@ using namespace std::chrono;
 
 void XDecodeTask::Do(XAVPacket &pkt) {
 
-    if (m_stream_index_ != pkt.stream_index){
+    if (m_stream_index_ != pkt.stream_index || m_is_exit_){
         return;
     }
 
@@ -22,14 +22,13 @@ void XDecodeTask::Do(XAVPacket &pkt) {
         return;
     }
 
-    while (!m_is_exit_){
-        if (m_pkt_list_.Size() > m_block_size){
+    while (!m_is_exit_) {
+        if (m_pkt_list_.Size() > m_block_size) {
             sleep_for(1ms);
             continue;
         }
         break;
     }
-    //Next(pkt);
 }
 
 void XDecodeTask::Main() {
@@ -53,6 +52,8 @@ void XDecodeTask::Main() {
 
         while (!m_is_exit_) { //同步
             if (m_sync_pts_ >= 0 && curr_pts > m_sync_pts_) {
+//                std::cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n" <<
+//                "curr_pts = " << curr_pts << "\n";
                 sleep_for(1ms);
                 continue;
             }
@@ -144,6 +145,7 @@ XAVFrame_sp XDecodeTask::CopyFrame() {
 }
 
 XDecodeTask::~XDecodeTask() {
-    cerr << __FUNCTION__ << "\n";
+    cerr << "begin " << __FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
     XThread::Stop();
+    cerr << "end " << __FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
 }

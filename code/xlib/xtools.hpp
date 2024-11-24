@@ -57,7 +57,7 @@ protected:
     X_DISABLE_COPY_MOVE(XThread)
 };
 
-class XLIB_API XAVPacketList {
+class XLIB_API XAVPacketList final {
     static inline constexpr auto max_packets{1000};
 public:
     [[nodiscard]] XAVPacket_sp Pop();

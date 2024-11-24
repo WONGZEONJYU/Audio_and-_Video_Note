@@ -120,6 +120,11 @@ namespace XHelper  {
               const int &line,
               const std::string &msg,
               const int &level = XLOG_TYPE_DEBUG);
+
+    static inline auto present_thread_id(){
+        using std::this_thread::get_id;
+        return get_id();
+    }
 }
 
 #define LOGDEBUG(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg))

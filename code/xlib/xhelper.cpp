@@ -206,6 +206,7 @@ namespace XHelper {
             cerr << log_ss.str() << "\n" << flush;
         }
     }
+
 }
 
 #if 0

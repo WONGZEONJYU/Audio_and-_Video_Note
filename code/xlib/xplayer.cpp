@@ -70,9 +70,12 @@ void XPlayer::Main() {
         }
 
         m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
-
         XHelper::MSleep(1);
     }
+
+    m_video_decode_task_.set_sync_pts(-1);
+    m_audio_decode_task_.set_sync_pts(-1);
+    //防止因为同步而导致线程卡住
 }
 
 bool XPlayer::win_is_exit(){
@@ -105,8 +108,12 @@ void XPlayer::Do(XAVPacket &xav_packet) {
 }
 
 XPlayer::~XPlayer() {
-    m_demuxTask_.Stop(); //必须先停掉解封装线程,
+    std::cerr << "begin " << __FUNCTION__ << " current thread_id = " <<
+            XHelper::present_thread_id() << "\n";
+    m_demuxTask_.Stop(); //先停掉解封装可以
     m_video_decode_task_.Stop();
     m_audio_decode_task_.Stop();
     XThread::Stop();
+    std::cerr << "end " << __FUNCTION__ << " current thread_id = " <<
+              XHelper::present_thread_id() << "\n";
 }

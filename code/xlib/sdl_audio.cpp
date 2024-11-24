@@ -92,7 +92,7 @@ public:
         }
 
         if (m_time_base_ > 0) {
-            ms = ms / 1000.0 / m_time_base_;
+            ms = ms / 1000.0 * m_time_base_;
         }
 
         return m_curr_pts_ + static_cast<int64_t>(ms);

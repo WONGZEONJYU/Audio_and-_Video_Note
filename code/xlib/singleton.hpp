@@ -4,7 +4,7 @@
 #include "xhelper.hpp"
 
 template <typename T>
-class XLIB_API Singleton {
+class Singleton {
     X_DISABLE_COPY_MOVE(Singleton)
 protected:
     explicit Singleton() = default;
