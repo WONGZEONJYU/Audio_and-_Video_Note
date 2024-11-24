@@ -14,9 +14,10 @@ public:
       * 打开音视频 初始化和渲染
       * @param url
       * @param win_id
+      * @param ex_ 如设置为外部显示,win_id参数视为无效
       * @return ture or false
       */
-     bool Open(const std::string &url,void *win_id = {});
+     bool Open(const std::string &url,void *win_id = {},const bool &ex_ = false);
 
      /**
       * 启动线程

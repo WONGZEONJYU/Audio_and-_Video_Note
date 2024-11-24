@@ -2,7 +2,7 @@
 #include "xvideo_view.hpp"
 #include "xaudio_play.hpp"
 
-bool XPlayer::Open(const std::string &url, void *win_id) {
+bool XPlayer::Open(const std::string &url, void * const win_id,const bool &ex_) {
 
     CHECK_FALSE_(!url.empty(), PRINT_ERR_TIPS(GET_STR(url is empty));return {});
     m_is_open_ = false;
@@ -15,7 +15,8 @@ bool XPlayer::Open(const std::string &url, void *win_id) {
         CHECK_FALSE_(m_video_decode_task_.Open(vp),return {});
         m_video_decode_task_.set_stream_index(m_demuxTask_.video_index());
         m_video_decode_task_.set_block_size(100);
-        if (!m_videoView_) {
+
+        if (!ex_ && !m_videoView_) {
             IS_SMART_NULLPTR(m_videoView_ = XVideoView::create_sp(),return {});
             m_videoView_->Set_Win_ID(win_id);
             CHECK_FALSE_(m_videoView_->Init(*vp),return {});
