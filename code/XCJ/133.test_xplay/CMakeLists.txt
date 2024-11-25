@@ -58,7 +58,7 @@ include_directories(${FFMPEG_HEADERS_PATH})
 include_directories(${SDL_HEADERS_PATH})
 include_directories(${XLIB_HEADERS_PATH})
 
-set(QT_LIBS Core Gui Widgets)
+set(QT_LIBS Core Gui Widgets OpenGL OpenGLWidgets)
 
 find_package(Qt6 COMPONENTS
     ${QT_LIBS}
@@ -73,6 +73,8 @@ target_link_libraries(${PROJECT_NAME}
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt::OpenGLWidgets
+        Qt::OpenGL
         ${XLIBS}
 )
 

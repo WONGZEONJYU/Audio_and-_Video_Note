@@ -86,6 +86,13 @@ bool XPlayer::win_is_exit(){
     return {};
 }
 
+XCodecParameters_sp XPlayer::get_video_params() const {
+    if (!m_is_open_) {
+        return {};
+    }
+    return m_demuxTask_.CopyVideoParm();
+}
+
 void XPlayer::Update() {
 
     if (m_videoView_) {

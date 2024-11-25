@@ -30,19 +30,35 @@ public:
      void Update();
 
      /**
+      * 用于支持外部的视频显示接口
+      * @param f 视频帧
+      */
+     void Update(auto &&f) {
+         if (const auto vf{m_video_decode_task_.CopyFrame()}) {
+             f(*vf);
+         }
+         Update();
+     }
+
+     /**
       * 检查SDL窗口是否退出
       * @return ture or false
       */
-     bool win_is_exit();
+     virtual bool win_is_exit();
+
+    XCodecParameters_sp get_video_params() const;
 
      explicit XPlayer() = default;
      ~XPlayer() override ;
+
 protected:
     XDemuxTask m_demuxTask_;
     XDecodeTask m_video_decode_task_,
-            m_audio_decode_task_;
+        m_audio_decode_task_;
     XVideoView_sp m_videoView_{};
     std::atomic_bool m_is_open_{};
+    XCodecParameters_sp m_audioParams_{},
+        m_videoParams_{};
 };
 
 #endif

@@ -24,6 +24,7 @@ void XDecodeTask::Do(XAVPacket &pkt) {
 
     while (!m_is_exit_) {
         if (m_pkt_list_.Size() > m_block_size) {
+            //cerr << "pkt.stream_index = " << pkt.stream_index << flush;
             sleep_for(1ms);
             continue;
         }
