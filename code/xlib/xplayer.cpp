@@ -70,7 +70,7 @@ void XPlayer::Main() {
             m_video_decode_task_.set_sync_pts(sync);
         }
 
-        m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
+        m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts());
         XHelper::MSleep(1);
     }
 
