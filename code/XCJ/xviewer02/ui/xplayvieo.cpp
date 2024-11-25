@@ -41,6 +41,7 @@ bool XPlayVideo::Open(const QString &url) {
     if (!m_player_.Open(url.toStdString(),{},true)) {
         return false;
     }
+    Init(*m_player_.get_video_params());
 #else
     if (!m_player_.Open(url.toStdString(),reinterpret_cast<void*>(winId()))) {
         return false;
