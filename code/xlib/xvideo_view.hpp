@@ -128,7 +128,7 @@ public:
      */
     [[nodiscard]] virtual int Render_Fps() const {
         return m_render_fps_;
-    };
+    }
 
     /**
      * 打开文件

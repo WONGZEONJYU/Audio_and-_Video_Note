@@ -84,6 +84,12 @@ public:
         return Open(*parameters);
     }
 
+    void Close() override {
+        SDL_QuitSubSystem(SDL_INIT_AUDIO);
+        unique_lock lock(m_mux_);
+        m_datum_.clear();
+    }
+
     auto curr_pts() ->int64_t override {
 
         double ms{};

@@ -2,10 +2,8 @@
 #define XPLAYVIEO_HPP
 
 #include <QWidget>
-#include <xhelper.hpp>
-#include <xdemuxtask.hpp>
-#include <xdecodetask.hpp>
 #include "xvideo_widget.hpp"
+#include <xplayer.hpp>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class XPlayVieo; }
@@ -28,12 +26,8 @@ public:
     void Close();
 private:
     QSharedPointer<Ui::XPlayVieo> m_ui_;
-    XDemuxTask m_demux_task_;
-    XDecodeTask m_decode_task_;
+    XPlayer m_player_;
     int m_timer_id{-1};
-#ifndef MACOS
-    XVideoView_sp m_view_;
-#endif
 };
 
 #endif

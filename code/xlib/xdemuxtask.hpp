@@ -26,11 +26,21 @@ public:
      * @param type
      */
     void set_sync_type(const SYNC_TYPE &type){m_sync_type_ = type;}
+
+    /**
+     * 没有音频只有视频的倍速
+     * @param speed
+     */
+    void set_speed(const double &speed){
+        m_speed_ = speed;
+    }
+
 private:
     XDemux m_demux_;
     std::string m_url_;
     uint64_t m_timeout_ms_{};
     std::atomic<SYNC_TYPE> m_sync_type_{NONE_SYNC};
+    std::atomic<double> m_speed_{1.0};
     X_DISABLE_COPY_MOVE(XDemuxTask)
 };
 

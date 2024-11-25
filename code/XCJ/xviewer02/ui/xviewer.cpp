@@ -458,11 +458,12 @@ void XViewer::View(const int &count) {
 
 void XViewer::timerEvent(QTimerEvent *e){
 
-    foreach(const auto &item,m_cam_wins_){
+    for (const auto &item : m_cam_wins_) {
         if (item){
             item->Draw();
         }
     }
+
     QWidget::timerEvent(e);
 }
 

@@ -38,12 +38,14 @@ public:
      * @return true or false
      */
     virtual bool Open(const XAudioSpec &spec_) = 0;
+    virtual void Close() = 0;
 
     /**
      * PCM裸数据,可以是平面格式或交叉模式
      * 如果播放库不支持平面格式,可能有奇奇怪怪的问题
      * @param data
      * @param size
+     * @param pts
      */
     void Push(const uint8_t *data,
         const size_t &size,

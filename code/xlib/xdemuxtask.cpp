@@ -35,6 +35,7 @@ void XDemuxTask::Main() {
             if (dur < 0) {
                 dur = 40;
             }
+            dur = static_cast<decltype(dur)>(static_cast<double>(dur) / m_speed_);
             XHelper::MSleep(dur);
         }
 

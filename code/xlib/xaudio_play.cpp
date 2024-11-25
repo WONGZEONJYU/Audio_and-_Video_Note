@@ -72,8 +72,13 @@ void XAudio_Play::Push(const XAVFrame &frame) {
         return;
     }
 
-    using plane_to_cross_type = bool(*)(const XAVFrame &frame,vector<uint8_t> &out);
+    if (1 == frame.ch_layout.nb_channels) {
+        const auto fmt_size{av_get_bytes_per_sample(static_cast<AVSampleFormat>(frame.format))};
+        Push(frame.data[0],fmt_size * frame.nb_samples,frame.pts);
+        return;
+    }
 
+    using plane_to_cross_type = bool(*)(const XAVFrame &frame,vector<uint8_t> &out);
     static constexpr pair<ENUM_AUDIO_FMT(FF),plane_to_cross_type> list[]{
         {GET_FMT_VAL(FF)::FF_FMT_U8P,plane_to_interleaved<uint8_t>},
         {GET_FMT_VAL(FF)::FF_FMT_S16P,plane_to_interleaved<uint16_t>},
@@ -157,7 +162,7 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out) {
 
     if (1.0f != m_speed_) {
 
-        using Speed_Change_type = int64_t(*)(const vector<uint8_t> &, vector<uint8_t> &,
+        using Speed_Change_type = int64_t(*)(const vector<uint8_t> &,vector<uint8_t> &,
                 Audio_Playback_Speed &);
 
         static constexpr pair<ENUM_AUDIO_FMT(XAudio),Speed_Change_type> list[]{
