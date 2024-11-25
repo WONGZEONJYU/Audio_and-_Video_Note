@@ -38,7 +38,7 @@ XPlayVideo::~XPlayVideo() {
 bool XPlayVideo::Open(const QString &url) {
 
 #ifdef MACOS
-    if (!m_player_.Open(url.toStdString(),{},true) {
+    if (!m_player_.Open(url.toStdString(),{},true)) {
         return false;
     }
 #else
