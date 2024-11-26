@@ -188,8 +188,7 @@ bool XSDL::Draw(const uint8_t *y,const int &y_pitch,
 }
 
 XSDL::~XSDL() {
-    unique_lock locker(m_mux_);
-    DeConstruct();
+    XSDL::Close();
 }
 
 void XSDL::Close() {

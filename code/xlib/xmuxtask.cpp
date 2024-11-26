@@ -2,10 +2,15 @@
 #include "xmux.hpp"
 #include "xcodec_parameters.hpp"
 #include "xavpacket.hpp"
+#include <sstream>
+
+using namespace std;
 
 void XMuxTask::Do(XAVPacket &pkt){
     if (m_pkts_.Push(pkt)) {
-        std::cout << GET_STR(P1) << std::flush;
+        cout << " mux " <<
+            GET_STR(push index:) << " " <<
+                pkt.stream_index << " " << flush;
     }
     Next(pkt);
 }
@@ -14,24 +19,24 @@ void XMuxTask::Main() {
     m_xmux_.WriteHead();
 
     while (!m_is_exit_) {
-        std::unique_lock locker(m_mux_);
+        unique_lock locker(m_mux_);
         const auto pkt{m_pkts_.Pop()};
         if (!pkt){
             locker.unlock();
-            XHelper::MSleep(1);
+            MSleep(1);
             continue;
         }
 
         if (m_xmux_.video_index() == pkt->stream_index
             && pkt->flags & AV_PKT_FLAG_KEY) {
             m_xmux_.Write(*pkt);
-            std::cout << GET_STR(W) << std::flush;
+            cout << GET_STR(W) << flush;
             break;
         }
     }
 
     while (!m_is_exit_) {
-        std::unique_lock locker(m_mux_);
+        unique_lock locker(m_mux_);
         const auto pkt{m_pkts_.Pop()};
         if (!pkt){
             locker.unlock();
@@ -39,7 +44,7 @@ void XMuxTask::Main() {
             continue;
         }
         m_xmux_.Write(*pkt);
-        std::cout << GET_STR(W) << std::flush;
+        cout << GET_STR(W) << flush;
     }
 
     m_xmux_.WriteEnd();
@@ -48,12 +53,8 @@ void XMuxTask::Main() {
 bool XMuxTask::Open(const std::string &url,
                     const XCodecParameters &video_parm,
                     const XCodecParameters &audio_parm) {
-
-    const auto c{XMux::Open(url,video_parm,audio_parm)};
-    if (!c){
-        return {};
-    }
-
+    AVFormatContext *c{};
+    IS_NULLPTR(c = XMux::Open(url,video_parm,audio_parm),return {});
     m_xmux_.set_fmt_ctx(c);
 
     if (video_parm.Video_pixel_format() >= 0){

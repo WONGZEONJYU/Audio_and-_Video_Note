@@ -62,8 +62,6 @@ protected:
         m_audio_decode_task_;
     XVideoView_sp m_videoView_{};
     std::atomic_bool m_is_open_{};
-    // XCodecParameters_sp m_audioParams_{},
-    //     m_videoParams_{};
 };
 
 #endif

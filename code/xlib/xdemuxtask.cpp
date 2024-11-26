@@ -23,7 +23,7 @@ void XDemuxTask::Main() {
             if (!m_demux_.is_connected()){
                 Open(m_url_,m_timeout_ms_);
             }
-            XHelper::MSleep(1);
+            MSleep(1);
             continue;
         }
 
@@ -36,11 +36,11 @@ void XDemuxTask::Main() {
                 dur = 40;
             }
             dur = static_cast<decltype(dur)>(static_cast<double>(dur) / m_speed_);
-            XHelper::MSleep(dur);
+            MSleep(dur);
         }
 
         Next(pkt);
-        XHelper::MSleep(1);
+        MSleep(1);
     }
 }
 

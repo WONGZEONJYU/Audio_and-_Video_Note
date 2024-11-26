@@ -37,6 +37,8 @@ public:
 
     explicit XDecode() = default;
 
+    ~XDecode() override = default;
+
     X_DISABLE_COPY_MOVE(XDecode)
 };
 

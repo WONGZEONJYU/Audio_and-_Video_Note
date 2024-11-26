@@ -3,6 +3,7 @@
 #include "xdecode.hpp"
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
+#include <sstream>
 
 using namespace std;
 using namespace std::this_thread;
@@ -10,26 +11,31 @@ using namespace std::chrono;
 
 void XDecodeTask::Do(XAVPacket &pkt) {
 
-    if (m_stream_index_ != pkt.stream_index || m_is_exit_){
+    if (m_is_exit_) {
+        return;
+    }
+
+    if (m_stream_index_ != pkt.stream_index){
         return;
     }
 
     if (m_pkt_list_.Push(pkt)) {
-        cout << GET_STR(P0) << flush;
+        cout << " " << GET_STR(demux_index:) << " "
+        << pkt.stream_index << " " << flush;
+    }else {
+        stringstream ss;
+        ss << GET_STR(stream_index:) << " " << pkt.stream_index << " " << GET_STR(push error!) << " ";
+        LOG_ERROR(ss.str());
     }
 
-    if (!m_block_size){
-        return;
-    }
-
-    while (!m_is_exit_) {
+    while (m_block_size> 0 && !m_is_exit_) {
         if (m_pkt_list_.Size() > m_block_size) {
-            //cerr << "pkt.stream_index = " << pkt.stream_index << flush;
             sleep_for(1ms);
             continue;
         }
         break;
     }
+    Next(pkt);
 }
 
 void XDecodeTask::Main() {
@@ -40,7 +46,7 @@ void XDecodeTask::Main() {
             if ((m_frame_ = new_XAVFrame())) {
                 break;
             }
-            PRINT_ERR_TIPS(GET_STR(new_XAVFrame error!));
+            LOG_ERROR(GET_STR(retry new_XAVFrame!));
             locker.unlock();
             sleep_for(1ms);
             locker.lock();
@@ -53,8 +59,6 @@ void XDecodeTask::Main() {
 
         while (!m_is_exit_) { //同步
             if (m_sync_pts_ >= 0 && curr_pts > m_sync_pts_) {
-//                std::cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n" <<
-//                "curr_pts = " << curr_pts << "\n";
                 sleep_for(1ms);
                 continue;
             }
@@ -75,11 +79,11 @@ void XDecodeTask::Main() {
         {
             unique_lock locker(m_mutex_);
             if (m_decode_.Receive(*m_frame_)){
-                cout << GET_STR(D) << flush;
+                cout << " " << GET_STR(Decode index:) << " " << pkt->stream_index << " " << flush;
                 m_need_view_ = true;
                 curr_pts = m_frame_->pts; //获取解码后的pts
                 if (m_frame_cache_) {
-                    TRY_CATCH(CHECK_EXC(m_frames_.push_back(std::move(new_XAVFrame(*m_frame_)))));
+                    TRY_CATCH(CHECK_EXC(m_frames_.emplace_back(new_XAVFrame(*m_frame_))));
                 }
             }
         }
@@ -92,37 +96,31 @@ bool XDecodeTask::Open(const XCodecParameters &parm){
     m_is_open_ = false;
     AVCodecContext * c{};
     IS_NULLPTR(c = XDecode::Create(parm.Codec_id(),false),
-        LOGERROR(GET_STR(Decode::Create failed!));return {};);
+        LOG_ERROR(GET_STR(Decode::Create failed!));return {};);
 
     parm.to_context(c);
     unique_lock locker(m_mutex_);
     m_decode_.set_codec_ctx(c);
     CHECK_FALSE_(m_decode_.Open(),return {});
-    LOGDINFO(GET_STR(Open codec success!));
+    LOG_INFO(GET_STR(Open codec success!));
     m_is_open_ = true;
     return m_is_open_;
 }
 
 bool XDecodeTask::Open(const XCodecParameters_sp &parm) {
     IS_SMART_NULLPTR(parm, return {});
-
-#if 1
     return Open(*parm);
-#else
-    const auto c{XDecode::Create(parm->Codec_id(),false)};
+}
 
-    if (!c) {
-        LOGERROR(GET_STR(Decode::Create failed!));
-        return {};
-    }
-
-    parm->to_context(c);
+void XDecodeTask::Stop() {
+    XThread::Stop();
+    m_is_open_ = false;
+    m_stream_index_ = -1;
+    m_sync_pts_ = -1;
+    m_block_size = -1;
+    m_pkt_list_.Clear();
     unique_lock locker(m_mutex_);
-    m_decode_.set_codec_ctx(c);
-    CHECK_FALSE_(m_decode_.Open(),return {});
-    LOGDINFO(GET_STR(Open codec success!));
-    return true;
-#endif
+    m_frames_.clear();
 }
 
 XAVFrame_sp XDecodeTask::CopyFrame() {
@@ -140,13 +138,15 @@ XAVFrame_sp XDecodeTask::CopyFrame() {
     if (!m_need_view_ || !m_frame_ || !m_frame_->buf[0]) {
         return {};
     }
-    auto f{new_XAVFrame(*m_frame_)};
+
     m_need_view_ = false;
-    return f;
+    return new_XAVFrame(*m_frame_);
 }
 
 XDecodeTask::~XDecodeTask() {
-    cerr << "begin " << __FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
-    XThread::Stop();
-    cerr << "end " << __FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
+    cerr << "begin " << __FUNCTION__ << " current thread_id = "
+        << XHelper::present_thread_id() << "\n";
+    Stop();
+    cerr << "end " << __FUNCTION__ << " current thread_id = "
+        << XHelper::present_thread_id() << "\n";
 }

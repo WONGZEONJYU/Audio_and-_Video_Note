@@ -14,10 +14,24 @@ XLIB_API auto XRescale(const int64_t &pts,
 class XLIB_API XThread {
     virtual void Main() = 0;
     void _stop_();
+    void _wait_();
 public:
+    static void MSleep(const uint64_t &ms);
+
+    /**
+     * 启动线程
+     */
     virtual void Start();
+
+    /**
+     * 停止线程
+     */
     virtual void Stop();
 
+    /**
+     * 回收线程
+     */
+    virtual void Wait();
     /**
      * 设置责任链下一个节点(线程安全)
      * @param xt
@@ -66,11 +80,13 @@ public:
     [[nodiscard]] bool Push(const XAVPacket &);
     [[nodiscard]] bool Push(XAVPacket &&);
     [[nodiscard]] uint64_t Size() const;
+    void Clear();
 private:
     std::mutex m_mux_;
     std::list<XAVPacket_sp> m_packets_;
 public:
     explicit XAVPacketList() = default;
+    ~XAVPacketList() = default;
     X_DISABLE_COPY_MOVE(XAVPacketList)
 };
 

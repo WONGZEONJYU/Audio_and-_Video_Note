@@ -11,7 +11,7 @@ extern "C"{
 void XFormat::destroy_fmt_ctx(){
     if (m_fmt_ctx_){
         if (m_fmt_ctx_->oformat){ //输出上下文
-            if (m_fmt_ctx_->pb){
+            if (m_fmt_ctx_->pb) {
                 avio_closep(&m_fmt_ctx_->pb);
             }
             avformat_free_context(m_fmt_ctx_);
@@ -20,6 +20,7 @@ void XFormat::destroy_fmt_ctx(){
         } else{
             avformat_free_context(m_fmt_ctx_);
         }
+        m_fmt_ctx_ = nullptr;
     }
 }
 
@@ -36,7 +37,7 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
     m_last_time_ = XHelper::Get_time_ms();
 
     if (m_time_out_ms_ > 0){
-        m_fmt_ctx_->interrupt_callback = {Time_out_callback, this};
+        m_fmt_ctx_->interrupt_callback = {Time_out_callback,this};
     }
 
     m_audio_index_ = m_video_index_ = -1;
@@ -57,7 +58,7 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
     }
 }
 
-bool XFormat::CopyParm(const int &stream_index,AVCodecParameters *dst) {
+bool XFormat::CopyParm(const int &stream_index,AVCodecParameters *dst) const{
     if (!dst){
         PRINT_ERR_TIPS(GET_STR(dst is empty));
         return {};
@@ -72,7 +73,7 @@ bool XFormat::CopyParm(const int &stream_index,AVCodecParameters *dst) {
     return true;
 }
 
-bool XFormat::CopyParm(const int &stream_index,AVCodecContext *dst){
+bool XFormat::CopyParm(const int &stream_index,AVCodecContext *dst) const{
 
     if (!dst) {
         PRINT_ERR_TIPS(GET_STR(dst is empty));
@@ -80,9 +81,10 @@ bool XFormat::CopyParm(const int &stream_index,AVCodecContext *dst){
     }
     check_fmt_ctx();
     if (stream_index < 0 || stream_index >= m_fmt_ctx_->nb_streams){
-        PRINT_ERR_TIPS(GET_STR(stream_index not in range));
+        LOG_ERROR(GET_STR(stream_index not in range));
         return {};
     }
+
     FF_ERR_OUT(avcodec_parameters_to_context(dst,m_fmt_ctx_->streams[stream_index]->codecpar),return {});
     return true;
 }
@@ -90,9 +92,9 @@ bool XFormat::CopyParm(const int &stream_index,AVCodecContext *dst){
 XCodecParameters_sp XFormat::CopyVideoParm() const{
     check_fmt_ctx();
 
-    const auto index{m_video_index_.load()};
+    const auto index{m_video_index_.load(std::memory_order_relaxed)};
     if (index < 0){
-        PRINT_ERR_TIPS(GET_STR(no video));
+        LOG_ERROR(GET_STR(no video!));
         return {};
     }
 
@@ -104,7 +106,7 @@ XCodecParameters_sp XFormat::CopyAudioParm() const{
     check_fmt_ctx();
     const auto index{m_audio_index_.load()};
     if (index < 0){
-        PRINT_ERR_TIPS(GET_STR(no audio));
+        LOG_ERROR(GET_STR(no audio!));
         return {};
     }
 

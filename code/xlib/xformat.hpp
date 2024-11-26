@@ -6,6 +6,11 @@
 class XLIB_API XFormat {
 
     static int Time_out_callback(void *);
+    /**
+     * 检查是否超时
+     * @return true or false
+     */
+    [[nodiscard]] bool IsTimeout();
     void destroy_fmt_ctx();
     void destroy_();
 public:
@@ -21,9 +26,9 @@ public:
      * @param dst 目标位置
      * @return ture or false
      */
-    bool CopyParm(const int &stream_index,AVCodecParameters *dst);
+    bool CopyParm(const int &stream_index,AVCodecParameters *dst) const;
 
-    bool CopyParm(const int &stream_index,AVCodecContext *dst);
+    bool CopyParm(const int &stream_index,AVCodecContext *dst) const;
 
     XCodecParameters_sp CopyVideoParm() const;
 
@@ -83,12 +88,6 @@ public:
      * @return true or false
      */
     bool set_timeout_ms(const uint64_t &ms = 1000);
-
-    /**
-     * 检查是否超时
-     * @return true or false
-     */
-    [[nodiscard]] bool IsTimeout();
 
     /**
      * 是否断开重连

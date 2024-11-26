@@ -2,6 +2,8 @@
 #include "xvideo_view.hpp"
 #include "xaudio_play.hpp"
 
+using namespace std;
+
 bool XPlayer::Open(const std::string &url, void * const win_id,const bool &ex_) {
 
     CHECK_FALSE_(!url.empty(),PRINT_ERR_TIPS(GET_STR(url is empty));return {});
@@ -43,10 +45,12 @@ void XPlayer::Stop() {
     m_demuxTask_.Stop();
     m_video_decode_task_.Stop();
     m_audio_decode_task_.Stop();
-    if (m_videoView_) {
-        m_videoView_->Close();
-        m_videoView_.reset();
-    }
+    Wait();
+    m_demuxTask_.Wait();
+    m_video_decode_task_.Wait();
+    m_audio_decode_task_.Wait();
+    m_is_open_ = false;
+    m_videoView_.reset();
     xAudio()->Close();
 }
 
@@ -81,11 +85,8 @@ void XPlayer::Main() {
         m_video_decode_task_.set_sync_pts(sync);
         m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts());
         //m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
-        XHelper::MSleep(1);
+        MSleep(1);
     }
-    m_video_decode_task_.set_sync_pts(-1);
-    m_audio_decode_task_.set_sync_pts(-1);
-    //防止因为同步而导致线程卡住
 }
 
 bool XPlayer::win_is_exit(){
@@ -109,19 +110,19 @@ void XPlayer::Update() {
     }
 }
 
-void XPlayer::Do(XAVPacket &xav_packet) {
+void XPlayer::Do(XAVPacket &pkt) {
     if (m_video_decode_task_) {
-        m_video_decode_task_.Do(xav_packet);
+        m_video_decode_task_.Do(pkt);
     }
     if (m_audio_decode_task_) {
-        m_audio_decode_task_.Do(xav_packet);
+        m_audio_decode_task_.Do(pkt);
     }
 }
 
 XPlayer::~XPlayer() {
-    std::cerr << "begin " << __FUNCTION__ << " current thread_id = " <<
+    cerr << "begin " << __FUNCTION__ << " current thread_id = " <<
             XHelper::present_thread_id() << "\n";
     XPlayer::Stop();
-    std::cerr << "end " << __FUNCTION__ << " current thread_id = " <<
+    cerr << "end " << __FUNCTION__ << " current thread_id = " <<
               XHelper::present_thread_id() << "\n";
 }

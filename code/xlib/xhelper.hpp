@@ -115,7 +115,7 @@ namespace XHelper  {
 
     XLIB_API void MSleep(const uint64_t &);
 
-    XLIB_API void xlog(const std::string &func,
+    XLIB_API void x_log(const std::string &func,
               const std::string &file,
               const int &line,
               const std::string &msg,
@@ -127,10 +127,10 @@ namespace XHelper  {
     }
 }
 
-#define LOGDEBUG(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg))
-#define LOGDINFO(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_INFO)
-#define LOGERROR(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_ERROR)
-#define LOGFATAL(msg) XHelper::xlog(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_FATAL)
+#define LOG_DEBUG(msg) XHelper::x_log(__FUNCTION__,__FILE__,__LINE__,(msg))
+#define LOG_INFO(msg) XHelper::x_log(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_INFO)
+#define LOG_ERROR(msg) XHelper::x_log(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_ERROR)
+#define LOG_FATAL(msg) XHelper::x_log(__FUNCTION__,__FILE__,__LINE__,(msg),XLOG_TYPE_FATAL)
 
 #define TRY_CATCH(x,...) do{\
     try{x;}catch(const std::exception &e){\
@@ -242,8 +242,8 @@ namespace XHelper  {
     Class &operator=(Class &&) = delete;
 
 template<typename F>
-struct Destroyer final{
-
+class Destroyer final{
+public:
     constexpr inline explicit Destroyer(F &&f):
     fn(std::move(f)){}
 
@@ -265,8 +265,9 @@ private:
 };
 
 template<typename F2>
-struct XRAII final {
+class XRAII final {
 
+public:
     constexpr inline explicit XRAII(auto &&f1,F2 &&f2):
     m_f2(std::move(f2)){
         f1();

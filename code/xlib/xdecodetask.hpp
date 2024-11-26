@@ -16,6 +16,7 @@ public:
      */
     bool Open(const XCodecParameters_sp &parm);
     bool Open(const XCodecParameters &parm);
+    void Stop() override;
 
     /**
      * 拷贝解码后的一帧数据,有可能为空
@@ -62,7 +63,11 @@ public:
         m_sync_pts_ = sync_pts;
     }
 
-    inline void set_block_size(const uint_fast64_t &s){
+    /**
+     * 设置AVPacket_list阻塞大小
+     * @param s
+     */
+    inline void set_block_size(const int_fast64_t &s){
         m_block_size = s;
     }
 
@@ -70,13 +75,13 @@ private:
     std::mutex m_mutex_;
     XDecode m_decode_;
     XAVPacketList m_pkt_list_;
+    std::list<XAVFrame_sp> m_frames_;
     XAVFrame_sp m_frame_;
     std::atomic_bool m_need_view_{},
         m_frame_cache_{},m_is_open_{};
-    std::atomic_int m_stream_index_{};
-    std::list<XAVFrame_sp> m_frames_;
-    std::atomic_int64_t m_sync_pts_{-1};
-    std::atomic_uint_fast64_t m_block_size{};
+    std::atomic_int m_stream_index_{-1};
+    std::atomic_int_fast64_t m_sync_pts_{-1};
+    std::atomic_int_fast64_t m_block_size{-1};
 public:
     explicit XDecodeTask() = default;
     ~XDecodeTask() override;

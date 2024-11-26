@@ -22,7 +22,6 @@ public:
      */
     [[nodiscard]] XAVPackets Flush() const;
 
-public:
     explicit XEncode() = default;
     ~XEncode() override = default;
     X_DISABLE_COPY_MOVE(XEncode)

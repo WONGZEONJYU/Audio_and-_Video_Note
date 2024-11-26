@@ -5,6 +5,8 @@ extern "C" {
 #include <libavutil/mathematics.h>
 }
 
+using namespace std;
+
 auto XRescale(const int64_t &pts,
     const AVRational &src_tb,
     const AVRational &dst_tb) ->int64_t {
@@ -20,51 +22,81 @@ auto XRescale(const int64_t &pts,
     return XRescale(pts, src, dst);
 }
 
+void XThread::MSleep(const uint64_t &ms) {
+    using XHelper::Get_time_ms;
+    using std::this_thread::sleep_for;
+
+    const auto begin{Get_time_ms()};
+    auto ms_{ms};
+    while (ms_--) {
+        sleep_for(1ms);
+        if (Get_time_ms() - begin >= ms){
+            return;
+        }
+    }
+}
+
 void XThread::_stop_() {
+    stringstream ss;
+    ss << GET_STR(thread index:) << " "<<  m_index_ << " " << GET_STR(begin stop!) << " ";
+    LOG_INFO(ss.str());
+    ss.clear();
     m_is_exit_ = true;
     m_next_ = {};
+    ss << GET_STR(thread index:) << " "<<  m_index_ << " " << GET_STR(end stop!) << " ";
+    LOG_INFO(ss.str());
+}
+
+void XThread::_wait_() {
     if (m_th_.joinable()) {
-        LOGDINFO(GET_STR(thread begin stop));
+        stringstream ss;
+        ss << GET_STR(thread index:) << " "<< m_index_ << " " << GET_STR(begin wait!) << " ";
+        LOG_INFO(ss.str());
+        ss.clear();
         m_th_.join();
-        std::stringstream ss;
-        ss << GET_STR(thread end stop index:) << m_index_ << " ";
-        LOGDINFO(ss.str());
+        ss << GET_STR(thread index:) << " "<< m_index_ << " " << GET_STR(end wait!) << " ";
+        LOG_INFO(ss.str());
     }
 }
 
 void XThread::Start() {
-    static std::atomic_int i{};
+    static atomic_int i{};
     m_is_exit_ = false;
-    std::unique_lock locker(m_mux_);
-    m_th_ = std::thread(&XThread::Main, this);
+    unique_lock locker(m_mux_);
+    m_th_ = thread(&XThread::Main, this);
     m_index_ = i++;
-    std::stringstream ss;
-    ss << GET_STR(thread start index:) << m_index_ << " ";
-    LOGDINFO(ss.str());
+    stringstream ss;
+    ss << GET_STR(thread start index:) << " " << m_index_ << " ";
+    LOG_INFO(ss.str());
 }
 
 void XThread::Stop() {
     _stop_();
 }
 
+void XThread::Wait() {
+    _wait_();
+}
+
 XThread::~XThread() {
     _stop_();
+    _wait_();
 }
 
 XAVPacket_sp XAVPacketList::Pop() {
-    std::unique_lock locker(m_mux_);
+    unique_lock locker(m_mux_);
     if (m_packets_.empty()){
         return {};
     }
-    auto re{m_packets_.front()};
+    const auto re{m_packets_.front()};
     m_packets_.pop_front();
     return re;
 }
 
 void XAVPacketList::Push(XAVPacket_sp &&pkt) {
-    std::unique_lock locker(m_mux_);
-    m_packets_.push_back(std::move(pkt));
-
+    unique_lock locker(m_mux_);
+    //m_packets_.push_back(std::move(pkt));
+    m_packets_.emplace_back(std::move(pkt));
     //超出空间,清理数据,到关键帧位置
     if (m_packets_.size() > max_packets){
 
@@ -106,6 +138,11 @@ bool XAVPacketList::Push(XAVPacket &&pkt){
 }
 
 uint64_t XAVPacketList::Size() const {
-    std::unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));
+    unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));
     return m_packets_.size();
+}
+
+void XAVPacketList::Clear() {
+    unique_lock locker(m_mux_);
+    m_packets_.clear();
 }

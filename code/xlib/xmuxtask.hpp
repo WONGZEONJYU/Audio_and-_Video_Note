@@ -20,7 +20,6 @@ private:
     std::mutex m_mux_;
     XMux m_xmux_;
     XAVPacketList m_pkts_;
-
 public:
     explicit  XMuxTask() = default;
     ~XMuxTask() override ;
