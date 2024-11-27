@@ -16,7 +16,7 @@ struct XSwrParam;
 class XLIB_API XAudio_Play {
     X_DISABLE_COPY_MOVE(XAudio_Play)
     using data_buffer_t = std::vector<uint8_t>;
-    int64_t Speed_Change(data_buffer_t &,data_buffer_t &);
+    int64_t Speed_Change(data_buffer_t &,data_buffer_t &,int64_t &new_pts);
 
     void push_helper(data_buffer_t &,const int64_t &pts);
 
@@ -88,9 +88,9 @@ protected:
     std::atomic_int m_volume_{128};
     XAudioSpec m_spec_{};
     std::atomic<double> m_time_base_{};
-
-private:
     std::atomic<float> m_speed_{1.0f};
+private:
+
     XSwrSample_sp m_swr_;
     XCodecParameters m_ff_audio_parameters_;
     Audio_Playback_Speed m_speed_ctr_;

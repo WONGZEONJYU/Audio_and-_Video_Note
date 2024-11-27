@@ -6,14 +6,13 @@
 #include <QFormLayout>
 #include <QMessageBox>
 #include <QDir>
-#include <QStringList>
 #include "xviewer.hpp"
 #include "ui_xviewer.h"
 #include <xhelper.hpp>
 #include "xcamera_config.hpp"
 #include "xcamera_record.hpp"
 #include "xcamera_widget.hpp"
-#include "xplayvieo.hpp"
+#include "xplayvideo.hpp"
 
 #if _WIN32
 #define C(s) QString::fromUtf8(s)
@@ -314,13 +313,13 @@ void XViewer::contextMenuEvent(QContextMenuEvent *event) {
     event->accept();
 }
 
-void XViewer::Preview() const{
+void XViewer::Preview() const {
     m_ui_->cams->show();
     m_ui_->playback_wid->hide();
     m_ui_->preview->setChecked(true);
 }
 
-void XViewer::Playback() const{
+void XViewer::Playback() const {
     m_ui_->cams->hide();
     m_ui_->playback_wid->show();
     m_ui_->playback->setChecked(true);
@@ -371,15 +370,19 @@ void XViewer::SelectCamera(const QModelIndex &index) {
         const auto dt{QDateTime::fromString(t_date,GET_STR(yyyy_MM_dd_hh_mm_ss))};
         m_ui_->cal->AddDate(dt.date());
 
+#if 1
+        m_cam_videos_[dt.date()].push_back({file.absoluteFilePath(),dt});
+#else
         XCamVideo v;
         v.m_file_path = file.absoluteFilePath();
         v.m_date_time = dt;
+        m_cam_videos_[dt.date()].push_back(std::move(v));
 
-        m_cam_videos_[dt.date()].push_back(v);
+#endif
+
     }
     m_ui_->cal->showNextMonth();
     m_ui_->cal->showPreviousMonth();
-
 }
 
 void XViewer::SelectDate(const QDate date) {
@@ -395,7 +398,6 @@ void XViewer::SelectDate(const QDate date) {
 }
 
 void XViewer::PlayVideo(const QModelIndex &index) {
-    (void)index;
 #if 1
     const auto file_path{index.data(Qt::UserRole).toString()};
     qDebug() << file_path;
@@ -407,17 +409,9 @@ void XViewer::PlayVideo(const QModelIndex &index) {
     const auto file_path{item->data(Qt::UserRole).toString()};
     qDebug() << file_path;
 #endif
-
-#ifdef MACOS
-    TRY_CATCH(CHECK_EXC(m_alone_play_.reset(new XPlayVideo())), return;);
-#else
-    if (!m_alone_play_){
-        TRY_CATCH(CHECK_EXC(m_alone_play_.reset(new XPlayVideo())), return;);
-    }
-#endif
-    const auto play{dynamic_cast<XPlayVideo*>(m_alone_play_.get())};
-    play->show();
-    play->Open(file_path);
+    XPlayVideo play;
+    play.Open(file_path);
+    play.exec();
 }
 
 void XViewer::View(const int &count) {

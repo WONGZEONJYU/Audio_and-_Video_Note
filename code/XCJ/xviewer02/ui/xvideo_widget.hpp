@@ -1,7 +1,7 @@
 #ifndef XVIDEO_WIDGET_HPP
 #define XVIDEO_WIDGET_HPP
 
-#ifdef MACOS
+#if 1
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <OpenGL/gl.h>
@@ -13,6 +13,8 @@
 #include <QMutex>
 #include <QSharedPointer>
 #include <QVector>
+#include <QOpenGLBuffer>
+#include <QOpenGLVertexArrayObject>
 #include <xhelper.hpp>
 
 class QOpenGLShaderProgram;
@@ -59,11 +61,13 @@ private:
     QSharedPointer<QOpenGLShaderProgram> m_shader_;
 
     //显存空间,用于存储顶点坐标
-    QSharedPointer<QOpenGLBuffer> m_VBO_,m_EBO_;
+    //QSharedPointer<QOpenGLBuffer> m_VBO_,m_EBO_;
+    QOpenGLBuffer m_VBO_,m_EBO_;
 
     //顶点内存对象
-    QSharedPointer<QOpenGLVertexArrayObject> m_VAO_;
+    //QSharedPointer<QOpenGLVertexArrayObject> m_VAO_;
 
+    QOpenGLVertexArrayObject m_VAO_;
     //材质内存空间,显卡的材质空间
     QVector<QSharedPointer<QOpenGLTexture>> m_textureYUV_;
 

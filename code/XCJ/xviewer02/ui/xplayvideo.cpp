@@ -1,8 +1,8 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_XPlayVieo.h" resolved
 
-#include "xplayvieo.hpp"
+#include "xplayvideo.hpp"
 #include <xvideo_view.hpp>
-#include "ui_xplayvieo.h"
+#include "ui_xplayvideo.h"
 
 void XPlayVideo::timerEvent(QTimerEvent *const event) {
 
@@ -13,21 +13,24 @@ void XPlayVideo::timerEvent(QTimerEvent *const event) {
 #else
     m_player_.Update();
 #endif
-    QWidget::timerEvent(event);
+    QObject::timerEvent(event);
 }
 
 void XPlayVideo::closeEvent(QCloseEvent * const event) {
-    Close();
+#ifdef MACOS
     QWidget::closeEvent(event);
+#else
+    QDialog::closeEvent(event);
+#endif
 }
 
 XPlayVideo::XPlayVideo(QWidget *parent) :
 #ifdef MACOS
 XVideoWidget(parent),
 #else
-QWidget(parent),
+QDialog(parent),
 #endif
-m_ui_(new Ui::XPlayVieo) {
+m_ui_(new Ui::XPlayVideo) {
     m_ui_->setupUi(this);
 }
 
@@ -41,21 +44,33 @@ bool XPlayVideo::Open(const QString &url) {
     if (!m_player_.Open(url.toStdString(),{},true)) {
         return false;
     }
+    show();
     Init(*m_player_.get_video_params());
 #else
-    if (!m_player_.Open(url.toStdString(),reinterpret_cast<void*>(winId()))) {
+    if (!m_player_.Open(url.toStdString(),reinterpret_cast<void*>(m_ui_->widget->winId()))) {
         return false;
     }
 #endif
     m_player_.Start();
-    m_timer_id = startTimer(10);
+    startTimer(10);
     return true;
 }
 
 void XPlayVideo::Close() {
-    if (m_timer_id >= 0){
-         killTimer(m_timer_id);
-         m_timer_id = -1;
-    }
     m_player_.Stop();
 }
+
+void XPlayVideo::SetSpeed() {
+    const auto s{m_ui_->speed->value()};
+    const auto speed{s >=0 ? static_cast<float>(s) / 10.0f : static_cast<float>(s- 9) };
+    m_ui_->speedtxt->setText(QString::number(speed));
+    m_player_.SetSpeed(speed);
+}
+
+#ifdef MACOS
+int XPlayVideo::exec() {
+    QEventLoop loop;
+    connect(this,&QWidget::destroyed,&loop,&QEventLoop::quit);
+    return loop.exec();
+}
+#endif

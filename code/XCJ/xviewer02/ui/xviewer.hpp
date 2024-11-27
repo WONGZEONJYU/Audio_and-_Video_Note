@@ -26,7 +26,6 @@ struct XCamVideo {
 class XViewer final: public QWidget {
 
 Q_OBJECT
-
     using XCameraWidget_sp = QSharedPointer<XCameraWidget>;
     using XCameraRecord_sp = QSharedPointer<XCameraRecord>;
 

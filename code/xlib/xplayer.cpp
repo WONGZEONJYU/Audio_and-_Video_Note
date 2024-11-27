@@ -84,7 +84,6 @@ void XPlayer::Main() {
                                  vp->x_time_base())};
         m_video_decode_task_.set_sync_pts(sync);
         m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts());
-        //m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
         MSleep(1);
     }
 }
@@ -95,6 +94,14 @@ bool XPlayer::win_is_exit(){
 
 XCodecParameters_sp XPlayer::get_video_params() const {
     return m_demuxTask_.CopyVideoParm();
+}
+
+void XPlayer::SetSpeed(const float &speed) {
+    if (m_demuxTask_.audio_index() >= 0) {
+        xAudio()->set_speed(speed);
+    }else {
+        m_demuxTask_.set_speed(speed);
+    }
 }
 
 void XPlayer::Update() {

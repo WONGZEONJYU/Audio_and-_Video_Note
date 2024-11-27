@@ -32,16 +32,29 @@ public:
      * 没有音频只有视频的倍速
      * @param speed
      */
-    void set_speed(const double &speed){
+    inline void set_speed(const double &speed){
         m_speed_ = speed;
+    }
+
+    inline bool is_Open() const {
+        return m_is_open_;
+    }
+
+    inline explicit operator bool() const {
+        return m_is_open_;
+    }
+
+    inline bool operator!() const {
+        return !m_is_open_;
     }
 
 private:
     XDemux m_demux_;
     std::string m_url_;
-    uint64_t m_timeout_ms_{};
+    std::atomic_uint_fast64_t m_timeout_ms_{};
     std::atomic<SYNC_TYPE> m_sync_type_{NONE_SYNC};
     std::atomic<double> m_speed_{1.0};
+    std::atomic_bool m_is_open_{};
     X_DISABLE_COPY_MOVE(XDemuxTask)
 };
 

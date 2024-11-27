@@ -111,6 +111,11 @@ public:
         return m_son_.sonicGetNumChannels();
     }
 
+    [[nodiscard]] auto get_samples_rate() const {
+        std::unique_lock locker(const_cast<decltype(m_mux_) &>(m_mux_));
+        return m_son_.sonicGetSampleRate();
+    }
+
     inline explicit operator bool() const {
         return m_is_init_;
     }

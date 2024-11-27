@@ -53,6 +53,8 @@ public:
       */
      XCodecParameters_sp get_video_params() const;
 
+    void SetSpeed(const float &speed) ;
+
     explicit XPlayer() = default;
     ~XPlayer() override ;
 

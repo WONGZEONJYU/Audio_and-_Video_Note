@@ -1,4 +1,4 @@
-#ifdef MACOS
+#if 1
 
 #include "xvideo_widget.hpp"
 #include <QOpenGLShaderProgram>
@@ -142,20 +142,25 @@ void XVideoWidget::initializeGL() {
     //https://blog.csdn.net/weixin_44179561/article/details/124275761
     //https://learnopengl-cn.readthedocs.io/zh/latest/01%20Getting%20started/05%20Shaders/
 
-    TRY_CATCH(CHECK_EXC(m_VAO_.reset(new QOpenGLVertexArrayObject(this))),return);
-    const QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
+    //TRY_CATCH(CHECK_EXC(m_VAO_.reset(new QOpenGLVertexArrayObject(this))),return);
+    m_VAO_.setParent(this);
+    //const QOpenGLVertexArrayObject::Binder vao(&m_VAO_.get());
+    const QOpenGLVertexArrayObject::Binder vao(&m_VAO_);
     //采用RAII技术代替m_VAO->create(); m_VAO->bind();m_VAO->release();
 
-    TRY_CATCH(CHECK_EXC(m_VBO_.reset(new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))),return);
-    m_VBO_->create();
-    CHECK_FALSE_(m_VBO_->bind());
-    m_VBO_->allocate(ver_tex_coordinate, sizeof(ver_tex_coordinate));
-    m_VBO_->setUsagePattern(QOpenGLBuffer::StaticDraw);
+    //TRY_CATCH(CHECK_EXC(m_VBO_.reset(new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer))),return);
 
-    TRY_CATCH(CHECK_EXC(m_EBO_.reset(new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer))),return);
-    m_EBO_->create();
-    CHECK_FALSE_(m_EBO_->bind());
-    m_EBO_->allocate(direction, sizeof(direction));
+    m_VBO_ = std::move(QOpenGLBuffer(QOpenGLBuffer::VertexBuffer));
+    m_VBO_.create();
+    CHECK_FALSE_(m_VBO_.bind());
+    m_VBO_.allocate(ver_tex_coordinate, sizeof(ver_tex_coordinate));
+    m_VBO_.setUsagePattern(QOpenGLBuffer::StaticDraw);
+
+    //TRY_CATCH(CHECK_EXC(m_EBO_.reset(new QOpenGLBuffer(QOpenGLBuffer::IndexBuffer))),return);
+    m_EBO_ = std::move(QOpenGLBuffer(QOpenGLBuffer::IndexBuffer));
+    m_EBO_.create();
+    CHECK_FALSE_(m_EBO_.bind());
+    m_EBO_.allocate(direction, sizeof(direction));
 
     //传递顶点和材质坐标
     const auto vertexIn_num{m_shader_->attributeLocation(GET_STR(vertexIn))};
@@ -202,8 +207,8 @@ void XVideoWidget::initializeGL() {
     m_shader_->setUniformValue("tex_v",2);
 #endif
     //m_VAO->release();//被QOpenGLVertexArrayObject::Binder vao(m_VAO);取代
-    m_EBO_->release();
-    m_VBO_->release();
+    m_EBO_.release();
+    m_VBO_.release();
     m_shader_->release();
 
     qDebug() << "\n" << Separator << "end " << __func__ << Separator;
@@ -220,18 +225,19 @@ void XVideoWidget::paintGL() {
         CHECK_FALSE_(!item.isEmpty(),return);
     }
 
-    const QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
+    //const QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
+    const QOpenGLVertexArrayObject::Binder vao(&m_VAO_);
     //m_VAO->bind(); //被QOpenGLVertexArrayObject::Binder vao(m_VAO);取代
 
     const XRAII r([this]{
         CHECK_FALSE_(m_shader_->bind());
-        CHECK_FALSE_(m_VBO_->bind());
-        CHECK_FALSE_(m_EBO_->bind());
+        CHECK_FALSE_(m_VBO_.bind());
+        CHECK_FALSE_(m_EBO_.bind());
         },[this]{
         m_shader_->release();
         //m_VAO->release(); //被QOpenGLVertexArrayObject::Binder vao(m_VAO);取代
-        m_VBO_->release();
-        m_EBO_->release();
+        m_VBO_.release();
+        m_EBO_.release();
     });
 
     GL_CHECK(glClear(GL_COLOR_BUFFER_BIT));
@@ -282,24 +288,26 @@ void XVideoWidget::cleanup() noexcept(true) {
     }
     m_shader_.reset();
 
-    if (m_VAO_){
-        m_VAO_->release();
-        m_VAO_->destroy();
-    }
-    m_VAO_.reset();
+    // if (m_VAO_){
+    //     m_VAO_->release();
+    //     m_VAO_->destroy();
+    // }
+    // m_VAO_.reset();
+    m_VAO_.destroy();
 
-    if (m_VBO_){
-        m_VBO_->release();
-        m_VBO_->destroy();
-    }
-    m_VBO_.reset();
+    // if (m_VBO_){
+    //     m_VBO_->release();
+    //     m_VBO_->destroy();
+    // }
+    // m_VBO_.reset();
+    m_VBO_.destroy();
 
-    if (m_EBO_){
-        m_EBO_->release();
-        m_EBO_->destroy();
-    }
-    m_EBO_.reset();
-
+    // if (m_EBO_){
+    //     m_EBO_->release();
+    //     m_EBO_->destroy();
+    // }
+    // m_EBO_.reset();
+    m_EBO_.destroy();
     doneCurrent();
 }
 
@@ -307,20 +315,23 @@ bool XVideoWidget::Init(const int &w,const int&h) noexcept(true) {
 
     QMutexLocker locker(&m_mux_);
 
-    CHECK_FALSE_(m_shader_ && m_VBO_ && m_EBO_ && m_VAO_,
-        PRINT_ERR_TIPS(GET_STR(Please call the show() function first));
-        return {});
+     // CHECK_FALSE_(m_shader_&& m_VBO_ && m_EBO_ && m_VAO_,
+     //    PRINT_ERR_TIPS(GET_STR(Please call the show() function first));
+     //    return {});
 
-    const QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
+    IS_SMART_NULLPTR(m_shader_,PRINT_ERR_TIPS(GET_STR(Please call the show() function first));return {});
+
+    //const QOpenGLVertexArrayObject::Binder vao(m_VAO_.get());
+    const QOpenGLVertexArrayObject::Binder vao(&m_VAO_);
 
     const XRAII r([this]{
         CHECK_FALSE_(m_shader_->bind());
-        CHECK_FALSE_(m_VBO_->bind());
-        CHECK_FALSE_(m_EBO_->bind());
+        CHECK_FALSE_(m_VBO_.bind());
+        CHECK_FALSE_(m_EBO_.bind());
         },[this]{
             m_shader_->release();
-            m_VBO_->release();
-            m_EBO_->release();
+            m_VBO_.release();
+            m_EBO_.release();
     });
 
     /*分配纹理(材质)内存空间,并设置参数,并分配显存空间*/
@@ -375,8 +386,12 @@ void XVideoWidget::Repaint(const XAVFrame &frame) {
     {
         QMutexLocker locker(&m_mux_);
 
-        CHECK_FALSE_(m_shader_ && m_VAO_ && m_VBO_ && m_EBO_ &&
-            !m_yuv_datum_.isEmpty() && !m_textureYUV_.isEmpty()
+        // CHECK_FALSE_(m_shader_ && m_VAO_ && m_VBO_ && m_EBO_ &&
+        //     !m_yuv_datum_.isEmpty() && !m_textureYUV_.isEmpty()
+        //     ,PRINT_ERR_TIPS(GET_STR(Please call the Init() function first ));
+        //     return);
+
+        CHECK_FALSE_(m_shader_ && !m_yuv_datum_.isEmpty() && !m_textureYUV_.isEmpty()
             ,PRINT_ERR_TIPS(GET_STR(Please call the Init() function first ));
             return);
 
@@ -384,7 +399,7 @@ void XVideoWidget::Repaint(const XAVFrame &frame) {
             copy_y(frame);
             copy_uv(frame);
         }else{ //无需对齐
-            for (uint32_t i{};auto &item:m_yuv_datum_) {
+            for (int i{};auto &item:m_yuv_datum_) {
                 const auto len{ i ? m_half_w_ * m_half_h_ : m_w_ * m_h_};
                 const auto src{frame.data[i++]};
                 if (item.capacity() <= len){

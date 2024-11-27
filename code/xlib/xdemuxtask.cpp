@@ -4,6 +4,7 @@
 using namespace std;
 
 bool XDemuxTask::Open(const std::string &url, const uint64_t &time_out) {
+    m_is_open_ = false;
     m_url_ = url;
     m_timeout_ms_ = time_out;
     m_demux_.set_fmt_ctx({});
@@ -11,6 +12,7 @@ bool XDemuxTask::Open(const std::string &url, const uint64_t &time_out) {
     IS_NULLPTR(c = XDemux::Open(url),return {});
     m_demux_.set_fmt_ctx(c);
     m_demux_.set_timeout_ms(time_out);
+    m_is_open_ = true;
     return true;
 }
 
@@ -47,5 +49,6 @@ void XDemuxTask::Main() {
 XDemuxTask::~XDemuxTask(){
     cerr << "begin " <<__FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
     XThread::Stop();
+    m_is_open_ = false;
     cerr << "begin " <<__FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
 }

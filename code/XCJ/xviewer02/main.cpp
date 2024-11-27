@@ -5,6 +5,8 @@
 #define TEST_CAM "test.db"
 #include <QString>
 #include "xcamera_record.hpp"
+#include "xplayvideo.hpp"
+
 
 int main(int argc,char *argv[]) {
 #if 0
@@ -66,9 +68,11 @@ int main(int argc,char *argv[]) {
     record.set_save_path(save_path);
     record.Start();
 #endif
-
     QApplication a(argc, argv);
-
+    XPlayVideo video;
+    video.show();
+    video.Open("v1080.mp4");
+    return video.exec();
     if (const auto xviewer{XViewer::create()}){
         xviewer->show();
         return QApplication::exec();

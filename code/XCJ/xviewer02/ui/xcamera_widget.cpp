@@ -82,10 +82,9 @@ bool XCameraWidget::Open(const QString &url){
     CHECK_FALSE_((parm = m_demux_->CopyVideoParm()).operator bool(),return {});
     //打开视频解码器
     CHECK_FALSE_(m_decode_->Open(parm),return {});
-
+    m_decode_->set_stream_index(m_demux_->video_index());
     //设定解码线程接收解封转数据
     m_demux_->set_next(m_decode_.get());
-
     //初始化渲染
 #ifdef MACOS
     CHECK_FALSE_(Init(*parm),return {});
