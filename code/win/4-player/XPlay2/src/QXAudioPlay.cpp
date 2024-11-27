@@ -120,6 +120,8 @@ int64_t QXAudioPlay::NoPlayMs() const {
     const auto no_play_bytes{
         static_cast<double>(m_output->bufferSize() - m_output->bytesFree())
     };
+//    qDebug() << "m_output->bufferSize()" << m_output->bufferSize();
+//    qDebug() << "m_output->bytesFree()" << m_output->bytesFree();
     locker.unlock();
     /**
      * 每秒采样到的字节数,公式 = 采样率 * 通道数 * (采样深度/8)
@@ -127,7 +129,7 @@ int64_t QXAudioPlay::NoPlayMs() const {
     const auto Bytes_per_second{
         static_cast<double>(m_SampleRate * m_Channels * m_SampleFormat)
     };
-
+    qDebug() << "Bytes_per_second = " << Bytes_per_second;
     return Bytes_per_second <= 0 ? 0 : static_cast<int64_t >(no_play_bytes / Bytes_per_second * 1000.0);
 }
 

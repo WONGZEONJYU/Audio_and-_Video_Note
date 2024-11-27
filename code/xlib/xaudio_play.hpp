@@ -61,7 +61,7 @@ public:
         m_volume_ = volume;
     }
 
-    [[maybe_unused]]  void set_speed(const double &s) ;
+    [[maybe_unused]] void set_speed(const double &s) ;
 
     virtual auto curr_pts() ->int64_t = 0;
 

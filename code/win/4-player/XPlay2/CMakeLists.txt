@@ -43,8 +43,8 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac O
     set(FFMPEG_HEADERS_PATH "/usr/local/ffmpeg/include")
     set(FFMPEG_LIB_PATH "/usr/local/ffmpeg/lib")
 
-    set(SDL_HEADERS_PATH "/opt/homebrew/Cellar/sdl2/2.30.8/include/SDL2")
-    set(SDL_LIB_PATH "/opt/homebrew/Cellar/sdl2/2.30.8/lib")
+    set(SDL_HEADERS_PATH "/opt/homebrew/Cellar/sdl2/2.30.9/include/SDL2")
+    set(SDL_LIB_PATH "/opt/homebrew/Cellar/sdl2/2.30.9/lib")
 
     set(Vulkan_INCLUDE_DIR "/Users/wong/VulkanSDK/1.3.283.0/macOS/include")
     set(Vulkan_LIBRARY "/Users/wong/VulkanSDK/1.3.283.0/macOS/lib/libvulkan.dylib")
