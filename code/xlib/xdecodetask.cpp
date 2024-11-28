@@ -3,6 +3,7 @@
 #include "xdecode.hpp"
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
+#include "xaudio_play.hpp"
 #include <sstream>
 
 using namespace std;
@@ -19,14 +20,14 @@ void XDecodeTask::Do(XAVPacket &pkt) {
         return;
     }
 
-    if (m_pkt_list_.Push(pkt)) {
-        cout << " " << GET_STR(demux_index:) << " "
-        << pkt.stream_index << " " << flush;
-    }else {
+    if (!m_pkt_list_.Push(pkt)) {
         stringstream ss;
         ss << GET_STR(stream_index:) << " " << pkt.stream_index << " " << GET_STR(push error!) << " ";
         LOG_ERROR(ss.str());
     }
+
+    // cout << " " << GET_STR(demux_index:) << " "
+    // << pkt.stream_index << " " << flush;
 
     while (m_block_size> 0 && !m_is_exit_) {
         if (m_pkt_list_.Size() > m_block_size) {
@@ -48,12 +49,16 @@ void XDecodeTask::Main() {
             }
             LOG_ERROR(GET_STR(retry new_XAVFrame!));
             locker.unlock();
-            sleep_for(1ms);
+            MSleep(1);
             locker.lock();
         }
     }
 
     int64_t curr_pts{-1};
+    AVMediaType media_type{AVMEDIA_TYPE_UNKNOWN};
+    if (m_paras_) {
+        media_type = m_paras_->MediaType();
+    }
 
     while (!m_is_exit_){
 
@@ -65,21 +70,39 @@ void XDecodeTask::Main() {
             break;
         }
 
+        // if (AVMEDIA_TYPE_AUDIO == media_type) {
+        //     const auto no_ms{xAudio()->NoPlayMs()};
+        //     cerr << "no_ms = " << no_ms << "\n";
+        //     m_current_pts_ = curr_pts - no_ms;
+        //
+        // }else if (AVMEDIA_TYPE_VIDEO == media_type) {
+        //     m_current_pts_ = curr_pts;
+        //     cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
+        //     cerr << "curr_pts = " << curr_pts << "\n";
+        //     while (!m_is_exit_) {
+        //         if (m_sync_pts_ > 0 && m_sync_pts_ < curr_pts) {
+        //             MSleep(1);
+        //             continue;
+        //         }
+        //         break;
+        //     }
+        // }else{}
+
         const auto pkt{m_pkt_list_.Pop()};
         if (!pkt) {
-            sleep_for(1ms);
+            MSleep(1);
             continue;
         }
 
         if (!m_decode_.Send(*pkt)) {
-            sleep_for(1ms);
+            MSleep(1);
             continue;
         }
 
         {
             unique_lock locker(m_mutex_);
             if (m_decode_.Receive(*m_frame_)){
-                cout << " " << GET_STR(Decode index:) << " " << pkt->stream_index << " " << flush;
+                //cout << " " << GET_STR(Decode) << " " << av_get_media_type_string(media_type) << " " << flush;
                 m_need_view_ = true;
                 curr_pts = m_frame_->pts; //获取解码后的pts
                 if (m_frame_cache_) {
@@ -87,7 +110,8 @@ void XDecodeTask::Main() {
                 }
             }
         }
-        sleep_for(1ms);
+
+        MSleep(1);
     }
 }
 
@@ -109,6 +133,7 @@ bool XDecodeTask::Open(const XCodecParameters &parm){
 
 bool XDecodeTask::Open(const XCodecParameters_sp &parm) {
     IS_SMART_NULLPTR(parm, return {});
+    m_paras_ = parm;
     return Open(*parm);
 }
 

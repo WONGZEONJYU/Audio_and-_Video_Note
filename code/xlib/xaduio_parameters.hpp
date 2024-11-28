@@ -126,7 +126,7 @@ ENUM_AUDIO_FMT(FF) {
 struct XAudioSpec {
   int m_freq {44100};
   ENUM_AUDIO_FMT(XAudio) m_format {GET_FMT_VAL(XAudio)::XAudio_S16_FMT};
-  int m_channels{2},m_samples{1024};
+  int m_channels{2},m_samples{1024},format_size{2};
 };
 
 /**

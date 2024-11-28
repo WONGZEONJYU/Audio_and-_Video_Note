@@ -4,7 +4,7 @@
 
 using namespace std;
 
-bool XPlayer::Open(const std::string &url, void * const win_id,const bool &ex_) {
+bool XPlayer::Open(const std::string &url,void * const win_id,const bool &ex_) {
 
     CHECK_FALSE_(!url.empty(),PRINT_ERR_TIPS(GET_STR(url is empty));return {});
     m_is_open_ = false;
@@ -17,7 +17,7 @@ bool XPlayer::Open(const std::string &url, void * const win_id,const bool &ex_) 
         CHECK_FALSE_(m_video_decode_task_.Open(vp),return {});
         m_video_decode_task_.set_stream_index(m_demuxTask_.video_index());
         m_video_decode_task_.set_block_size(100);
-
+        m_video_decode_task_.set_frame_cache(true);
         if (!ex_ && !m_videoView_) {
             IS_SMART_NULLPTR(m_videoView_ = XVideoView::create_sp(),return {});
             m_videoView_->Set_Win_ID(win_id);
@@ -84,6 +84,7 @@ void XPlayer::Main() {
                                  vp->x_time_base())};
         m_video_decode_task_.set_sync_pts(sync);
         m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts());
+//        m_video_decode_task_.set_sync_pts(m_audio_decode_task_.now_pts());
         MSleep(1);
     }
 }

@@ -7,8 +7,8 @@
 #include "xcamera_record.hpp"
 #include "xplayvideo.hpp"
 
-
 int main(int argc,char *argv[]) {
+
 #if 0
     auto c{XCamera_Config_()};
     c->Load(TEST_CAM);
@@ -68,11 +68,14 @@ int main(int argc,char *argv[]) {
     record.set_save_path(save_path);
     record.Start();
 #endif
+
     QApplication a(argc, argv);
+#if 1
     XPlayVideo video;
-    video.show();
+    //video.show();
     video.Open("v1080.mp4");
     return video.exec();
+#endif
     if (const auto xviewer{XViewer::create()}){
         xviewer->show();
         return QApplication::exec();

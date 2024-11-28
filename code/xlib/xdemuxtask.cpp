@@ -29,7 +29,7 @@ void XDemuxTask::Main() {
             continue;
         }
 
-        cout << GET_STR(R) << flush;
+        //cout << GET_STR(R) << flush;
 
         if (m_demux_.video_index() == pkt.stream_index &&
             SYNC_VIDEO == m_sync_type_) { //用于没有音频时候,视频同步

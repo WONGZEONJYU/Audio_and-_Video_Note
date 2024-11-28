@@ -7,6 +7,7 @@ using namespace std;
 class SDL_Audio final : public XAudio_Play {
     atomic_int64_t m_curr_pts_{};
     atomic_uint64_t m_last_ms_{};
+    atomic_int64_t m_no_play_bytes{};
 public:
     explicit SDL_Audio() {
         SDL_Init(SDL_INIT_AUDIO);
@@ -63,12 +64,13 @@ public:
 
     bool Open(const XCodecParameters &parameters) override {
         XAudioSpec spec;
-        auto &[freq,format,channels,samples]{spec};
+        auto &[freq,format,channels,samples,fmt_size]{spec};
 
         freq = parameters.Sample_rate();
         channels = parameters.Ch_layout()->nb_channels;
         samples = parameters.Audio_nbSamples();
         format = ff_to_xaduio_format(parameters.Audio_sample_format());
+        fmt_size = av_get_bytes_per_sample(static_cast<AVSampleFormat>(parameters.Audio_sample_format()));
         const auto b{Open(spec)};
         if (b) {
             XAudio_Play::Open(parameters); //复制一份参数
@@ -100,18 +102,23 @@ public:
         if (m_time_base_ > 0) {
             ms = ms / 1000.0 * m_time_base_;
         }
+        const auto res{m_curr_pts_ + static_cast<int64_t>(ms)};
+        cerr << "res = " << res << "\n";
+        return res;
+    }
 
-        return m_curr_pts_ + static_cast<int64_t>(ms);
-
-
-
-
+    auto NoPlayMs() -> int64_t override {
+        const auto bytes_per_second{
+            m_spec_.m_channels * m_spec_.m_freq * m_spec_.format_size
+        };
+        return bytes_per_second > 0 ? static_cast<int64_t >(static_cast<double>(m_no_play_bytes) / bytes_per_second * 1000.0) :0;
     }
 
 private:
     void Callback(uint8_t * const stream,const int &len) override {
 
         fill_n(stream,len,0);
+
         uint64_t need_size{static_cast<decltype(need_size)>(len)}, //需要处理的大小
                 mixed_size{}; //已经处理的数据的大小
 
@@ -141,6 +148,7 @@ private:
             need_size -= size;
             mixed_size += size;
             offset += size;
+
             if (offset >= buf.size()) {
                 m_datum_.pop_front();
             }

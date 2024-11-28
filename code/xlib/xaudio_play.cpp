@@ -54,15 +54,14 @@ auto XAudio_Play::Open(const XCodecParameters_sp &parameters) -> bool {
 }
 
 void XAudio_Play::push_helper(data_buffer_t &in,const int64_t &pts) {
-    std::unique_lock locker(m_mux_);
-    int64_t new_pts{pts};
-    if (data_buffer_t out; Speed_Change(in,out,new_pts) > 0) {
-        TRY_CATCH(CHECK_EXC(m_datum_.emplace_back(std::move(out),0,new_pts)));
+    unique_lock locker(m_mux_);
+    if (data_buffer_t out; Speed_Change(in,out) > 0) {
+        TRY_CATCH(CHECK_EXC(m_datum_.emplace_back(std::move(out),0,pts)));
     }
 }
 
 void XAudio_Play::Push(const uint8_t *data, const size_t &size,const int64_t &pts) {
-    std::vector in_buf(data, data + size);
+    vector in_buf(data, data + size);
     push_helper(in_buf,pts);
 }
 
@@ -123,7 +122,7 @@ bool XAudio_Play::init_speed_ctr(const int &sample_rate,const int &channels){
 
 template<typename T>
 static inline int64_t Speed_Change_helper(const vector<uint8_t> &in, vector<uint8_t> &out,
-    Audio_Playback_Speed &s,int64_t &new_pts) {
+    Audio_Playback_Speed &s) {
 
     if constexpr (!(std::is_same_v<T,uint8_t> || std::is_same_v<T,int8_t> ||
         std::is_same_v<T,short> || std::is_same_v<T,uint16_t> ||
@@ -144,7 +143,6 @@ static inline int64_t Speed_Change_helper(const vector<uint8_t> &in, vector<uint
     auto need_sample{s.sonicSamplesAvailable()};
     need_sample = need_sample < 0 ? 0 : need_sample;
     vector<uint8_t> temp_out(need_sample * channels * sizeof(T));
-    new_pts += need_sample;
     out_size = s.Receive(reinterpret_cast<T*>(temp_out.data()),need_sample);
 
     if (out_size > 0) {
@@ -155,7 +153,7 @@ static inline int64_t Speed_Change_helper(const vector<uint8_t> &in, vector<uint
     return out_size;
 }
 
-int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out,int64_t &new_pts) {
+int64_t XAudio_Play::Speed_Change(data_buffer_t &in,data_buffer_t &out) {
 
     int64_t out_size{-1};
 
@@ -164,7 +162,7 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out,int64_t 
     if (1.0f != m_speed_) {
 
         using Speed_Change_type = int64_t(*)(const vector<uint8_t> &,vector<uint8_t> &,
-                Audio_Playback_Speed &,int64_t &);
+                Audio_Playback_Speed &);
 
         static constexpr pair<ENUM_AUDIO_FMT(XAudio),Speed_Change_type> list[]{
             {GET_FMT_VAL(XAudio)::XAudio_S8_FMT,Speed_Change_helper<int8_t>},
@@ -182,7 +180,7 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in, data_buffer_t &out,int64_t 
         for (const auto &[first,
                           second] : list) {
             if (first == m_spec_.m_format){
-                out_size = second(in,out,m_speed_ctr_,new_pts);
+                out_size = second(in,out,m_speed_ctr_);
                 break;
             }
         }
