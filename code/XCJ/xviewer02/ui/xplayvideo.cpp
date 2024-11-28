@@ -52,7 +52,7 @@ bool XPlayVideo::Open(const QString &url) {
     }
 #endif
     m_player_.Start();
-    startTimer(10);
+    startTimer(1);
     return true;
 }
 
@@ -70,7 +70,7 @@ void XPlayVideo::SetSpeed() {
 #ifdef MACOS
 int XPlayVideo::exec() {
     QEventLoop loop;
-    connect(this,&QWidget::destroyed,&loop,&QEventLoop::quit);
+    (void )connect(this,&QWidget::destroyed,&loop,&QEventLoop::quit);
     return loop.exec();
 }
 #endif

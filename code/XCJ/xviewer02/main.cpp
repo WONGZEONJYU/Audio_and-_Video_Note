@@ -73,7 +73,7 @@ int main(int argc,char *argv[]) {
 #if 1
     XPlayVideo video;
     //video.show();
-    video.Open("v1080.mp4");
+    video.Open("/Volumes/500G/v1080.mp4");
     return video.exec();
 #endif
     if (const auto xviewer{XViewer::create()}){

@@ -63,6 +63,13 @@ void XDecodeTask::Main() {
     while (!m_is_exit_){
 
         while (!m_is_exit_) { //同步
+            if (AVMEDIA_TYPE_AUDIO == media_type){
+                curr_pts = xAudio()->now_pts();
+            }
+//            cerr << "begin " << av_get_media_type_string(media_type) << "\n";
+//            cerr << "curr_pts = " << curr_pts << "\n";
+//            cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
+//            cerr << "end " << av_get_media_type_string(media_type) << "\n";
             if (m_sync_pts_ >= 0 && curr_pts > m_sync_pts_) {
                 sleep_for(1ms);
                 continue;
@@ -70,23 +77,23 @@ void XDecodeTask::Main() {
             break;
         }
 
-        // if (AVMEDIA_TYPE_AUDIO == media_type) {
-        //     const auto no_ms{xAudio()->NoPlayMs()};
-        //     cerr << "no_ms = " << no_ms << "\n";
-        //     m_current_pts_ = curr_pts - no_ms;
-        //
-        // }else if (AVMEDIA_TYPE_VIDEO == media_type) {
-        //     m_current_pts_ = curr_pts;
-        //     cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
-        //     cerr << "curr_pts = " << curr_pts << "\n";
-        //     while (!m_is_exit_) {
-        //         if (m_sync_pts_ > 0 && m_sync_pts_ < curr_pts) {
-        //             MSleep(1);
-        //             continue;
-        //         }
-        //         break;
-        //     }
-        // }else{}
+//         if (AVMEDIA_TYPE_AUDIO == media_type) {
+//             const auto no_ms{xAudio()->NoPlayMs()};
+//             cerr << "no_ms = " << no_ms << "\n";
+//             m_current_pts_ = curr_pts - no_ms;
+//
+//         }else if (AVMEDIA_TYPE_VIDEO == media_type) {
+//             m_current_pts_ = curr_pts;
+//             cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
+//             cerr << "curr_pts = " << curr_pts << "\n";
+//             while (!m_is_exit_) {
+//                 if (m_sync_pts_ > 0 && m_sync_pts_ < curr_pts) {
+//                     MSleep(1);
+//                     continue;
+//                 }
+//                 break;
+//             }
+//         }else{}
 
         const auto pkt{m_pkt_list_.Pop()};
         if (!pkt) {

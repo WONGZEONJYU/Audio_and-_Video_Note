@@ -23,13 +23,13 @@ public:
     ~XPlayVideo() override ;
     bool Open(const QString &url);
     void Close();
-
-private slots:
-     void SetSpeed();
-
 #ifdef MACOS
     int exec();
 #endif
+private slots:
+     void SetSpeed();
+
+
 private:
     QSharedPointer<Ui::XPlayVideo> m_ui_;
     XPlayer m_player_;

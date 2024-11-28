@@ -102,16 +102,12 @@ public:
         if (m_time_base_ > 0) {
             ms = ms / 1000.0 * m_time_base_;
         }
-        const auto res{m_curr_pts_ + static_cast<int64_t>(ms)};
-        cerr << "res = " << res << "\n";
+        const auto res{m_curr_pts_ + static_cast<int64_t>(ms * m_speed_)};
         return res;
     }
 
-    auto NoPlayMs() -> int64_t override {
-        const auto bytes_per_second{
-            m_spec_.m_channels * m_spec_.m_freq * m_spec_.format_size
-        };
-        return bytes_per_second > 0 ? static_cast<int64_t >(static_cast<double>(m_no_play_bytes) / bytes_per_second * 1000.0) :0;
+    auto now_pts() -> int64_t override {
+        return m_curr_pts_;
     }
 
 private:
@@ -128,6 +124,7 @@ private:
         }
 
         m_curr_pts_ = m_datum_.front().m_pts;//当前播放的PTS
+        //cerr << "m_curr_pts_ = " << m_curr_pts_ << "\n";
         m_last_ms_ = XHelper::Get_time_ms();
 
         while (mixed_size < len) {

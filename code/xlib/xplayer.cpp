@@ -83,14 +83,14 @@ void XPlayer::Main() {
                                  ap->x_time_base(),
                                  vp->x_time_base())};
         m_video_decode_task_.set_sync_pts(sync);
-        m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts());
+        m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
 //        m_video_decode_task_.set_sync_pts(m_audio_decode_task_.now_pts());
         MSleep(1);
     }
 }
 
 bool XPlayer::win_is_exit(){
-    return m_videoView_ ? m_videoView_->Is_Exit_Window() : false;
+    return m_videoView_ && m_videoView_->Is_Exit_Window();
 }
 
 XCodecParameters_sp XPlayer::get_video_params() const {
