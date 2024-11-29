@@ -3,14 +3,6 @@
 
 #include "xhelper.hpp"
 
-XLIB_API auto XRescale(const int64_t &pts,
-    const AVRational &src_tb,
-    const AVRational &dst_tb) -> int64_t;
-
-XLIB_API auto XRescale(const int64_t &pts,
-    const XRational &src_tb,
-    const XRational &dst_tb) ->int64_t;
-
 class XLIB_API XThread {
     virtual void Main() = 0;
     void _stop_();

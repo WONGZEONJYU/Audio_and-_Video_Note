@@ -8,6 +8,8 @@ extern "C"{
 #include "xavpacket.hpp"
 #include "xcodec_parameters.hpp"
 
+using namespace std;
+
 void XFormat::destroy_fmt_ctx(){
     if (m_fmt_ctx_){
         if (m_fmt_ctx_->oformat){ //输出上下文
@@ -25,7 +27,7 @@ void XFormat::destroy_fmt_ctx(){
 }
 
 void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
-    std::unique_lock locker(m_mux_);
+    unique_lock locker(m_mux_);
     destroy_fmt_ctx();
     m_fmt_ctx_ = ctx;
     if (!m_fmt_ctx_){
@@ -60,7 +62,7 @@ void XFormat::set_fmt_ctx(AVFormatContext *ctx) {
 
 bool XFormat::CopyParm(const int &stream_index,AVCodecParameters *dst) const{
     if (!dst){
-        PRINT_ERR_TIPS(GET_STR(dst is empty));
+        LOG_ERROR(GET_STR(dst is empty));
         return {};
     }
     check_fmt_ctx();
@@ -76,7 +78,7 @@ bool XFormat::CopyParm(const int &stream_index,AVCodecParameters *dst) const{
 bool XFormat::CopyParm(const int &stream_index,AVCodecContext *dst) const{
 
     if (!dst) {
-        PRINT_ERR_TIPS(GET_STR(dst is empty));
+        LOG_ERROR(GET_STR(dst is empty));
         return {};
     }
     check_fmt_ctx();
@@ -89,37 +91,49 @@ bool XFormat::CopyParm(const int &stream_index,AVCodecContext *dst) const{
     return true;
 }
 
+XCodecParameters_sp XFormat::copy_parm_helper(const int &index) const {
+    const auto st{m_fmt_ctx_->streams[index]};
+
+    auto total_{m_fmt_ctx_->streams[index]->duration};
+
+    total_ = XHelper::XRescale(total_,st->time_base,{1,1000});
+
+    return new_XCodecParameters(st->codecpar,st->time_base,total_);
+}
+
 XCodecParameters_sp XFormat::CopyVideoParm() const{
     check_fmt_ctx();
 
-    const auto index{m_video_index_.load(std::memory_order_relaxed)};
+    const auto index{m_video_index_.load(memory_order_relaxed)};
     if (index < 0){
         LOG_ERROR(GET_STR(no video!));
         return {};
     }
 
-    const auto video_st{m_fmt_ctx_->streams[index]};
-    return new_XCodecParameters(video_st->codecpar,video_st->time_base);
+    return copy_parm_helper(index);
 }
 
 XCodecParameters_sp XFormat::CopyAudioParm() const{
     check_fmt_ctx();
-    const auto index{m_audio_index_.load()};
+    const auto index{m_audio_index_.load(memory_order_relaxed)};
     if (index < 0){
         LOG_ERROR(GET_STR(no audio!));
         return {};
     }
 
-    const auto audio_st{m_fmt_ctx_->streams[index]};
-    return new_XCodecParameters(audio_st->codecpar,audio_st->time_base);
+    return copy_parm_helper(index);
 }
 
-bool XFormat::RescaleTime(XAVPacket &packet,const int64_t &offset_pts,const AVRational &time_base) const{
+bool XFormat::RescaleTime(XAVPacket &packet,
+    const int64_t &offset_pts,
+    const AVRational &time_base) const{
 
     if (!packet.data){
         return {};
     }
+
     check_fmt_ctx();
+
     const auto out_stream{m_fmt_ctx_->streams[packet.stream_index]};
 
     packet.pts = av_rescale_q_rnd(packet.pts - offset_pts,time_base,
@@ -152,7 +166,7 @@ int64_t XFormat::RescaleToMs(const int64_t &pts,const int &index) const{
 }
 
 void XFormat::destroy_() {
-    std::unique_lock locker(m_mux_);
+    unique_lock locker(m_mux_);
     destroy_fmt_ctx();
 }
 
@@ -162,9 +176,7 @@ XFormat::~XFormat() {
 
 int XFormat::Time_out_callback(void *const arg) {
     const auto this_{static_cast<XFormat*>(arg)};
-    const auto b{this_->IsTimeout()};
-    //std::cerr << __func__  << " : " << std::boolalpha << b << "\n";
-    return b;
+    return this_->IsTimeout();
 }
 
 bool XFormat::set_timeout_ms(const uint64_t &ms) {

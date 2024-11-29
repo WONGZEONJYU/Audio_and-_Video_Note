@@ -71,12 +71,8 @@ public:
         m_block_size = s;
     }
 
-    /**
-     * 获取PTS,
-     * @return pts
-     */
-    inline auto now_pts() const {
-        return m_current_pts_.load(std::memory_order_relaxed);
+    auto curr_ms() const {
+        return m_curr_ms_.load(std::memory_order_relaxed);
     }
 
 private:
@@ -88,8 +84,7 @@ private:
     std::atomic_bool m_need_view_{},
         m_frame_cache_{},m_is_open_{};
     std::atomic_int m_stream_index_{-1},m_block_size{-1};
-    std::atomic_int_fast64_t m_sync_pts_{-1},
-        m_current_pts_{-1};
+    std::atomic_int_fast64_t m_sync_pts_{-1},m_curr_ms_{};
     XCodecParameters_sp m_paras_;
 public:
     explicit XDecodeTask() = default;

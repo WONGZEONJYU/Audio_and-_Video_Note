@@ -7,21 +7,6 @@ extern "C" {
 
 using namespace std;
 
-auto XRescale(const int64_t &pts,
-    const AVRational &src_tb,
-    const AVRational &dst_tb) ->int64_t {
-    return av_rescale_q(pts, src_tb, dst_tb);
-}
-
-auto XRescale(const int64_t &pts,
-    const XRational &src_tb,
-    const XRational &dst_tb) ->int64_t {
-
-    const AVRational src{.num = src_tb.num,.den = src_tb.den};
-    const AVRational dst{.num = dst_tb.num,.den = dst_tb.den};
-    return XRescale(pts, src, dst);
-}
-
 void XThread::MSleep(const uint64_t &ms) {
     using XHelper::Get_time_ms;
     using std::this_thread::sleep_for;

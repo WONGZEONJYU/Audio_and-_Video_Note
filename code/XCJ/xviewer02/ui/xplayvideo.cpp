@@ -13,6 +13,10 @@ void XPlayVideo::timerEvent(QTimerEvent *const event) {
 #else
     m_player_.Update();
 #endif
+    const auto total{m_player_.total_ms()};
+    const auto pos_ms{m_player_.pos_ms()};
+    m_ui_->pos->setMaximum(static_cast<int>(total));
+    m_ui_->pos->setValue(static_cast<int>(pos_ms));
     QObject::timerEvent(event);
 }
 
@@ -52,7 +56,7 @@ bool XPlayVideo::Open(const QString &url) {
     }
 #endif
     m_player_.Start();
-    startTimer(1);
+    startTimer(10);
     return true;
 }
 

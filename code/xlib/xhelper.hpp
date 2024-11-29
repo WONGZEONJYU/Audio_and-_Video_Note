@@ -70,6 +70,14 @@ enum XLogLevel{
 
 namespace XHelper  {
 #ifdef HAVE_FFMPEG
+
+    XLIB_API auto XRescale(const int64_t &pts,
+    const AVRational &src_tb,const AVRational &dst_tb) ->int64_t;
+
+    XLIB_API auto XRescale(const int64_t &pts,
+        const XRational &src_tb,
+        const XRational &dst_tb) ->int64_t;
+
     XLIB_API std::string av_get_err(const int&) noexcept(true);
 
     XLIB_API void log_packet(const AVFormatContext &, const AVPacket &)  noexcept(true);

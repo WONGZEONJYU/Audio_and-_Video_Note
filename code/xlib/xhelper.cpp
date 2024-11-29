@@ -28,6 +28,21 @@ using namespace std::this_thread;
 namespace XHelper {
 #ifdef HAVE_FFMPEG
 
+    auto XRescale(const int64_t &pts,
+    const AVRational &src_tb,
+    const AVRational &dst_tb) ->int64_t {
+        return av_rescale_q(pts, src_tb, dst_tb);
+    }
+
+    auto XRescale(const int64_t &pts,
+        const XRational &src_tb,
+        const XRational &dst_tb) ->int64_t {
+
+        const AVRational src{.num = src_tb.num,.den = src_tb.den};
+        const AVRational dst{.num = dst_tb.num,.den = dst_tb.den};
+        return XRescale(pts, src, dst);
+    }
+
     string av_get_err(const int& error_num) noexcept(true) {
         constexpr auto ERROR_STRING_SIZE {1024};
         char err_buf[ERROR_STRING_SIZE]{};

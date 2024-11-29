@@ -13,6 +13,9 @@ class XLIB_API XFormat {
     [[nodiscard]] bool IsTimeout();
     void destroy_fmt_ctx();
     void destroy_();
+
+    XCodecParameters_sp copy_parm_helper(const int &) const;
+
 public:
     /**
      * 设置AVFormatContext,线程安全,ctx传nullptr,代表要销毁当前上下文

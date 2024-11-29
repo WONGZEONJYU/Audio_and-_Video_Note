@@ -3,7 +3,6 @@
 #include "xdecode.hpp"
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
-#include "xaudio_play.hpp"
 #include <sstream>
 
 using namespace std;
@@ -20,14 +19,14 @@ void XDecodeTask::Do(XAVPacket &pkt) {
         return;
     }
 
-    if (!m_pkt_list_.Push(pkt)) {
+    if (m_pkt_list_.Push(pkt)) {
+        // cout << " " << GET_STR(demux_index:) << " "
+        // << pkt.stream_index << " " << flush;
+    }else {
         stringstream ss;
         ss << GET_STR(stream_index:) << " " << pkt.stream_index << " " << GET_STR(push error!) << " ";
         LOG_ERROR(ss.str());
     }
-
-    // cout << " " << GET_STR(demux_index:) << " "
-    // << pkt.stream_index << " " << flush;
 
     while (m_block_size> 0 && !m_is_exit_) {
         if (m_pkt_list_.Size() > m_block_size) {
@@ -36,10 +35,15 @@ void XDecodeTask::Do(XAVPacket &pkt) {
         }
         break;
     }
+
     Next(pkt);
 }
 
 void XDecodeTask::Main() {
+
+    if (!m_is_open_) {
+        return;
+    }
 
     {
         unique_lock locker(m_mutex_);
@@ -54,46 +58,30 @@ void XDecodeTask::Main() {
         }
     }
 
-    int64_t curr_pts{-1};
-    AVMediaType media_type{AVMEDIA_TYPE_UNKNOWN};
-    if (m_paras_) {
-        media_type = m_paras_->MediaType();
-    }
+
 
     while (!m_is_exit_){
+        int64_t curr_pts{-1};
+        {
+            unique_lock locker(m_mutex_);
+            if (m_decode_.Receive(*m_frame_)){
+                //cout << " " << GET_STR(Decode) << " " << av_get_media_type_string(media_type) << " " << flush;
+                m_need_view_ = true;
+                curr_pts = m_frame_->pts; //获取解码后的pts
+                m_curr_ms_ = XHelper::XRescale(m_frame_->pts,m_paras_->time_base(),{1,1000});
+                if (m_frame_cache_) {
+                    TRY_CATCH(CHECK_EXC(m_frames_.emplace_back(new_XAVFrame(*m_frame_))));
+                }
+            }
+        }
 
         while (!m_is_exit_) { //同步
-            if (AVMEDIA_TYPE_AUDIO == media_type){
-                curr_pts = xAudio()->now_pts();
-            }
-//            cerr << "begin " << av_get_media_type_string(media_type) << "\n";
-//            cerr << "curr_pts = " << curr_pts << "\n";
-//            cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
-//            cerr << "end " << av_get_media_type_string(media_type) << "\n";
             if (m_sync_pts_ >= 0 && curr_pts > m_sync_pts_) {
-                sleep_for(1ms);
+                MSleep(1);
                 continue;
             }
             break;
         }
-
-//         if (AVMEDIA_TYPE_AUDIO == media_type) {
-//             const auto no_ms{xAudio()->NoPlayMs()};
-//             cerr << "no_ms = " << no_ms << "\n";
-//             m_current_pts_ = curr_pts - no_ms;
-//
-//         }else if (AVMEDIA_TYPE_VIDEO == media_type) {
-//             m_current_pts_ = curr_pts;
-//             cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
-//             cerr << "curr_pts = " << curr_pts << "\n";
-//             while (!m_is_exit_) {
-//                 if (m_sync_pts_ > 0 && m_sync_pts_ < curr_pts) {
-//                     MSleep(1);
-//                     continue;
-//                 }
-//                 break;
-//             }
-//         }else{}
 
         const auto pkt{m_pkt_list_.Pop()};
         if (!pkt) {
@@ -104,18 +92,6 @@ void XDecodeTask::Main() {
         if (!m_decode_.Send(*pkt)) {
             MSleep(1);
             continue;
-        }
-
-        {
-            unique_lock locker(m_mutex_);
-            if (m_decode_.Receive(*m_frame_)){
-                //cout << " " << GET_STR(Decode) << " " << av_get_media_type_string(media_type) << " " << flush;
-                m_need_view_ = true;
-                curr_pts = m_frame_->pts; //获取解码后的pts
-                if (m_frame_cache_) {
-                    TRY_CATCH(CHECK_EXC(m_frames_.emplace_back(new_XAVFrame(*m_frame_))));
-                }
-            }
         }
 
         MSleep(1);

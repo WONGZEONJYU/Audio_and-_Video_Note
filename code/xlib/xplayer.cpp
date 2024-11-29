@@ -1,10 +1,14 @@
 ﻿#include "xplayer.hpp"
+
+#include <execution>
+
 #include "xvideo_view.hpp"
 #include "xaudio_play.hpp"
+#include "xavframe.hpp"
 
 using namespace std;
 
-bool XPlayer::Open(const std::string &url,void * const win_id,const bool &ex_) {
+bool XPlayer::Open(const string &url,void * const win_id,const bool &ex_) {
 
     CHECK_FALSE_(!url.empty(),PRINT_ERR_TIPS(GET_STR(url is empty));return {});
     m_is_open_ = false;
@@ -14,10 +18,11 @@ bool XPlayer::Open(const std::string &url,void * const win_id,const bool &ex_) {
             ap{m_demuxTask_.CopyAudioParm()};
 
     if (vp) {
+        m_video_params_ = vp;
+        m_total_ms_ = vp->total_ms();
         CHECK_FALSE_(m_video_decode_task_.Open(vp),return {});
         m_video_decode_task_.set_stream_index(m_demuxTask_.video_index());
         m_video_decode_task_.set_block_size(100);
-        m_video_decode_task_.set_frame_cache(true);
         if (!ex_ && !m_videoView_) {
             IS_SMART_NULLPTR(m_videoView_ = XVideoView::create_sp(),return {});
             m_videoView_->Set_Win_ID(win_id);
@@ -74,17 +79,16 @@ void XPlayer::Main() {
     const auto vp{m_demuxTask_.CopyVideoParm()},
                 ap{m_demuxTask_.CopyAudioParm()};
 
-    if (!ap) { //没有音频,无需用音频同步
-        return;
-    }
-
     while (!m_is_exit_) {
-        const auto sync{XRescale(xAudio()->curr_pts(),
-                                 ap->x_time_base(),
-                                 vp->x_time_base())};
-        m_video_decode_task_.set_sync_pts(sync);
-        m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
-//        m_video_decode_task_.set_sync_pts(m_audio_decode_task_.now_pts());
+        m_pos_ms_ = m_video_decode_task_.curr_ms();
+        if (ap) {
+            const auto sync{XHelper::XRescale(xAudio()->curr_pts(),
+                         ap->x_time_base(),
+                         vp->x_time_base())};
+            m_video_decode_task_.set_sync_pts(sync);
+            m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
+        }
+
         MSleep(1);
     }
 }
@@ -107,14 +111,14 @@ void XPlayer::SetSpeed(const float &speed) {
 
 void XPlayer::Update() {
 
+    if (const auto af{m_audio_decode_task_.CopyFrame()}) {
+        xAudio()->Push(*af);
+    }
+
     if (m_videoView_) {
         if (const auto vf{m_video_decode_task_.CopyFrame()}) {
             m_videoView_->DrawFrame(*vf);
         }
-    }
-
-    if (const auto af{m_audio_decode_task_.CopyFrame()}) {
-        xAudio()->Push(*af);
     }
 }
 

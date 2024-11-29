@@ -7,7 +7,6 @@ using namespace std;
 class SDL_Audio final : public XAudio_Play {
     atomic_int64_t m_curr_pts_{};
     atomic_uint64_t m_last_ms_{};
-    atomic_int64_t m_no_play_bytes{};
 public:
     explicit SDL_Audio() {
         SDL_Init(SDL_INIT_AUDIO);
@@ -94,20 +93,19 @@ public:
 
     auto curr_pts() ->int64_t override {
 
-        double ms{};
+        double diff_ms{};
         if (m_last_ms_ > 0) {
-            ms = static_cast<decltype(ms)>(XHelper::Get_time_ms() - m_last_ms_);
+            diff_ms = static_cast<decltype(diff_ms)>(XHelper::Get_time_ms() - m_last_ms_);
         }
 
+        cerr << __FUNCTION__ << " diff_ms = " << diff_ms << "\n";
         if (m_time_base_ > 0) {
-            ms = ms / 1000.0 * m_time_base_;
+            diff_ms = diff_ms / 1000.0 * m_time_base_;
         }
-        const auto res{m_curr_pts_ + static_cast<int64_t>(ms * m_speed_)};
-        return res;
-    }
 
-    auto now_pts() -> int64_t override {
-        return m_curr_pts_;
+        const auto pts{m_curr_pts_ + static_cast<int64_t>(diff_ms / m_speed_)};
+        cerr << __FUNCTION__ << " pts = " << pts << "\n";
+        return pts;
     }
 
 private:
@@ -124,7 +122,6 @@ private:
         }
 
         m_curr_pts_ = m_datum_.front().m_pts;//当前播放的PTS
-        //cerr << "m_curr_pts_ = " << m_curr_pts_ << "\n";
         m_last_ms_ = XHelper::Get_time_ms();
 
         while (mixed_size < len) {

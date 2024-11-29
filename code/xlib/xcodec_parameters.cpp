@@ -33,8 +33,10 @@ void XCodecParameters::Move(XCodecParameters *obj) noexcept(true) {
     *dst_ = *src_;
     m_time_base_ = obj->m_time_base_;
     m_x_time_base_ = obj->m_x_time_base_;
+    m_total_ms_ = obj->m_total_ms_;
     obj->m_time_base_ = {1,1};
     obj->m_x_time_base_ = {1,1};
+    obj->m_total_ms_ = 0;
     std::fill_n(reinterpret_cast<uint8_t*>(src_),sizeof(AVCodecParameters),0);
     //std::fill_n此处无法省掉,避免成员extradata,ch_layout,coded_side_data成员被直接释放掉
     //和对某些成员进行初始化
@@ -46,18 +48,20 @@ XCodecParameters::XCodecParameters()
     Reset(this);
 }
 
-XCodecParameters::XCodecParameters(const AVCodecContext *src,const AVRational &tb) noexcept(false)
+XCodecParameters::XCodecParameters(const AVCodecContext *src,const AVRational &tb,const int64_t &total_ms) noexcept(false)
 :XCodecParameters(){
     from_context(src);
     m_time_base_ = tb;
     m_x_time_base_ = {tb.num,tb.den};
+    m_total_ms_ = total_ms;
 }
 
-XCodecParameters::XCodecParameters(const AVCodecParameters *src,const AVRational &tb) noexcept(false)
+XCodecParameters::XCodecParameters(const AVCodecParameters *src,const AVRational &tb,const int64_t &total_ms) noexcept(false)
 :XCodecParameters(){
     from_AVFormatContext(src);
     m_time_base_ = tb;
     m_x_time_base_ = {tb.num,tb.den};
+    m_total_ms_ = total_ms;
 }
 
 XCodecParameters::XCodecParameters(const XCodecParameters &obj) noexcept(false)
@@ -65,6 +69,7 @@ XCodecParameters::XCodecParameters(const XCodecParameters &obj) noexcept(false)
     from_AVFormatContext(std::addressof(obj));
     m_time_base_ = obj.m_time_base_;
     m_x_time_base_ = obj.m_x_time_base_;
+    m_total_ms_ = obj.m_total_ms_;
 }
 
 XCodecParameters::XCodecParameters(XCodecParameters &&obj) noexcept(true)
@@ -77,6 +82,7 @@ XCodecParameters &XCodecParameters::operator=(const XCodecParameters &obj) noexc
         from_AVFormatContext(obj_);
         m_time_base_ = obj.m_time_base_;
         m_x_time_base_ = obj.m_x_time_base_;
+        m_total_ms_ = obj.m_total_ms_;
     }
     return *this;
 }
@@ -146,21 +152,30 @@ XCodecParameters_sp new_XCodecParameters(){
     return obj;
 }
 
-XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const AVRational &tb){
+XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,
+    const AVRational &tb,
+    const int64_t &total_ms){
     XCodecParameters_sp obj;
-    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb)),return {});
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb,total_ms)),return {});
     return obj;
 }
 
-XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,const XRational &tb ) {
-    return  new_XCodecParameters(src,AVRational{tb.num,tb.den});
+XCodecParameters_sp new_XCodecParameters(const AVCodecParameters *src,
+    const XRational &tb,
+    const int64_t &total_ms ) {
+    return  new_XCodecParameters(src,AVRational{tb.num,tb.den},total_ms);
 }
 
-XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const AVRational &tb){
+XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,
+    const AVRational &tb,
+    const int64_t &total_ms){
     XCodecParameters_sp obj;
-    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb)),return {});
+    TRY_CATCH(CHECK_EXC(obj = std::make_shared<XCodecParameters>(src,tb,total_ms)),return {});
     return obj;
 }
-XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,const XRational &tb ) {
-    return new_XCodecParameters(src,AVRational{tb.num,tb.den});
+
+XCodecParameters_sp new_XCodecParameters(const AVCodecContext *src,
+    const XRational &tb,
+    const int64_t &total_ms ) {
+    return new_XCodecParameters(src,AVRational{tb.num,tb.den},total_ms);
 }

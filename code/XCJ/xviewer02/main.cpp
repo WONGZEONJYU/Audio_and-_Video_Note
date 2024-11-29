@@ -68,12 +68,12 @@ int main(int argc,char *argv[]) {
     record.set_save_path(save_path);
     record.Start();
 #endif
-
     QApplication a(argc, argv);
 #if 1
     XPlayVideo video;
-    //video.show();
-    video.Open("/Volumes/500G/v1080.mp4");
+    //video.Open("/Volumes/500G/v1080.mp4");
+    //video.Open("2_audio.mp4");
+    video.Open(GET_STR(v1080.mp4));
     return video.exec();
 #endif
     if (const auto xviewer{XViewer::create()}){
