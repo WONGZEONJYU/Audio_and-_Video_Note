@@ -8,6 +8,10 @@ class XLIB_API XThread {
     void _stop_();
     void _wait_();
 public:
+    /**
+     * 休眠
+     * @param ms
+     */
     static void MSleep(const uint64_t &ms);
 
     /**
@@ -48,14 +52,22 @@ public:
      */
     virtual void Do(XAVPacket &){}
 
+    virtual void pause(const bool &b){
+        m_is_pause_ = b;
+    }
+
+    auto is_pause() const{
+        return m_is_pause_.load(std::memory_order_relaxed);
+    }
+
 protected:
     std::atomic_bool m_is_exit_{};
-
 private:
     std::mutex m_mux_;
     std::thread m_th_;
     std::atomic_int m_index_{};
     std::atomic<XThread*> m_next_;
+    std::atomic_bool m_is_pause_{};
 
 protected:
     explicit XThread() = default;

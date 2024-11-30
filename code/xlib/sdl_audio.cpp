@@ -6,7 +6,8 @@ using namespace std;
 
 class SDL_Audio final : public XAudio_Play {
     atomic_int64_t m_curr_pts_{};
-    atomic_uint64_t m_last_ms_{};
+    atomic_uint64_t m_last_ms_{},
+                    m_pause_begin_{};
 public:
     explicit SDL_Audio() {
         SDL_Init(SDL_INIT_AUDIO);
@@ -57,13 +58,14 @@ public:
         }
 
         CHECK_FALSE_(init_speed_ctr(m_spec_.m_freq,m_spec_.m_channels),return {});
-        SDL_PauseAudio(0);
+        SDL_PauseAudio({});
         return true;
     }
 
     bool Open(const XCodecParameters &parameters) override {
         XAudioSpec spec;
-        auto &[freq,format,channels,samples,fmt_size]{spec};
+        auto &[freq,format,
+               channels,samples,fmt_size]{spec};
 
         freq = parameters.Sample_rate();
         channels = parameters.Ch_layout()->nb_channels;
@@ -89,6 +91,18 @@ public:
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
         unique_lock lock(m_mux_);
         m_datum_.clear();
+    }
+
+    void Pause(const bool &b) override{
+        using XHelper::Get_time_ms;
+        SDL_PauseAudio(b);
+        if (b){
+            m_pause_begin_ = Get_time_ms();
+        }else{
+            if (m_pause_begin_ > 0){
+                m_last_ms_ += Get_time_ms() - m_pause_begin_;
+            }
+        }
     }
 
     auto curr_pts() ->int64_t override {

@@ -21,9 +21,9 @@ private:
     XMux m_xmux_;
     XAVPacketList m_pkts_;
 public:
-    explicit  XMuxTask() = default;
+    explicit XMuxTask() = default;
     ~XMuxTask() override ;
     X_DISABLE_COPY_MOVE(XMuxTask)
 };
 
-#endif //XMUXTASK_H
+#endif

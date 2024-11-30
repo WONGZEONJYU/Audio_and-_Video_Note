@@ -58,10 +58,15 @@ void XDecodeTask::Main() {
         }
     }
 
-
-
     while (!m_is_exit_){
+
+        if (is_pause()){
+            MSleep(1);
+            continue;
+        }
+
         int64_t curr_pts{-1};
+
         {
             unique_lock locker(m_mutex_);
             if (m_decode_.Receive(*m_frame_)){

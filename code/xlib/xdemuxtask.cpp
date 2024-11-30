@@ -19,6 +19,12 @@ bool XDemuxTask::Open(const std::string &url, const uint64_t &time_out) {
 void XDemuxTask::Main() {
 
     while (!m_is_exit_) {
+
+        if (is_pause()){
+            MSleep(1);
+            continue;
+        }
+
         XAVPacket pkt;
         if (!m_demux_.Read(pkt)){
             cout << GET_STR(N) << flush;

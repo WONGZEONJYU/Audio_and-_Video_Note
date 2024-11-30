@@ -31,6 +31,8 @@ public:
       */
     void Start() override;
 
+    void pause(const bool &b) override;
+
      /**
       * 更新显示和更新音频输出数据
       */

@@ -64,13 +64,17 @@ void XPlayer::Start() {
     if (!m_is_open_){
         return;
     }
+
     m_demuxTask_.Start();
+
     if (m_video_decode_task_) {
         m_video_decode_task_.Start();
     }
+
     if (m_audio_decode_task_) {
         m_audio_decode_task_.Start();
     }
+
     XThread::Start();
 }
 
@@ -80,11 +84,19 @@ void XPlayer::Main() {
                 ap{m_demuxTask_.CopyAudioParm()};
 
     while (!m_is_exit_) {
+
+        if (is_pause()){
+            MSleep(1);
+            continue;
+        }
+
         m_pos_ms_ = m_video_decode_task_.curr_ms();
+
         if (ap) {
             const auto sync{XHelper::XRescale(xAudio()->curr_pts(),
                          ap->x_time_base(),
                          vp->x_time_base())};
+            cerr << __FUNCTION__ << " sync = " << sync << "\n";
             m_video_decode_task_.set_sync_pts(sync);
             m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
         }
@@ -95,6 +107,14 @@ void XPlayer::Main() {
 
 bool XPlayer::win_is_exit(){
     return m_videoView_ && m_videoView_->Is_Exit_Window();
+}
+
+void XPlayer::pause(const bool &b){
+    XThread::pause(b);
+    m_demuxTask_.pause(b);
+    m_audio_decode_task_.pause(b);
+    m_video_decode_task_.pause(b);
+    xAudio()->Pause(b);
 }
 
 XCodecParameters_sp XPlayer::get_video_params() const {

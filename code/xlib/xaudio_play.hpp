@@ -68,14 +68,24 @@ public:
     [[maybe_unused]] void set_speed(const double &s) ;
 
     /**
+     * 本函数用于音频同步视频
      * 获取音频PTS + 带上时间差PTS
      * @return pts + ms / time_base
      */
     virtual auto curr_pts() ->int64_t = 0;
 
+    /**
+     * 设置时间基准
+     * @param time_base
+     */
     void set_time_base(const double &time_base) {
         m_time_base_ = time_base;
     }
+
+    /**
+     * 暂停
+     */
+    virtual void Pause(const bool &) = 0;
 
 protected:
     explicit XAudio_Play() = default;
