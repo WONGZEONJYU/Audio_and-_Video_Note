@@ -1,4 +1,4 @@
-#if 1
+#ifdef MACOS
 
 #include "xvideo_widget.hpp"
 #include <QOpenGLShaderProgram>

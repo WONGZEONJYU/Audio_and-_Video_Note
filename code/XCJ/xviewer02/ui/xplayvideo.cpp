@@ -7,8 +7,8 @@
 void XPlayVideo::timerEvent(QTimerEvent *const event) {
 
 #ifdef MACOS
-    m_player_.Update([this](const XAVFrame &frame) {
-        Repaint(frame);
+    m_player_.Update([this](const XAVFrame &frame){
+        m_ui_->video->Repaint(frame);
     });
 #else
     m_player_.Update();
@@ -21,19 +21,11 @@ void XPlayVideo::timerEvent(QTimerEvent *const event) {
 }
 
 void XPlayVideo::closeEvent(QCloseEvent * const event) {
-#ifdef MACOS
-    QWidget::closeEvent(event);
-#else
     QDialog::closeEvent(event);
-#endif
 }
 
-XPlayVideo::XPlayVideo(QWidget *parent) :
-#ifdef MACOS
-XVideoWidget(parent),
-#else
-QDialog(parent),
-#endif
+XPlayVideo::XPlayVideo(QWidget *parent) :QDialog(parent),
+
 m_ui_(new Ui::XPlayVideo) {
     m_ui_->setupUi(this);
 }
@@ -49,13 +41,17 @@ bool XPlayVideo::Open(const QString &url) {
         return false;
     }
     show();
-    Init(*m_player_.get_video_params());
+    m_ui_->video->Init(*m_player_.get_video_params());
 #else
-    if (!m_player_.Open(url.toStdString(),reinterpret_cast<void*>(m_ui_->widget->winId()))) {
+    if (!m_player_.Open(url.toStdString(),
+                        reinterpret_cast<void*>(m_ui_->view->winId()))) {
         return false;
     }
 #endif
     m_player_.Start();
+    m_player_.pause(false);
+    m_ui_->pause->setStyleSheet(QString::fromUtf8("background-image: url(:/img/pause.png);\n"
+                                                  "background-color: rgba(0, 0, 0,0);"));
     startTimer(10);
     return true;
 }
@@ -66,15 +62,18 @@ void XPlayVideo::Close() {
 
 void XPlayVideo::SetSpeed() {
     const auto s{m_ui_->speed->value()};
-    const auto speed{s >=0 ? static_cast<float>(s) / 10.0f : static_cast<float>(s- 9) };
+    const auto speed{s >= 0 ? static_cast<float>(s) / 10.0f : static_cast<float>(s - 9)};
     m_ui_->speedtxt->setText(QString::number(speed));
     m_player_.SetSpeed(speed);
 }
 
-#ifdef MACOS
-int XPlayVideo::exec() {
-    QEventLoop loop;
-    (void )connect(this,&QWidget::destroyed,&loop,&QEventLoop::quit);
-    return loop.exec();
+void XPlayVideo::Pause() {
+    m_player_.pause(!m_player_.is_pause());
+    if (m_player_.is_pause()){
+        m_ui_->pause->setStyleSheet(QString::fromUtf8("background-image: url(:/img/play.png);\n"
+                                                      "background-color: rgba(0, 0, 0,0);"));
+    }else{
+        m_ui_->pause->setStyleSheet(QString::fromUtf8("background-image: url(:/img/pause.png);\n"
+                                                      "background-color: rgba(0, 0, 0,0);"));
+    }
 }
-#endif

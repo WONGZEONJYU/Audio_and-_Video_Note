@@ -9,27 +9,20 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class XPlayVideo; }
 QT_END_NAMESPACE
 
-class XPlayVideo final:
-#ifdef MACOS
-public XVideoWidget {
-#else
-public QDialog {
-#endif
+class XPlayVideo final: public QDialog {
+
 Q_OBJECT
     void timerEvent(QTimerEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
 public:
-    explicit XPlayVideo(QWidget * = nullptr);
+    explicit XPlayVideo(QWidget * = {});
     ~XPlayVideo() override ;
     bool Open(const QString &url);
     void Close();
-#ifdef MACOS
-    int exec();
-#endif
+
 private slots:
      void SetSpeed();
-
-
+     void Pause();
 private:
     QSharedPointer<Ui::XPlayVideo> m_ui_;
     XPlayer m_player_;

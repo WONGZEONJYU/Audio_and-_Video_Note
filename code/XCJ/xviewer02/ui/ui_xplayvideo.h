@@ -12,31 +12,35 @@
 #include <QtCore/QVariant>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QWidget>
+#include "xvideoshow.hpp"
 
 QT_BEGIN_NAMESPACE
 
 class Ui_XPlayVideo
 {
 public:
-    QWidget *widget;
+    XVideoShow *video;
     QSlider *speed;
     QLabel *speedtxt;
     QLabel *label;
     QSlider *pos;
+    QPushButton *pause;
 
     void setupUi(QWidget *XPlayVideo)
     {
         if (XPlayVideo->objectName().isEmpty())
             XPlayVideo->setObjectName("XPlayVideo");
         XPlayVideo->resize(600, 400);
-        widget = new QWidget(XPlayVideo);
-        widget->setObjectName("widget");
-        widget->setGeometry(QRect(0, 0, 600, 400));
+        XPlayVideo->setStyleSheet(QString::fromUtf8(""));
+        video = new XVideoShow(XPlayVideo);
+        video->setObjectName("video");
+        video->setGeometry(QRect(0, 0, 600, 400));
         speed = new QSlider(XPlayVideo);
         speed->setObjectName("speed");
-        speed->setGeometry(QRect(70, 10, 160, 16));
+        speed->setGeometry(QRect(70, 5, 160, 31));
         speed->setMinimum(1);
         speed->setMaximum(20);
         speed->setPageStep(2);
@@ -50,14 +54,20 @@ public:
         label->setGeometry(QRect(10, 10, 50, 15));
         pos = new QSlider(XPlayVideo);
         pos->setObjectName("pos");
-        pos->setGeometry(QRect(10, 380, 581, 16));
+        pos->setGeometry(QRect(80, 359, 511, 31));
         pos->setMinimum(1);
         pos->setMaximum(999);
         pos->setPageStep(100);
         pos->setOrientation(Qt::Orientation::Horizontal);
+        pause = new QPushButton(XPlayVideo);
+        pause->setObjectName("pause");
+        pause->setGeometry(QRect(0, 330, 64, 64));
+        pause->setStyleSheet(QString::fromUtf8("background-image: url(:/img/pause.png);\n"
+"background-color: rgba(0, 0, 0,0);"));
 
         retranslateUi(XPlayVideo);
         QObject::connect(speed, SIGNAL(sliderReleased()), XPlayVideo, SLOT(SetSpeed()));
+        QObject::connect(pause, SIGNAL(clicked()), XPlayVideo, SLOT(Pause()));
 
         QMetaObject::connectSlotsByName(XPlayVideo);
     } // setupUi
@@ -67,6 +77,7 @@ public:
         XPlayVideo->setWindowTitle(QCoreApplication::translate("XPlayVideo", "XPlayVieo", nullptr));
         speedtxt->setText(QCoreApplication::translate("XPlayVideo", "1.0", nullptr));
         label->setText(QCoreApplication::translate("XPlayVideo", "\346\222\255\346\224\276\351\200\237\345\272\246", nullptr));
+        pause->setText(QString());
     } // retranslateUi
 
 };

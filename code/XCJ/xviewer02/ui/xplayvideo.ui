@@ -13,7 +13,10 @@
   <property name="windowTitle">
    <string>XPlayVieo</string>
   </property>
-  <widget class="QWidget" name="widget" native="true">
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="XVideoShow" name="video" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -27,9 +30,9 @@
    <property name="geometry">
     <rect>
      <x>70</x>
-     <y>10</y>
+     <y>5</y>
      <width>160</width>
-     <height>16</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="minimum">
@@ -77,10 +80,10 @@
   <widget class="QSlider" name="pos">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>380</y>
-     <width>581</width>
-     <height>16</height>
+     <x>80</x>
+     <y>359</y>
+     <width>511</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="minimum">
@@ -96,8 +99,35 @@
     <enum>Qt::Orientation::Horizontal</enum>
    </property>
   </widget>
+  <widget class="QPushButton" name="pause">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>330</y>
+     <width>64</width>
+     <height>64</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-image: url(:/img/pause.png);
+background-color: rgba(0, 0, 0,0);</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
  </widget>
- <resources/>
+ <customwidgets>
+  <customwidget>
+   <class>XVideoShow</class>
+   <extends>QWidget</extends>
+   <header>xvideoshow.hpp</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../resources/resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>speed</sender>
@@ -115,8 +145,25 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pause</sender>
+   <signal>clicked()</signal>
+   <receiver>XPlayVideo</receiver>
+   <slot>Pause()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>32</x>
+     <y>366</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>7</x>
+     <y>497</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>SetSpeed()</slot>
+  <slot>Pause()</slot>
  </slots>
 </ui>

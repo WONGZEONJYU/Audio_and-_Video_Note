@@ -1,7 +1,7 @@
 #ifndef XVIDEO_WIDGET_HPP
 #define XVIDEO_WIDGET_HPP
 
-#if 1
+#ifdef MACOS
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <OpenGL/gl.h>
@@ -18,8 +18,6 @@
 #include <xhelper.hpp>
 
 class QOpenGLShaderProgram;
-class QOpenGLBuffer;
-class QOpenGLVertexArrayObject;
 class QOpenGLTexture;
 
 class XVideoWidget : public QOpenGLWidget,
