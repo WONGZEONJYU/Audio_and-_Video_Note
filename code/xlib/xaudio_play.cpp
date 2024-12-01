@@ -55,6 +55,10 @@ auto XAudio_Play::Open(const XCodecParameters_sp &parameters) -> bool {
 
 void XAudio_Play::push_helper(data_buffer_t &in,const int64_t &pts) {
     unique_lock locker(m_mux_);
+//    if (!in.empty()){
+//        TRY_CATCH(CHECK_EXC(m_datum_.emplace_back(std::move(in),0,pts)));
+//    }
+
     if (data_buffer_t out; Speed_Change(in,out) > 0) {
         TRY_CATCH(CHECK_EXC(m_datum_.emplace_back(std::move(out),0,pts)));
     }
@@ -189,6 +193,8 @@ int64_t XAudio_Play::Speed_Change(data_buffer_t &in,data_buffer_t &out) {
         out = std::move(in);
         out_size = static_cast<decltype(out_size)>(out.size());
     }
+
+    cerr << __FUNCTION__  << " out_size = " << out_size << "\n";
 
     return out_size;
 }

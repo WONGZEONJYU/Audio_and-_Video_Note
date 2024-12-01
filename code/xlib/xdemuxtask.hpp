@@ -17,7 +17,7 @@ public:
     ~XDemuxTask() override;
 
     bool Open(const std::string &url,const uint64_t &time_out = 1000);
-
+    void Stop() override;
     auto CopyVideoParm() const{return m_demux_.CopyVideoParm();}
     auto CopyAudioParm() const{return m_demux_.CopyAudioParm();}
     auto audio_index() const{return m_demux_.audio_index();}
@@ -33,10 +33,12 @@ public:
      * @param speed
      */
     inline void set_speed(const double &speed){
-        m_speed_ = speed;
+        m_speed_ = speed < 0.1 ? 0.1 : speed;
     }
 
-    inline bool is_Open() const {
+    [[nodiscard]] bool Seek(const int64_t &ms);
+
+    [[maybe_unused]]inline bool is_Open() const {
         return m_is_open_;
     }
 

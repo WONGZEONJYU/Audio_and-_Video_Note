@@ -23,6 +23,8 @@ public:
 private slots:
      void SetSpeed();
      void Pause();
+     void PlayPos();
+     void Move();
 private:
     QSharedPointer<Ui::XPlayVideo> m_ui_;
     XPlayer m_player_;

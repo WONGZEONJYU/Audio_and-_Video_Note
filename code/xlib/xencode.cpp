@@ -9,7 +9,7 @@ extern "C"{
 
 XAVPacket_sp XEncode::Encode(const XAVFrame &frame) const{
 
-    CHECK_CODEC_CTX();
+    CHECK_CODEC_CTX_RET();
     if (const auto ret{avcodec_send_frame(m_codec_ctx_,&frame)}; 0 != ret || AVERROR(EAGAIN) != ret){
         FF_ERR_OUT(ret,return {});
     }
@@ -25,7 +25,7 @@ XAVPacket_sp XEncode::Encode(const XAVFrame &frame) const{
 }
 
 XAVPackets XEncode::Flush() const{
-    CHECK_CODEC_CTX();
+    CHECK_CODEC_CTX_RET();
     FF_ERR_OUT(avcodec_send_frame(m_codec_ctx_,{}),return {});
     XAVPackets packets;
     while (true){

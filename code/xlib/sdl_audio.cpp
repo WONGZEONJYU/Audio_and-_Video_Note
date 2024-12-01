@@ -5,8 +5,9 @@
 using namespace std;
 
 class SDL_Audio final : public XAudio_Play {
-    atomic_int64_t m_curr_pts_{};
-    atomic_uint64_t m_last_ms_{},
+
+    atomic_int_fast64_t m_curr_pts_{};
+    atomic_uint_fast64_t m_last_ms_{},
                     m_pause_begin_{};
 public:
     explicit SDL_Audio() {
@@ -89,6 +90,8 @@ public:
 
     void Close() override {
         SDL_QuitSubSystem(SDL_INIT_AUDIO);
+        m_curr_pts_ = {};
+        m_last_ms_ = {};
         unique_lock lock(m_mux_);
         m_datum_.clear();
     }
@@ -99,26 +102,26 @@ public:
         if (b){
             m_pause_begin_ = Get_time_ms();
         }else{
-            if (m_pause_begin_ > 0){
-                m_last_ms_ += Get_time_ms() - m_pause_begin_;
-            }
+//            if (m_pause_begin_ > 0){
+//                m_last_ms_ += Get_time_ms() - m_pause_begin_;
+//            }
+            m_last_ms_ += Get_time_ms() - m_pause_begin_;
         }
     }
 
     auto curr_pts() ->int64_t override {
-
         double diff_ms{};
         if (m_last_ms_ > 0) {
             diff_ms = static_cast<decltype(diff_ms)>(XHelper::Get_time_ms() - m_last_ms_);
         }
 
-        cerr << __FUNCTION__ << " diff_ms = " << diff_ms << "\n";
+        //cerr << __FUNCTION__ << " diff_ms = " << diff_ms << "\n";
         if (m_time_base_ > 0) {
             diff_ms = diff_ms / 1000.0 * m_time_base_;
         }
 
         const auto pts{m_curr_pts_ + static_cast<int64_t>(diff_ms / m_speed_)};
-        cerr << __FUNCTION__ << " pts = " << pts << "\n";
+        //cerr << __FUNCTION__ << " pts = " << pts << "\n";
         return pts;
     }
 
@@ -135,8 +138,8 @@ private:
             return;
         }
 
-        m_curr_pts_ = m_datum_.front().m_pts;//当前播放的PTS
         m_last_ms_ = XHelper::Get_time_ms();
+        m_curr_pts_ = m_datum_.front().m_pts;//当前播放的PTS
 
         while (mixed_size < len) {
 
@@ -146,6 +149,7 @@ private:
 
             auto &[buf,offset,pts]{m_datum_.front()};
             auto size{buf.size() - offset};
+            //auto size{out.size() - in.m_offset};
 
             if (size > need_size) {
                 size = need_size;

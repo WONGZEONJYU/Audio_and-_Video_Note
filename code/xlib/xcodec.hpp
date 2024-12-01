@@ -108,7 +108,9 @@ public:
      * @param
      * @return
      */
-    [[nodiscard]] XAVFrame_sp CreateFrame(const int &align) const;
+    [[nodiscard]] [[maybe_unused]] XAVFrame_sp CreateFrame(const int &align) const;
+
+    virtual void Clear();
 
 protected:
     std::mutex m_mux_;
@@ -117,11 +119,17 @@ protected:
     virtual ~XCodec();
     X_DISABLE_COPY_MOVE(XCodec)
 
-#define CHECK_CODEC_CTX() \
+#define CHECK_CODEC_CTX_RET() \
 std::unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));\
 do{if (!m_codec_ctx_){\
 PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
 return {};}}while(false)
+
+#define CHECK_CODEC_CTX() \
+std::unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));\
+do{if (!m_codec_ctx_){\
+PRINT_ERR_TIPS(GET_STR(AVCodecContext Not Created!));\
+return;}}while(false)
 
 #define CHECK_ENCODE_OPEN() do{ \
 if (avcodec_is_open(m_codec_ctx_)){\

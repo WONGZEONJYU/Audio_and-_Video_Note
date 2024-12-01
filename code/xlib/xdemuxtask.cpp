@@ -1,5 +1,6 @@
 #include "xdemuxtask.hpp"
 #include "xavpacket.hpp"
+#include "xcodec_parameters.hpp"
 
 using namespace std;
 
@@ -54,7 +55,38 @@ void XDemuxTask::Main() {
 
 XDemuxTask::~XDemuxTask(){
     cerr << "begin " <<__FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
+    Stop();
+    cerr << "begin " <<__FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
+}
+
+bool XDemuxTask::Seek(const int64_t &ms) {
+
+    const auto vp{m_demux_.CopyVideoParm()};
+    if (!vp){
+        return {};
+    }
+
+    const auto pts{XHelper::XRescale(ms,{1,1000},vp->time_base())};
+
+    return m_demux_.Seek(pts,video_index());
+//    if (!m_demux_.Seek(pts,video_index())){
+//        return {};
+//    }
+
+//    while (!m_is_exit_){
+//        XAVPacket pkt;
+//        if (!m_demux_.Read(pkt)){
+//            break;
+//        }
+//        if (video_index() == pkt.stream_index && (AV_PKT_FLAG_KEY & pkt.flags)){
+//            Next(pkt);
+//            return true;
+//        }
+//    }
+//    return true;
+}
+
+void XDemuxTask::Stop() {
     XThread::Stop();
     m_is_open_ = false;
-    cerr << "begin " <<__FUNCTION__ << " current thread_id = " << XHelper::present_thread_id() << "\n";
 }

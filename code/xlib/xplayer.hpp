@@ -8,10 +8,19 @@
 
 class XLIB_API XPlayer : public XThread {
      X_DISABLE_COPY_MOVE(XPlayer)
-    static inline constexpr auto TOLERANCE{0.05};
-     void Main() override;
-     void Do(XAVPacket &) override;
+    void Main() override;
+    void Do(XAVPacket &) override;
 public:
+    using callable = std::function<void(const XAVFrame &)>;
+
+    /**
+    * 用于支持外部的视频显示接口
+    * @param f 外部显示函数,如果与void(const XAVFrame &)不匹配,请用lambda进行包装
+    */
+    [[maybe_unused]] void set_ex_show_func(auto &&f){
+        m_ex_func_ = f;
+    }
+
      /**
       * 打开音视频 初始化和渲染
       * 如果设置为外部显,则需调用Update的重载版本
@@ -31,23 +40,18 @@ public:
       */
     void Start() override;
 
+    /**
+     * 暂停
+     * @param b
+     */
     void pause(const bool &b) override;
+
+    [[maybe_unused]] bool Seek(const int64_t &ms);
 
      /**
       * 更新显示和更新音频输出数据
       */
-    void Update();
-
-     /**
-      * 用于支持外部的视频显示接口
-      * @param f 视频帧
-      */
-    void Update(auto &&f) {
-        Update();
-         if (const auto vf{m_video_decode_task_.CopyFrame()}) {
-             f(*vf);
-         }
-     }
+     [[maybe_unused]] void Update();
 
      /**
       * 检查SDL窗口是否退出,必须在主线程调用
@@ -75,9 +79,12 @@ protected:
     XDecodeTask m_video_decode_task_,
         m_audio_decode_task_;
     XVideoView_sp m_videoView_{};
-    std::atomic_bool m_is_open_{};
+    std::atomic_bool m_is_open_{},
+                    m_statue_{};
     XCodecParameters_sp m_video_params_{};
-    std::atomic_int_fast64_t m_total_ms_{},m_pos_ms_{};
+    std::atomic_int_fast64_t m_total_ms_{},
+    m_pos_ms_{},m_seek_pos_ms_{-1};
+    callable m_ex_func_{};
 };
 
 #endif

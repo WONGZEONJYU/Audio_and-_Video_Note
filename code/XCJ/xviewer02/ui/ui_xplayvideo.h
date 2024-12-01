@@ -68,6 +68,8 @@ public:
         retranslateUi(XPlayVideo);
         QObject::connect(speed, SIGNAL(sliderReleased()), XPlayVideo, SLOT(SetSpeed()));
         QObject::connect(pause, SIGNAL(clicked()), XPlayVideo, SLOT(Pause()));
+        QObject::connect(pos, SIGNAL(sliderReleased()), XPlayVideo, SLOT(PlayPos()));
+        QObject::connect(pos, SIGNAL(sliderMoved(int)), XPlayVideo, SLOT(Move()));
 
         QMetaObject::connectSlotsByName(XPlayVideo);
     } // setupUi

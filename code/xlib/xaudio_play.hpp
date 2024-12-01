@@ -15,9 +15,9 @@ struct XSwrParam;
 
 class XLIB_API XAudio_Play {
     X_DISABLE_COPY_MOVE(XAudio_Play)
+protected:
     using data_buffer_t = std::vector<uint8_t>;
-    int64_t Speed_Change(data_buffer_t &,data_buffer_t &);
-
+private:
     void push_helper(data_buffer_t &,const int64_t &pts);
 
 public:
@@ -39,6 +39,10 @@ public:
      */
     virtual bool Open(const XAudioSpec &spec_) = 0;
     virtual void Close() = 0;
+    virtual void Clear() {
+        Close();
+        Open(m_spec_);
+    }
 
     /**
      * PCM裸数据,可以是平面格式或交叉模式
@@ -89,9 +93,12 @@ public:
 
 protected:
     explicit XAudio_Play() = default;
+
     static void AudioCallback(void *,uint8_t * ,int);
+
     virtual void Callback(uint8_t *,const int &) {}
 
+    int64_t Speed_Change(data_buffer_t &,data_buffer_t &);
     /**
      * 重采样初始化,本库暂时没有使用到
      * @return ture or false

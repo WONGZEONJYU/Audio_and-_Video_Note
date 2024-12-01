@@ -6,6 +6,8 @@ extern "C"{
 #include "xcodec.hpp"
 #include "xavframe.hpp"
 
+using namespace std;
+
 AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
 
     const AVCodec *codec{};
@@ -30,43 +32,47 @@ AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
     //3.设置参数,解码
     codec_ctx->time_base = {1,25};
     codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
-    const auto thread_count {static_cast<int>(std::thread::hardware_concurrency())};
+    const auto thread_count{static_cast<int>(thread::hardware_concurrency())};
     codec_ctx->thread_count = thread_count > 16 ? 16 : thread_count;
     return codec_ctx;
 }
 
 void XCodec::set_codec_ctx(AVCodecContext *ctx) {
-    std::unique_lock locker(m_mux_);
+    unique_lock locker(m_mux_);
     if (m_codec_ctx_){
         avcodec_free_context(&m_codec_ctx_);
     }
     m_codec_ctx_ = ctx;
 }
 
-bool XCodec::SetOpt(const std::string &key,const std::string &val) const{
-    CHECK_CODEC_CTX();
+bool XCodec::SetOpt(const string &key,const string &val) const{
+    CHECK_CODEC_CTX_RET();
     CHECK_ENCODE_OPEN();
     FF_ERR_OUT(av_opt_set(m_codec_ctx_->priv_data,key.c_str(),val.c_str(),0),return {});
     return true;
 }
 
-bool XCodec::SetOpt(const std::string &key,const int64_t &val) const {
-    CHECK_CODEC_CTX();
+bool XCodec::SetOpt(const string &key,const int64_t &val) const {
+    CHECK_CODEC_CTX_RET();
     CHECK_ENCODE_OPEN();
     FF_ERR_OUT(av_opt_set_int(m_codec_ctx_->priv_data,key.c_str(),val,0),return {});
     return true;
 }
 
 bool XCodec::Open() {
-    CHECK_CODEC_CTX();
+    CHECK_CODEC_CTX_RET();
     FF_ERR_OUT(avcodec_open2(m_codec_ctx_,{},{}),
                avcodec_free_context(&m_codec_ctx_);return {});
     return true;
 }
 
-XAVFrame_sp XCodec::CreateFrame(const int &align) const{
-
+void XCodec::Clear(){
     CHECK_CODEC_CTX();
+    avcodec_flush_buffers(m_codec_ctx_);
+}
+
+XAVFrame_sp XCodec::CreateFrame(const int &align) const{
+    CHECK_CODEC_CTX_RET();
     XAVFrame_sp frame;
     IS_SMART_NULLPTR(frame = new_XAVFrame(),return {});
     frame->width = m_codec_ctx_->width;
@@ -79,7 +85,7 @@ XAVFrame_sp XCodec::CreateFrame(const int &align) const{
 }
 
 void XCodec::destroy(){
-    std::unique_lock locker(m_mux_);
+    unique_lock locker(m_mux_);
     avcodec_free_context(&m_codec_ctx_);
 }
 

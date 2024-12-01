@@ -124,6 +124,10 @@ public:
         return !m_is_init_;
     }
 
+    [[maybe_unused]] bool FlushStream(){
+        return m_son_.sonicFlushStream();
+    }
+
 private:
     std::mutex m_mux_;
     XSonic m_son_;

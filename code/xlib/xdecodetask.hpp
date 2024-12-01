@@ -17,7 +17,7 @@ public:
     bool Open(const XCodecParameters_sp &parm);
     bool Open(const XCodecParameters &parm);
     void Stop() override;
-
+    void Clear();
     /**
      * 拷贝解码后的一帧数据,有可能为空
      * @return XAVFrame_sp
@@ -75,6 +75,9 @@ public:
         return m_curr_ms_.load(std::memory_order_relaxed);
     }
 
+    [[maybe_unused]] [[nodiscard]]
+    bool Decode(XAVPacket &,XAVFrame &);
+
 private:
     std::mutex m_mutex_;
     XDecode m_decode_;
@@ -82,9 +85,13 @@ private:
     std::list<XAVFrame_sp> m_frames_;
     XAVFrame_sp m_frame_;
     std::atomic_bool m_need_view_{},
-        m_frame_cache_{},m_is_open_{};
-    std::atomic_int m_stream_index_{-1},m_block_size{-1};
-    std::atomic_int_fast64_t m_sync_pts_{-1},m_curr_ms_{};
+                    m_frame_cache_{},
+                    m_is_open_{};
+    std::atomic_int m_stream_index_{-1},
+                    m_block_size{-1};
+    std::atomic_int_fast64_t m_sync_pts_{-1},
+                            m_curr_ms_{},
+                            m_curr_pts{-1};
     XCodecParameters_sp m_paras_;
 public:
     explicit XDecodeTask() = default;

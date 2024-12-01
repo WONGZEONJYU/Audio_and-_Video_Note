@@ -50,10 +50,10 @@ void XPlayer::Stop() {
     m_demuxTask_.Stop();
     m_video_decode_task_.Stop();
     m_audio_decode_task_.Stop();
-    Wait();
-    m_demuxTask_.Wait();
-    m_video_decode_task_.Wait();
-    m_audio_decode_task_.Wait();
+//    Wait();
+//    m_demuxTask_.Wait();
+//    m_video_decode_task_.Wait();
+//    m_audio_decode_task_.Wait();
     m_is_open_ = false;
     m_videoView_.reset();
     xAudio()->Close();
@@ -96,7 +96,7 @@ void XPlayer::Main() {
             const auto sync{XHelper::XRescale(xAudio()->curr_pts(),
                          ap->x_time_base(),
                          vp->x_time_base())};
-            cerr << __FUNCTION__ << " sync = " << sync << "\n";
+            //cerr << __FUNCTION__ << " sync = " << sync << "\n";
             m_video_decode_task_.set_sync_pts(sync);
             m_audio_decode_task_.set_sync_pts(xAudio()->curr_pts() + 10000);
         }
@@ -117,6 +117,16 @@ void XPlayer::pause(const bool &b){
     xAudio()->Pause(b);
 }
 
+bool XPlayer::Seek(const int64_t &ms){
+    m_video_decode_task_.Clear();
+    m_audio_decode_task_.Clear();
+    xAudio()->Clear();
+//    m_statue_ = is_pause();
+//    pause(true);
+//    m_seek_pos_ms_ = ms;
+    return m_demuxTask_.Seek(ms);
+}
+
 XCodecParameters_sp XPlayer::get_video_params() const {
     return m_demuxTask_.CopyVideoParm();
 }
@@ -129,20 +139,37 @@ void XPlayer::SetSpeed(const float &speed) {
     }
 }
 
-void XPlayer::Update() {
+[[maybe_unused]] void XPlayer::Update() {
 
     if (const auto af{m_audio_decode_task_.CopyFrame()}) {
         xAudio()->Push(*af);
     }
 
-    if (m_videoView_) {
-        if (const auto vf{m_video_decode_task_.CopyFrame()}) {
+    if (const auto vf{m_video_decode_task_.CopyFrame()}) {
+        if (m_videoView_){
             m_videoView_->DrawFrame(*vf);
+        }
+
+        if (m_ex_func_){
+            m_ex_func_(*vf);
         }
     }
 }
 
 void XPlayer::Do(XAVPacket &pkt) {
+
+//    if (m_seek_pos_ms_ > 0 && is_pause()){
+//        XAVFrame frame;
+//        if (m_video_decode_task_.Decode(pkt,frame)){
+//            if (m_video_decode_task_.curr_ms() > m_seek_pos_ms_){
+//                Update();
+//            }
+//        }
+//        m_seek_pos_ms_ = -1;
+//        pause(m_statue_);
+//        return;
+//    }
+
     if (m_video_decode_task_) {
         m_video_decode_task_.Do(pkt);
     }
