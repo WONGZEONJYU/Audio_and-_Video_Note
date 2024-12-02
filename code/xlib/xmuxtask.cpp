@@ -18,7 +18,7 @@ void XMuxTask::Do(XAVPacket &pkt){
 void XMuxTask::Main() {
     m_xmux_.WriteHead();
 
-    while (!m_is_exit_) {
+    while (!is_exit()) {
         unique_lock locker(m_mux_);
         const auto pkt{m_pkts_.Pop()};
         if (!pkt){
@@ -35,7 +35,7 @@ void XMuxTask::Main() {
         }
     }
 
-    while (!m_is_exit_) {
+    while (!is_exit()) {
         unique_lock locker(m_mux_);
         const auto pkt{m_pkts_.Pop()};
         if (!pkt){

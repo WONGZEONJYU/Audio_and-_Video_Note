@@ -38,27 +38,25 @@ XPlayVideo::~XPlayVideo() {
 bool XPlayVideo::Open(const QString &url) {
 
 #ifdef MACOS
-    if (!m_player_.Open(url.toStdString(),{},true)) {
+    if (!m_player_.Open(url.toStdString(),
+                        [this](const XAVFrame &frame){
+        m_ui_->video->Repaint(frame);
+    })) {
         return false;
     }
-    m_player_.set_ex_show_func([this](const XAVFrame &frame){
-        m_ui_->video->Repaint(frame);
-    });
     show();
     m_ui_->video->Init(*m_player_.get_video_params());
-
 #else
     if (!m_player_.Open(url.toStdString(),
                         reinterpret_cast<void*>(m_ui_->video->winId()))) {
         return false;
     }
-
 #endif
     m_player_.Start();
     m_player_.pause(false);
+    startTimer(10);
     m_ui_->pause->setStyleSheet(QString::fromUtf8("background-image: url(:/img/pause.png);\n"
                                                   "background-color: rgba(0, 0, 0,0);"));
-    startTimer(10);
     return true;
 }
 

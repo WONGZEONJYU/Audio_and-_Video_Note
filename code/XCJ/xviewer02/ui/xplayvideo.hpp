@@ -30,7 +30,6 @@ private:
     QSharedPointer<Ui::XPlayVideo> m_ui_;
     XPlayer m_player_;
     std::atomic_bool m_is_move_{},m_is_press_{};
-
 };
 
 #endif

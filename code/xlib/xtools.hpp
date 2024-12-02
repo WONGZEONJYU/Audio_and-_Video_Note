@@ -56,18 +56,21 @@ public:
         m_is_pause_ = b;
     }
 
-    auto is_pause() const{
+    inline auto is_pause() const{
         return m_is_pause_.load(std::memory_order_relaxed);
     }
 
-protected:
-    std::atomic_bool m_is_exit_{};
+    inline auto is_exit() const{
+        return m_is_exit_.load(std::memory_order_relaxed);
+    }
+
 private:
+    std::atomic_bool m_is_exit_{true},
+        m_is_pause_{};
     std::mutex m_mux_;
     std::thread m_th_;
     std::atomic_int m_index_{};
     std::atomic<XThread*> m_next_;
-    std::atomic_bool m_is_pause_{};
 
 protected:
     explicit XThread() = default;
@@ -82,7 +85,7 @@ public:
     void Push(XAVPacket_sp &&);
     void Push(const XAVPacket_sp &);
     [[nodiscard]] bool Push(const XAVPacket &);
-    [[nodiscard]] bool Push(XAVPacket &&);
+    [[nodiscard]] [[maybe_unused]] bool Push(XAVPacket &&);
     [[nodiscard]] uint64_t Size() const;
     void Clear();
 private:

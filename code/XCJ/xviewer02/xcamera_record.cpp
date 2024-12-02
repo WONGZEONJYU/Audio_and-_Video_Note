@@ -24,7 +24,7 @@ void XCameraRecord::Main() {
         PRINT_ERR_TIPS(GET_STR(rtsp url is empty!));return);
 
     //自动重连
-    while (!m_is_exit_) {
+    while (!is_exit()) {
         if (demux_task.Open(m_rtsp_url_)) { //最坏情况阻塞一秒
             break;
         }
@@ -46,7 +46,7 @@ void XCameraRecord::Main() {
     mux_task.Start();
 
     auto present_time{XHelper::Get_time_ms()};
-    while (!m_is_exit_) {
+    while (!is_exit()) {
 
         if (const auto now{XHelper::Get_time_ms()};
             now - present_time > m_file_sec_ * 1000) {

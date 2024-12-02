@@ -1,17 +1,22 @@
 ﻿#include "xplayer.hpp"
-
-#include <execution>
-
 #include "xvideo_view.hpp"
 #include "xaudio_play.hpp"
-#include "xavframe.hpp"
 #include "xavpacket.hpp"
 
 using namespace std;
 
-bool XPlayer::Open(const string &url,void * const win_id,const bool &ex_) {
+bool XPlayer::open_helper(const std::string &url){
+
+
+
+
+
+}
+
+bool XPlayer::Open(const string &url,void * const win_id) {
 
     CHECK_FALSE_(!url.empty(),PRINT_ERR_TIPS(GET_STR(url is empty));return {});
+    Stop();
     m_is_open_ = false;
     CHECK_FALSE_(m_demuxTask_.Open(url),return {});
 
@@ -24,7 +29,7 @@ bool XPlayer::Open(const string &url,void * const win_id,const bool &ex_) {
         CHECK_FALSE_(m_video_decode_task_.Open(vp),return {});
         m_video_decode_task_.set_stream_index(m_demuxTask_.video_index());
         m_video_decode_task_.set_block_size(100);
-        if (!ex_ && !m_videoView_) {
+        if (!m_ex_func_ && !m_videoView_) {
             IS_SMART_NULLPTR(m_videoView_ = XVideoView::create_sp(),return {});
             m_videoView_->Set_Win_ID(win_id);
             CHECK_FALSE_(m_videoView_->Init(*vp),return {});
@@ -51,12 +56,13 @@ void XPlayer::Stop() {
     m_demuxTask_.Stop();
     m_video_decode_task_.Stop();
     m_audio_decode_task_.Stop();
-//    Wait();
-//    m_demuxTask_.Wait();
-//    m_video_decode_task_.Wait();
-//    m_audio_decode_task_.Wait();
+    Wait();
+    m_demuxTask_.Wait();
+    m_video_decode_task_.Wait();
+    m_audio_decode_task_.Wait();
     m_is_open_ = false;
     m_videoView_.reset();
+    m_ex_func_ = {};
     xAudio()->Close();
 }
 
@@ -66,17 +72,21 @@ void XPlayer::Start() {
         return;
     }
 
-    m_demuxTask_.Start();
+    if (is_exit()){
+        XThread::Start();
+    }
 
-    if (m_video_decode_task_) {
+    if (m_demuxTask_.is_exit()){
+        m_demuxTask_.Start();
+    }
+
+    if (m_video_decode_task_ && m_video_decode_task_.is_exit()) {
         m_video_decode_task_.Start();
     }
 
-    if (m_audio_decode_task_) {
+    if (m_audio_decode_task_ && m_audio_decode_task_.is_exit()) {
         m_audio_decode_task_.Start();
     }
-
-    XThread::Start();
 }
 
 void XPlayer::Main() {
@@ -84,7 +94,7 @@ void XPlayer::Main() {
     const auto vp{m_demuxTask_.CopyVideoParm()},
                 ap{m_demuxTask_.CopyAudioParm()};
 
-    while (!m_is_exit_) {
+    while (!is_exit()) {
 
         if (is_pause()){
             MSleep(1);
@@ -137,7 +147,7 @@ bool XPlayer::Seek(const int64_t &ms){
     }
 
     bool b{};
-    while (!m_is_exit_) {
+    while (!is_exit()) {
         XAVPacket pkt;
         if (!m_demuxTask_.ReadVideoPacket(pkt)) {
             break;
@@ -151,6 +161,7 @@ bool XPlayer::Seek(const int64_t &ms){
             break;
         }
     }
+
     pause(state);
     return b;
 }
@@ -177,7 +188,7 @@ void XPlayer::SetSpeed(const float &speed) {
         if (m_videoView_){
             m_videoView_->DrawFrame(*vf);
         }
-
+        unique_lock locker(m_mux_);
         if (m_ex_func_){
             m_ex_func_(*vf);
         }
@@ -189,6 +200,7 @@ void XPlayer::Do(XAVPacket &pkt) {
     if (m_video_decode_task_) {
         m_video_decode_task_.Do(pkt);
     }
+
     if (m_audio_decode_task_) {
         m_audio_decode_task_.Do(pkt);
     }

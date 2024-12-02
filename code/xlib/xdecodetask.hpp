@@ -104,7 +104,7 @@ private:
     std::atomic_bool m_need_view_{},
                     m_frame_cache_{},
                     m_is_open_{};
-    std::atomic_int m_stream_index_{-1},
+    std::atomic_int_fast32_t m_stream_index_{-1},
                     m_block_size{-1};
     std::atomic_int_fast64_t m_sync_pts_{-1},
                             m_curr_ms_{-1},

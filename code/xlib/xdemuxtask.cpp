@@ -19,7 +19,7 @@ bool XDemuxTask::Open(const std::string &url, const uint64_t &time_out) {
 
 void XDemuxTask::Main() {
 
-    while (!m_is_exit_) {
+    while (!is_exit()) {
 
         if (is_pause()){
             MSleep(1);
@@ -86,7 +86,6 @@ bool XDemuxTask::ReadVideoPacket(XAVPacket &pkt) {
             return true;
         }
     }
-
     return {};
 }
 

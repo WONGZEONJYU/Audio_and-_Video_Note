@@ -53,13 +53,13 @@ public:
      * 获取视频流时间基准
      * @return XRational
      */
-    [[nodiscard]] auto video_timebase() const{return m_video_timebase_;}
+    [[maybe_unused]] [[nodiscard]] auto video_timebase() const{return m_video_timebase_;}
 
     /**
      * 获取音频流时间基准
      * @return XRational
      */
-    [[nodiscard]] auto audio_timebase() const{return m_audio_timebase_;}
+    [[maybe_unused]] [[nodiscard]] auto audio_timebase() const{return m_audio_timebase_;}
 
     /**
      *重新计算pts dst duration

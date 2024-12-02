@@ -11,7 +11,7 @@ using namespace std::chrono;
 
 void XDecodeTask::Do(XAVPacket &pkt) {
 
-    if (m_is_exit_) {
+    if (is_exit()) {
         return;
     }
 
@@ -28,7 +28,7 @@ void XDecodeTask::Do(XAVPacket &pkt) {
         LOG_ERROR(ss.str());
     }
 
-    while (m_block_size> 0 && !m_is_exit_) {
+    while (m_block_size > 0 && !is_exit()) {
         if (m_pkt_list_.Size() > m_block_size) {
             sleep_for(1ms);
             continue;
@@ -74,7 +74,7 @@ void XDecodeTask::Main() {
 
     {
         unique_lock locker(m_mutex_);
-        while (!m_is_exit_) {
+        while (!is_exit()) {
             if ((m_frame_ = new_XAVFrame())) {
                 break;
             }
@@ -85,14 +85,14 @@ void XDecodeTask::Main() {
         }
     }
 
-    while (!m_is_exit_){
+    while (!is_exit()){
 
         if (is_pause()){
             MSleep(1);
             continue;
         }
 
-        while (!m_is_exit_) { //同步
+        while (!is_exit()) { //同步
             if (m_sync_pts_ >= 0 && m_curr_pts > m_sync_pts_) {
                 // cerr << "m_curr_pts = " << m_curr_pts << "\n";
                 // cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
@@ -132,7 +132,11 @@ bool XDecodeTask::Open(const XCodecParameters &parm){
 
 bool XDecodeTask::Open(const XCodecParameters_sp &parm) {
     IS_SMART_NULLPTR(parm, return {});
-    m_paras_ = parm;
+    {
+        unique_lock locker(m_mutex_);
+        m_paras_ = parm;
+    }
+
     return Open(*parm);
 }
 
