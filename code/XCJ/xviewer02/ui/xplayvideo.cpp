@@ -6,21 +6,18 @@
 
 void XPlayVideo::timerEvent(QTimerEvent *const event) {
 
-    if (m_player_.is_pause()){
+    if (m_is_press_ || m_is_move_ || m_player_.is_pause()){
         m_ui_->pause->setStyleSheet(QString::fromUtf8("background-image: url(:/img/play.png);\n"
                                                       "background-color: rgba(0, 0, 0,0);"));
         return;
-    }else{
-        m_ui_->pause->setStyleSheet(QString::fromUtf8("background-image: url(:/img/pause.png);\n"
-                                                      "background-color: rgba(0, 0, 0,0);"));
     }
 
-    m_player_.Update();
+    m_ui_->pause->setStyleSheet(QString::fromUtf8("background-image: url(:/img/pause.png);\n"
+        "background-color: rgba(0, 0, 0,0);"));
 
-    const auto total{m_player_.total_ms()};
-    const auto pos_ms{m_player_.pos_ms()};
-    m_ui_->pos->setMaximum(static_cast<int>(total));
-    m_ui_->pos->setValue(static_cast<int>(pos_ms));
+    m_player_.Update();
+    m_ui_->pos->setMaximum(static_cast<int>(m_player_.total_ms()));
+    m_ui_->pos->setValue(static_cast<int>(m_player_.pos_ms()));
     QObject::timerEvent(event);
 }
 
@@ -52,9 +49,10 @@ bool XPlayVideo::Open(const QString &url) {
 
 #else
     if (!m_player_.Open(url.toStdString(),
-                        reinterpret_cast<void*>(m_ui_->view->winId()))) {
+                        reinterpret_cast<void*>(m_ui_->video->winId()))) {
         return false;
     }
+
 #endif
     m_player_.Start();
     m_player_.pause(false);
@@ -80,11 +78,18 @@ void XPlayVideo::Pause() {
 }
 
 void XPlayVideo::PlayPos() {
+    sender()->blockSignals(true);
     m_player_.Seek(m_ui_->pos->value());
-    m_player_.pause(false);
     SetSpeed();
+    m_is_move_ = false;
+    m_is_press_ = false;
+    sender()->blockSignals(false);
+}
+
+void XPlayVideo::PlayPosPressed() {
+    m_is_press_ = true;
 }
 
 void XPlayVideo::Move() {
-    m_player_.pause(true);
+    m_is_move_ = true;
 }

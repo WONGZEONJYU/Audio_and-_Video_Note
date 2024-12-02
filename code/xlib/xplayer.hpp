@@ -10,6 +10,7 @@ class XLIB_API XPlayer : public XThread {
      X_DISABLE_COPY_MOVE(XPlayer)
     void Main() override;
     void Do(XAVPacket &) override;
+
 public:
     using callable = std::function<void(const XAVFrame &)>;
 
@@ -51,7 +52,7 @@ public:
      /**
       * 更新显示和更新音频输出数据
       */
-     [[maybe_unused]] void Update();
+    [[maybe_unused]] void Update();
 
      /**
       * 检查SDL窗口是否退出,必须在主线程调用

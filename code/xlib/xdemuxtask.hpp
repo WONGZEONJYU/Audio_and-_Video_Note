@@ -1,6 +1,7 @@
 #ifndef XDEMUXTASK_HPP_
 #define XDEMUXTASK_HPP_
 
+#include "xavframe.hpp"
 #include "xtools.hpp"
 #include "xdemux.hpp"
 
@@ -18,6 +19,7 @@ public:
 
     bool Open(const std::string &url,const uint64_t &time_out = 1000);
     void Stop() override;
+    void Clear();
     auto CopyVideoParm() const{return m_demux_.CopyVideoParm();}
     auto CopyAudioParm() const{return m_demux_.CopyAudioParm();}
     auto audio_index() const{return m_demux_.audio_index();}
@@ -37,6 +39,8 @@ public:
     }
 
     [[nodiscard]] bool Seek(const int64_t &ms);
+
+    [[maybe_unused]] [[nodiscard]] bool ReadVideoPacket(XAVPacket &pkt);
 
     [[maybe_unused]]inline bool is_Open() const {
         return m_is_open_;

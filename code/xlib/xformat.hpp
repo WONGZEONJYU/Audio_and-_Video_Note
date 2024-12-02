@@ -98,6 +98,8 @@ public:
      */
     [[nodiscard]] auto is_connected() const {return m_is_connected_.load();}
 
+    void Clear();
+
 protected:
     std::mutex m_mux_;
     AVFormatContext *m_fmt_ctx_{};
@@ -122,6 +124,12 @@ std::unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));do{\
 if(!m_fmt_ctx_) { \
 PRINT_ERR_TIPS(GET_STR(format ctx is empty)); \
 return {};}}while(false)
+
+#define check_fmt_ctx_no_ret() \
+std::unique_lock locker(const_cast<decltype(m_mux_)&>(m_mux_));do{\
+if(!m_fmt_ctx_) { \
+PRINT_ERR_TIPS(GET_STR(format ctx is empty)); \
+return;}}while(false)
 
 };
 

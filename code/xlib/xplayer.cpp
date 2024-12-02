@@ -5,6 +5,7 @@
 #include "xvideo_view.hpp"
 #include "xaudio_play.hpp"
 #include "xavframe.hpp"
+#include "xavpacket.hpp"
 
 using namespace std;
 
@@ -90,7 +91,7 @@ void XPlayer::Main() {
             continue;
         }
 
-        m_pos_ms_ = m_video_decode_task_.curr_ms();
+        m_pos_ms_ = m_video_decode_task_.curr_pts_ms();
 
         if (ap) {
             const auto sync{XHelper::XRescale(xAudio()->curr_pts(),
@@ -118,13 +119,40 @@ void XPlayer::pause(const bool &b){
 }
 
 bool XPlayer::Seek(const int64_t &ms){
+
+    const auto state{is_pause()};
+    pause(true);
+    m_demuxTask_.Clear();
     m_video_decode_task_.Clear();
     m_audio_decode_task_.Clear();
     xAudio()->Clear();
-//    m_statue_ = is_pause();
-//    pause(true);
-//    m_seek_pos_ms_ = ms;
-    return m_demuxTask_.Seek(ms);
+
+    /**
+     * 此处应该先暂停,再清理,可以有效解决在seek过程中可能出现花屏问题
+     * 先暂停好处是,所有的线程马上暂停,再进行清理动作可以避免线程带来的线程竞争问题
+     */
+
+    if (!m_demuxTask_.Seek(ms)) {
+        return {};
+    }
+
+    bool b{};
+    while (!m_is_exit_) {
+        XAVPacket pkt;
+        if (!m_demuxTask_.ReadVideoPacket(pkt)) {
+            break;
+        }
+
+        if (m_video_decode_task_.Decode(pkt) &&
+            m_video_decode_task_.curr_pts_ms() >= ms) {
+            Update();
+            m_pos_ms_ = m_video_decode_task_.curr_pts_ms();
+            b = true;
+            break;
+        }
+    }
+    pause(state);
+    return b;
 }
 
 XCodecParameters_sp XPlayer::get_video_params() const {
@@ -157,18 +185,6 @@ void XPlayer::SetSpeed(const float &speed) {
 }
 
 void XPlayer::Do(XAVPacket &pkt) {
-
-//    if (m_seek_pos_ms_ > 0 && is_pause()){
-//        XAVFrame frame;
-//        if (m_video_decode_task_.Decode(pkt,frame)){
-//            if (m_video_decode_task_.curr_ms() > m_seek_pos_ms_){
-//                Update();
-//            }
-//        }
-//        m_seek_pos_ms_ = -1;
-//        pause(m_statue_);
-//        return;
-//    }
 
     if (m_video_decode_task_) {
         m_video_decode_task_.Do(pkt);

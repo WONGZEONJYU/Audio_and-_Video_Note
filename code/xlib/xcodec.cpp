@@ -10,15 +10,16 @@ using namespace std;
 
 AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
 
-    const AVCodec *codec{};
-
-    if (is_encode){
-        //1.查找编码器
-        codec = avcodec_find_encoder(static_cast<AVCodecID>(codec_id));
-    } else{
-        //1.查找解码器
-        codec = avcodec_find_decoder(static_cast<AVCodecID>(codec_id));
-    }
+    const auto codec {is_encode ? avcodec_find_encoder(static_cast<AVCodecID>(codec_id)) :
+        avcodec_find_decoder(static_cast<AVCodecID>(codec_id))};
+    // codec = is_encode
+    // if (is_encode){
+    //     //1.查找编码器
+    //     codec = avcodec_find_encoder(static_cast<AVCodecID>(codec_id));
+    // } else{
+    //     //1.查找解码器
+    //     codec = avcodec_find_decoder(static_cast<AVCodecID>(codec_id));
+    // }
 
     if (!codec){
         PRINT_ERR_TIPS(GET_STR(codec not found!));
@@ -29,8 +30,9 @@ AVCodecContext *XCodec::Create(const int &codec_id,const bool &is_encode) {
     AVCodecContext *codec_ctx{};
     IS_NULLPTR(codec_ctx = avcodec_alloc_context3(codec),return {});
 
-    //3.设置参数,解码
-    codec_ctx->time_base = {1,25};
+    //3.设置参数,编码
+    codec_ctx->time_base= {1,25};
+    codec_ctx->gop_size = 25;
     codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
     const auto thread_count{static_cast<int>(thread::hardware_concurrency())};
     codec_ctx->thread_count = thread_count > 16 ? 16 : thread_count;

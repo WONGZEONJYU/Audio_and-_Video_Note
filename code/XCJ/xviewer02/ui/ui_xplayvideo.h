@@ -70,6 +70,7 @@ public:
         QObject::connect(pause, SIGNAL(clicked()), XPlayVideo, SLOT(Pause()));
         QObject::connect(pos, SIGNAL(sliderReleased()), XPlayVideo, SLOT(PlayPos()));
         QObject::connect(pos, SIGNAL(sliderMoved(int)), XPlayVideo, SLOT(Move()));
+        QObject::connect(pos, SIGNAL(sliderPressed()), XPlayVideo, SLOT(PlayPosPressed()));
 
         QMetaObject::connectSlotsByName(XPlayVideo);
     } // setupUi

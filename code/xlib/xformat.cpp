@@ -186,6 +186,11 @@ bool XFormat::set_timeout_ms(const uint64_t &ms) {
     return true;
 }
 
+void XFormat::Clear() {
+    check_fmt_ctx_no_ret();
+    avformat_flush(m_fmt_ctx_);
+}
+
 bool XFormat::IsTimeout() {
     if (const auto curr_time{XHelper::Get_time_ms()};
             curr_time - m_last_time_ > m_time_out_ms_) {

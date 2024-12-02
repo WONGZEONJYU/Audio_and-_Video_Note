@@ -5,6 +5,7 @@ extern "C"{
 #include "xdecode.hpp"
 #include "xavpacket.hpp"
 #include "xavframe.hpp"
+#include <sstream>
 
 bool XDecode::Send(const XAVPacket& packet) const {
     CHECK_CODEC_CTX_RET();
@@ -12,7 +13,7 @@ bool XDecode::Send(const XAVPacket& packet) const {
     return true;
 }
 
-bool XDecode::Send(const XAVPacket *packet) const{
+bool XDecode::Send(const XAVPacket *packet) const {
     if (!packet){
         LOG_ERROR(GET_STR(packet is empey));
         return {};
@@ -20,7 +21,7 @@ bool XDecode::Send(const XAVPacket *packet) const{
     return Send(*packet);
 }
 
-bool XDecode::Receive(XAVFrame &frame) const{
+bool XDecode::Receive(XAVFrame &frame) const {
 
     CHECK_CODEC_CTX_RET();
     const auto avcodec_receive_res{avcodec_receive_frame(m_codec_ctx_,&frame)};
@@ -37,7 +38,7 @@ bool XDecode::Receive(XAVFrame &frame) const{
     return true;
 }
 
-bool XDecode::Receive(XAVFrame *frame) const{
+bool XDecode::Receive(XAVFrame *frame) const {
     if (!frame){
         LOG_ERROR(GET_STR(packet is empey));
         return {};
@@ -45,7 +46,7 @@ bool XDecode::Receive(XAVFrame *frame) const{
     return Receive(*frame);
 }
 
-XAVFrames XDecode::Flush() const{
+XAVFrames XDecode::Flush() const {
     CHECK_CODEC_CTX_RET();
     FF_ERR_OUT(avcodec_send_packet(m_codec_ctx_,{}),return {});
     XAVFrames frames;

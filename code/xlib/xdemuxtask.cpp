@@ -67,26 +67,34 @@ bool XDemuxTask::Seek(const int64_t &ms) {
     }
 
     const auto pts{XHelper::XRescale(ms,{1,1000},vp->time_base())};
-
     return m_demux_.Seek(pts,video_index());
-//    if (!m_demux_.Seek(pts,video_index())){
-//        return {};
-//    }
+}
 
-//    while (!m_is_exit_){
-//        XAVPacket pkt;
-//        if (!m_demux_.Read(pkt)){
-//            break;
-//        }
-//        if (video_index() == pkt.stream_index && (AV_PKT_FLAG_KEY & pkt.flags)){
-//            Next(pkt);
-//            return true;
-//        }
-//    }
-//    return true;
+bool XDemuxTask::ReadVideoPacket(XAVPacket &pkt) {
+
+    const auto v_inx{m_demux_.video_index()};
+    if (v_inx < 0) {
+        return {};
+    }
+
+    for (int i {}; i < 25 ;++i) {
+        if (!m_demux_.Read(pkt)) {
+            return {};
+        }
+
+        if (v_inx == pkt.stream_index) {
+            return true;
+        }
+    }
+
+    return {};
 }
 
 void XDemuxTask::Stop() {
     XThread::Stop();
     m_is_open_ = false;
+}
+
+void XDemuxTask::Clear() {
+    m_demux_.Clear();
 }

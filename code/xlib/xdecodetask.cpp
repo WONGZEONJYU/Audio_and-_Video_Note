@@ -39,9 +39,9 @@ void XDecodeTask::Do(XAVPacket &pkt) {
     Next(pkt);
 }
 
-bool XDecodeTask::Decode(XAVPacket &pkt,XAVFrame &frame){
+bool XDecodeTask::Decode(const XAVPacket &pkt){
 
-    if (!m_is_open_){
+    if (!m_is_open_) {
         return {};
     }
 
@@ -49,19 +49,21 @@ bool XDecodeTask::Decode(XAVPacket &pkt,XAVFrame &frame){
         return {};
     }
 
-    bool b{};
-
-    while (!m_is_exit_) {
-        if (!m_decode_.Receive(frame)){
-            break;
-        }
-        m_curr_pts = frame.pts;
-        m_curr_ms_ = XHelper::XRescale(m_frame_->pts,m_paras_->time_base(),{1,1000});
-        m_need_view_ = b = true;
-        break;
+    unique_lock locker(m_mutex_);
+    if (!m_decode_.Receive(*m_frame_)){
+        return {};
     }
 
-    return b;
+    //cout << " " << GET_STR(Decode) << " " << av_get_media_type_string(media_type) << " " << flush;
+    m_curr_pts = m_frame_->pts;
+    m_curr_ms_ = XHelper::XRescale(m_frame_->pts,m_paras_->time_base(),
+        {1,1000});
+    m_need_view_ = true;
+    if (m_frame_cache_) {
+        TRY_CATCH(CHECK_EXC(m_frames_.emplace_back(new_XAVFrame(*m_frame_))));
+    }
+
+    return true;
 }
 
 void XDecodeTask::Main() {
@@ -90,23 +92,10 @@ void XDecodeTask::Main() {
             continue;
         }
 
-        {
-            unique_lock locker(m_mutex_);
-            if (m_decode_.Receive(*m_frame_)){
-                //cout << " " << GET_STR(Decode) << " " << av_get_media_type_string(media_type) << " " << flush;
-                m_need_view_ = true;
-                m_curr_pts = m_frame_->pts; //获取解码后的pts
-                m_curr_ms_ = XHelper::XRescale(m_frame_->pts,m_paras_->time_base(),{1,1000});
-                if (m_frame_cache_) {
-                    TRY_CATCH(CHECK_EXC(m_frames_.emplace_back(new_XAVFrame(*m_frame_))));
-                }
-            }
-        }
-
         while (!m_is_exit_) { //同步
             if (m_sync_pts_ >= 0 && m_curr_pts > m_sync_pts_) {
-                cerr << "m_curr_pts = " << m_curr_pts << "\n";
-                cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
+                // cerr << "m_curr_pts = " << m_curr_pts << "\n";
+                // cerr << "m_sync_pts_ = " << m_sync_pts_ << "\n";
                 MSleep(1);
                 continue;
             }
@@ -119,10 +108,7 @@ void XDecodeTask::Main() {
             continue;
         }
 
-        if (!m_decode_.Send(*pkt)) {
-            MSleep(1);
-            continue;
-        }
+        Decode(*pkt);
 
         MSleep(1);
     }
@@ -157,20 +143,23 @@ void XDecodeTask::Stop() {
     m_sync_pts_ = -1;
     m_block_size = -1;
     m_curr_pts = -1;
-    //m_pkt_list_.Clear();
-    //unique_lock locker(m_mutex_);
-    //m_frames_.clear();
-}
-
-void XDecodeTask::Clear(){
     m_pkt_list_.Clear();
-    m_decode_.Clear();
-    m_curr_pts = -1;
     unique_lock locker(m_mutex_);
     m_frames_.clear();
 }
 
+void XDecodeTask::Clear(){
+    {
+        unique_lock locker(m_mutex_);
+        m_frames_.clear();
+    }
+    m_pkt_list_.Clear();
+    m_decode_.Clear();
+    m_curr_pts = -1;
+}
+
 XAVFrame_sp XDecodeTask::CopyFrame() {
+
     unique_lock locker(m_mutex_);
 
     if (m_frame_cache_) {

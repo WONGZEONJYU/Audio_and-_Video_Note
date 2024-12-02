@@ -209,10 +209,10 @@ void XDemuxThread::SetPause(const bool &b){
 }
 
 void XDemuxThread::Seek(const double &pos) noexcept(false) {
-
-    Clear();
     const auto status {m_isPause.load()};
     SetPause(true); //无论当前什么状态,都先暂停再seek
+
+    Clear();
 
     QMutexLocker locker(&m_mux);
     if (m_demux){

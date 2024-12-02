@@ -7,6 +7,7 @@
 class XLIB_API XDecodeTask final: public XThread {
 
     void Main() override;
+
 public:
     void Do(XAVPacket &) override;
     /**
@@ -71,12 +72,28 @@ public:
         m_block_size = s;
     }
 
-    auto curr_ms() const {
+    /**
+     * 返回当前帧的pts转换成pts_ms
+     * @return pts_ms
+     */
+    auto curr_pts_ms() const {
         return m_curr_ms_.load(std::memory_order_relaxed);
     }
 
-    [[maybe_unused]] [[nodiscard]]
-    bool Decode(XAVPacket &,XAVFrame &);
+    /**
+     * 返回当前帧的pts
+     * @return pts
+     */
+    auto curr_pts() const {
+        return m_curr_pts.load(std::memory_order_relaxed);
+    }
+
+    /**
+     * 一个辅助解码,可用于正常解码和Seek操作后单独解码显示
+     * 需要显示的话,调用CopyFrame
+     * @return pkt
+     */
+    bool Decode(const XAVPacket &pkt);
 
 private:
     std::mutex m_mutex_;
@@ -90,7 +107,7 @@ private:
     std::atomic_int m_stream_index_{-1},
                     m_block_size{-1};
     std::atomic_int_fast64_t m_sync_pts_{-1},
-                            m_curr_ms_{},
+                            m_curr_ms_{-1},
                             m_curr_pts{-1};
     XCodecParameters_sp m_paras_;
 public:

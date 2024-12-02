@@ -193,11 +193,28 @@ background-color: rgba(0, 0, 0,0);</string>
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pos</sender>
+   <signal>sliderPressed()</signal>
+   <receiver>XPlayVideo</receiver>
+   <slot>PlayPosPressed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>398</x>
+     <y>370</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>384</x>
+     <y>500</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>SetSpeed()</slot>
   <slot>Pause()</slot>
   <slot>PlayPos()</slot>
   <slot>Move()</slot>
+  <slot>PlayPosPressed()</slot>
  </slots>
 </ui>
