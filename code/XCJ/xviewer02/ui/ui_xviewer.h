@@ -210,7 +210,19 @@ public:
         playback_wid->setGeometry(QRect(210, 10, 651, 521));
         cal = new XCalendarWidget(playback_wid);
         cal->setObjectName("cal");
-        cal->setGeometry(QRect(160, 0, 411, 511));
+        cal->setGeometry(QRect(150, 0, 411, 511));
+        cal->setStyleSheet(QString::fromUtf8("/* normal days */\n"
+"QCalendarWidget QAbstractItemView:enabled \n"
+"{\n"
+"    font-size:24px;  \n"
+"    color: rgb(180, 180, 180);  \n"
+"    background-color: black;  \n"
+"    selection-background-color: rgb(64, 64, 64); \n"
+"    selection-color: rgb(0, 255, 0); \n"
+"}\n"
+" \n"
+"/* days in other months */\n"
+"QCalendarWidget QAbstractItemView:disabled { color: rgb(64, 64, 64); }"));
         time_list = new QListWidget(playback_wid);
         new QListWidgetItem(time_list);
         time_list->setObjectName("time_list");

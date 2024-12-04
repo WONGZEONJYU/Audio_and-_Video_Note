@@ -2,7 +2,6 @@
 #include <filesystem>
 #include "ui/xviewer.hpp"
 #include "xcamera_config.hpp"
-#define TEST_CAM "test.db"
 #include <QString>
 #include "xcamera_record.hpp"
 #include "xplayvideo.hpp"
@@ -69,7 +68,7 @@ int main(int argc,char *argv[]) {
     record.Start();
 #endif
     QApplication a(argc, argv);
-#if 1
+#if 0
     XPlayVideo video;
     //video.Open("/Volumes/500G/v1080.mp4");
     //video.Open("2_audio.mp4");

@@ -368,11 +368,25 @@ QPushButton:!hover
     <widget class="XCalendarWidget" name="cal">
      <property name="geometry">
       <rect>
-       <x>160</x>
+       <x>150</x>
        <y>0</y>
        <width>411</width>
        <height>511</height>
       </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">/* normal days */
+QCalendarWidget QAbstractItemView:enabled 
+{
+    font-size:24px;  
+    color: rgb(180, 180, 180);  
+    background-color: black;  
+    selection-background-color: rgb(64, 64, 64); 
+    selection-color: rgb(0, 255, 0); 
+}
+ 
+/* days in other months */
+QCalendarWidget QAbstractItemView:disabled { color: rgb(64, 64, 64); }</string>
      </property>
     </widget>
     <widget class="QListWidget" name="time_list">

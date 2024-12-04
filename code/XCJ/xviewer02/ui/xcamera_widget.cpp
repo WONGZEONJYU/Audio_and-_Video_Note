@@ -29,7 +29,7 @@ void XCameraWidget::dropEvent(QDropEvent *event) {
 
     const auto wid{dynamic_cast<QListWidget*>(event->source())};
 
-    const auto &[m_name_, m_url,
+    const auto &[m_name, m_url,
         m_sub_url, m_save_path]{XCamCfg()->GetCam(wid->currentRow())};
     Open(m_url);
     QWidget::dropEvent(event);

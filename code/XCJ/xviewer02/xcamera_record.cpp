@@ -7,7 +7,7 @@
 using namespace std;
 using namespace std::chrono;
 
-static string GetFileName(const string &path) {
+static auto GetFileName(const string &path) {
     const auto t{system_clock::to_time_t(system_clock::now())};
     const auto time_str{put_time(localtime(&t), GET_STR(%Y_%m_%d_%H_%M_%S))};
     stringstream ss;
@@ -28,7 +28,7 @@ void XCameraRecord::Main() {
         if (demux_task.Open(m_rtsp_url_)) { //最坏情况阻塞一秒
             break;
         }
-        XHelper::MSleep(3000);
+        MSleep(3000);
     }
 
     //获取到音视频参数
@@ -40,14 +40,13 @@ void XCameraRecord::Main() {
     const auto ap{demux_task.CopyAudioParm()};
 
     CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),vp.get(),ap.get()),
-        demux_task.Stop();mux_task.Stop();return);
+        demux_task.Exit();mux_task.Exit();return);
 
     demux_task.set_next(&mux_task);
     mux_task.Start();
 
     auto present_time{XHelper::Get_time_ms()};
     while (!is_exit()) {
-
         if (const auto now{XHelper::Get_time_ms()};
             now - present_time > m_file_sec_ * 1000) {
             present_time = now;
@@ -55,13 +54,12 @@ void XCameraRecord::Main() {
             CHECK_FALSE_(mux_task.Open(GetFileName(m_save_path_),vp.get(),ap.get()),return);
             mux_task.Start();
         }
-
-        XHelper::MSleep(10);
+        MSleep(10);
     }
 }
 
 XCameraRecord::~XCameraRecord() {
-    XThread::Stop();
+    XThread::Exit();
 }
 
 XCameraRecord_sp newXCameraRecord() {

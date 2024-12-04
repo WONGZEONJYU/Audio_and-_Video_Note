@@ -26,7 +26,6 @@ static inline constexpr auto CAM_CONF_PATH{"cams.db"};
 XViewer::XViewer(QWidget *parent) :
 QWidget(parent){}
 #else
-XViewer::XViewer(QWidget *parent) :
 QWidget(parent),m_cam_wins_(16){}
 #endif
 
@@ -34,13 +33,17 @@ void XViewer::RefreshCams() const {
     const auto c{XCamCfg()};
     m_ui_->cam_list->clear();
     const auto count{c->GetCamCount()};
+
     for (int i {}; i < count; ++i) {
+
         const auto &[m_name_, m_url,
             m_sub_url, m_save_path_]{c->GetCam(i)};
+
         const auto item{new QListWidgetItem(QIcon(GET_STR(:/img/cam.png)),
                                             C(m_name_))};
         m_ui_->cam_list->addItem(item);
     }
+    CHECK_FALSE_(c->Save(CAM_CONF_PATH));
 }
 
 bool XViewer::Construct() {
@@ -89,8 +92,8 @@ bool XViewer::Construct() {
     }
 
     //默认显示9个窗口
-    View9();
     CHECK_FALSE_(XCamCfg()->Load(CAM_CONF_PATH));
+    View9();
     RefreshCams();
     startTimer(1);
     Preview();
@@ -151,6 +154,16 @@ void XViewer::resizeEvent(QResizeEvent *event) {
     const auto x{width() - m_ui_->head_button->width()},
                 y{m_ui_->head_button->y()};
     m_ui_->head_button->move(x,y);
+
+    const auto playback_wid_size{m_ui_->playback_wid->size()};
+    const auto time_list_size{m_ui_->time_list->size()};
+
+    m_ui_->time_list->resize(time_list_size.width(),playback_wid_size.height());
+
+    const auto w{playback_wid_size.width() - time_list_size.width()};
+
+    m_ui_->cal->resize(w,playback_wid_size.height());
+
     QWidget::resizeEvent(event);
 }
 
@@ -238,8 +251,6 @@ void XViewer::SetCam(const int &index) {
     strcpy(save_path,save_path_edit.text().toStdString().c_str());
 
     index >= 0 ? (void)c->SetCam(index,data) : c->Push(data);
-
-    CHECK_FALSE_(c->Save(CAM_CONF_PATH));
     RefreshCams();
 }
 
@@ -273,7 +284,6 @@ void XViewer::DelCam() {
 
     const auto c{XCamCfg()};
     c->DelCam(row);
-    (void)c->Save(CAM_CONF_PATH);
     RefreshCams();
 }
 

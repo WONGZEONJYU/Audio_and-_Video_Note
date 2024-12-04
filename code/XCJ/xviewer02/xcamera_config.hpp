@@ -2,16 +2,15 @@
 #define XCAMERA_CONFIG_HPP_
 
 #include <xhelper.hpp>
-#include <string_view>
 
 struct XCameraData {
-    char m_name_[4096]{}, //摄像头名称
-    m_url[sizeof(m_name_)]{},//摄像头主码流
-    m_sub_url[sizeof(m_name_)]{},//摄像头子码流
-    m_save_path[sizeof(m_name_)]{};//保存路径
+    char m_name[4096]{}, //摄像头名称
+    m_url[sizeof(m_name)]{},//摄像头主码流
+    m_sub_url[sizeof(m_name)]{},//摄像头子码流
+    m_save_path[sizeof(m_name)]{};//保存路径
 };
 
-class XCameraConfig final{
+class XCameraConfig final {
 
     explicit XCameraConfig() = default;
 public:
