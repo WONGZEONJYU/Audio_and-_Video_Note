@@ -31,7 +31,7 @@ void XCameraWidget::dropEvent(QDropEvent *event) {
 
     const auto &[m_name, m_url,
         m_sub_url, m_save_path]{XCamCfg()->GetCam(wid->currentRow())};
-    Open(m_url);
+    CHECK_FALSE_(Open(m_url),return;);
     QWidget::dropEvent(event);
 }
 
