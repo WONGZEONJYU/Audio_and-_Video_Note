@@ -1,2 +1,2 @@
-wsdl2h -O4 -P -x -c -s -o onvif.h wsdl/www.onvif.org/ver10/network/wsdl/remotediscovery.wsdl wsdl/www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl wsdl/www.onvif.org/ver10/media/wsdl/media.wsdl wsdl/www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
+wsdl2h -O4 -P -x -c++11 -o onvif.h wsdl/www.onvif.org/ver10/network/wsdl/remotediscovery.wsdl wsdl/www.onvif.org/ver10/device/wsdl/devicemgmt.wsdl wsdl/www.onvif.org/ver10/media/wsdl/media.wsdl wsdl/www.onvif.org/ver20/ptz/wsdl/ptz.wsdl
 pause
