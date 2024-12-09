@@ -76,12 +76,13 @@ int main(const int argc, const char * argv[]) {
     /*发送广播消息探测设备*/
     /* X_ADDR soap.udp://239.255.255.250:3702 */
     auto re{soap_send___wsdd__Probe(soap_,X_ADDR,nullptr,&probe_)};
+
     __wsdd__ProbeMatches resp{};
     while (SOAP_OK == re) {
         fill_n(reinterpret_cast<uint8_t*>(&resp),sizeof(resp),0);
         re = soap_recv___wsdd__ProbeMatches(soap_,&resp);
         if (SOAP_OK == re) {
-            //cout << "#" << endl;
+            cout << "#" << endl;
             cerr << resp.wsdd__ProbeMatches->ProbeMatch->XAddrs << "\n";
         }
     }
