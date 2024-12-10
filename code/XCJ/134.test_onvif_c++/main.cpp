@@ -41,14 +41,12 @@ int main(const int argc, const char * argv[]) {
     header->wsa5__MessageID = const_cast<char*>(soap_wsa_rand_uuid(soap_)); //消息编号,唯一随机uuid
     //header->wsa5__MessageID = const_cast<char *>("urn:uuid:1419d68a-1dd2-11b2-a105-F000010A654C");
     cout << "header->wsa5__MessageID : " << header->wsa5__MessageID << "\n";
-
-
+    
     header->wsa5__To = static_cast<decltype(header->wsa5__To)>(soap_malloc(soap_,size(X_TO) + 1));
     /* X_TO = urn:schemas-xmlsoap-org:ws:2005:04:discovery */
     copy_n(X_TO, size(X_TO),header->wsa5__To);
     header->wsa5__To[size(X_TO)] = 0;
     cout << "header->wsa5__To : " << header->wsa5__To << "\n";
-
 
     header->wsa5__Action = static_cast<decltype(header->wsa5__Action)>(soap_malloc(soap_,size(X_ACT) + 1));
     /*X_ACT = http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe */
