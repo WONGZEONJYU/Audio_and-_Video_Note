@@ -3,6 +3,7 @@
 #include "soapH.h"
 #include "wsdd.nsmap"
 #include "wsaapi.h"
+#include "wsseapi.h"
 
 using namespace std;
 
@@ -12,7 +13,7 @@ using namespace std;
         X_TO[]{"urn:schemas-xmlsoap-org:ws:2005:04:discovery"},
         X_ITEM[]{""},
         X_TYPE[]{"tdn:NetworkVideoTransmitter tds:Device"};
-static constexpr auto TIMEOUT_SEC{3};
+//static constexpr auto TIMEOUT_SEC{3};
 
 bool XOnvif::construct(const int &timeout_sec){
 
@@ -138,7 +139,7 @@ XOnvif::~XOnvif(){
     //m_soap_ = nullptr;
 }
 
-[[maybe_unused]] int XOnvif::dectect_Cams(stringstream &cam_list) {
+[[maybe_unused]] int XOnvif::Detect_Cams(CamList &cam_list) {
 
     /*发送广播消息探测设备*/
     /* X_ADDR soap.udp://239.255.255.250:3702 */
@@ -153,10 +154,45 @@ XOnvif::~XOnvif(){
             //cerr << (addr ? addr : "none") << "\n";
 
             if (resp.wsdd__ProbeMatches){
-                cam_list << resp.wsdd__ProbeMatches->ProbeMatch->XAddrs << "\n";
+                cam_list.emplace_back(resp.wsdd__ProbeMatches->ProbeMatch->XAddrs);
             }
             ++count;
         }
     }
     return count;
+}
+
+[[maybe_unused]] bool XOnvif::MediaUrl(const string &device,
+                                          const string &user,
+                                          const string &passwd,
+                                          string &url){
+    if (device.empty()){
+        return {};
+    }
+    /*鉴权*/
+    if (!user.empty() && !passwd.empty()){
+        soap_wsse_add_UsernameTokenDigest(m_soap_,{},user.c_str(),passwd.c_str());
+    }
+
+    /*
+        enum tt__CapabilityCategory {
+            tt__CapabilityCategory__All = 0,
+            tt__CapabilityCategory__Analytics = 1,
+            tt__CapabilityCategory__Device = 2,
+            tt__CapabilityCategory__Events = 3,
+            tt__CapabilityCategory__Imaging = 4,
+            tt__CapabilityCategory__Media = 5,
+            tt__CapabilityCategory__PTZ = 6
+        };
+    */
+
+    _tds__GetCapabilities req{};
+    _tds__GetCapabilitiesResponse resp{};
+
+    if (SOAP_OK != soap_call___tds__GetCapabilities(m_soap_, device.c_str(),{},&req,resp)){
+        return {};
+    }
+
+    url = resp.Capabilities->Media->XAddr;
+    return true;
 }

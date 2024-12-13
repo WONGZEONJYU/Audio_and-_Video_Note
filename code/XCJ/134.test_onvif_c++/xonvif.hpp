@@ -2,6 +2,7 @@
 #define TEST_ONVIF_C_XONVIF_HPP
 
 #include <memory>
+#include <list>
 #include <sstream>
 
 struct soap;
@@ -18,8 +19,13 @@ class XOnvif final {
 public:
     ~XOnvif();
     static XOnvif_sp new_XOnvif(const int &timeout_sec);
-    [[maybe_unused]] int dectect_Cams(std::stringstream & cam_list);
 
+    using CamList = std::list<std::string>;
+    [[maybe_unused]] int Detect_Cams(CamList & cam_list);
+    [[maybe_unused]] bool MediaUrl(const std::string &device,
+                                      const std::string &user,
+                                      const std::string &passwd,
+                                      std::string &url);
 private:
     soap * m_soap_{};
     SOAP_ENV__Header *m_header_{};

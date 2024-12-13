@@ -6,9 +6,14 @@ using namespace std;
 int main(const int argc, const char * argv[]) {
     (void)argc, (void)argv;
 
-    const auto onvif{ XOnvif::new_XOnvif(10) };
-    std::stringstream ss;
-    onvif->dectect_Cams(ss);
-    cout << ss.str() << "\n";
+    const auto onvif{ XOnvif::new_XOnvif(1) };
+    XOnvif::CamList ss;
+    onvif->Detect_Cams(ss);
+    for (const auto &item:ss) {
+        cerr << item << "\n";
+    }
+    string url;
+    onvif->MediaUrl(ss.front(),{},{},url);
+    cout << url << "\n";
     return 0;
 }
