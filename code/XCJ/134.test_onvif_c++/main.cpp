@@ -13,6 +13,10 @@ int main(const int argc, const char * argv[]) {
         cerr << item << "\n";
     }
     string url;
+    if (ss.empty()){
+        cerr << "empty\n" << endl;
+        return 0;
+    }
     onvif->MediaUrl(ss.front(),{},{},url);
     cout << url << "\n";
     return 0;

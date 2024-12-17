@@ -12,6 +12,10 @@ include_directories("${CMAKE_SOURCE_DIR}/gsoap/")
 include_directories("${CMAKE_SOURCE_DIR}/gsoap/plugin/")
 
 if (WIN32)
+    set(OPENSSL_LIB_PATH "C:/openssl/Lib/x64/Release/lib/")
+    set(OPENSSL_HEADERS_PATH "C:/openssl/Lib/x64/Release/include/")
+    file(GLOB OPENSSL_LIBS "${OPENSSL_LIB_PATH}/*.lib")
+    include_directories(${OPENSSL_HEADERS_PATH})
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Mac OS X")
     set(OPENSSL_LIB_PATH "/Users/wong/Library/openssl/lib/lib")
