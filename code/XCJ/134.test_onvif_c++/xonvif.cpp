@@ -196,3 +196,40 @@ XOnvif::~XOnvif(){
     url = resp.Capabilities->Media->XAddr;
     return true;
 }
+
+bool XOnvif::Profiles(const std::string &media_url,
+                  std::string &main_token,
+                  std::string &sub_token,
+                  const std::string &user,
+                  const std::string &passwd){
+
+    if (media_url.empty()){
+        return {};
+    }
+
+    /*鉴权*/
+    if (!user.empty() && !passwd.empty()){
+        soap_wsse_add_UsernameTokenDigest(m_soap_,{},user.c_str(),passwd.c_str());
+    }
+
+    _trt__GetProfiles req{};
+    _trt__GetProfilesResponse resp{};
+    const auto ret{soap_call___trt__GetProfiles(m_soap_,
+            media_url.c_str(),
+            nullptr, //action
+            &req, resp)};
+
+    if (SOAP_OK == ret){
+        if (!resp.Profiles.empty()){
+            main_token = resp.Profiles[0]->token;
+        }
+        if (resp.Profiles.size() > 1){
+            sub_token = resp.Profiles[1]->token;
+        }
+
+        return true;
+    }
+
+    return {};
+}
+

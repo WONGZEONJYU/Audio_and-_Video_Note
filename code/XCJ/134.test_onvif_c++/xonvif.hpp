@@ -26,6 +26,11 @@ public:
                                       const std::string &user,
                                       const std::string &passwd,
                                       std::string &url);
+    bool Profiles(const std::string &media_url,
+                      std::string &main_token,
+                      std::string &sub_token,
+                      const std::string &user,
+                      const std::string &pass);
 private:
     soap * m_soap_{};
     SOAP_ENV__Header *m_header_{};

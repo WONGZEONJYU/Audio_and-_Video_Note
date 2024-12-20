@@ -3,6 +3,8 @@
 
 using namespace std;
 
+
+
 int main(const int argc, const char * argv[]) {
     (void)argc, (void)argv;
 
@@ -12,12 +14,18 @@ int main(const int argc, const char * argv[]) {
     for (const auto &item:ss) {
         cerr << item << "\n";
     }
-    string url;
+
     if (ss.empty()){
         cerr << "empty\n" << endl;
         return 0;
     }
+    string url;
     onvif->MediaUrl(ss.front(),{},{},url);
-    cout << url << "\n";
+    cout << "url: " << url << "\n";
+    string main_token,sub_token;
+    onvif->Profiles(url,main_token,sub_token,"admin","Fy225588");
+    cout << "main_token: " << main_token << "\n"
+        << "sub_token: " << sub_token << "\n";
+
     return 0;
 }
