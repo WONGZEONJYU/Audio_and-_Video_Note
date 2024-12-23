@@ -9,6 +9,7 @@ struct soap;
 struct SOAP_ENV__Header;
 struct wsdd__ScopesType;
 struct wsdd__ProbeType;
+
 class XOnvif;
 using XOnvif_sp = std::shared_ptr<XOnvif>;
 
@@ -31,6 +32,20 @@ public:
                       std::string &sub_token,
                       const std::string &user,
                       const std::string &pass);
+
+
+    bool StreamUri(const std::string& media_url,
+                   const std::string &token,
+                   std::string &rtsp,
+                   const std::string &user,
+                   const std::string &passwd);
+
+    bool OnvifRtsp(const std::string &device,
+                    std::string &main_rtsp,
+                    std::string &sub_rtsp,
+                    const std::string &user,
+                    const std::string &passwd);
+
 private:
     soap * m_soap_{};
     SOAP_ENV__Header *m_header_{};

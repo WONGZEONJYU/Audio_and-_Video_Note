@@ -190,6 +190,7 @@ XOnvif::~XOnvif(){
     _tds__GetCapabilitiesResponse resp{};
 
     if (SOAP_OK != soap_call___tds__GetCapabilities(m_soap_, device.c_str(),{},&req,resp)){
+        cerr << *soap_faultstring(m_soap_) << "\n";
         return {};
     }
 
@@ -197,11 +198,11 @@ XOnvif::~XOnvif(){
     return true;
 }
 
-bool XOnvif::Profiles(const std::string &media_url,
-                  std::string &main_token,
-                  std::string &sub_token,
-                  const std::string &user,
-                  const std::string &passwd){
+bool XOnvif::Profiles(const string &media_url,
+                  string &main_token,
+                  string &sub_token,
+                  const string &user,
+                  const string &passwd){
 
     if (media_url.empty()){
         return {};
@@ -219,17 +220,88 @@ bool XOnvif::Profiles(const std::string &media_url,
             nullptr, //action
             &req, resp)};
 
-    if (SOAP_OK == ret){
-        if (!resp.Profiles.empty()){
-            main_token = resp.Profiles[0]->token;
-        }
-        if (resp.Profiles.size() > 1){
-            sub_token = resp.Profiles[1]->token;
-        }
-
-        return true;
+    if (SOAP_OK != ret){
+        cerr << *soap_faultstring(m_soap_) << "\n";
+        return {};
     }
 
-    return {};
+    if (!resp.Profiles.empty()){
+        main_token = resp.Profiles[0]->token;
+    }
+    if (resp.Profiles.size() > 1){
+        sub_token = resp.Profiles[1]->token;
+    }
+    return true;
 }
 
+bool XOnvif::StreamUri(const string& media_url,
+          const string &token,
+          string &rtsp,
+          const string &user,
+          const string &passwd){
+
+
+    if (media_url.empty()){
+        return {};
+    }
+
+    /*鉴权*/
+    if (!user.empty() && !passwd.empty()){
+        soap_wsse_add_UsernameTokenDigest(m_soap_,{},user.c_str(),passwd.c_str());
+    }
+
+    _trt__GetStreamUri req{};
+    _trt__GetStreamUriResponse resp{};
+
+    //请求的设置
+    tt__StreamSetup setup{};
+    tt__Transport transport{};
+
+    setup.Stream = tt__StreamType::RTP_Unicast,//单播
+    setup.Transport = &transport;
+    setup.Transport->Protocol = tt__TransportProtocol::RTSP; //协议
+    req.StreamSetup = &setup;
+    req.ProfileToken = token;
+
+    const auto ret{soap_call___trt__GetStreamUri(m_soap_, media_url.c_str(),
+                                                 nullptr, //action
+                                                 &req,
+                                                 resp)};
+    if (SOAP_OK != ret){
+        cerr << *soap_faultstring(m_soap_) << "\n";
+        return {};
+    }
+    rtsp = resp.MediaUri->Uri;
+    return true;
+}
+
+bool XOnvif::OnvifRtsp(const string &device,
+               string &main_rtsp,
+               string &sub_rtsp,
+               const string &user,
+               const string &passwd){
+
+    if (device.empty()){
+        return {};
+    }
+
+    string media_url,main_token,sub_token;
+
+    if (!MediaUrl(device,user,passwd,media_url)){
+        return {};
+    }
+
+    if (!Profiles(media_url,main_token,sub_token,user,passwd)){
+        return {};
+    }
+
+    if (!StreamUri(media_url,main_token,main_rtsp,user,passwd)){
+        return {};
+    }
+
+    if(!StreamUri(media_url,sub_token,sub_rtsp,user,passwd)){
+        return {};
+    }
+
+    return true;
+}
