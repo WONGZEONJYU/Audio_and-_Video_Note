@@ -20,7 +20,7 @@ int main(const int argc, const char * argv[]) {
 
     {
         string main_rtsp,sub_rtsp;
-        onvif->OnvifRtsp(ss.front(),main_rtsp,sub_rtsp,"admin","Fy225588");
+        onvif->OnvifRtsp(ss.front(),main_rtsp,sub_rtsp,"admin","110120130..");
         cerr << "main: " << main_rtsp << "\nsub: " << sub_rtsp << "\n";
     }
 
